@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExtremeXOS 大師開講：VRRP 協定深度解析</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Mermaid JS for diagrams -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans TC"', 'sans-serif'],
+                    },
+                    colors: {
+                        extremePurple: '#4A148C',
+                        extremeLight: '#F3E5F5',
+                        techBlue: '#0288D1',
+                    }
+                }
+            }
+        }
+        // 配置 Mermaid，確保 flowchart 渲染正確
+        mermaid.initialize({ 
+            startOnLoad: true, 
+            theme: 'neutral',
+            flowchart: { 
+                useMaxWidth: true, 
+                htmlLabels: true,
+                curve: 'basis' 
+            }
+        });
+    </script>
+    <style>
+        .section-card {
+            transition: transform 0.2s;
+        }
+        .section-card:hover {
+            transform: translateY(-2px);
+        }
+        .reveal-answer {
+            display: none;
+        }
+        .concept-box {
+            border-left: 4px solid #4A148C;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans leading-relaxed">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-gray-900 to-extremePurple text-white p-8 shadow-lg">
+        <div class="max-w-5xl mx-auto">
+            <div class="flex items-center gap-4">
+                <div class="text-4xl text-yellow-400"><i class="fa-solid fa-network-wired"></i></div>
+                <div>
+                    <h1 class="text-3xl font-bold">VRRP 協定深度解析</h1>
+                    <p class="text-gray-300 mt-2">Virtual Router Redundancy Protocol | 打造永不斷線的網路入口</p>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center gap-2 text-sm bg-white/10 w-fit px-3 py-1 rounded-full">
+                <i class="fa-solid fa-user-tie"></i>
+                <span>講師：ExtremeXOS 網路架構大師 (20年資歷)</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto p-6 space-y-8">
+
+        <!-- Intro -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <p class="text-lg">
+                <i class="fa-solid fa-quote-left text-extremePurple mr-2"></i>
+                各位學員好，歡迎來到進階網路架構課程。今天我們要談的是讓網路「高可用性 (High Availability)」的基石——VRRP。如果你希望老闆在路由器當機時不會衝進機房對你咆哮，這堂課請務必聽仔細。
+            </p>
+        </div>
+
+        <!-- 一、核心概念 -->
+        <section id="concept" class="bg-white p-6 rounded-lg shadow-md section-card border-t-4 border-techBlue">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-techBlue text-white w-8 h-8 rounded-full flex items-center justify-center text-sm mr-3">1</span>
+                一、核心概念 (Concept)
+            </h2>
+            
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="space-y-4">
+                    <div class="concept-box bg-blue-50 p-4 rounded">
+                        <h3 class="font-bold text-techBlue mb-2"><i class="fa-solid fa-book-open"></i> 一句話定義</h3>
+                        <p>VRRP 是一種容錯協定，它將多台實體路由器虛擬化為「一台」邏輯路由器，確保當主設備故障時，備援設備能無縫接手，終端用戶完全無感。</p>
+                    </div>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="concept-box bg-yellow-50 p-4 rounded" style="border-left-color: #F59E0B;">
+                        <h3 class="font-bold text-yellow-600 mb-2"><i class="fa-solid fa-lightbulb"></i> 生活化比喻：餐廳的值班經理</h3>
+                        <p>想像一間餐廳（區域網路），必須隨時有一位「值班經理」（Default Gateway）來處理客訴（封包轉發）。</p>
+                        <ul class="list-disc list-inside mt-2 text-sm text-gray-700 space-y-1">
+                            <li><strong>Virtual Router (VIP)：</strong>「值班經理」這個職位頭銜。客人只認職位，不認人。</li>
+                            <li><strong>Master Router：</strong>今天實際穿著經理制服上班的人（主要轉發者）。</li>
+                            <li><strong>Backup Router：</strong>坐在休息室待命的副理。他會每秒確認經理是否還在呼吸（接收 Advertisement），一旦經理昏倒，他立刻穿上制服接手，客人完全不知道換人了。</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 二、運作原理 -->
+        <section id="mechanism" class="bg-white p-6 rounded-lg shadow-md section-card border-t-4 border-extremePurple">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-extremePurple text-white w-8 h-8 rounded-full flex items-center justify-center text-sm mr-3">2</span>
+                二、運作原理 (Mechanism)
+            </h2>
+
+            <div class="space-y-6">
+                <div>
+                    <h3 class="text-lg font-semibold border-b pb-2 mb-3">技術細節與封包流向</h3>
+                    <ul class="list-none space-y-3">
+                        <li class="flex items-start">
+                            <i class="fa-solid fa-microchip text-extremePurple mt-1 mr-3"></i>
+                            <div>
+                                <strong>Hello 封包 (Advertisement)：</strong>
+                                <span class="text-gray-600">Master Router 會週期性（預設 1 秒）發送 VRRP Advertisement 通告自己的存活。這些封包透過 Multicast 位址 <code class="bg-gray-200 px-1 rounded text-red-600">224.0.0.18</code> 傳送。</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa-solid fa-tag text-extremePurple mt-1 mr-3"></i>
+                            <div>
+                                <strong>虛擬 MAC (Virtual MAC)：</strong>
+                                <span class="text-gray-600">這是 VRRP 最精妙的設計。VIP 對應的 MAC 永遠是 <code class="bg-gray-200 px-1 rounded text-red-600">00-00-5E-00-01-{VRID}</code>。當 Master 切換時，新的 Master 會發送 Gratuitous ARP，告訴交換機「現在這個 MAC 在我這個 Port」，以此更新 <strong>FDB (Forwarding Database)</strong> 或 MAC Address Table。</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa-solid fa-crown text-extremePurple mt-1 mr-3"></i>
+                            <div>
+                                <strong>選舉機制 (Election)：</strong>
+                                <span class="text-gray-600">比 <strong>Priority</strong> (優先權)。數值大者為王 (0-255)。若優先權相同，則比介面 IP 位址，大者獲勝。</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="bg-gray-50 p-4 rounded border border-gray-200">
+                    <h3 class="text-lg font-semibold mb-2 text-extremePurple">ExtremeXOS 關鍵參數</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
+                            <thead class="bg-gray-200">
+                                <tr>
+                                    <th class="p-2">參數</th>
+                                    <th class="p-2">說明</th>
+                                    <th class="p-2">預設值</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b">
+                                    <td class="p-2 font-mono text-red-600">Priority</td>
+                                    <td class="p-2">決定誰是 Master。設定為 255 代表擁有該 IP 的實體介面。</td>
+                                    <td class="p-2">100</td>
+                                </tr>
+                                <tr class="border-b">
+                                    <td class="p-2 font-mono text-red-600">Preempt Mode</td>
+                                    <td class="p-2">搶佔模式。若更高優先權的設備上線，是否立即搶回 Master 地位。</td>
+                                    <td class="p-2">Enabled (開啟)</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-2 font-mono text-red-600">vrid</td>
+                                    <td class="p-2">Virtual Router ID，區分同一個廣播域內不同的 VRRP 群組。</td>
+                                    <td class="p-2">需手動指定 (1-255)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 三、架構視覺化 -->
+        <section id="visuals" class="bg-white p-6 rounded-lg shadow-md section-card border-t-4 border-green-600">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-green-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm mr-3">3</span>
+                三、架構視覺化 (Visuals)
+            </h2>
+            
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold mb-3 text-center">VRRP 拓撲架構圖</h3>
+                <div class="mermaid flex justify-center bg-gray-50 p-4 rounded border">
+                    flowchart TD
+                        %% 1. Internet Layer (Top)
+                        Internet((Internet))
+
+                        %% 2. Switch Layer (Middle - Horizontal)
+                        subgraph Switching_Layer [Core Switching Layer]
+                            direction LR
+                            Core_A[("Extreme Switch A<br/>(Master)<br/>Priority: 200")]
+                            Core_B[("Extreme Switch B<br/>(Backup)<br/>Priority: 100")]
+                            
+                            %% Horizontal link
+                            Core_A -.->|VRRP Hello| Core_B
+                        end
+
+                        %% 3. Virtual Layer (Bottom)
+                        VIP(("Virtual Router (VIP)<br/>192.168.1.1<br/>VMAC: ...01:0A"))
+
+                        %% 4. User Layer (Bottom)
+                        PC1["User PC<br/>GW: 192.168.1.1"]
+
+                        %% Vertical Connections
+                        Internet ==> Core_A
+                        Internet -.-> Core_B
+                        
+                        Core_A --- VIP
+                        Core_B --- VIP
+                        
+                        VIP === PC1
+
+                        %% Style Definitions
+                        classDef master fill:#d1fae5,stroke:#059669,stroke-width:2px;
+                        classDef backup fill:#fee2e2,stroke:#dc2626,stroke-width:2px;
+                        classDef virtual fill:#e0f2fe,stroke:#0288d1,stroke-width:2px,stroke-dasharray: 5 5;
+                        classDef internet fill:#f3f4f6,stroke:#374151,stroke-width:2px;
+                        
+                        class Core_A master;
+                        class Core_B backup;
+                        class VIP virtual;
+                        class Internet internet;
+                </div>
+                <p class="text-center text-xs text-gray-500 mt-2">實線代表實際流量，虛線代表待命路徑或控制訊號</p>
+            </div>
+
+            <div>
+                <h3 class="text-lg font-semibold mb-3 text-center">Failover 切換流程 (Sequence Diagram)</h3>
+                <div class="mermaid flex justify-center bg-gray-50 p-4 rounded border">
+                    sequenceDiagram
+                        participant PC as User PC
+                        participant MA as Master (Switch A)
+                        participant BK as Backup (Switch B)
+
+                        Note over MA, BK: 正常狀態
+                        MA->>BK: VRRP Advertisement (Every 1s)
+                        PC->>MA: Traffic to Gateway (192.168.1.1)
+                        
+                        Note over MA: ❌ 發生故障 (Power failure / Cable cut)
+                        
+                        Note over BK: 3秒沒收到 Hello (Dead Interval)
+                        Note over BK: 狀態切換: Backup -> Master
+                        BK->>BK: Send Gratuitous ARP (Update FDB/MAC Table)
+                        
+                        Note over PC, BK: 故障轉移完成
+                        PC->>BK: Traffic to Gateway (192.168.1.1)
+                </div>
+            </div>
+        </section>
+
+        <!-- 四、實務應用場景 -->
+        <section id="usecase" class="bg-white p-6 rounded-lg shadow-md section-card border-t-4 border-yellow-500">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-yellow-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm mr-3">4</span>
+                四、實務應用場景 (Use Case)
+            </h2>
+
+            <div class="mb-4">
+                <h3 class="font-bold text-lg mb-2"><i class="fa-solid fa-building"></i> 案例：企業財務部網路隔離與備援</h3>
+                <p class="text-gray-700 mb-4">
+                    某金控公司的財務部門 VLAN 100，要求「零停機」存取銀行核心系統。我們在兩台 Extreme 核心交換機上配置 VRRP。
+                </p>
+            </div>
+
+            <!-- Extreme Config Snippet -->
+            <div class="bg-gray-800 text-gray-200 p-4 rounded mb-6 font-mono text-sm overflow-x-auto">
+                <div class="mb-2 text-xs text-gray-400"># ExtremeXOS Configuration Snippet</div>
+                <span class="text-green-400"># Switch A (Master)</span><br>
+                create vrrp vlan Finance_Vlan vrid 10<br>
+                configure vrrp vlan Finance_Vlan vrid 10 priority 200<br>
+                configure vrrp vlan Finance_Vlan vrid 10 add 10.10.10.254<br>
+                enable vrrp vlan Finance_Vlan vrid 10<br>
+                <br>
+                <span class="text-green-400"># Switch B (Backup)</span><br>
+                create vrrp vlan Finance_Vlan vrid 10<br>
+                configure vrrp vlan Finance_Vlan vrid 10 priority 100<br>
+                configure vrrp vlan Finance_Vlan vrid 10 add 10.10.10.254<br>
+                enable vrrp vlan Finance_Vlan vrid 10
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-green-50 p-3 rounded">
+                    <h4 class="font-bold text-green-700 mb-1">優點 (Pros)</h4>
+                    <ul class="list-disc list-inside text-sm text-gray-700">
+                        <li><strong>透明性：</strong>客戶端完全不需要更改網關設定。</li>
+                        <li><strong>標準協定：</strong>Extreme 可以跟 Cisco、Juniper 混搭做備援。</li>
+                    </ul>
+                </div>
+                <div class="bg-red-50 p-3 rounded">
+                    <h4 class="font-bold text-red-700 mb-1">缺點 (Cons)</h4>
+                    <ul class="list-disc list-inside text-sm text-gray-700">
+                        <li><strong>頻寬浪費：</strong>標準 VRRP 是 Active/Standby，備援機平常閒置，頻寬減半。</li>
+                        <li><strong>解決方案：</strong>可啟用 VRRP Load Sharing 或使用 MLAG (M-LAG) 架構來改善。</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 五、隨堂測驗 -->
+        <section id="quiz" class="bg-white p-6 rounded-lg shadow-md section-card border-t-4 border-pink-500">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-pink-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm mr-3">5</span>
+                五、隨堂測驗 (Quiz)
+            </h2>
+            <p class="mb-4 text-gray-600">身為架構師，細節決定成敗。試試看你能答對幾題？(點擊題目查看答案)</p>
+
+            <div class="space-y-3">
+                <!-- Q1 -->
+                <div class="border rounded cursor-pointer hover:bg-gray-50 transition" onclick="toggleAnswer('a1')">
+                    <div class="p-4 font-semibold text-gray-800 flex justify-between">
+                        1. VRRP 的 Virtual MAC 前綴固定為何？
+                        <i class="fa-solid fa-chevron-down text-gray-400"></i>
+                    </div>
+                    <div id="a1" class="reveal-answer bg-pink-50 p-4 text-sm border-t text-gray-700">
+                        <strong>答案：00-00-5E-00-01-XX</strong><br>
+                        解析：這是 IANA 分配給 VRRP 的專用 OUI，最後兩碼 (XX) 為十六進制的 VRID。
+                    </div>
+                </div>
+
+                <!-- Q2 -->
+                <div class="border rounded cursor-pointer hover:bg-gray-50 transition" onclick="toggleAnswer('a2')">
+                    <div class="p-4 font-semibold text-gray-800 flex justify-between">
+                        2. 預設情況下，VRRP 的 Priority 值是多少？
+                        <i class="fa-solid fa-chevron-down text-gray-400"></i>
+                    </div>
+                    <div id="a2" class="reveal-answer bg-pink-50 p-4 text-sm border-t text-gray-700">
+                        <strong>答案：100</strong><br>
+                        解析：如果不特別設定，Priority 預設為 100。
+                    </div>
+                </div>
+
+                <!-- Q3 -->
+                <div class="border rounded cursor-pointer hover:bg-gray-50 transition" onclick="toggleAnswer('a3')">
+                    <div class="p-4 font-semibold text-gray-800 flex justify-between">
+                        3. 如果兩台路由器的 Priority 設定相同，誰會當選 Master？
+                        <i class="fa-solid fa-chevron-down text-gray-400"></i>
+                    </div>
+                    <div id="a3" class="reveal-answer bg-pink-50 p-4 text-sm border-t text-gray-700">
+                        <strong>答案：IP 位址較大者</strong><br>
+                        解析：這是 Tie-breaker 機制。例如 192.168.1.3 會贏過 192.168.1.2。
+                    </div>
+                </div>
+
+                <!-- Q4 -->
+                <div class="border rounded cursor-pointer hover:bg-gray-50 transition" onclick="toggleAnswer('a4')">
+                    <div class="p-4 font-semibold text-gray-800 flex justify-between">
+                        4. 當 Master 恢復上線後，預設會發生什麼事？(Preempt)
+                        <i class="fa-solid fa-chevron-down text-gray-400"></i>
+                    </div>
+                    <div id="a4" class="reveal-answer bg-pink-50 p-4 text-sm border-t text-gray-700">
+                        <strong>答案：搶回 Master 角色</strong><br>
+                        解析：因為 Preempt Mode 預設為開啟 (Enabled)。Master 恢復後，因為優先權較高，會重新接管 VIP。
+                    </div>
+                </div>
+
+                <!-- Q5 -->
+                <div class="border rounded cursor-pointer hover:bg-gray-50 transition" onclick="toggleAnswer('a5')">
+                    <div class="p-4 font-semibold text-gray-800 flex justify-between">
+                        5. 在 ExtremeXOS 中，若要在 VLAN "Data" 建立 VRID 10，指令為何？
+                        <i class="fa-solid fa-chevron-down text-gray-400"></i>
+                    </div>
+                    <div id="a5" class="reveal-answer bg-pink-50 p-4 text-sm border-t text-gray-700">
+                        <strong>答案：create vrrp vlan Data vrid 10</strong><br>
+                        解析：需使用 vrid 參數。完整順序為 create -> configure -> enable。
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-12 bg-gray-900 text-gray-400 py-8 text-center text-sm">
+        <div class="max-w-5xl mx-auto px-6">
+            <p class="mb-2">ExtremeXOS 網路架構大師系列課程</p>
+            <div class="border-t border-gray-700 w-1/2 mx-auto my-4"></div>
+            <p>Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0</p>
+        </div>
+    </footer>
+
+    <script>
+        function toggleAnswer(id) {
+            const element = document.getElementById(id);
+            if (element.style.display === "block") {
+                element.style.display = "none";
+            } else {
+                element.style.display = "block";
+            }
+        }
+    </script>
+</body>
+</html>

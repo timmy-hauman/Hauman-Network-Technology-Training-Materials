@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L2 交換與 ARP 解析互動教學 (進階封包版)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Noto Sans TC', sans-serif; }
+        .device { transition: all 0.3s; z-index: 10; }
+        .packet {
+            position: absolute;
+            transition: all 0.8s ease-in-out;
+            z-index: 20;
+            display: none;
+        }
+        .ghost-packet {
+            position: absolute;
+            z-index: 15;
+            transition: all 0.8s ease-in-out;
+            opacity: 0.7;
+        }
+        .cable {
+            position: absolute;
+            background-color: #cbd5e1;
+            z-index: 0;
+            transform-origin: 0 0;
+        }
+        .fade-out {
+            animation: fadeOut 1s forwards;
+        }
+        @keyframes fadeOut {
+            to { opacity: 0; transform: scale(0.5); }
+        }
+        .highlight-update {
+            animation: highlight 1s ease-out;
+        }
+        @keyframes highlight {
+            0% { background-color: #fef08a; }
+            100% { background-color: transparent; }
+        }
+        .port-label {
+            position: absolute;
+            background-color: #ffffff;
+            border: 2px solid #64748b;
+            border-radius: 6px;
+            padding: 2px 6px;
+            font-size: 11px;
+            font-weight: bold;
+            color: #1e293b;
+            z-index: 30; /* Ensure visibility over cables and devices */
+            transform: translate(-50%, -50%);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        /* Layout utility for the star topology */
+        .topo-container {
+            position: relative;
+            height: 480px;
+            width: 100%;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen flex flex-col p-4">
+
+    <!-- Header & Configuration -->
+    <header class="mb-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+        <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-800">L2 交換與 ARP 解析教學</h1>
+                <p class="text-slate-600 text-sm mt-1">進階版：觀察 L2 Frame 與 L3 Packet 的封裝結構</p>
+            </div>
+            <div class="flex items-center gap-3 bg-slate-50 p-2 rounded-lg border border-slate-200">
+                <div class="flex flex-col">
+                    <label class="text-xs text-slate-500 font-bold ml-1">來源 (Source)</label>
+                    <select id="sel-src" class="border border-slate-300 rounded px-2 py-1 text-sm bg-white" onchange="updateDestOptions()">
+                        <option value="pca">PC A</option>
+                        <option value="pcb">PC B</option>
+                        <option value="pcc">PC C</option>
+                        <option value="pcd">PC D</option>
+                    </select>
+                </div>
+                <span class="text-slate-400 mt-4">➔</span>
+                <div class="flex flex-col">
+                    <label class="text-xs text-slate-500 font-bold ml-1">目的 (Dest)</label>
+                    <select id="sel-dst" class="border border-slate-300 rounded px-2 py-1 text-sm bg-white">
+                        <!-- Options populated by JS -->
+                    </select>
+                </div>
+                <button onclick="initScenario()" class="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded shadow text-sm font-bold transition-colors">
+                    設定情境
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex flex-col lg:flex-row gap-4 max-w-[1600px] mx-auto w-full mb-4">
+        
+        <!-- Left Column: Topology & Controls -->
+        <div class="flex-grow w-full lg:w-2/3 flex flex-col gap-4">
+            
+            <!-- Topology Diagram -->
+            <div class="topo-container bg-white rounded-xl shadow-md border border-slate-200 select-none" id="topology">
+                
+                <!-- Cables (SVG for simpler lines) -->
+                <svg class="absolute inset-0 w-full h-full pointer-events-none" id="cable-layer">
+                    <!-- Lines will be drawn by JS -->
+                </svg>
+
+                <!-- Switch (Center) - Cleaner now without table -->
+                <div class="device absolute bg-slate-800 border-4 border-slate-600 p-4 rounded-xl text-center w-32 shadow-xl text-white flex flex-col items-center justify-center h-32" 
+                     style="left: 50%; top: 50%; transform: translate(-50%, -50%);" id="dev-sw">
+                    <div class="text-5xl mb-2">🔄</div>
+                    <div class="font-bold text-sm">L2 Switch</div>
+                </div>
+
+                <!-- PCs & Ports generated by JS -->
+                <div id="pc-container"></div>
+                <div id="port-labels-container"></div>
+
+                <!-- Main Packet (Simplified Visual) -->
+                <div id="packet" class="packet bg-yellow-400 border-2 border-yellow-600 rounded px-2 py-1 shadow-xl flex flex-col items-center justify-center w-32 h-10">
+                    <div class="font-bold text-xs text-center leading-tight" id="pkt-type">ARP Request</div>
+                </div>
+
+            </div>
+
+            <!-- Controls -->
+            <div class="bg-white p-4 rounded-xl shadow-md border border-slate-200">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="font-bold text-slate-800">控制面板</h2>
+                    <span id="step-indicator" class="text-sm text-slate-500 font-mono">Step: 0</span>
+                </div>
+                <div id="step-description" class="text-slate-700 min-h-[40px] text-sm mb-4 bg-blue-50 p-3 rounded border border-blue-100">
+                    請先選擇來源與目的，然後點擊「設定情境」。
+                </div>
+                <div class="flex gap-3">
+                    <button id="btn-next" onclick="nextStep()" disabled class="disabled:opacity-50 disabled:cursor-not-allowed bg-green-600 hover:bg-green-700 text-white px-8 py-2 rounded-lg font-bold shadow transition-colors flex items-center gap-2">
+                        下一步 <span>▶</span>
+                    </button>
+                    <button onclick="resetSim()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-lg font-bold transition-colors text-sm">
+                        重置所有
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Column: Switch Table & ARP Tables -->
+        <div class="w-full lg:w-1/3 flex flex-col gap-4">
+            
+            <!-- Switch MAC Address Table (Moved Here) -->
+            <div class="bg-slate-800 text-white p-4 rounded-xl shadow-md border border-slate-700">
+                <h2 class="text-sm font-bold text-yellow-400 mb-3 border-b border-slate-600 pb-2 flex items-center gap-2">
+                    <span>🔄 Switch MAC Address Table</span>
+                </h2>
+                <div class="overflow-hidden rounded bg-slate-900 border border-slate-700">
+                    <table class="w-full text-sm text-left">
+                        <thead>
+                            <tr class="bg-slate-700 text-slate-200">
+                                <th class="px-3 py-2 border-r border-slate-600">MAC Address</th>
+                                <th class="px-3 py-2 text-center">Port</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mac-table-body">
+                            <tr><td colspan="2" class="text-center text-slate-500 py-4 italic">Table is Empty</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- All ARP Caches -->
+            <div class="bg-white p-4 rounded-xl shadow-md border border-slate-200 flex-grow">
+                <h2 class="text-sm font-bold text-slate-800 mb-3 border-b pb-2">PC ARP Tables (ARP Cache)</h2>
+                <div class="grid grid-cols-1 gap-3 overflow-y-auto max-h-[400px] pr-1" id="arp-tables-container">
+                    <!-- Dynamic Generation -->
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Bottom Section: Packet Sniffer (Full Width) -->
+    <div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden flex-grow flex flex-col max-w-[1600px] mx-auto w-full">
+        <div class="bg-slate-100 px-4 py-2 border-b border-slate-200 flex justify-between items-center">
+            <h3 class="font-bold text-slate-700 text-sm">封包紀錄 (Network Sniffer)</h3>
+            <div class="flex gap-4 text-xs">
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-100 border border-blue-300"></span> L2 Info</span>
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-50 border border-green-300"></span> L3 Info</span>
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-xs text-left border-collapse">
+                <thead class="text-slate-600 uppercase bg-slate-50 sticky top-0 border-b border-slate-300">
+                    <tr>
+                        <th class="px-3 py-2 w-10 border-r">Step</th>
+                        <th class="px-3 py-2 w-24 border-r">Type</th>
+                        
+                        <!-- L2 Header Group -->
+                        <th class="px-1 py-1 bg-blue-50 border-r border-blue-100 text-center text-[10px] text-blue-600 w-64" colspan="2">
+                            L2 Ethernet Frame
+                        </th>
+                        
+                        <!-- L3 Header Group -->
+                        <th class="px-1 py-1 bg-green-50 border-r border-green-100 text-center text-[10px] text-green-600 w-64" colspan="2">
+                            L3 Packet / Payload
+                        </th>
+                        
+                        <th class="px-3 py-2">Detail / Action</th>
+                    </tr>
+                    <tr class="bg-slate-50 text-[10px] text-slate-500 border-b">
+                        <th class="border-r"></th>
+                        <th class="border-r"></th>
+                        <!-- L2 Sub-headers -->
+                        <th class="px-2 py-1 bg-blue-50 border-r border-blue-100 font-mono">Dest MAC</th>
+                        <th class="px-2 py-1 bg-blue-50 border-r border-blue-100 font-mono">Source MAC</th>
+                        <!-- L3 Sub-headers -->
+                        <th class="px-2 py-1 bg-green-50 border-r border-green-100 font-mono">Dest IP</th>
+                        <th class="px-2 py-1 bg-green-50 border-r border-green-100 font-mono">Source IP</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="log-body">
+                    <!-- Logs here -->
+                    <tr>
+                        <td colspan="7" class="text-center py-4 text-slate-400 italic">No packets captured yet...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center text-slate-500 text-xs py-4 mt-2">
+        Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0
+    </footer>
+
+    <script>
+        // --- Data Definitions ---
+        const PCs = {
+            pca: { 
+                id: 'pca', name: 'PC A', ip: '192.168.1.10', mac: 'AA:AA:AA:AA:AA:AA', port: 1, color: 'blue', 
+                pos: { top: '15%', left: '15%' },
+                labelPos: { top: '40%', left: '40%' } 
+            },
+            pcb: { 
+                id: 'pcb', name: 'PC B', ip: '192.168.1.20', mac: 'BB:BB:BB:BB:BB:BB', port: 2, color: 'green', 
+                pos: { top: '15%', left: '85%' },
+                labelPos: { top: '40%', left: '60%' }
+            },
+            pcc: { 
+                id: 'pcc', name: 'PC C', ip: '192.168.1.30', mac: 'CC:CC:CC:CC:CC:CC', port: 3, color: 'purple', 
+                pos: { top: '85%', left: '15%' },
+                labelPos: { top: '60%', left: '40%' }
+            },
+            pcd: { 
+                id: 'pcd', name: 'PC D', ip: '192.168.1.40', mac: 'DD:DD:DD:DD:DD:DD', port: 4, color: 'orange', 
+                pos: { top: '85%', left: '85%' },
+                labelPos: { top: '60%', left: '60%' }
+            },
+        };
+
+        const SWITCH_POS = { top: '50%', left: '50%' };
+
+        // --- State ---
+        let currentStep = -1;
+        let scenarioSteps = [];
+        let macTable = {}; // Key: MAC, Value: Port
+        let srcPC = null;
+        let dstPC = null;
+        let logCount = 0;
+
+        // --- DOM Elements ---
+        const packetEl = document.getElementById('packet');
+        const btnNext = document.getElementById('btn-next');
+        const stepDesc = document.getElementById('step-description');
+        const stepInd = document.getElementById('step-indicator');
+        const logBody = document.getElementById('log-body');
+        const macTableBody = document.getElementById('mac-table-body');
+        const pcContainer = document.getElementById('pc-container');
+        const portLabelsContainer = document.getElementById('port-labels-container');
+        const cableLayer = document.getElementById('cable-layer');
+        const topoContainer = document.getElementById('topology');
+        const arpTablesContainer = document.getElementById('arp-tables-container');
+
+        // --- Initialization ---
+
+        function initUI() {
+            pcContainer.innerHTML = '';
+            portLabelsContainer.innerHTML = '';
+            cableLayer.innerHTML = '';
+            arpTablesContainer.innerHTML = '';
+            
+            Object.values(PCs).forEach(pc => {
+                // 1. Draw PC
+                const div = document.createElement('div');
+                div.id = `dev-${pc.id}`;
+                div.className = `device absolute bg-${pc.color}-100 border-2 border-${pc.color}-400 p-2 rounded-lg text-center w-36 shadow-sm`;
+                div.style.top = pc.pos.top;
+                div.style.left = pc.pos.left;
+                div.style.transform = 'translate(-50%, -50%)'; 
+                div.innerHTML = `
+                    <div class="text-2xl">💻</div>
+                    <div class="font-bold text-${pc.color}-900 text-sm">${pc.name}</div>
+                    <div class="text-[10px] text-slate-600 font-mono">${pc.ip}/24</div>
+                    <div class="text-[9px] font-mono bg-white bg-opacity-50 px-1 rounded mt-0.5">${pc.mac}</div>
+                `;
+                pcContainer.appendChild(div);
+
+                // 2. Draw Cable (SVG Line)
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                const x1 = parseFloat(pc.pos.left);
+                const y1 = parseFloat(pc.pos.top);
+                line.setAttribute('x1', x1 + '%');
+                line.setAttribute('y1', y1 + '%');
+                line.setAttribute('x2', '50%');
+                line.setAttribute('y2', '50%');
+                line.setAttribute('stroke', '#94a3b8');
+                line.setAttribute('stroke-width', '3');
+                cableLayer.appendChild(line);
+
+                // 3. Draw Port Label
+                const label = document.createElement('div');
+                label.className = 'port-label';
+                label.innerText = `Port ${pc.port}`;
+                label.style.top = pc.labelPos.top;
+                label.style.left = pc.labelPos.left;
+                portLabelsContainer.appendChild(label);
+
+                // 4. Create ARP Table UI Block
+                const arpBlock = document.createElement('div');
+                arpBlock.className = 'bg-slate-50 border border-slate-200 rounded p-2';
+                arpBlock.innerHTML = `
+                    <div class="text-[10px] font-bold text-${pc.color}-700 mb-1 border-b border-slate-200 pb-1 flex justify-between items-center">
+                        <span>${pc.name} ARP Table</span>
+                        <span class="text-[9px] text-slate-400 bg-white px-1 rounded border border-slate-100">${pc.ip}</span>
+                    </div>
+                    <div id="arp-content-${pc.id}" class="text-[10px] font-mono text-slate-600 min-h-[25px]">
+                        <div class="text-slate-400 italic text-center py-1 scale-90">Empty</div>
+                    </div>
+                `;
+                arpTablesContainer.appendChild(arpBlock);
+            });
+
+            updateDestOptions();
+        }
+
+        function updateDestOptions() {
+            const sVal = document.getElementById('sel-src').value;
+            const dSel = document.getElementById('sel-dst');
+            dSel.innerHTML = '';
+            
+            Object.values(PCs).forEach(pc => {
+                if(pc.id !== sVal) {
+                    const opt = document.createElement('option');
+                    opt.value = pc.id;
+                    opt.text = `${pc.name}`; // Removed IP from display
+                    if(sVal === 'pca' && pc.id === 'pcb') opt.selected = true;
+                    dSel.appendChild(opt);
+                }
+            });
+        }
+
+        // --- Core Logic ---
+
+        function initScenario() {
+            resetSim();
+            
+            const sVal = document.getElementById('sel-src').value;
+            const dVal = document.getElementById('sel-dst').value;
+            
+            srcPC = PCs[sVal];
+            dstPC = PCs[dVal];
+
+            scenarioSteps = [
+                {
+                    title: "初始化 (Initialization)",
+                    desc: `${srcPC.name} 想要傳送資料給 ${dstPC.name} (${dstPC.ip})。<br>檢查自己的 ARP Table，發現沒有對應的 MAC Address。`,
+                    action: () => {}
+                },
+                {
+                    title: "產生 ARP Request",
+                    desc: `${srcPC.name} 產生 ARP 請求。因為不知道目標 MAC，所以使用廣播 MAC (FF:FF...)。`,
+                    type: 'ARP Req', 
+                    // Log params: Step, Type, L2Src, L2Dst, L3Src, L3Dst, Note
+                    log: [1, 'ARP Request', srcPC.mac, 'FF:FF:FF:FF:FF:FF', srcPC.ip, dstPC.ip, `Who has ${dstPC.ip}? (Broadcast)`],
+                    action: () => {
+                        showPacket(srcPC.pos, 'ARP Request', srcPC.mac, 'FF:FF..', 'bg-yellow-400');
+                    }
+                },
+                {
+                    title: "進入 Switch",
+                    desc: "封包從 PC A 進入 Switch。",
+                    action: () => movePacket(SWITCH_POS)
+                },
+                {
+                    title: "Switch 學習 (Learn) 與 擴散 (Flood)",
+                    desc: `1. <b>Learn</b>: Switch 紀錄來源 MAC (${srcPC.mac}) 在 Port ${srcPC.port}。<br>2. <b>Flood</b>: 因為目的 MAC 是廣播 (FF..)，Switch 將封包轉送至所有其他 Port。`,
+                    action: () => {
+                        updateMacTable(srcPC.mac, srcPC.port);
+                        
+                        // Flood visual
+                        const targets = Object.values(PCs).filter(p => p.id !== srcPC.id);
+                        movePacket(dstPC.pos); // Main visual
+                        targets.forEach(t => {
+                            if (t.id !== dstPC.id) createGhostPacket(SWITCH_POS, t.pos);
+                        });
+                    }
+                },
+                {
+                    title: "終端處理 (Processing)",
+                    desc: `所有收到廣播的 PC 都會學習來源 IP/MAC。<br>但只有 IP 吻合的 ${dstPC.name} 會準備回應 ARP Reply。`,
+                    action: () => {
+                        packetEl.style.display = 'none';
+                        
+                        // NEW LOGIC: All other PCs learn from the ARP Request
+                        const others = Object.values(PCs).filter(p => p.id !== srcPC.id);
+                        others.forEach(pc => {
+                             updateArpCache(pc.id, srcPC.ip, srcPC.mac);
+                        });
+
+                        // Add processing log
+                        addLog('-', 'Internal', '-', '-', '-', '-', `All receiving PCs learn ${srcPC.ip} is at ${shortMAC(srcPC.mac)}`);
+                    }
+                },
+                {
+                    title: "產生 ARP Reply",
+                    desc: `${dstPC.name} 產生 ARP 回覆。這是一個單播 (Unicast) 封包，直接回應給 ${srcPC.name}。`,
+                    type: 'ARP Rep', 
+                    log: [2, 'ARP Reply', dstPC.mac, srcPC.mac, dstPC.ip, srcPC.ip, `I am ${dstPC.ip} (Unicast)`],
+                    action: () => {
+                        showPacket(dstPC.pos, 'ARP Reply', dstPC.mac, srcPC.mac, 'bg-yellow-400');
+                    }
+                },
+                {
+                    title: "進入 Switch (Reply)",
+                    desc: "ARP Reply 封包進入 Switch。",
+                    action: () => {
+                        movePacket(SWITCH_POS);
+                    }
+                },
+                {
+                    title: "Switch 轉送 (Forwarding)",
+                    desc: `1. <b>Learn</b>: Switch 紀錄來源 MAC (${dstPC.mac}) 在 Port ${dstPC.port}。<br>2. <b>Forward</b>: 查表發現目的 MAC (${srcPC.mac}) 在 Port ${srcPC.port}，直接轉送。`,
+                    action: () => {
+                        updateMacTable(dstPC.mac, dstPC.port);
+                        movePacket(srcPC.pos);
+                    }
+                },
+                {
+                    title: "ARP 解析完成",
+                    desc: `${srcPC.name} 收到回覆，更新 ARP Table。<br>現在雙方都知道對方的 MAC Address，可以開始傳送資料。`,
+                    action: () => {
+                        packetEl.style.display = 'none';
+                        updateArpCache(srcPC.id, dstPC.ip, dstPC.mac);
+                    }
+                },
+                {
+                    title: "發送 L3 資料 (ICMP Ping)",
+                    desc: `${srcPC.name} 封裝 ICMP Echo Request。<br>L2 Header 使用 ARP 查到的 MAC。`,
+                    type: 'ICMP Req', 
+                    log: [3, 'ICMP Req', srcPC.mac, dstPC.mac, srcPC.ip, dstPC.ip, 'Ping Request (Echo)'],
+                    action: () => {
+                        showPacket(srcPC.pos, 'ICMP Request', srcPC.mac, dstPC.mac, 'bg-green-400');
+                    }
+                },
+                {
+                    title: "進入 Switch (ICMP)",
+                    desc: "封包從 PC 傳送到 Switch。",
+                    action: () => {
+                        movePacket(SWITCH_POS);
+                    }
+                },
+                {
+                    title: "Switch 快速交換 (Forwarding)",
+                    desc: "Switch 根據 MAC Table，直接將封包從 Port 1 交換至 Port 2，無須廣播。",
+                    action: () => {
+                        movePacket(dstPC.pos);
+                    }
+                },
+                {
+                    title: "回傳 ICMP Reply (產生)",
+                    desc: `${dstPC.name} 收到 Ping，準備回傳 ICMP Echo Reply。`,
+                    type: 'ICMP Rep', 
+                    log: [4, 'ICMP Rep', dstPC.mac, srcPC.mac, dstPC.ip, srcPC.ip, 'Ping Reply (Success)'],
+                    action: () => {
+                         packetEl.style.display = 'none';
+                         // Slight delay for visual reset
+                         setTimeout(() => {
+                            showPacket(dstPC.pos, 'ICMP Reply', dstPC.mac, srcPC.mac, 'bg-green-400');
+                         }, 100);
+                    }
+                },
+                {
+                   title: "進入 Switch (Reply)",
+                   desc: "ICMP Reply 進入 Switch。",
+                   action: () => {
+                       movePacket(SWITCH_POS);
+                   }
+                },
+                {
+                   title: "Switch 轉送至來源",
+                   desc: "Switch 根據 MAC Table 將回覆封包送回來源端。",
+                   action: () => {
+                       movePacket(srcPC.pos);
+                   }
+                },
+                {
+                    title: "完成",
+                    desc: "通訊成功！",
+                    action: () => {
+                        packetEl.style.display = 'none';
+                        stepDesc.innerHTML += `<br><span class="text-green-600 font-bold">✅ 演示完成！</span>`;
+                    }
+                }
+            ];
+
+            currentStep = -1;
+            btnNext.disabled = false;
+            stepDesc.innerHTML = `情境已設定：${srcPC.name} -> ${dstPC.name}。<br>請點擊「下一步」開始。`;
+            logCount = 0;
+            logBody.innerHTML = ''; // Clear logs
+        }
+
+        function nextStep() {
+            currentStep++;
+            if (currentStep >= scenarioSteps.length) {
+                btnNext.disabled = true;
+                return;
+            }
+
+            const step = scenarioSteps[currentStep];
+            stepInd.innerText = `Step: ${currentStep + 1}/${scenarioSteps.length}`;
+            stepDesc.innerHTML = `<strong class="text-blue-700 block mb-1">${step.title}</strong>${step.desc}`;
+
+            if(step.log) {
+                // Pass args spread from the array
+                addLog(...step.log);
+            }
+            if(step.action) step.action();
+        }
+
+        // --- Visual Helpers ---
+
+        function showPacket(pos, type, srcMac, dstMac, colorClass) {
+            packetEl.style.display = 'flex';
+            document.getElementById('pkt-type').innerText = type;
+            // Removed src/dst display updates on packet
+            packetEl.className = `packet border-2 rounded shadow-xl flex items-center justify-center w-32 h-10 z-20 ${colorClass} border-slate-600`;
+            setPacketPos(packetEl, pos);
+        }
+
+        function movePacket(targetPos) {
+            setPacketPos(packetEl, targetPos);
+        }
+
+        function setPacketPos(el, pos) {
+            el.style.left = pos.left;
+            el.style.top = pos.top;
+            el.style.transform = 'translate(-50%, -50%)';
+        }
+
+        function createGhostPacket(startPos, endPos) {
+            const ghost = packetEl.cloneNode(true);
+            ghost.id = '';
+            ghost.classList.add('ghost-packet', 'opacity-50');
+            ghost.style.display = 'flex';
+            topoContainer.appendChild(ghost);
+            setPacketPos(ghost, startPos);
+            requestAnimationFrame(() => setPacketPos(ghost, endPos));
+            setTimeout(() => {
+                ghost.classList.add('fade-out');
+                ghost.classList.remove('bg-yellow-400');
+                ghost.classList.add('bg-red-300'); // Show drop color
+            }, 800);
+            setTimeout(() => ghost.remove(), 1800);
+        }
+
+        function shortMAC(mac) {
+            if(!mac) return '-';
+            if(mac.includes('FF:FF')) return 'FF:FF..';
+            return mac.substring(0, 2) + '..' + mac.substring(15);
+        }
+
+        // --- Data Helpers ---
+
+        function updateMacTable(mac, port) {
+            if (macTable[mac]) return;
+            macTable[mac] = port;
+            
+            macTableBody.innerHTML = '';
+            Object.keys(macTable).forEach(m => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b border-slate-700 hover:bg-slate-700 transition-colors';
+                tr.innerHTML = `
+                    <td class="px-3 py-2 font-mono text-xs text-yellow-100">${m}</td>
+                    <td class="px-3 py-2 text-center font-bold text-blue-300">${macTable[m]}</td>
+                `;
+                macTableBody.appendChild(tr);
+            });
+            
+            // Highlight container
+            macTableBody.parentElement.classList.add('border-yellow-400');
+            setTimeout(() => macTableBody.parentElement.classList.remove('border-yellow-400'), 500);
+        }
+
+        function updateArpCache(pcId, ip, mac) {
+            const container = document.getElementById(`arp-content-${pcId}`);
+            if (!container) return;
+
+            if(container.innerHTML.includes('Empty')) container.innerHTML = '';
+            
+            if(!container.innerHTML.includes(ip)) {
+                const entry = document.createElement('div');
+                // Removed 'flex justify-between' to allow stacking if needed, but mostly flex col is better for full mac
+                // But space is tight. Let's try column layout for the entry
+                entry.className = "w-full border-b border-slate-100 last:border-0 py-1 px-1 bg-green-50 rounded mb-1 highlight-update flex flex-col";
+                // Show Full MAC, remove shortMAC()
+                entry.innerHTML = `
+                    <span class="font-bold text-slate-700 text-[10px]">${ip}</span>
+                    <span class="text-slate-500 font-mono text-[9px] break-all">${mac}</span>
+                `;
+                container.appendChild(entry);
+                setTimeout(() => entry.classList.remove('highlight-update'), 1000);
+            }
+        }
+
+        function addLog(step, type, l2src, l2dst, l3src, l3dst, note) {
+            const tr = document.createElement('tr');
+            tr.className = 'bg-white border-b border-slate-100 hover:bg-yellow-50 transition-colors';
+            
+            let typeBadge = '';
+            if(type.includes('ARP')) typeBadge = '<span class="px-2 py-0.5 rounded bg-yellow-100 text-yellow-800 font-bold border border-yellow-200">ARP</span>';
+            if(type.includes('ICMP')) typeBadge = '<span class="px-2 py-0.5 rounded bg-green-100 text-green-800 font-bold border border-green-200">ICMP</span>';
+            if(step === '-') typeBadge = '<span class="text-slate-400">INFO</span>';
+
+            // For ARP, L3 IPs are actually inside payload, but we display them in L3 col for clarity
+            // If it's pure L2/Internal, we might leave them blank
+            const l3Display = (l3src === '-' || !l3src) ? '<span class="text-slate-300">-</span>' : 
+                              `<div class="flex flex-col gap-0.5">
+                                 <span class="text-[10px] text-green-700">Src: ${l3src}</span>
+                                 <span class="text-[10px] text-green-700">Dst: ${l3dst}</span>
+                               </div>`;
+
+            tr.innerHTML = `
+                <td class="px-3 py-2 font-medium text-slate-500 border-r">${step}</td>
+                <td class="px-3 py-2 text-[10px] border-r">${typeBadge}</td>
+                
+                <!-- L2 -->
+                <td class="px-2 py-1 font-mono text-[10px] bg-blue-50/30 text-blue-900 border-r border-blue-50">${l2dst.includes('FF')?'Broadcast':l2dst}</td>
+                <td class="px-2 py-1 font-mono text-[10px] bg-blue-50/30 text-blue-900 border-r border-slate-200">${l2src}</td>
+                
+                <!-- L3 -->
+                <td class="px-2 py-1 font-mono text-[10px] bg-green-50/30 border-r border-green-50">${l3dst}</td>
+                <td class="px-2 py-1 font-mono text-[10px] bg-green-50/30 border-r border-slate-200">${l3src}</td>
+                
+                <td class="px-3 py-2 text-slate-500 italic text-[11px]">${note}</td>
+            `;
+            
+            // Only clear 'Empty' row if it's the first log
+            if(logBody.innerHTML.includes('No packets')) logBody.innerHTML = '';
+            
+            logBody.appendChild(tr);
+            // Scroll to bottom
+            const container = logBody.closest('div');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function resetSim() {
+            currentStep = -1;
+            macTable = {};
+            macTableBody.innerHTML = '<tr><td colspan="2" class="text-center text-slate-500 py-4 italic">Table is Empty</td></tr>';
+            logBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-slate-400 italic">No packets captured yet...</td></tr>';
+            
+            Object.values(PCs).forEach(pc => {
+                const el = document.getElementById(`arp-content-${pc.id}`);
+                if(el) el.innerHTML = '<div class="text-slate-400 italic text-center py-1 scale-90">Empty</div>';
+            });
+
+            packetEl.style.display = 'none';
+            stepDesc.innerHTML = '設定重置。請重新選擇情境。';
+            btnNext.disabled = true;
+            stepInd.innerText = 'Step: 0';
+            document.querySelectorAll('.ghost-packet').forEach(e => e.remove());
+        }
+
+        // Init
+        window.onload = initUI;
+
+    </script>
+</body>
+</html>

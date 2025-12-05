@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>網路架構大師班：深入解析 Spanning Tree (802.1d & 802.1w)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+        body { font-family: 'Noto Sans TC', sans-serif; }
+        .mermaid { background: white; padding: 20px; border-radius: 8px; text-align: center; }
+        .quiz-option:hover { background-color: #f3f4f6; cursor: pointer; }
+        .correct { background-color: #d1fae5 !important; border-color: #10b981 !important; }
+        .wrong { background-color: #fee2e2 !important; border-color: #ef4444 !important; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Header -->
+    <header class="bg-slate-800 text-white p-6 shadow-lg">
+        <div class="max-w-5xl mx-auto">
+            <h1 class="text-3xl font-bold mb-2"><i class="fas fa-network-wired mr-2"></i> Spanning Tree Protocol 深度解析</h1>
+            <p class="text-gray-300">從 802.1d (STP) 到 802.1w (RSTP) 的演進之路</p>
+            <div class="mt-4 text-sm bg-slate-700 inline-block px-3 py-1 rounded">
+                <i class="fas fa-user-tie mr-1"></i> 講師：ExtremeXOS 網路架構大師
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto p-6 space-y-12 mb-20">
+
+        <!-- Section 1: Core Concepts -->
+        <section id="concept" class="bg-white p-6 rounded-lg shadow-md border-l-4 border-blue-500">
+            <h2 class="text-2xl font-bold mb-4 text-slate-800">一、核心概念 (Core Concept)</h2>
+            
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-lg font-semibold text-blue-600 mb-2">一句話定義</h3>
+                    <p class="text-gray-700 leading-relaxed">
+                        Spanning Tree 是一種二層 (Layer 2) 網路協定，透過邏輯性地「阻塞」備援路徑，將一個含有環路 (Loop) 的實體網路修剪成一個無環路的樹狀邏輯結構，以防止廣播風暴 (Broadcast Storm)。
+                    </p>
+                </div>
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold text-blue-600 mb-2"><i class="fas fa-lightbulb text-yellow-500"></i> 生活化比喻：公司指揮鏈</h3>
+                    <p class="text-gray-700 text-sm">
+                        想像這是一間大公司。為了避免命令混亂（封包無限迴圈），我們必須選出一位 **CEO (Root Bridge)**。
+                        <br><br>
+                        所有的決策（資料流）雖然有很多傳遞路徑（冗餘線路），但為了效率，我們規定每位經理只能聽從一位直屬上司的指令。那些「備用」的溝通管道（備援線路）平時必須保持安靜（Blocking），只有當直屬上司請假或離職（線路中斷）時，備用管道才會啟用。
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Mechanism -->
+        <section id="mechanism" class="bg-white p-6 rounded-lg shadow-md border-l-4 border-green-500">
+            <h2 class="text-2xl font-bold mb-4 text-slate-800">二、運作原理 (Mechanism)</h2>
+            
+            <div class="mb-6">
+                <h3 class="text-xl font-semibold mb-2">1. 角色口訣：RP 找媽媽，DP 顧小孩</h3>
+                <div class="bg-green-50 p-4 rounded border border-green-200 text-sm text-gray-700 space-y-2">
+                    <p><strong>Root Port (RP)：</strong> 每個非 Root 交換機只有一個。這是「通往 Root Bridge 最短路徑」的 Port。就像孩子要找媽媽（Root），只能選一條最近的路。</p>
+                    <p><strong>Designated Port (DP)：</strong> 每個網段（網線）只有一個。這是負責將來自 Root 的資料「往下傳送」給該網段的 Port。因為 Root Bridge 是源頭，所以 Root Bridge 上的所有 Port 天生就是 DP（離自己最近）。</p>
+                    <p><strong>Blocking Port (BLK)：</strong> 選輸的 Port。當一個網段兩端的交換機在爭奪誰當 DP 時，條件較差的那一方就會閉嘴（Block），避免迴圈。</p>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <h3 class="text-xl font-semibold mb-2">2. 封包與控制層面 (BPDU)</h3>
+                <ul class="list-disc list-inside text-gray-700 space-y-2">
+                    <li><strong>BPDU (Bridge Protocol Data Unit)：</strong> 交換機之間的「心跳聲」。每 2 秒發送一次 Hello BPDU。</li>
+                    <li><strong>Root Bridge 選舉：</strong> 比小不比大。先比 <strong>Priority (預設 32768)</strong>，若相同則比 <strong>MAC Address</strong>。數值越小者當選 Root。</li>
+                    <li><strong>路徑成本 (Path Cost)：</strong> 頻寬越大，過路費(Cost)越低。例如 10Gbps 的 Cost 小於 1Gbps。</li>
+                </ul>
+            </div>
+
+            <div class="overflow-x-auto">
+                <h3 class="text-xl font-semibold mb-3">3. 802.1d vs 802.1w 關鍵差異</h3>
+                <table class="min-w-full text-sm text-left text-gray-700 border">
+                    <thead class="bg-gray-100 text-gray-900 uppercase">
+                        <tr>
+                            <th class="px-4 py-3">特性</th>
+                            <th class="px-4 py-3">802.1d (Legacy STP)</th>
+                            <th class="px-4 py-3">802.1w (RSTP)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-b">
+                            <td class="px-4 py-2 font-medium">連接埠狀態</td>
+                            <td class="px-4 py-2">Blocking, Listening, Learning, Forwarding, Disabled</td>
+                            <td class="px-4 py-2 text-green-700 font-bold">Discarding, Learning, Forwarding</td>
+                        </tr>
+                        <tr class="border-b bg-gray-50">
+                            <td class="px-4 py-2 font-medium">收斂速度</td>
+                            <td class="px-4 py-2">慢 (30 ~ 50 秒)</td>
+                            <td class="px-4 py-2">快 (小於 1 秒, 視拓撲而定)</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="px-4 py-2 font-medium">收斂機制</td>
+                            <td class="px-4 py-2">依賴計時器 (Max Age, Forward Delay)</td>
+                            <td class="px-4 py-2 text-blue-700 font-bold">Proposal / Agreement (主動握手)</td>
+                        </tr>
+                        <tr>
+                            <td class="px-4 py-2 font-medium">ExtremeXOS 備註</td>
+                            <td colspan="2" class="px-4 py-2 italic text-gray-500">
+                                在 ExtremeXOS 中，我們使用 STPD (Spanning Tree Domain) 來管理。您可以建立多個 STPD 並將 VLAN 對應進去 (類似 MSTP 概念)，以實現負載平衡。
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Section 3: Visuals -->
+        <section id="visuals" class="bg-white p-6 rounded-lg shadow-md border-l-4 border-purple-500">
+            <h2 class="text-2xl font-bold mb-4 text-slate-800">三、架構視覺化 (Visuals)</h2>
+            
+            <div class="space-y-12">
+                <!-- Diagram 1: Topology -->
+                <div class="bg-gray-50 p-6 rounded-lg border border-gray-100">
+                    <h3 class="text-xl font-semibold mb-4 text-center text-purple-700">STP 角色選舉拓撲 (Topology)</h3>
+                    <div class="mermaid flex justify-center">
+                        graph TD
+                            Root[<b>Root Bridge</b><br>Priority: 4096<br>MAC: 00:04:96:AA:AA:AA]
+                            SW_A[<b>Switch A</b><br>Priority: 32768<br>MAC: 00:04:96:BB:BB:BB]
+                            SW_B[<b>Switch B</b><br>Priority: 32768<br>MAC: 00:04:96:CC:CC:CC]
+
+                            Root -- DP (Root 端永遠是 DP) --- SW_A
+                            Root -- DP (Root 端永遠是 DP) --- SW_B
+                            SW_A -- DP (贏家) --- LinkAB((互連網段))
+                            LinkAB -. BLK (輸家) .- SW_B
+
+                            linkStyle 0 stroke:#10b981,stroke-width:3px;
+                            linkStyle 1 stroke:#10b981,stroke-width:3px;
+                            linkStyle 2 stroke:#10b981,stroke-width:3px;
+                            linkStyle 3 stroke:#ef4444,stroke-width:3px,stroke-dasharray: 5 5;
+                    </div>
+                    
+                    <!-- Detailed Explanation Box -->
+                    <div class="mt-6 bg-white p-4 rounded shadow-sm border-l-4 border-red-400">
+                        <h4 class="font-bold text-lg mb-2 text-red-600">為什麼 Switch B 會變成 Blocking？(PK 解析)</h4>
+                        <p class="text-sm text-gray-700 mb-3">
+                            在 Switch A 與 Switch B 相連的這個網段上，必須選出一個負責傳送資料的 <strong>指定埠 (Designated Port, DP)</strong>。誰「離 Root 比較近」或「條件比較好」，誰就當 DP，輸的人就 Block。
+                        </p>
+                        <ol class="list-decimal list-inside text-sm space-y-2 text-gray-800">
+                            <li><strong>第一關 - 比 Root Path Cost (到 Root 的距離)：</strong>
+                                <br><span class="text-gray-500 ml-4">假設 A 和 B 直接連到 Root 的線路速度一樣 (Cost 相同)。 -> <strong>平手</strong></span>
+                            </li>
+                            <li><strong>第二關 - 比 Bridge ID (Priority + MAC)：</strong>
+                                <br><span class="text-gray-500 ml-4">因為 Priority 都是預設 32768，所以比 <strong>MAC Address</strong>。</span>
+                                <ul class="list-disc ml-8 mt-1 text-gray-600">
+                                    <li>Switch A MAC: <strong>00:04:96:BB:BB:BB</strong> (Extreme OUI)</li>
+                                    <li>Switch B MAC: <strong>00:04:96:CC:CC:CC</strong> (Extreme OUI)</li>
+                                </ul>
+                            </li>
+                            <li><strong>結果揭曉：</strong>
+                                <br><span class="text-gray-500 ml-4">MAC 位址後段的 <strong>BB:BB:BB 小於 CC:CC:CC</strong>，所以 Switch A 條件比較好 (視為邏輯上離 Root 較近)。</span>
+                            </li>
+                            <li><strong>最終判決：</strong>
+                                <br><span class="ml-4 font-bold text-green-600">Switch A 的 Port 成為 DP (負責轉發)。</span>
+                                <br><span class="ml-4 font-bold text-red-600">Switch B 的 Port 選輸了，變成 Blocking (閉嘴待命)。</span>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+
+                <!-- Diagram 2: RSTP Sync -->
+                <div class="bg-gray-50 p-6 rounded-lg border border-gray-100">
+                    <h3 class="text-xl font-semibold mb-4 text-center text-purple-700">RSTP 快速收斂機制 (P/A Handshake)</h3>
+                    <div class="mermaid flex justify-center">
+                        sequenceDiagram
+                            participant Root as Root Bridge
+                            participant SW_A as Switch A
+                            
+                            Note over Root, SW_A: 鏈路剛建立 (皆為 Discarding)
+                            Root->>SW_A: 發送 Proposal BPDU (我是老大!)
+                            Note over SW_A: 收到 Proposal<br>立即阻塞其他 Port (Sync)
+                            SW_A->>Root: 回覆 Agreement BPDU (好的，同意!)
+                            Note over Root, SW_A: 鏈路立即轉為 Forwarding (無需等待 30秒)
+                    </div>
+                    <p class="text-sm text-gray-500 mt-4 text-center">圖說：RSTP 透過主動的 Proposal/Agreement 握手機制，確認雙方對 Link 的認知一致後，即可立即進入 Forwarding，跳過了傳統 STP 漫長的 Listening 與 Learning 計時器。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Use Case -->
+        <section id="usecase" class="bg-white p-6 rounded-lg shadow-md border-l-4 border-orange-500">
+            <h2 class="text-2xl font-bold mb-4 text-slate-800">四、實務應用場景 (Use Case)</h2>
+            
+            <div class="bg-gray-50 p-4 rounded border border-gray-200">
+                <h3 class="font-bold text-lg mb-2">場景：企業園區核心網路備援</h3>
+                <p class="mb-4">
+                    某製造業廠區，為了確保產線不中斷，將 **存取層交換機 (Access Switch)** 透過兩條光纖分別上連至 **兩台核心交換機 (Core A & Core B)**。
+                </p>
+                <ul class="list-disc list-inside space-y-2 mb-4">
+                    <li><strong>部署方式：</strong> 啟用 RSTP (802.1w)。Core A 設定 Priority 4096 (Root)，Core B 設定 Priority 8192 (Secondary Root)。Access Switch 維持預設 32768。</li>
+                    <li><strong>正常運作：</strong> Access Switch 到 Core A 的線路 Forwarding，到 Core B 的線路 Blocking。</li>
+                    <li><strong>故障發生：</strong> 當 Core A 當機或光纖被挖斷，Access Switch 偵測到 BPDU 遺失，立即將通往 Core B 的線路轉為 Forwarding。</li>
+                </ul>
+                
+                <div class="grid grid-cols-2 gap-4 mt-4 text-sm">
+                    <div class="p-3 bg-green-100 rounded text-green-800">
+                        <strong>優點 (Pros)：</strong>
+                        <ul class="list-disc ml-4">
+                            <li>防止<strong>單點故障 (Single Point of Failure, SPOF)</strong>，提高網路可用性。</li>
+                            <li>配置簡單，是所有企業級交換機 (包含 ExtremeXOS) 的標準功能。</li>
+                            <li>RSTP 提供了秒級 (Sub-second) 的復原能力，遠優於傳統 STP。</li>
+                        </ul>
+                    </div>
+                    <div class="p-3 bg-red-100 rounded text-red-800">
+                        <strong>缺點 (Cons)：</strong>
+                        <ul class="list-disc ml-4">
+                            <li><strong>頻寬利用率低：</strong>為了防止環路，備援路徑必須處於 Blocking 狀態，無法同時傳輸流量 (Active-Standby)。</li>
+                            <li><strong>技術演進：</strong>現代架構趨勢已轉向使用 <strong>MC-LAG (MLAG)</strong> 或 <strong>Extreme EAPS</strong> 環網技術，以實現雙活 (Active-Active) 轉發並消除 STP 的阻塞。</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: Quiz -->
+        <section id="quiz" class="bg-white p-6 rounded-lg shadow-md border-l-4 border-indigo-500">
+            <h2 class="text-2xl font-bold mb-6 text-slate-800">五、隨堂測驗 (Quiz)</h2>
+            <div class="space-y-6">
+                
+                <!-- Q1 -->
+                <div class="quiz-item">
+                    <p class="font-semibold mb-2">Q1. 在 STP Root Bridge 的選舉過程中，判斷順序為何？</p>
+                    <div class="space-y-2" id="q1-options">
+                        <div class="quiz-option border p-3 rounded" onclick="checkAnswer(this, false, '錯誤。Priority 是優先判斷條件。')">A. 先比 MAC Address，再比 Priority</div>
+                        <div class="quiz-option border p-3 rounded" onclick="checkAnswer(this, true, '正確！這是黃金法則：先比 Priority (數值越小越優先)，若相同才比 MAC Address。')">B. 先比 Priority，再比 MAC Address</div>
+                        <div class="quiz-option border p-3 rounded" onclick="checkAnswer(this, false, '錯誤。IP Address 不參與 STP 計算，STP 是 Layer 2 協定。')">C. 先比 IP Address，再比 MAC Address</div>
+                    </div>
+                    <div class="feedback mt-2 text-sm font-bold hidden"></div>
+                </div>
+
+                <!-- Q2 -->
+                <div class="quiz-item">
+                    <p class="font-semibold mb-2">Q2. 下列哪一個狀態「不屬於」RSTP (802.1w)，但存在於傳統 STP (802.1d) 中？</p>
+                    <div class="space-y-2" id="q2-options">
+                        <div class="quiz-option border p-3 rounded" onclick="checkAnswer(this, false, '錯誤。Forwarding 兩個協定都有。')">A. Forwarding</div>
+                        <div class="quiz-option border p-3 rounded" onclick="checkAnswer(this, true, '正確！RSTP 將 Blocking 與 Listening 合併並重新定義為 Discarding 狀態。')">B. Listening</div>
+                        <div class="quiz-option border p-3 rounded" onclick="checkAnswer(this, false, '錯誤。Discarding 是 RSTP 特有的狀態名稱 (雖然行為類似 Blocking)。')">C. Discarding</div>
+                    </div>
+                    <div class="feedback mt-2 text-sm font-bold hidden"></div>
+                </div>
+
+                <!-- Q3 -->
+                <div class="quiz-item">
+                    <p class="font-semibold mb-2">Q3. 在 ExtremeXOS 或一般交換機上配置 RSTP Edge Port (或稱 Portfast) 的主要目的是什麼？</p>
+                    <div class="space-y-2" id="q3-options">
+                        <div class="quiz-option border p-3 rounded" onclick="checkAnswer(this, true, '正確！連接終端設備(PC/Server)的 Port 不會產生環路，設為 Edge Port 可跳過學習直接進入 Forwarding。')">A. 讓連接終端設備的 Port 立即進入 Forwarding 狀態</div>
+                        <div class="quiz-option border p-3 rounded" onclick="checkAnswer(this, false, '錯誤。Edge Port 不會增加頻寬。')">B. 增加 Port 的頻寬</div>
+                        <div class="quiz-option border p-3 rounded" onclick="checkAnswer(this, false, '錯誤。Edge Port 不參與 Root 選舉。')">C. 強制該 Port 成為 Root Port</div>
+                    </div>
+                    <div class="feedback mt-2 text-sm font-bold hidden"></div>
+                </div>
+
+                 <!-- Q4 -->
+                 <div class="quiz-item">
+                    <p class="font-semibold mb-2">Q4. 當一個 Port 處於 RSTP 的 "Discarding" 狀態時，它會做什麼事？</p>
+                    <div class="space-y-2" id="q4-options">
+                        <div class="quiz-option border p-3 rounded" onclick="checkAnswer(this, false, '錯誤。Discarding 狀態不會轉發使用者資料。')">A. 轉發使用者資料封包，但不學習 MAC</div>
+                        <div class="quiz-option border p-3 rounded" onclick="checkAnswer(this, true, '正確！它不轉發資料，不學習 MAC，但「必須」持續接收並處理 BPDU 以維持拓撲感知。')">B. 不轉發資料，但會接收並處理 BPDU</div>
+                        <div class="quiz-option border p-3 rounded" onclick="checkAnswer(this, false, '錯誤。如果完全關閉連 BPDU 都不收，那就無法偵測環路了。')">C. 完全關閉，不收送任何封包</div>
+                    </div>
+                    <div class="feedback mt-2 text-sm font-bold hidden"></div>
+                </div>
+
+                 <!-- Q5 -->
+                 <div class="quiz-item">
+                    <p class="font-semibold mb-2">Q5. 在 ExtremeXOS 中，若要啟用 RSTP，通常會配置在哪個物件上？</p>
+                    <div class="space-y-2" id="q5-options">
+                        <div class="quiz-option border p-3 rounded" onclick="checkAnswer(this, false, '錯誤。VLAN 是廣播域，STP 需運行在 STPD 上。')">A. 直接在 Physical Port 上配置</div>
+                        <div class="quiz-option border p-3 rounded" onclick="checkAnswer(this, false, '錯誤。VR 是 Layer 3 的概念。')">B. Virtual Router (VR)</div>
+                        <div class="quiz-option border p-3 rounded" onclick="checkAnswer(this, true, '正確！ExtremeXOS 使用 STPD (Spanning Tree Domain) 作為容器，將 VLANs 加入 STPD 中受其保護。')">C. STPD (Spanning Tree Domain)</div>
+                    </div>
+                    <div class="feedback mt-2 text-sm font-bold hidden"></div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-gray-400 py-6 text-center text-sm fixed bottom-0 w-full border-t border-slate-700">
+        <p>Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0</p>
+    </footer>
+
+    <script>
+        // Mermaid Initialization
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+
+        // Quiz Logic
+        function checkAnswer(element, isCorrect, feedbackText) {
+            // Prevent multiple clicks
+            const parent = element.parentElement;
+            if (parent.classList.contains('answered')) return;
+            parent.classList.add('answered');
+
+            const feedbackDiv = parent.nextElementSibling;
+            feedbackDiv.classList.remove('hidden');
+            feedbackDiv.innerHTML = feedbackText;
+
+            if (isCorrect) {
+                element.classList.add('correct');
+                feedbackDiv.classList.add('text-green-600');
+            } else {
+                element.classList.add('wrong');
+                feedbackDiv.classList.add('text-red-600');
+                
+                // Highlight the correct answer automatically
+                const options = parent.children;
+                for (let i = 0; i < options.length; i++) {
+                    // This is a simple logic; for production, mark correct answer in HTML data attribute
+                    if (options[i].getAttribute('onclick').includes('true')) {
+                        options[i].classList.add('correct');
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

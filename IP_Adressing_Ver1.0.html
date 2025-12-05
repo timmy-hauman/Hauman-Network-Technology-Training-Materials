@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IP Addressing 全面解析 - 網路架構師視角</title>
+    <!-- Tailwind CSS for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Mermaid JS for diagrams -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.0/mermaid.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f3f4f6; }
+        .mermaid { display: flex; justify-content: center; margin: 20px 0; background: white; padding: 20px; border-radius: 8px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .bit-box { transition: all 0.3s ease; cursor: pointer; }
+        .bit-box.active { background-color: #3b82f6; color: white; border-color: #2563eb; }
+        .quiz-option:hover { background-color: #e5e7eb; }
+        .quiz-option.correct { background-color: #d1fae5; border-color: #10b981; color: #065f46; }
+        .quiz-option.wrong { background-color: #fee2e2; border-color: #ef4444; color: #991b1b; }
+        .binary-row { font-family: 'Courier New', monospace; letter-spacing: 1px; }
+        .bit-highlight { color: #ef4444; font-weight: bold; } /* Red for mask bits distinction */
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <!-- Header -->
+    <header class="bg-slate-800 text-white p-6 shadow-lg">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-3xl font-bold mb-2">IP Addressing 深度解析</h1>
+            <p class="text-gray-300">從 Public/Private IP 到 CIDR 與二進制轉換的完整指南</p>
+            <div class="mt-4 text-sm text-blue-300 font-mono">
+                > Instructor: Network Architect (20 Years Exp.)
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto p-6 space-y-8">
+
+        <!-- Section 1: Concept -->
+        <section class="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
+            <h2 class="text-2xl font-bold text-slate-800 mb-4">一、核心概念 (Concept)</h2>
+            <div class="space-y-4">
+                <div class="bg-blue-50 p-4 rounded-md">
+                    <strong class="text-blue-700 text-lg">一句話定義：</strong>
+                    <p class="text-gray-700 mt-1">IP Address (網際網路協定位置) 是網路上每一個設備的「唯一識別證」，就像是現實生活中的門牌號碼。</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                    <div>
+                        <h3 class="font-bold text-lg mb-2 text-indigo-600">生活化比喻：電話系統</h3>
+                        <ul class="list-disc list-inside space-y-2 text-gray-600">
+                            <li><strong>Public IP (公有 IP)：</strong> 就像公司的<span class="font-bold text-red-500">總機號碼</span> (例如 02-2222-3333)。全世界都可以直接撥打這個號碼找到這家公司。</li>
+                            <li><strong>Private IP (私有 IP)：</strong> 就像公司內部的<span class="font-bold text-green-500">分機號碼</span> (例如 分機 101)。外部無法直接撥分機 101 找到你，必須透過總機轉接。</li>
+                            <li><strong>NAT (轉譯)：</strong> 總機小姐，負責把外部打來的電話轉給內部分機。</li>
+                        </ul>
+                    </div>
+                    <div class="flex items-center justify-center bg-gray-100 rounded-lg p-4">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2">🏢 ↔️ 📞</div>
+                            <div class="text-sm text-gray-500">總機 (Public) vs 分機 (Private)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Mechanism -->
+        <section class="bg-white rounded-lg shadow-md p-6 border-l-4 border-purple-500">
+            <h2 class="text-2xl font-bold text-slate-800 mb-4">二、運作原理 (Mechanism)</h2>
+
+            <!-- Tabs -->
+            <div class="flex border-b border-gray-200 mb-4 overflow-x-auto">
+                <button class="px-4 py-2 text-blue-600 border-b-2 border-blue-600 font-medium focus:outline-none tab-btn whitespace-nowrap" onclick="openTab(event, 'tab-class')">IP 分級 (Classes)</button>
+                <button class="px-4 py-2 text-gray-500 hover:text-blue-600 font-medium focus:outline-none tab-btn whitespace-nowrap" onclick="openTab(event, 'tab-binary')">二進制轉換實驗室</button>
+                <button class="px-4 py-2 text-gray-500 hover:text-blue-600 font-medium focus:outline-none tab-btn whitespace-nowrap" onclick="openTab(event, 'tab-cidr')">CIDR 觀念</button>
+                <button class="px-4 py-2 text-gray-500 hover:text-blue-600 font-medium focus:outline-none tab-btn whitespace-nowrap" onclick="openTab(event, 'tab-subnet-check')">實戰：同網段判斷</button>
+            </div>
+
+            <!-- Tab: IP Classes -->
+            <div id="tab-class" class="tab-content active space-y-4">
+                <p class="text-gray-600">IPv4 地址由 32 位元組成，通常分為 4 組 8 位元的十進制數字顯示 (例如 192.168.1.1)。為了便於管理，早期分為五類，我們主要關注 A、B、C 三類。</p>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm text-left text-gray-500">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3">類別</th>
+                                <th class="px-6 py-3">範圍 (第一組數字)</th>
+                                <th class="px-6 py-3">私有 IP 範圍 (Private IP)</th>
+                                <th class="px-6 py-3">適用場景</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="bg-white border-b">
+                                <td class="px-6 py-4 font-bold text-red-600">Class A</td>
+                                <td class="px-6 py-4">1 ~ 126</td>
+                                <td class="px-6 py-4 font-mono text-gray-800 bg-gray-100 rounded">10.0.0.0 - 10.255.255.255</td>
+                                <td class="px-6 py-4">超大型網路 (跨國企業、ISP)</td>
+                            </tr>
+                            <tr class="bg-white border-b">
+                                <td class="px-6 py-4 font-bold text-yellow-600">Class B</td>
+                                <td class="px-6 py-4">128 ~ 191</td>
+                                <td class="px-6 py-4 font-mono text-gray-800 bg-gray-100 rounded">172.16.0.0 - 172.31.255.255</td>
+                                <td class="px-6 py-4">中大型企業、校園網</td>
+                            </tr>
+                            <tr class="bg-white">
+                                <td class="px-6 py-4 font-bold text-green-600">Class C</td>
+                                <td class="px-6 py-4">192 ~ 223</td>
+                                <td class="px-6 py-4 font-mono text-gray-800 bg-gray-100 rounded">192.168.0.0 - 192.168.255.255</td>
+                                <td class="px-6 py-4">小型辦公室、家庭網路</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-xs text-gray-400 mt-2">* 127.x.x.x 為 Loopback 測試位址，不屬於任何一類。</p>
+            </div>
+
+            <!-- Tab: Binary Converter -->
+            <div id="tab-binary" class="tab-content space-y-6">
+                <div class="bg-gray-800 text-white p-6 rounded-lg">
+                    <h3 class="text-xl font-bold mb-4 text-center">互動式 8-bit 轉換器</h3>
+                    <p class="text-sm text-gray-300 mb-6 text-center">點擊下方的位元開關，觀察二進制與十進制的變化。這是理解 Subnet Mask 的基礎。</p>
+                    
+                    <!-- Binary Visualizer -->
+                    <div class="flex justify-center space-x-2 mb-6">
+                        <!-- Bits will be generated by JS -->
+                        <div class="flex flex-col items-center gap-2">
+                            <span class="text-xs text-gray-400">128</span>
+                            <div id="bit-7" class="bit-box w-10 h-10 border-2 border-gray-500 rounded flex items-center justify-center font-mono font-bold text-xl" onclick="toggleBit(7)">0</div>
+                        </div>
+                        <div class="flex flex-col items-center gap-2">
+                            <span class="text-xs text-gray-400">64</span>
+                            <div id="bit-6" class="bit-box w-10 h-10 border-2 border-gray-500 rounded flex items-center justify-center font-mono font-bold text-xl" onclick="toggleBit(6)">0</div>
+                        </div>
+                        <div class="flex flex-col items-center gap-2">
+                            <span class="text-xs text-gray-400">32</span>
+                            <div id="bit-5" class="bit-box w-10 h-10 border-2 border-gray-500 rounded flex items-center justify-center font-mono font-bold text-xl" onclick="toggleBit(5)">0</div>
+                        </div>
+                        <div class="flex flex-col items-center gap-2">
+                            <span class="text-xs text-gray-400">16</span>
+                            <div id="bit-4" class="bit-box w-10 h-10 border-2 border-gray-500 rounded flex items-center justify-center font-mono font-bold text-xl" onclick="toggleBit(4)">0</div>
+                        </div>
+                        <div class="flex flex-col items-center gap-2">
+                            <span class="text-xs text-gray-400">8</span>
+                            <div id="bit-3" class="bit-box w-10 h-10 border-2 border-gray-500 rounded flex items-center justify-center font-mono font-bold text-xl" onclick="toggleBit(3)">0</div>
+                        </div>
+                        <div class="flex flex-col items-center gap-2">
+                            <span class="text-xs text-gray-400">4</span>
+                            <div id="bit-2" class="bit-box w-10 h-10 border-2 border-gray-500 rounded flex items-center justify-center font-mono font-bold text-xl" onclick="toggleBit(2)">0</div>
+                        </div>
+                        <div class="flex flex-col items-center gap-2">
+                            <span class="text-xs text-gray-400">2</span>
+                            <div id="bit-1" class="bit-box w-10 h-10 border-2 border-gray-500 rounded flex items-center justify-center font-mono font-bold text-xl" onclick="toggleBit(1)">0</div>
+                        </div>
+                        <div class="flex flex-col items-center gap-2">
+                            <span class="text-xs text-gray-400">1</span>
+                            <div id="bit-0" class="bit-box w-10 h-10 border-2 border-gray-500 rounded flex items-center justify-center font-mono font-bold text-xl" onclick="toggleBit(0)">0</div>
+                        </div>
+                    </div>
+
+                    <div class="text-center">
+                        <div class="text-lg text-gray-400">十進制總和</div>
+                        <div id="decimal-output" class="text-5xl font-bold text-green-400 mt-2">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: CIDR -->
+            <div id="tab-cidr" class="tab-content space-y-4">
+                <h3 class="font-bold text-lg">CIDR (Classless Inter-Domain Routing)</h3>
+                <p>CIDR 用「斜線記法」來表示子網路遮罩。例如 <code class="bg-gray-100 px-1 rounded">/24</code> 代表二進制的前 24 個位元都是 1。</p>
+                <div class="bg-blue-50 p-4 rounded border border-blue-200">
+                    <p class="font-bold">範例：192.168.1.0/24</p>
+                    <ul class="list-disc ml-5 mt-2 space-y-1 text-sm">
+                        <li><strong>網路位元 (Network Bits)：</strong> 24 bits (決定網段)</li>
+                        <li><strong>主機位元 (Host Bits)：</strong> 32 - 24 = 8 bits (決定該網段能有多少設備)</li>
+                        <li><strong>可用 IP 數量：</strong> 2<sup>8</sup> - 2 = 254 個 (-2 是因為扣除 Network ID 與 Broadcast IP)</li>
+                        <li><strong>子網路遮罩：</strong> 255.255.255.0</li>
+                    </ul>
+                </div>
+                <div class="mt-4">
+                    <h4 class="font-semibold mb-2">常用 CIDR 速查表：</h4>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm text-center">
+                        <div class="bg-gray-100 p-2 rounded">/8 (Class A)</div>
+                        <div class="bg-gray-100 p-2 rounded">/16 (Class B)</div>
+                        <div class="bg-gray-100 p-2 rounded">/24 (Class C)</div>
+                        <div class="bg-gray-100 p-2 rounded">/30 (P2P Link)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Subnet Check (NEW) -->
+            <div id="tab-subnet-check" class="tab-content space-y-6">
+                <!-- Title Red -->
+                <h3 class="font-bold text-xl text-red-600 border-b-2 border-red-200 pb-2">實戰：同網段判斷 - 10.10.10.1/30 與 10.10.10.5/30</h3>
+                
+                <div class="bg-yellow-50 p-4 rounded-md border-l-4 border-yellow-400">
+                    <p class="font-bold text-lg">結論：不是！它們屬於不同的子網路。</p>
+                    <p class="text-sm mt-1">透過下方的「完整位元運算」，我們可以看到 10.10.10.1 與 10.10.10.5 在經過 /30 遮罩過濾後，產生了不同的 Network ID。</p>
+                </div>
+
+                <!-- Steps Container (Vertical Stack) -->
+                <div class="space-y-8">
+                    
+                    <!-- Step 1 -->
+                    <div class="bg-white p-5 rounded border shadow-sm">
+                        <h4 class="font-bold text-slate-700 mb-3 flex items-center">
+                            <span class="bg-slate-700 text-white rounded-full w-6 h-6 flex items-center justify-center mr-2 text-sm">1</span>
+                            步驟一：理解 /30 遮罩
+                        </h4>
+                        <p class="text-gray-600 mb-4">
+                            /30 代表 IP 位址的前 30 個位元 (Bits) 是網路位元 (Network Bits)，不可變動。只有最後 2 個位元是主機位元 (Host Bits)。
+                        </p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm font-mono bg-gray-100 p-4 rounded">
+                            <div>
+                                <div class="text-gray-500">Subnet Mask (Decimal)</div>
+                                <div class="font-bold text-lg">255.255.255.252</div>
+                            </div>
+                            <div>
+                                <div class="text-gray-500">Subnet Mask (Binary)</div>
+                                <div class="text-xs break-all">11111111.11111111.11111111.<span class="text-red-600 font-bold">111111</span>00</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="bg-white p-5 rounded border shadow-sm">
+                        <h4 class="font-bold text-slate-700 mb-3 flex items-center">
+                            <span class="bg-slate-700 text-white rounded-full w-6 h-6 flex items-center justify-center mr-2 text-sm">2</span>
+                            步驟二：完整位元 AND 運算
+                        </h4>
+                        <p class="text-gray-600 mb-4 text-sm">
+                            將 IP 位址與遮罩進行二進制 AND 運算 (只有 1 AND 1 才會是 1，否則為 0)。請觀察紅字標示的網路邊界。
+                        </p>
+                        
+                        <!-- Calculation Block 1 -->
+                        <div class="mb-8">
+                            <h5 class="font-bold text-blue-700 mb-2 border-l-4 border-blue-700 pl-2">計算 A：10.10.10.1 /30</h5>
+                            <div class="overflow-x-auto bg-slate-900 text-green-400 p-4 rounded shadow-inner">
+                                <pre class="binary-row text-xs md:text-sm">
+Decimal : 10      .10      .10      .1
+IP Bin  : 00001010.00001010.00001010.00000001
+Mask    : 11111111.11111111.11111111.11111100  (/30)
+AND Op  : -----------------------------------
+Network : 00001010.00001010.00001010.000000<span class="text-white">00</span>
+Decimal : 10      .10      .10      .<span class="text-white font-bold text-lg">0</span>    (Network ID)
+                                </pre>
+                            </div>
+                            <p class="text-xs text-blue-600 mt-2 font-bold">👉 網段範圍：10.10.10.0 ~ 10.10.10.3 (可用: .1, .2)</p>
+                        </div>
+
+                        <!-- Calculation Block 2 -->
+                        <div>
+                            <h5 class="font-bold text-green-700 mb-2 border-l-4 border-green-700 pl-2">計算 B：10.10.10.5 /30</h5>
+                            <div class="overflow-x-auto bg-slate-900 text-green-400 p-4 rounded shadow-inner">
+                                <pre class="binary-row text-xs md:text-sm">
+Decimal : 10      .10      .10      .5
+IP Bin  : 00001010.00001010.00001010.00000101
+Mask    : 11111111.11111111.11111111.11111100  (/30)
+AND Op  : -----------------------------------
+Network : 00001010.00001010.00001010.000001<span class="text-white">00</span>
+Decimal : 10      .10      .10      .<span class="text-white font-bold text-lg">4</span>    (Network ID)
+                                </pre>
+                            </div>
+                            <p class="text-xs text-green-600 mt-2 font-bold">👉 網段範圍：10.10.10.4 ~ 10.10.10.7 (可用: .5, .6)</p>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="mt-4 p-4 bg-gray-100 rounded text-sm border-t border-gray-300">
+                    <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>
+                    <strong>架構師觀點：</strong> 
+                    因為算出來的 Network ID 一個是 <strong>.0</strong>，另一個是 <strong>.4</strong>，這證明它們在Layer 3是完全不同的網路。如果這兩台設備直接對接 (例如用一條網路線連起來)，它們無法 Ping 通對方，除非中間有 Router 或將遮罩改為 /29 (包含 .0 ~ .7)。
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Visuals -->
+        <section class="bg-white rounded-lg shadow-md p-6 border-l-4 border-emerald-500">
+            <h2 class="text-2xl font-bold text-slate-800 mb-4">三、架構視覺化 (Visuals)</h2>
+            <p class="mb-4 text-gray-600">下圖展示了 Public IP 與 Private IP 如何在企業環境中共存。請注意路由器 (Router) 扮演的邊界角色。</p>
+            
+            <div class="mermaid">
+            graph TD
+                Internet((網際網路<br>The Internet)) 
+                
+                subgraph "Public Network (公網)"
+                    ISP[ISP 業者]
+                    PublicIP[企業路由器 WAN<br>Public IP: 203.0.113.5]
+                end
+
+                subgraph "Private Network (私網 - LAN)"
+                    Router[企業路由器 NAT/Gateway]
+                    Switch[L2 交換器]
+                    PC1[財務部電腦<br>192.168.1.10/24]
+                    PC2[人資部電腦<br>192.168.1.20/24]
+                    Server[內部伺服器<br>192.168.1.100/24]
+                end
+
+                Internet --- ISP
+                ISP --- PublicIP
+                PublicIP --- Router
+                Router --- Switch
+                Switch --> PC1
+                Switch --> PC2
+                Switch --> Server
+
+                style PublicIP fill:#f96,stroke:#333,stroke-width:2px
+                style PC1 fill:#bbf,stroke:#333
+                style PC2 fill:#bbf,stroke:#333
+                style Server fill:#bfb,stroke:#333
+            </div>
+            <div class="text-sm text-gray-500 mt-2 text-center">圖示：Mermaid 繪製的 IP 架構拓撲</div>
+        </section>
+
+        <!-- Section 4: Use Case -->
+        <section class="bg-white rounded-lg shadow-md p-6 border-l-4 border-orange-500">
+            <h2 class="text-2xl font-bold text-slate-800 mb-4">四、實務應用場景 (Use Case)</h2>
+            
+            <div class="mb-6">
+                <h3 class="font-bold text-lg text-slate-700">場景：中型企業總部的 IP 規劃</h3>
+                <p class="text-gray-600 mt-2">
+                    一家有 200 名員工的公司，向 ISP 申請了一條光纖線路，ISP 提供了一組固定 Public IP (59.124.x.x)。
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-gray-50 p-4 rounded">
+                    <h4 class="font-bold text-gray-700 mb-2">挑戰</h4>
+                    <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
+                        <li>Public IP 只有一個，但有 200 台電腦要上網。</li>
+                        <li>部門之間 (業務部、研發部) 需要隔離，避免資料外洩。</li>
+                    </ul>
+                </div>
+                <div class="bg-blue-50 p-4 rounded">
+                    <h4 class="font-bold text-blue-800 mb-2">解決方案 (Design)</h4>
+                    <ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
+                        <li><strong>NAT 技術：</strong> 所有 200 人透過路由器的 NAT 功能，共用那一個 Public IP 上網。</li>
+                        <li><strong>VLAN + CIDR 劃分：</strong> 
+                            <ul class="ml-4 mt-1 text-xs">
+                                <li>業務部: 192.168.10.0/24</li>
+                                <li>研發部: 192.168.20.0/24</li>
+                                <li>伺服器區: 192.168.30.0/24</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: Quiz -->
+        <section class="bg-white rounded-lg shadow-md p-6 border-l-4 border-red-500 mb-12">
+            <h2 class="text-2xl font-bold text-slate-800 mb-4">五、隨堂測驗 (Quiz)</h2>
+            <p class="mb-4 text-gray-600">請嘗試回答以下問題，測試你的理解程度。</p>
+            
+            <div class="space-y-6" id="quiz-container">
+                <!-- Questions will be injected by JS -->
+            </div>
+            
+            <div id="quiz-result" class="hidden mt-6 p-4 bg-gray-100 rounded text-center font-bold text-xl"></div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-gray-400 py-8 text-center text-sm">
+        <div class="container mx-auto">
+            <p>Planning & Design by Timmy(timmyc@hauman.com.tw)</p>
+            <p class="mt-1">豪勉科技 Hauman Technologies Corporation | Ver 1.0</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // --- Mermaid Init ---
+        // Ensure mermaid loads after DOM is ready
+        document.addEventListener("DOMContentLoaded", function() {
+            mermaid.initialize({ 
+                startOnLoad: true, 
+                theme: 'neutral',
+                securityLevel: 'loose'
+            });
+        });
+
+        // --- Tabs Logic ---
+        function openTab(evt, tabName) {
+            var i, tabContent, tabBtn;
+            tabContent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabContent.length; i++) {
+                tabContent[i].classList.remove("active");
+            }
+            tabBtn = document.getElementsByClassName("tab-btn");
+            for (i = 0; i < tabBtn.length; i++) {
+                tabBtn[i].classList.remove("text-blue-600", "border-b-2", "border-blue-600");
+                tabBtn[i].classList.add("text-gray-500");
+            }
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.remove("text-gray-500");
+            evt.currentTarget.classList.add("text-blue-600", "border-b-2", "border-blue-600");
+        }
+
+        // --- Binary Converter Logic ---
+        let currentBits = [0, 0, 0, 0, 0, 0, 0, 0];
+        
+        function toggleBit(index) {
+            // Toggle state
+            currentBits[index] = currentBits[index] === 0 ? 1 : 0;
+            
+            // Update UI for the clicked bit
+            const bitEl = document.getElementById(`bit-${index}`);
+            if (currentBits[index] === 1) {
+                bitEl.classList.add("active");
+                bitEl.innerText = "1";
+            } else {
+                bitEl.classList.remove("active");
+                bitEl.innerText = "0";
+            }
+            
+            // Calculate Decimal
+            let decimal = 0;
+            for (let i = 0; i < 8; i++) {
+                if (currentBits[i] === 1) {
+                    decimal += Math.pow(2, i);
+                }
+            }
+            document.getElementById("decimal-output").innerText = decimal;
+        }
+
+        // --- Quiz Logic ---
+        const questions = [
+            {
+                q: "1. 哪一個 IP 位址屬於 Private IP (私有 IP) 範圍？",
+                options: ["8.8.8.8", "192.168.1.1", "168.95.1.1", "203.0.113.5"],
+                answer: 1,
+                explanation: "192.168.x.x 是 Class C 的私有 IP 範圍。8.8.8.8 (Google)、168.95.1.1 (中華電信 DNS) 都是公有 IP。"
+            },
+            {
+                q: "2. CIDR 標示法中，/24 代表子網路遮罩 (Subnet Mask) 是多少？",
+                options: ["255.0.0.0", "255.255.0.0", "255.255.255.0", "255.255.255.255"],
+                answer: 2,
+                explanation: "/24 代表前 24 個位元為 1，即 11111111.11111111.11111111.00000000，換算十進制為 255.255.255.0。"
+            },
+            {
+                q: "3. 二進制數字 10000000 轉換成十進制是多少？",
+                options: ["128", "192", "255", "1"],
+                answer: 0,
+                explanation: "這是第 8 個位元 (2的7次方)，值為 128。"
+            },
+            {
+                q: "4. 根據新學到的知識，10.10.10.1/30 和 10.10.10.2/30 是否在同一個網段？",
+                options: ["是", "否", "不一定", "視路由器廠牌而定"],
+                answer: 0,
+                explanation: "是的。/30 的第一個網段是 .0 (Network ID)，包含 .1 和 .2 (可用 IP)，廣播為 .3。它們屬於 10.10.10.0/30 網段。"
+            },
+            {
+                q: "5. 在家中用電腦上網，對外部網站而言，他們看到的 IP 是？",
+                options: ["電腦的 192.168.1.x IP", "家中路由器的 Public IP", "電腦的 MAC Address", "ISP 的私有 IP"],
+                answer: 1,
+                explanation: "透過 NAT 技術，內部多台裝置上網時，外部只會看到路由器介面上的 Public IP。"
+            }
+        ];
+
+        function loadQuiz() {
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = ''; // Clear previous if any
+            questions.forEach((item, index) => {
+                const qDiv = document.createElement('div');
+                qDiv.className = "border border-gray-200 rounded p-4";
+                
+                let optionsHtml = '';
+                item.options.forEach((opt, optIndex) => {
+                    optionsHtml += `<button class="quiz-option w-full text-left p-2 rounded mt-1 border border-transparent transition-colors" onclick="checkAnswer(this, ${index}, ${optIndex})">${String.fromCharCode(65+optIndex)}. ${opt}</button>`;
+                });
+
+                qDiv.innerHTML = `
+                    <h3 class="font-bold text-lg mb-2">${item.q}</h3>
+                    <div class="space-y-1">${optionsHtml}</div>
+                    <div id="explanation-${index}" class="hidden mt-3 p-3 bg-blue-50 text-blue-800 text-sm rounded"><strong>解析：</strong>${item.explanation}</div>
+                `;
+                container.appendChild(qDiv);
+            });
+        }
+
+        function checkAnswer(btn, qIndex, optIndex) {
+            const parent = btn.parentElement;
+            const allBtns = parent.getElementsByTagName('button');
+            const correctAnswer = questions[qIndex].answer;
+            const explanationDiv = document.getElementById(`explanation-${qIndex}`);
+
+            // Disable all buttons for this question
+            for(let b of allBtns) {
+                b.disabled = true;
+                b.classList.add('cursor-not-allowed');
+            }
+
+            if (optIndex === correctAnswer) {
+                btn.classList.add('correct');
+            } else {
+                btn.classList.add('wrong');
+                // Highlight the correct one
+                allBtns[correctAnswer].classList.add('correct');
+            }
+            
+            // Show explanation
+            explanationDiv.classList.remove('hidden');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', loadQuiz);
+    </script>
+</body>
+</html>
