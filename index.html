@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>網路技術教學資源 | Network Engineering Docs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* 豪勉科技 (Hauman) 風格配色修正 - 紫色系 */
+            --brand-purple: #673ab7;  /* 亮紫色，用於強調 */
+            --brand-purple-dark: #311b92; /* 深紫色，用於文字與深色互動 */
+            
+            /* 基礎色系 */
+            --bg-body: #f4f6f8; /* 帶有極淡藍灰的白，展現科技潔淨感 */
+            --bg-white: #ffffff;
+            
+            /* 文字顏色 */
+            --text-primary: #333333; /* 主要標題 (通用非強調文字) */
+            --text-secondary: #666666; /* 次要資訊 */
+            --text-light: #ffffff;
+            
+            /* 邊框與裝飾 */
+            --border-color: #e0e0e0;
+            --shadow-card: 0 2px 10px rgba(0, 0, 0, 0.05);
+            /* 修改 Hover 陰影為紫色調 */
+            --shadow-hover: 0 10px 25px rgba(103, 58, 183, 0.25); 
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Roboto', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 頂部導航列 */
+        .navbar {
+            background-color: var(--bg-white);
+            height: 80px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-top: 4px solid var(--brand-purple); /* 紫色頂部線條 */
+            margin-bottom: 40px; /* 從原 page-header 繼承部分間距 */
+        }
+
+        .navbar-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            /* 調整為靠左排列，並在 Logo 和標題間留出間距 */
+            justify-content: flex-start;
+            gap: 20px; 
+        }
+
+        .logo {
+            height: 50px;
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+            color: var(--brand-purple); /* Logo 文字改為紫色 */
+            font-size: 1.5rem;
+            flex-shrink: 0; /* 防止 Logo 縮小 */
+        }
+        
+        .logo img {
+            height: 100%;
+            width: auto;
+        }
+
+        /* 新增：導航列內的標題群組 */
+        .header-titles {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start; /* 左對齊 */
+            line-height: 1.2;
+            padding-top: 5px;
+        }
+        
+        /* 調整：增加主標題字體大小，並將顏色設為品牌紫色 */
+        .main-header-title {
+            font-size: 1.5rem; 
+            color: var(--brand-purple-dark); /* 將顏色設為深紫色，增加強調效果 */
+            font-weight: 700;
+            margin: 0;
+            white-space: nowrap;
+        }
+
+        /* 調整：增加副標題字體大小 */
+        .sub-header-title {
+            font-size: 1.0rem; 
+            color: var(--text-secondary);
+            margin: 0;
+            font-weight: 400;
+            white-space: nowrap;
+        }
+        
+        /* 移除原有的 nav-title 樣式，因為已被新的取代 */
+        .nav-title {
+            display: none; 
+        }
+        
+        /* 主要內容區 */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px 60px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        /* 卡片設計 */
+        .card {
+            background: var(--bg-white);
+            border-radius: 4px; 
+            padding: 0;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid transparent; 
+            box-shadow: var(--shadow-card);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+            border-color: rgba(103, 58, 183, 0.3); /* Hover 邊框帶淡紫色 */
+        }
+
+        /* 卡片頂部紫色裝飾條 (Hover 時滑入) */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--brand-purple); /* 改為紫色 */
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .card-body {
+            padding: 30px 25px;
+            display: flex;
+            align-items: center;
+            height: 100%;
+        }
+
+        /* 數字標示 */
+        .card-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: rgba(0,0,0,0.1); 
+            margin-right: 20px;
+            line-height: 1;
+            transition: color 0.3s ease;
+            font-family: 'Roboto', sans-serif;
+            min-width: 40px;
+        }
+
+        .card:hover .card-number {
+            color: var(--brand-purple); /* Hover 變紫色 */
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            line-height: 1.4;
+            transition: color 0.3s ease;
+        }
+        
+        .card:hover .card-title {
+            color: var(--brand-purple-dark); /* Hover 標題變深紫色 */
+        }
+
+        /* 箭頭圖標 (右下角裝飾) */
+        .card-icon {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            color: var(--border-color);
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateX(-10px);
+        }
+
+        .card:hover .card-icon {
+            opacity: 1;
+            transform: translateX(0);
+            color: var(--brand-purple); /* Hover 變紫色 */
+        }
+
+        /* Footer */
+        footer {
+            background-color: #2a1a45; /* 改為深靛紫色，與品牌紫色系協調並提供良好對比 */
+            color: #eceff1;
+            padding: 40px 20px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        
+        /* 頁尾主要資訊列樣式 - 水平排列 */
+        footer .footer-main-row {
+            display: flex;
+            flex-wrap: wrap; /* 允許在小螢幕上換行 */
+            justify-content: center; /* 內容居中 */
+            gap: 8px 15px; /* 設定垂直和水平間距 */
+            margin-bottom: 10px; /* 在上方資訊與版權宣告間增加間距 */
+            line-height: 1.5;
+            opacity: 0.9;
+        }
+        
+        footer .footer-main-row span {
+            white-space: nowrap; /* 防止個別文字區塊換行 */
+        }
+        
+        footer .footer-main-row .separator {
+            opacity: 0.5; /* 分隔線稍微淡化 */
+        }
+
+        footer p {
+            margin: 5px 0;
+            opacity: 0.8;
+        }
+
+        footer .copyright {
+            margin-top: 15px;
+            padding-top: 15px;
+            /* 移除頂部分隔線 */
+            border-top: none; 
+            font-size: 0.85rem;
+            /* 移除原本的 margin-top/padding-top 以避免重複分隔線 */
+        }
+
+        /* 響應式調整 */
+        @media (max-width: 767px) {
+            .navbar-container {
+                justify-content: center; /* 手機上讓 Logo 居中 */
+            }
+            .header-titles {
+                display: none; /* 在手機上隱藏標題，只保留 Logo */
+            }
+        }
+        
+        @media (min-width: 768px) {
+            .navbar-container {
+                justify-content: flex-start; /* 桌面版從左邊開始排列 */
+            }
+            .header-titles {
+                display: flex;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 導航列 -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <!-- LOGO 連結 -->
+            <a href="https://www.hauman.com.tw/" class="logo" target="_blank">
+                <!-- 嘗試載入豪勉 Logo, 若失敗則顯示文字 -->
+                <img src="https://www.hauman.com.tw/images_v4/logo.png" alt="Hauman" onerror="this.style.display='none'; this.parentNode.innerText='HAUMAN';">
+            </a>
+
+            <!-- 整合後的標題區塊 -->
+            <div class="header-titles">
+                <h1 class="main-header-title">網路技術教學資源</h1>
+                <p class="sub-header-title">Network Technology Training Materials & Protocols</p>
+            </div>
+
+            <!-- 原本的 nav-title 元素因為已被新的標題取代，所以移除或隱藏 -->
+            <div class="nav-title">技術資源中心</div>
+        </div>
+    </nav>
+
+    <!-- 原來的標題區塊已移除 -->
+
+    <!-- 主要列表區 -->
+    <main class="container">
+        <div class="grid">
+
+            <!-- 01: Hub vs. Bridge vs. Switch -->
+            <a href="HUB-vs-BRIDGE-vs-SWITCH_Ver1.0.html" class="card" target="_blank">
+                <div class="card-body">
+                    <span class="card-number">01</span>
+                    <h3 class="card-title">Hub vs. Bridge vs. Switch</h3>
+                </div>
+                <div class="card-icon">➜</div>
+            </a>
+            
+            <!-- 02: IP Address -->
+            <a href="IP_Adressing_Ver1.0.html" class="card" target="_blank">
+                <div class="card-body">
+                    <span class="card-number">02</span>
+                    <h3 class="card-title">IP Address</h3>
+                </div>
+                <div class="card-icon">➜</div>
+            </a>
+            
+            <!-- 03: ARP Protocol -->
+            <a href="ARP_Protocol_Ver1.0.html" class="card" target="_blank">
+                <div class="card-body">
+                    <span class="card-number">03</span>
+                    <h3 class="card-title">ARP Protocol</h3>
+                </div>
+                <div class="card-icon">➜</div>
+            </a>
+
+            <!-- 04: Layer2 Packet Forwarding (L2 -> Layer2) -->
+            <a href="L2_Packet_Forwarding_Ver1.0.html" class="card" target="_blank">
+                <div class="card-body">
+                    <span class="card-number">04</span>
+                    <h3 class="card-title">Layer2 Packet Forwarding</h3>
+                </div>
+                <div class="card-icon">➜</div>
+            </a>
+
+            <!-- 05: Routing -->
+            <a href="Routing_Ver1.0.html" class="card" target="_blank">
+                <div class="card-body">
+                    <span class="card-number">05</span>
+                    <h3 class="card-title">Routing</h3>
+                </div>
+                <div class="card-icon">➜</div>
+            </a>
+
+            <!-- 06: Layer3 Packet Forwarding (L3 -> Layer3) -->
+            <a href="L3_Packet_Forwarding_Ver1.0.html" class="card" target="_blank">
+                <div class="card-body">
+                    <span class="card-number">06</span>
+                    <h3 class="card-title">Layer3 Packet Forwarding</h3>
+                </div>
+                <div class="card-icon">➜</div>
+            </a>
+            
+            <!-- 07: Static-Route, RIP, OSPF -->
+            <a href="Static-Route_RIP_OSPF_Ver1.0.html" class="card" target="_blank">
+                <div class="card-body">
+                    <span class="card-number">07</span>
+                    <h3 class="card-title">Static Route, RIP, OSPF</h3>
+                </div>
+                <div class="card-icon">➜</div>
+            </a>
+
+            <!-- 08: ECMP (已加上全名) -->
+            <a href="ECMP_Ver1.0.html" class="card" target="_blank">
+                <div class="card-body">
+                    <span class="card-number">08</span>
+                    <h3 class="card-title">ECMP (Equal-Cost Multi-Path)</h3>
+                </div>
+                <div class="card-icon">➜</div>
+            </a>
+            
+            <!-- 09: Loopback IP (新增) -->
+            <a href="Loopback_IP_Ver1.0.html" class="card" target="_blank">
+                <div class="card-body">
+                    <span class="card-number">09</span>
+                    <h3 class="card-title">Loopback IP</h3>
+                </div>
+                <div class="card-icon">➜</div>
+            </a>
+
+            <!-- 10: VLAN Tagging (順延) -->
+            <a href="VLAN_Tagging_Ver1.0.html" class="card" target="_blank">
+                <div class="card-body">
+                    <span class="card-number">10</span>
+                    <h3 class="card-title">VLAN Tagging</h3>
+                </div>
+                <div class="card-icon">➜</div>
+            </a>
+
+            <!-- 11: Broadcast Storm & STP (順延) -->
+            <a href="BroadcastStorm_and_STP_Ver1.0.html" class="card" target="_blank">
+                <div class="card-body">
+                    <span class="card-number">11</span>
+                    <h3 class="card-title">Broadcast Storm & STP</h3>
+                </div>
+                <div class="card-icon">➜</div>
+            </a>
+            
+            <!-- 12: STP 802.1D / 802.1W (順延) -->
+            <a href="STP_8021d_8021w_Ver1.0.html" class="card" target="_blank">
+                <div class="card-body">
+                    <span class="card-number">12</span>
+                    <h3 class="card-title">STP (802.1D / 802.1W)</h3>
+                </div>
+                <div class="card-icon">➜</div>
+            </a>
+            
+            <!-- 13: Per-VLAN STP (P-VSTP) (順延) -->
+            <a href="STP_PerVlan-STP_Ver1.0.html" class="card" target="_blank">
+                <div class="card-body">
+                    <span class="card-number">13</span>
+                    <h3 class="card-title">Per-VLAN STP (P-VSTP)</h3>
+                </div>
+                <div class="card-icon">➜</div>
+            </a>
+
+            <!-- 14: Link Aggregation (順延) -->
+            <a href="Link_Aggregation _Ver1.0.html" class="card" target="_blank">
+                <div class="card-body">
+                    <span class="card-number">14</span>
+                    <h3 class="card-title">Link Aggregation</h3>
+                </div>
+                <div class="card-icon">➜</div>
+            </a>
+            
+            <!-- 15: Extreme MLAG (順延) -->
+            <a href="Extreme_MLAG_Ver1.0.html" class="card" target="_blank">
+                <div class="card-body">
+                    <span class="card-number">15</span>
+                    <h3 class="card-title">Extreme MLAG(Multi-Switch Link Aggregation)</h3>
+                </div>
+                <div class="card-icon">➜</div>
+            </a>
+
+            <!-- 16: ICMP / TCP / UDP (順延) -->
+            <a href="ICMP_TCP_UDP_Ver1.0.html" class="card" target="_blank">
+                <div class="card-body">
+                    <span class="card-number">16</span>
+                    <h3 class="card-title">ICMP / TCP / UDP</h3>
+                </div>
+                <div class="card-icon">➜</div>
+            </a>
+
+            <!-- 17: NEW: Troubleshooting & Diagnostics on EXTREME XOS (新增) -->
+            <a href="Extreme_TS_DIAG_Ver1.0.html" class="card" target="_blank">
+                <div class="card-body">
+                    <span class="card-number">17</span>
+                    <h3 class="card-title">Troubleshooting & Diagnostics on EXTREME XOS</h3>
+                </div>
+                <div class="card-icon">➜</div>
+            </a>
+            
+            <!-- 18: VRRP (原 17 順延) -->
+            <a href="VRRP_Ver1.0.html" class="card" target="_blank">
+                <div class="card-body">
+                    <span class="card-number">18</span>
+                    <h3 class="card-title">VRRP (Virtual Router Redundancy Protocol)</h3>
+                </div>
+                <div class="card-icon">➜</div>
+            </a>
+
+            <!-- 19: VRRP + MLAG (原 18 順延) -->
+            <a href="VRRP_MLAG_Ver1.0.html" class="card" target="_blank">
+                <div class="card-body">
+                    <span class="card-number">19</span>
+                    <h3 class="card-title">VRRP + MLAG Topology Design</h3>
+                </div>
+                <div class="card-icon">➜</div>
+            </a>
+
+            <!-- 20: ESRP (原 19 順延) -->
+            <a href="ESRP_Ver1.0.html" class="card" target="_blank">
+                <div class="card-body">
+                    <span class="card-number">20</span>
+                    <h3 class="card-title">ESRP (Extreme Standby Router Protocol)</h3>
+                </div>
+                <div class="card-icon">➜</div>
+            </a>
+            
+            <!-- 21: ESRP+MLAG+OSPF Topology Design (原 20 順延) -->
+            <a href="ESRP_MLAG_OSPF_Ver1.0.html" class="card" target="_blank">
+                <div class="card-body">
+                    <span class="card-number">21</span>
+                    <h3 class="card-title">ESRP+MLAG+OSPF Topology Design</h3>
+                </div>
+                <div class="card-icon">➜</div>
+            </a>
+
+            <!-- 22: SNMP (原 21 順延) -->
+            <a href="SNMP_Ver1.0.html" class="card" target="_blank">
+                <div class="card-body">
+                    <span class="card-number">22</span>
+                    <h3 class="card-title">SNMP (Simple Network Management Protocol)</h3>
+                </div>
+                <div class="card-icon">➜</div>
+            </a>
+
+            <!-- 23: DNS (原 22 順延) -->
+            <a href="DNS_Ver1.0.html" class="card" target="_blank">
+                <div class="card-body">
+                    <span class="card-number">23</span>
+                    <h3 class="card-title">DNS (Domain Name System)</h3>
+                </div>
+                <div class="card-icon">➜</div>
+            </a>
+            
+            <!-- 24: DHCP (原 23 順延) -->
+            <a href="DHCP_Ver1.0.html" class="card" target="_blank">
+                <div class="card-body">
+                    <span class="card-number">24</span>
+                    <h3 class="card-title">DHCP (Dynamic Host Configuration Protocol)</h3>
+                </div>
+                <div class="card-icon">➜</div>
+            </a>
+
+            <!-- 25: MTU / MSS / Jumbo Frame (原 24 順延) -->
+            <a href="MTU_MSS_JumboFrame_Ver1.0.html" class="card" target="_blank">
+                <div class="card-body">
+                    <span class="card-number">25</span>
+                    <h3 class="card-title">MTU / MSS / Jumbo Frame</h3>
+                </div>
+                <div class="card-icon">➜</div>
+            </a>
+
+            <!-- 26: Website SpeedTest (原 25 順延) -->
+            <a href="WebSite_SpeedTest_Ver1.0.html" class="card" target="_blank">
+                <div class="card-body">
+                    <span class="card-number">26</span>
+                    <h3 class="card-title">Website SpeedTest</h3>
+                </div>
+                <div class="card-icon">➜</div>
+            </a>
+
+        </div>
+    </main>
+
+    <footer>
+        <!-- 頁尾主要資訊列：水平排列 -->
+        <div class="footer-main-row">
+            <span>Planning & Design by Timmy (timmyc@hauman.com.tw)</span>
+            <span class="separator">|</span>
+            <span>豪勉科技 Hauman Technologies Corporation</span>
+            <span class="separator">|</span>
+            <span>Ver 1.0</span>
+        </div>
+        
+        <!-- 版權資訊 -->
+        <div class="copyright">
+            &copy; 2025 Network Training Course. All rights reserved.
+        </div>
+    </footer>
+
+</body>
+</html>
