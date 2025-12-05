@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A10 Networks Thunder 實戰課程 - 系統初始化與網路配置</title>
+    
+    <!-- Google Fonts: Rubik -->
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Mermaid JS -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        a10blue: '#002F6C',      /* Midnight Blue */
+                        a10light: '#F3F4F6',     /* Light Grey */
+                        a10accent: '#C50084',    /* Magenta */
+                        a10orange: '#FF6600',    /* Orange */
+                        a10text: '#333333',
+                    },
+                    fontFamily: {
+                        sans: ['Rubik', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Rubik', sans-serif;
+            background-color: #F8F9FA;
+            color: #333;
+        }
+        
+        .gradient-header {
+            background: linear-gradient(135deg, #001f4d 0%, #002F6C 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gradient-header::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at top right, rgba(197, 0, 132, 0.2), transparent 40%);
+            pointer-events: none;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease;
+            border-top: 4px solid transparent;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-blue { border-top-color: #002F6C; }
+        .card-magenta { border-top-color: #C50084; }
+        .card-orange { border-top-color: #FF6600; }
+
+        .section-title {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 1.5rem;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background: #C50084;
+            border-radius: 2px;
+        }
+
+        /* Mermaid Styles */
+        .mermaid-container {
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: auto; /* Allow scrolling for large diagrams */
+        }
+
+        /* Quiz Styles */
+        .quiz-option {
+            transition: all 0.2s;
+            cursor: pointer;
+            border: 2px solid #e5e7eb;
+        }
+        .quiz-option:hover {
+            border-color: #002F6C;
+            background-color: #f0f9ff;
+        }
+        .quiz-option.correct {
+            background-color: #d1fae5;
+            border-color: #10b981;
+            color: #065f46;
+        }
+        .quiz-option.wrong {
+            background-color: #fee2e2;
+            border-color: #ef4444;
+            color: #991b1b;
+        }
+
+        footer {
+            background-color: #002F6C;
+            color: white;
+            padding: 20px 0;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="gradient-header text-white py-12 px-6 shadow-lg">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center">
+            <div>
+                <h2 class="text-a10accent font-bold tracking-wider text-sm uppercase mb-2">A10 Networks Thunder 實戰課程</h2>
+                <h1 class="text-4xl md:text-5xl font-bold mb-4">系統初始化與網路配置</h1>
+                <p class="text-gray-300 text-lg max-w-2xl">Level 1 - Foundation: 深入理解 Management Interface、VLAN Trunking、LAG 與基礎路由原理。</p>
+            </div>
+            <div class="mt-6 md:mt-0 text-a10orange text-6xl opacity-80">
+                <i class="fa-solid fa-network-wired"></i>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-5xl mx-auto px-6 py-10 space-y-16">
+
+        <!-- Module 1: Management Interface -->
+        <section id="mgmt-interface">
+            <h2 class="text-3xl font-bold text-a10blue section-title">1. Management Interface 設定</h2>
+            
+            <div class="grid md:grid-cols-2 gap-8 mb-8">
+                <!-- Concept -->
+                <div class="card card-blue p-6">
+                    <h3 class="text-xl font-bold text-a10blue mb-4"><i class="fa-solid fa-lightbulb text-a10orange mr-2"></i>核心概念 (Concept)</h3>
+                    <p class="mb-4"><strong>一句話定義：</strong> 這是專門給網路管理員使用的「後門」，完全獨立於處理客戶流量的數據通道。</p>
+                    <p class="text-gray-600 bg-gray-50 p-4 rounded-lg border-l-4 border-a10blue">
+                        <strong>生活化比喻：</strong> 想像一家銀行。
+                        <br><br>
+                        <strong>Data Ports (Service Ports)</strong> 是銀行的大門，成千上萬的客戶（流量）從這裡進出辦理業務。
+                        <br>
+                        <strong>Management Port</strong> 是只有銀行經理和保全（管理員）有鑰匙的「員工專用出入口」。就算大門被擠爆了（DDoS），經理還是可以從員工入口進去處理狀況。
+                    </p>
+                </div>
+
+                <!-- Mechanism -->
+                <div class="card card-magenta p-6">
+                    <h3 class="text-xl font-bold text-a10accent mb-4"><i class="fa-solid fa-gears text-a10blue mr-2"></i>運作原理 (Mechanism)</h3>
+                    <ul class="list-disc list-outside ml-5 space-y-2 text-gray-700">
+                        <li><strong>獨立路由表：</strong> A10 的 Management Port 預設擁有獨立的 Routing Table，與 Data Traffic 隔離，確保管理流量安全性 (Out-of-Band Management)。</li>
+                        <li><strong>控制層面 (Control Plane)：</strong> 透過此介面進行 SSH, HTTPS, SNMP, Syslog 等傳輸。</li>
+                        <li><strong>關鍵設定指令：</strong>
+                            <code class="block bg-gray-800 text-green-400 p-2 rounded mt-1 text-sm">
+                                interface management<br>
+                                &nbsp;&nbsp;ip address 192.168.1.100 255.255.255.0<br>
+                                &nbsp;&nbsp;ip default-gateway 192.168.1.254
+                            </code>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Visuals -->
+            <div class="card p-8 mb-8">
+                <h3 class="text-xl font-bold text-a10blue mb-4 text-center">管理與數據分離架構</h3>
+                <div class="mermaid mermaid-container">
+                    graph TD
+                    subgraph Control_Network ["控制網路區域 (Control Network)"]
+                        AdminPC["管理員電腦"]
+                        MgmtSw["Management Switch"]
+                    end
+
+                    subgraph Data_Network ["數據網路區域 (Data Network)"]
+                        User["網際網路使用者"]
+                        CoreSw["Core Switch"]
+                    end
+                    
+                    subgraph A10_Device ["A10 Thunder ADC"]
+                        MgmtPort["Mgmt Port"] --- CPU["Control CPU"]
+                        DataPort["Ethernet 1/1"] --- FPGA["FPGA / Data CPU"]
+                    end
+
+                    AdminPC -->|"SSH / HTTPS"| MgmtSw
+                    MgmtSw -->|"獨立網段"| MgmtPort
+                    
+                    User -->|"HTTP Request"| CoreSw
+                    CoreSw -->|"VLAN 10"| DataPort
+
+                    style Control_Network fill:#e6f3ff,stroke:#002F6C,stroke-width:2px
+                    style Data_Network fill:#fff0f5,stroke:#C50084,stroke-width:2px
+                    style A10_Device fill:#f3f4f6,stroke:#333,stroke-dasharray: 5 5
+                </div>
+            </div>
+
+            <!-- Use Case -->
+            <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                <h3 class="text-xl font-bold text-a10blue mb-3">實務應用場景：帶外管理 (OOB)</h3>
+                <p class="text-gray-700 mb-2"><strong>場景：</strong> 企業將所有網路設備的 Mgmt Port 連接到一個獨立、不與外網直接相連的 Switch。</p>
+                <div class="grid grid-cols-2 gap-4 mt-4">
+                    <div class="p-3 bg-green-50 text-green-800 rounded">
+                        <strong><i class="fa-solid fa-check-circle mr-1"></i>優點</strong>
+                        <ul class="text-sm list-disc ml-4 mt-1">
+                            <li>即使服務網路癱瘓，仍可遠端登入設備修復。</li>
+                            <li>避免管理密碼被數據網路中的駭客側錄。</li>
+                        </ul>
+                    </div>
+                    <div class="p-3 bg-red-50 text-red-800 rounded">
+                        <strong><i class="fa-solid fa-times-circle mr-1"></i>缺點</strong>
+                        <ul class="text-sm list-disc ml-4 mt-1">
+                            <li>需要額外的 Switch 和佈線成本。</li>
+                            <li>需維護兩套網路邏輯。</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <hr class="border-gray-300">
+
+        <!-- Module 2: Interface, VLAN, Trunking -->
+        <section id="vlan-trunking">
+            <h2 class="text-3xl font-bold text-a10blue section-title">2. Interface, VLAN 與 Trunking</h2>
+            
+            <div class="grid md:grid-cols-2 gap-8 mb-8">
+                <!-- Concept -->
+                <div class="card card-blue p-6">
+                    <h3 class="text-xl font-bold text-a10blue mb-4"><i class="fa-solid fa-lightbulb text-a10orange mr-2"></i>核心概念 (Concept)</h3>
+                    <p class="mb-4"><strong>一句話定義：</strong> VLAN 是將實體線路邏輯切割成多個廣播域，而 Trunk 則是能同時承載多個 VLAN 流量的匯聚線路。</p>
+                    <p class="text-gray-600 bg-gray-50 p-4 rounded-lg border-l-4 border-a10blue">
+                        <strong>生活化比喻：</strong>
+                        <br>
+                        <strong>實體線路 (Interface)</strong> = 高速公路。
+                        <br>
+                        <strong>VLAN</strong> = 專用車道（紅色車走紅道，藍色車走藍道）。
+                        <br>
+                        <strong>Trunking (Tagging)</strong> = 在車子上貼顏色標籤。當車子進入高速公路（Trunk）時，收費員（Port）會看車上的標籤，決定它屬於哪個車道，確保不會走錯路。
+                    </p>
+                </div>
+
+                <!-- Mechanism -->
+                <div class="card card-magenta p-6">
+                    <h3 class="text-xl font-bold text-a10accent mb-4"><i class="fa-solid fa-gears text-a10blue mr-2"></i>運作原理 (Mechanism)</h3>
+                    <ul class="list-disc list-outside ml-5 space-y-2 text-gray-700">
+                        <li><strong>IEEE 802.1Q Tagging：</strong> 在乙太網幀 (Ethernet Frame) 的 Header 中插入 4 bytes 的 Tag，其中包含 VLAN ID (1-4094)。</li>
+                        <li><strong>A10 設定邏輯：</strong>
+                            <br>
+                            1. 建立 VLAN ID。
+                            <br>
+                            2. 將物理 Port 加入 VLAN 並指定 Tagged (Trunk) 或 Untagged (Access)。
+                            <br>
+                            3. 建立 <strong>VE (Virtual Ethernet)</strong> 介面作為該 VLAN 的 L3 Gateway (SVI)。
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Visuals -->
+            <div class="card p-8 mb-8">
+                <h3 class="text-xl font-bold text-a10blue mb-4 text-center">Trunking 與 Tagging 流程</h3>
+                <div class="mermaid mermaid-container">
+                    sequenceDiagram
+                        participant Client_VLAN10 as 用戶端 (VLAN 10)
+                        participant Client_VLAN20 as 伺服器 (VLAN 20)
+                        participant Switch as L2 Switch (Trunk)
+                        participant A10 as A10 Thunder (Eth 1/1)
+                        
+                        Note over Switch, A10: 物理連接: Interface Ethernet 1/1 (Trunk Mode)
+
+                        Client_VLAN10->>Switch: 傳送封包 (無 Tag)
+                        Note right of Switch: Switch 判斷來自 Port 1 (VLAN 10)<br/>打上 VID=10 標籤
+                        Switch->>A10: 傳送 802.1Q Frame (VID=10)
+                        
+                        Note left of A10: A10 收到 Frame<br/>檢查 VID=10<br/>剝除 Tag 交給 VE 10 處理
+                        A10-->>A10: 進行 SLB 運算或路由
+                        
+                        Client_VLAN20->>Switch: 傳送封包 (無 Tag)
+                        Note right of Switch: Switch 判斷來自 Port 5 (VLAN 20)<br/>打上 VID=20 標籤
+                        Switch->>A10: 傳送 802.1Q Frame (VID=20)
+                        Note left of A10: A10 收到 Frame<br/>檢查 VID=20<br/>剝除 Tag 交給 VE 20 處理
+                </div>
+            </div>
+
+            <!-- Use Case -->
+            <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                <h3 class="text-xl font-bold text-a10blue mb-3">實務應用場景：單臂路由 (One-Arm / Router on a Stick)</h3>
+                <p class="text-gray-700 mb-2"><strong>場景：</strong> A10 透過一條 10G 光纖連接 Core Switch，但需要同時服務「內網使用者 (VLAN 100)」與「對外服務區 DMZ (VLAN 200)」。</p>
+                <div class="text-gray-600 text-sm mt-2">
+                    <strong>配置範例：</strong>
+                    <pre class="bg-gray-100 p-2 mt-1 rounded">
+vlan 100
+  tagged ethernet 1/1
+  router-interface ve 100
+!
+vlan 200
+  tagged ethernet 1/1
+  router-interface ve 200</pre>
+                </div>
+            </div>
+        </section>
+
+        <hr class="border-gray-300">
+
+        <!-- Module 3: Link Aggregation (LAG & LACP) -->
+        <section id="lag-lacp">
+            <h2 class="text-3xl font-bold text-a10blue section-title">3. Link Aggregation (LAG & LACP)</h2>
+            
+            <div class="grid md:grid-cols-2 gap-8 mb-8">
+                <!-- Concept -->
+                <div class="card card-blue p-6">
+                    <h3 class="text-xl font-bold text-a10blue mb-4"><i class="fa-solid fa-lightbulb text-a10orange mr-2"></i>核心概念 (Concept)</h3>
+                    <p class="mb-4"><strong>一句話定義：</strong> 將多條物理介面 (Interfaces) 綁定為一條邏輯介面 (Trunk Interface)，以增加頻寬並提供線路備援。</p>
+                    <p class="text-gray-600 bg-gray-50 p-4 rounded-lg border-l-4 border-a10blue">
+                        <strong>生活化比喻：</strong> 想像高速公路塞車。
+                        <br><br>
+                        <strong>單一線路</strong> = 單線道。一旦發生車禍（斷線），交通完全中斷。
+                        <br>
+                        <strong>Link Aggregation</strong> = 將旁邊的車道也開放，變成「多線道」。如果其中一條車道維修，車流可以自動切換到隔壁車道繼續行駛，且總通車量（頻寬）也變大了。
+                    </p>
+                </div>
+
+                <!-- Mechanism -->
+                <div class="card card-magenta p-6">
+                    <h3 class="text-xl font-bold text-a10accent mb-4"><i class="fa-solid fa-gears text-a10blue mr-2"></i>運作原理 (Mechanism)</h3>
+                    <ul class="list-disc list-outside ml-5 space-y-2 text-gray-700">
+                        <li><strong>Static LAG (靜態)：</strong> 雙方設備強制設定綁定，不傳送協商封包。優點是設定簡單，缺點是若線路錯接無法自動偵測。</li>
+                        <li><strong>LACP (802.3ad 動態)：</strong> 使用 LACPDU 封包進行協商。雙方確認 System ID 與 Key 一致後才建立連結，具備容錯偵測能力。</li>
+                        <li class="bg-yellow-50 p-2 rounded mt-2 border border-yellow-200 text-yellow-800">
+                            <strong><i class="fa-solid fa-triangle-exclamation mr-1"></i>重要術語差異：</strong><br>
+                            在 A10 CLI 中，<code>interface trunk</code> 指的是 <strong>Link Aggregation</strong>。<br>
+                            而在 Cisco 世界，Trunk 通常指 VLAN Tagging。<br>
+                            請勿混淆：A10 的 LAG = <code>Trunk</code>；A10 的 VLAN Tagging = <code>Tagged</code>。
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Visuals -->
+            <div class="card p-8 mb-8">
+                <h3 class="text-xl font-bold text-a10blue mb-4 text-center">LACP Link Aggregation 架構</h3>
+                <div class="mermaid mermaid-container">
+                    graph TB
+                    subgraph Switch_Device ["Core Switch"]
+                        SW_P1["Port 1"]
+                        SW_P2["Port 2"]
+                    end
+
+                    subgraph A10_Device ["A10 Thunder ADC"]
+                        A10_E1["Ethernet 1/1"]
+                        A10_E2["Ethernet 1/2"]
+                        LogicTrunk["Interface Trunk 10 (Logic)"]
+                    end
+
+                    SW_P1 ===|"Link 1 (LACP)"| A10_E1
+                    SW_P2 ===|"Link 2 (LACP)"| A10_E2
+                    
+                    A10_E1 -.-> LogicTrunk
+                    A10_E2 -.-> LogicTrunk
+
+                    note["流量負載平衡 (Load Balancing) 基於 Hash 演算法<br>(Source IP, Dest IP, Port 等)"]
+
+                    style LogicTrunk fill:#e6f3ff,stroke:#002F6C,stroke-width:2px,stroke-dasharray: 5 5
+                </div>
+            </div>
+
+            <!-- Configuration -->
+            <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                <h3 class="text-xl font-bold text-a10blue mb-3">實務配置 (Configuration)</h3>
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="font-bold text-gray-700 mb-2 border-b pb-1">Option 1: LACP (推薦)</h4>
+                        <p class="text-sm text-gray-600 mb-2">適用於與支援 802.3ad 的 Switch 對接。</p>
+                        <pre class="bg-gray-800 text-green-400 p-3 rounded text-sm overflow-x-auto">
+! 設定物理介面加入 Trunk Group 10
+interface ethernet 1/1
+  trunk-group 10 type lacp
+!
+interface ethernet 1/2
+  trunk-group 10 type lacp
+!
+! 設定邏輯介面 (可在這裡設 IP 或 VLAN)
+interface trunk 10
+  name "Uplink-Core-LACP"
+                        </pre>
+                    </div>
+
+                    <div>
+                        <h4 class="font-bold text-gray-700 mb-2 border-b pb-1">Option 2: Static LAG</h4>
+                        <p class="text-sm text-gray-600 mb-2">適用於不支援 LACP 的舊設備或特殊需求。</p>
+                        <pre class="bg-gray-800 text-green-400 p-3 rounded text-sm overflow-x-auto">
+! 設定物理介面加入 Trunk Group 20
+interface ethernet 1/3
+  trunk-group 20 type static
+!
+interface ethernet 1/4
+  trunk-group 20 type static
+!
+! 設定邏輯介面
+interface trunk 20
+  name "Uplink-Backup-Static"
+                        </pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <hr class="border-gray-300">
+
+        <!-- Module 4: Routing -->
+        <section id="routing">
+            <h2 class="text-3xl font-bold text-a10blue section-title">4. Routing (Static & OSPF) 基礎</h2>
+            
+            <div class="grid md:grid-cols-2 gap-8 mb-8">
+                <!-- Concept -->
+                <div class="card card-blue p-6">
+                    <h3 class="text-xl font-bold text-a10blue mb-4"><i class="fa-solid fa-lightbulb text-a10orange mr-2"></i>核心概念 (Concept)</h3>
+                    <p class="mb-4"><strong>一句話定義：</strong> 決定封包從來源到目的地的最佳路徑機制。</p>
+                    <p class="text-gray-600 bg-gray-50 p-4 rounded-lg border-l-4 border-a10blue">
+                        <strong>生活化比喻：</strong>
+                        <br>
+                        <strong>Static Route (靜態路由)</strong> = 紙本地圖。路徑是畫死的，如果你畫的那條路施工（斷線），你還是會傻傻地往那邊開，除非有人手動幫你畫新路線。
+                        <br>
+                        <strong>OSPF (動態路由)</strong> = Google Maps / Waze 導航。它會跟其他車輛（路由器）交換路況資訊，如果前方塞車或斷路，它會自動幫你計算一條新的最快路徑。
+                    </p>
+                </div>
+
+                <!-- Mechanism -->
+                <div class="card card-magenta p-6">
+                    <h3 class="text-xl font-bold text-a10accent mb-4"><i class="fa-solid fa-gears text-a10blue mr-2"></i>運作原理 (Mechanism)</h3>
+                    <ul class="list-disc list-outside ml-5 space-y-2 text-gray-700">
+                        <li><strong>Static Route：</strong> 管理員手動設定下一跳 (Next Hop)。優先權 (Administrative Distance) 通常較高。適用於 Default Gateway。</li>
+                        <li><strong>OSPF (Open Shortest Path First)：</strong>
+                            <ul class="list-circle ml-4 text-sm mt-1">
+                                <li><strong>Link-State Protocol：</strong> 了解整個網路拓撲。</li>
+                                <li><strong>Hello Packets：</strong> 建立鄰居關係 (Neighbor)。</li>
+                                <li><strong>LSA (Link State Advertisement)：</strong> 交換路由資訊。</li>
+                                <li><strong>Dijkstra Algorithm：</strong> 計算最短路徑樹 (SPF Tree)。</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Visuals -->
+            <div class="card p-8 mb-8">
+                <h3 class="text-xl font-bold text-a10blue mb-4 text-center">Static 與 OSPF 部署架構</h3>
+                <div class="mermaid mermaid-container">
+                    graph TD
+                    Internet(("網際網路"))
+                    FW["防火牆 Firewall"]
+                    CoreSw["Core Switch / Router"]
+                    A10["A10 Thunder ADC"]
+                    ServerFarm["後端伺服器群"]
+
+                    Internet -->|"Default Route"| FW
+                    FW -->|"Static Route"| CoreSw
+                    
+                    subgraph Dynamic_Routing_Domain ["OSPF Area 0"]
+                        CoreSw <-->|"OSPF Hello / LSA"| A10
+                    end
+                    
+                    A10 -->|"Direct Connect"| ServerFarm
+
+                    note1["A10: 0.0.0.0/0 指向 CoreSw (Static)"]
+                    note2["A10: 發布 VIP 網段給 CoreSw (OSPF Redistribution)"]
+
+                    style Dynamic_Routing_Domain fill:#fffbe6,stroke:#FF6600,stroke-width:2px,stroke-dasharray: 5 5
+                </div>
+            </div>
+
+            <!-- Use Case -->
+            <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                <h3 class="text-xl font-bold text-a10blue mb-3">實務應用場景：RHI (Route Health Injection)</h3>
+                <p class="text-gray-700 mb-2"><strong>場景：</strong> 當 A10 上配置了 VIP (Virtual IP) 供外界存取時，如何讓核心交換器知道這個 IP 在 A10 這裡？</p>
+                <p class="text-gray-700">
+                    <strong>解法：</strong> 開啟 OSPF，並將 VIP Redistribute 進 OSPF。
+                    <br>
+                    <strong>優點：</strong> 如果 A10 當機或 VIP 下線，OSPF 會自動撤銷該路由，流量就不會被送往黑洞，實現高可用性 (HA) 切換。
+                </p>
+            </div>
+        </section>
+
+        <!-- Quiz Section -->
+        <section id="quiz" class="mt-16">
+            <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-8 border border-gray-200">
+                <h2 class="text-3xl font-bold text-a10blue mb-6 flex items-center">
+                    <i class="fa-solid fa-clipboard-question mr-3 text-a10accent"></i>隨堂測驗 (Quiz)
+                </h2>
+                
+                <div id="quiz-container" class="space-y-6">
+                    <!-- Questions will be injected here by JS -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-center items-center gap-4">
+            <p>Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0</p>
+            <div class="text-a10orange text-xl">
+                <i class="fa-solid fa-bolt"></i>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Quiz Script -->
+    <script>
+        const questions = [
+            {
+                id: 1,
+                question: "為什麼我們通常建議使用 Management Interface 進行設備管理，而不是使用 Data Interface？",
+                options: [
+                    "A. 因為 Management Interface 的網速比較快",
+                    "B. 為了實現 Out-of-Band 管理，將管理流量與業務流量隔離，提高安全性與穩定性",
+                    "C. A10 的 Data Interface 不支援 SSH 協定",
+                    "D. Management Interface 不需要設定 IP 位址"
+                ],
+                correct: 1, // Index of correct answer (B)
+                explanation: "正解：B。Management Interface 擁有獨立的 Routing Table 與硬體路徑，即便 Data Plane 因為 DDoS 或流量滿載而癱瘓，管理員仍可透過 Mgmt Port 進入設備進行搶修 (OOB)。"
+            },
+            {
+                id: 2,
+                question: "在 A10 設備上設定 VLAN Tagging (802.1Q) 時，以下哪個指令是正確的邏輯？",
+                options: [
+                    "A. 在 Interface 下設定 encapsulation dot1q",
+                    "B. 直接在物理 Interface 設定 IP 位址即可",
+                    "C. 進入 VLAN ID 設定模式，將 Ethernet Interface 加入並設為 'tagged'",
+                    "D. A10 不支援 VLAN Tagging"
+                ],
+                correct: 2, // Index (C)
+                explanation: "正解：C。A10 (ACOS) 的設定邏輯是：先建立 `vlan <id>`，然後在該 VLAN 模式下輸入 `tagged ethernet <port>`。這與 Cisco 在 Interface 下設定 Trunk 的邏輯稍有不同。"
+            },
+            {
+                id: 3,
+                question: "關於 A10 上的 Link Aggregation (LAG) 設定，下列何者正確？",
+                options: [
+                    "A. A10 使用 'interface port-channel' 指令來建立 LAG",
+                    "B. A10 的 'interface trunk' 指的是 Link Aggregation，而非 VLAN Tagging",
+                    "C. Static LAG 能夠自動偵測線路錯接並防止封包迴圈",
+                    "D. LACP 模式下不需要設定 'trunk-group' 指令"
+                ],
+                correct: 1, // Index (B)
+                explanation: "正解：B。這是 A10 與 Cisco 術語最大的不同點。A10 的 `interface trunk` 等同於 Cisco 的 EtherChannel (LAG)。而 Cisco 的 Trunk (VLAN Tagging) 在 A10 中稱為 `tagged` 介面。"
+            },
+            {
+                id: 4,
+                question: "如果要在 A10 上為 VLAN 10 提供 Layer 3 路由功能（設定 Default Gateway 給 Server），需要配置什麼？",
+                options: [
+                    "A. Virtual Ethernet (VE) Interface",
+                    "B. Loopback Interface",
+                    "C. Management Interface",
+                    "D. Trunk Interface"
+                ],
+                correct: 0, // Index (A)
+                explanation: "正解：A。在 ACOS 中，SVI (Switch Virtual Interface) 被稱為 VE (Virtual Ethernet)。你需要設定 `interface ve 10` 並給予 IP 位址。"
+            },
+            {
+                id: 5,
+                question: "關於 Static Route 與 OSPF 的比較，下列何者正確？",
+                options: [
+                    "A. Static Route 會自動偵測網路斷線並繞路",
+                    "B. OSPF 適合用於只有一條對外線路的小型環境",
+                    "C. Static Route 需要手動維護，擴充性較差；OSPF 能動態交換路由，適合大型複雜網路",
+                    "D. OSPF 的 Administrative Distance (優先權) 預設比 Static Route 高"
+                ],
+                correct: 2, // Index (C)
+                explanation: "正解：C。靜態路由如同一張畫死的地圖，無法應對動態變化。OSPF 則能透過 LSA 交換動態計算路徑。通常 Static Route 的 AD 值較低（優先權較高）。"
+            },
+            {
+                id: 6,
+                question: "在部署 SLB 時，使用 OSPF 的 'Route Health Injection (RHI)' 主要好處是什麼？",
+                options: [
+                    "A. 加速封包傳輸速度",
+                    "B. 讓 VIP 的路由狀態與 VIP 的健康狀態連動，實現自動化的高可用性 (HA) 路由切換",
+                    "C. 節省 A10 的 CPU 資源",
+                    "D. 這是為了加密傳輸資料"
+                ],
+                correct: 1, // Index (B)
+                explanation: "正解：B。透過 RHI (通常使用 redistribute vip)，當 VIP 因為後端 Server 全掛而 Down 時，A10 會停止向 OSPF 發布該 VIP 的路由，上層 Router 就會自動停止將流量送往該 A10，避免流量黑洞。"
+            }
+        ];
+
+        function renderQuiz() {
+            const container = document.getElementById('quiz-container');
+            
+            questions.forEach((q, index) => {
+                const qDiv = document.createElement('div');
+                qDiv.className = 'bg-white p-6 rounded shadow-sm border border-gray-100';
+                
+                let optionsHtml = '';
+                q.options.forEach((opt, optIndex) => {
+                    optionsHtml += `
+                        <div class="quiz-option p-3 rounded mb-2" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                            ${opt}
+                        </div>
+                    `;
+                });
+
+                qDiv.innerHTML = `
+                    <h3 class="font-bold text-lg mb-3 text-gray-800">${index + 1}. ${q.question}</h3>
+                    <div class="space-y-2 pointer-events-auto" id="options-${index}">
+                        ${optionsHtml}
+                    </div>
+                    <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 text-sm"></div>
+                `;
+                container.appendChild(qDiv);
+            });
+        }
+
+        function checkAnswer(qIndex, selectedOptIndex, element) {
+            const q = questions[qIndex];
+            const resultDiv = document.getElementById(`result-${qIndex}`);
+            const parent = document.getElementById(`options-${qIndex}`);
+            
+            // Disable all options after selection
+            const allOptions = parent.getElementsByClassName('quiz-option');
+            for(let opt of allOptions) {
+                opt.style.pointerEvents = 'none';
+                opt.style.opacity = '0.7';
+            }
+
+            // Remove previous styling just in case
+            element.classList.remove('hover:bg-blue-50');
+            element.style.opacity = '1';
+
+            if (selectedOptIndex === q.correct) {
+                element.classList.add('correct');
+                element.innerHTML += ' <i class="fa-solid fa-check float-right mt-1"></i>';
+                resultDiv.classList.remove('hidden');
+                resultDiv.classList.add('text-green-800', 'bg-green-50', 'border', 'border-green-200');
+                resultDiv.innerHTML = `<strong><i class="fa-solid fa-check-circle"></i> 答對了！</strong><br>${q.explanation}`;
+            } else {
+                element.classList.add('wrong');
+                element.innerHTML += ' <i class="fa-solid fa-times float-right mt-1"></i>';
+                
+                // Highlight the correct answer
+                allOptions[q.correct].classList.add('correct');
+                allOptions[q.correct].style.opacity = '1';
+
+                resultDiv.classList.remove('hidden');
+                resultDiv.classList.add('text-red-800', 'bg-red-50', 'border', 'border-red-200');
+                resultDiv.innerHTML = `<strong><i class="fa-solid fa-times-circle"></i> 答錯了！</strong><br>${q.explanation}`;
+            }
+        }
+
+        // Initialize Diagrams and Quiz
+        document.addEventListener('DOMContentLoaded', () => {
+            mermaid.initialize({ 
+                startOnLoad: true,
+                theme: 'neutral',
+                fontFamily: 'Rubik'
+            });
+            renderQuiz();
+        });
+    </script>
+</body>
+</html>
