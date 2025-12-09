@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A10 Thunder 實戰課程 - aVCS 架構解析</title>
+    
+    <!-- 引入 Google Fonts: Rubik -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- 引入 Tailwind CSS (使用 CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 設定 A10 品牌色配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        a10blue: '#002855',      // Midnight Blue
+                        a10light: '#F3F4F6',     // Light Grey
+                        a10magenta: '#E4007F',   // Magenta
+                        a10orange: '#FF6600',    // Orange
+                        a10text: '#1F2937',      // Dark Grey Text
+                    },
+                    fontFamily: {
+                        rubik: ['Rubik', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- 引入 Mermaid.js 用於繪圖 -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'base',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            },
+            sequence: {
+                diagramMarginX: 50,
+                diagramMarginY: 10,
+                actorMargin: 50,
+                width: 150,
+                height: 65,
+                boxMargin: 10,
+                boxTextMargin: 5,
+                noteMargin: 10,
+                messageMargin: 35,
+                mirrorActors: false,
+                bottomMarginAdj: 1,
+                useMaxWidth: true,
+            },
+            themeVariables: {
+                primaryColor: '#002855',       // 參與者背景 (深藍)
+                primaryTextColor: '#ffffff',   // 參與者文字 (白)
+                primaryBorderColor: '#002855', // 邊框
+                lineColor: '#E4007F',          // 線條顏色 (洋紅)
+                secondaryColor: '#f4f4f4',
+                tertiaryColor: '#fff',
+                
+                // Flowchart 專用
+                edgeLabelBackground: '#E4007F',
+                edgeLabelText: '#ffffff',
+                
+                // Sequence Diagram 專用配色修正
+                actorBkg: '#002855',
+                actorBorder: '#002855',
+                actorTextColor: '#ffffff',
+                actorLineColor: '#002855',
+                
+                signalColor: '#E4007F',        // 訊息線顏色
+                signalTextColor: '#000000',    // 訊息文字顏色 (黑色較易讀)
+                
+                labelBoxBkgColor: '#ffffff',
+                labelBoxBorderColor: '#E4007F',
+                
+                noteBkgColor: '#E0F2FE',       // Note 背景 (淺藍)
+                noteBorderColor: '#002855',
+                noteTextColor: '#002855',
+                
+                activationBkgColor: '#fce7f3', // 激活條背景 (淺洋紅)
+                activationBorderColor: '#E4007F'
+            }
+        });
+    </script>
+
+    <style>
+        body {
+            font-family: 'Rubik', "Microsoft JhengHei", sans-serif;
+            background-color: #F8FAFC;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            overflow-x: auto; /* 確保小螢幕可滑動 */
+        }
+        /* 針對 Sequence 圖表的文字大小微調 */
+        .mermaid text {
+            font-family: 'Rubik', sans-serif !important;
+        }
+        .quiz-option:checked + label {
+            background-color: #E0F2FE;
+            border-color: #002855;
+            color: #002855;
+        }
+        /* 微漸層背景 */
+        .hero-bg {
+            background: linear-gradient(135deg, #002855 0%, #001f3f 100%);
+        }
+    </style>
+</head>
+<body class="text-gray-800 flex flex-col min-h-screen">
+
+    <!-- Header -->
+    <header class="hero-bg text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 bg-gradient-to-br from-a10orange to-red-500 rounded-lg flex items-center justify-center font-bold text-white">A</div>
+                <h1 class="text-xl font-bold tracking-wide">A10 Networks Thunder <span class="text-a10magenta">實戰課程</span></h1>
+            </div>
+            <div class="text-sm text-gray-300 hidden md:block">Level 3 - Architect: aVCS 深度解析</div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-5xl mx-auto px-4 py-8 space-y-12">
+
+        <!-- 0. Title Section -->
+        <div class="text-center space-y-4">
+            <h2 class="text-3xl md:text-4xl font-bold text-a10blue">aVCS (Virtual Chassis System)</h2>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                打破單機限制，實現多台 A10 Thunder 設備的統一管理與彈性擴充。
+            </p>
+        </div>
+
+        <!-- 1. 核心概念 (Concept) -->
+        <section class="bg-white rounded-xl shadow-md p-6 border-l-4 border-a10magenta">
+            <h3 class="text-2xl font-bold text-a10blue mb-4 flex items-center">
+                <span class="bg-a10blue text-white w-8 h-8 rounded-full flex items-center justify-center text-sm mr-3">1</span>
+                核心概念 (Concept)
+            </h3>
+            
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="space-y-3">
+                    <h4 class="font-bold text-a10orange uppercase text-sm tracking-wider">一句話定義</h4>
+                    <p class="text-gray-700 leading-relaxed text-lg">
+                        aVCS 是一種虛擬化技術，能將多台物理 A10 Thunder 設備邏輯上綑綁為「單一台」超級設備進行管理與操作。
+                    </p>
+                </div>
+                <div class="space-y-3 bg-gray-50 p-4 rounded-lg">
+                    <h4 class="font-bold text-a10orange uppercase text-sm tracking-wider">生活化比喻</h4>
+                    <p class="text-gray-700 leading-relaxed">
+                        <span class="font-semibold text-a10blue">「分身術與大腦中樞」</span>：
+                        想像一個<span class="font-bold">交響樂團</span>。雖然有數十位演奏者（多台設備），但只有一位<span class="font-bold">指揮家 (vMaster)</span>。觀眾（管理者）只需要看指揮家的動作，不需要分別去指導每一位小提琴手 (vBlade)。所有樂譜（設定檔）都由指揮家統一發送，整個樂團聽起來就像一個巨大的單一樂器在運作。
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. 運作原理 (Mechanism) -->
+        <section class="bg-white rounded-xl shadow-md p-6">
+            <h3 class="text-2xl font-bold text-a10blue mb-6 flex items-center">
+                <span class="bg-a10blue text-white w-8 h-8 rounded-full flex items-center justify-center text-sm mr-3">2</span>
+                運作原理 (Mechanism)
+            </h3>
+
+            <div class="space-y-6">
+                <div>
+                    <h4 class="text-xl font-semibold text-gray-800 mb-2">vMaster 與 vBlade 架構</h4>
+                    <ul class="list-disc list-inside space-y-2 text-gray-700 ml-2">
+                        <li><strong>vMaster (指揮官)：</strong> 整個 Cluster 中被選出的主控設備。它擁有單一的管理 IP (Floating IP)。所有的 CLI 指令、GUI 操作、API 呼叫都只針對 vMaster 進行。vMaster 負責將配置同步 (Config Sync) 推送到所有 vBlade。</li>
+                        <li><strong>vBlade (執行者)：</strong> Cluster 中的其他設備。它們接收來自 vMaster 的指令與配置，專注於處理實際的數據流量 (Data Plane)。若 vMaster 故障，系統會自動從 vBlade 中選舉出新的 vMaster。</li>
+                    </ul>
+                </div>
+
+                <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                    <h4 class="text-lg font-semibold text-a10blue mb-2">關鍵技術細節</h4>
+                    <div class="grid md:grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <span class="font-bold block text-gray-700">控制層面 (Control Plane)</span>
+                            透過專屬的 aVCS 協議在設備間交換心跳與狀態資訊。通常建議使用專用的管理埠 (Mgmt Interface) 或直連線路來傳輸 aVCS 控制封包。
+                        </div>
+                        <div>
+                            <span class="font-bold block text-gray-700">配置同步 (Synchronization)</span>
+                            當你在 vMaster 下達 `write memory` 或修改 SLB 設定時，vMaster 會即時將變更透過內部通道複製到所有 vBlade，確保行為一致。
+                        </div>
+                        <div>
+                            <span class="font-bold block text-gray-700">設備識別 (Device ID)</span>
+                            每台設備在 aVCS 中都有唯一的 `device-id` (如 1, 2, 3...)。這對於故障排查與指定特定設備介面 (例如 `interface ethernet 2/1`) 至關重要。
+                        </div>
+                        <div>
+                            <span class="font-bold block text-gray-700">彈性擴充 (Scaling)</span>
+                            新增一台設備只需加入 aVCS 群組，它會自動從 vMaster 下載完整的配置檔與 Image，實現「即插即用」的擴展。
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. 架構視覺化 (Visuals) -->
+        <section class="bg-white rounded-xl shadow-md p-6">
+            <h3 class="text-2xl font-bold text-a10blue mb-6 flex items-center">
+                <span class="bg-a10blue text-white w-8 h-8 rounded-full flex items-center justify-center text-sm mr-3">3</span>
+                架構視覺化 (Visuals)
+            </h3>
+
+            <!-- 圖表 1: 拓撲架構 -->
+            <div class="mb-8">
+                <h4 class="text-lg font-semibold text-center mb-2 text-gray-600">圖一：aVCS 實體 vs 邏輯視圖</h4>
+                <div class="mermaid">
+                    graph TD
+                    %% 定義樣式 Class
+                    classDef masterNode fill:#002855,color:#fff,stroke:#E4007F,stroke-width:3px;
+                    classDef bladeNode fill:#fff,color:#002855,stroke:#002855,stroke-width:2px;
+                    classDef logicalNode fill:#E0F2FE,stroke:#002855,stroke-dasharray: 5 5,color:#002855;
+
+                    %% 邏輯視圖區域
+                    subgraph LogicView [邏輯視圖：單一管理入口]
+                        Admin[管理者 Admin]:::logicalNode
+                        VIP(aVCS Floating IP):::logicalNode
+                        Admin -->|SSH / HTTPS| VIP
+                    end
+
+                    %% 實體視圖區域
+                    subgraph PhysView [實體視圖：真實設備連接]
+                        Master[vMaster: Device 1]:::masterNode
+                        Blade1[vBlade: Device 2]:::bladeNode
+                        Blade2[vBlade: Device 3]:::bladeNode
+                        
+                        %% 設備間同步連線
+                        Master <==>|aVCS Sync| Blade1
+                        Master <==>|aVCS Sync| Blade2
+                    end
+
+                    %% 邏輯與實體的關聯
+                    VIP -.->|映射 Map| Master
+
+                    %% 外部流量
+                    Web((Internet))
+                    Web -->|Traffic| Master
+                    Web -->|Traffic| Blade1
+                    Web -->|Traffic| Blade2
+                </div>
+            </div>
+
+            <!-- 圖表 2: 運作流程 -->
+            <div>
+                <h4 class="text-lg font-semibold text-center mb-2 text-gray-600">圖二：管理指令同步流程 (Sequence)</h4>
+                <div class="mermaid">
+                    sequenceDiagram
+                        autonumber
+                        
+                        %% 定義參與者
+                        participant Admin as 管理者 (Admin)
+                        
+                        box "A10 Thunder Cluster (aVCS)" #F8FAFC
+                            participant vMaster as vMaster (Device 1)
+                            participant vBlade as vBlade (Device 2)
+                        end
+                        
+                        %% 流程開始
+                        Note over Admin, vMaster: 登入 Floating IP (VIP)
+                        Admin->>vMaster: 1. 下達指令 (例: slb virtual-server web 80)
+                        
+                        activate vMaster
+                        Note right of vMaster: 寫入 vMaster 本地配置
+                        vMaster->>vMaster: 更新 Local Config
+                        
+                        rect rgb(224, 242, 254)
+                            Note right of vMaster: 同步至 Cluster 成員
+                            vMaster->>vBlade: 2. 推送配置變更 (Config Push)
+                            activate vBlade
+                            vBlade->>vBlade: 更新 Local Config
+                            vBlade-->>vMaster: 3. 確認完成 (Ack)
+                            deactivate vBlade
+                        end
+                        
+                        vMaster-->>Admin: 4. 回傳 "Command Successful"
+                        deactivate vMaster
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. 實務應用場景 (Use Case) -->
+        <section class="bg-white rounded-xl shadow-md p-6 border-l-4 border-a10orange">
+            <h3 class="text-2xl font-bold text-a10blue mb-6 flex items-center">
+                <span class="bg-a10blue text-white w-8 h-8 rounded-full flex items-center justify-center text-sm mr-3">4</span>
+                實務應用場景 (Use Case)
+            </h3>
+
+            <div class="mb-4">
+                <h4 class="font-bold text-lg mb-2">案例：大型電商的「雙 11」彈性擴容</h4>
+                <p class="text-gray-700">
+                    某大型電商平時流量約需 2 台 Thunder 設備處理。但在「雙 11」購物節期間，流量預期暴增 3 倍。
+                </p>
+                <div class="mt-4 p-4 bg-gray-50 rounded-lg">
+                    <ul class="space-y-2 text-gray-700">
+                        <li><strong>部署方式：</strong> 透過 aVCS，工程師預先將 2 台備用機與原本的 2 台線上機串接。</li>
+                        <li><strong>操作過程：</strong> 設定好 `device-id` 與 `priority` 後，新設備開機加入 Cluster。vMaster 自動偵測並將現有的數千行 SLB 設定檔同步寫入新設備。</li>
+                        <li><strong>結果：</strong> 10 分鐘內，系統處理能力從 200 Gbps 提升至 400 Gbps，且無需逐台設定 IP 或路由，對外服務 IP 完全不變。</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-4 mt-6">
+                <div class="p-4 border border-green-200 bg-green-50 rounded-lg">
+                    <h5 class="font-bold text-green-800 mb-2">優點 (Pros)</h5>
+                    <ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
+                        <li><strong>管理極簡化：</strong> 8 台設備看起來像 1 台，維運成本大幅降低。</li>
+                        <li><strong>高可用性 (HA)：</strong> 內建 N+1 或 N+M 備援機制，Master 掛掉自動切換。</li>
+                        <li><strong>資源共享：</strong> 可做成資源池，支援非對稱流量負載。</li>
+                    </ul>
+                </div>
+                <div class="p-4 border border-red-200 bg-red-50 rounded-lg">
+                    <h5 class="font-bold text-red-800 mb-2">缺點/注意事項 (Cons)</h5>
+                    <ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
+                        <li><strong>升級風險：</strong> 軟體升級需謹慎，若 vMaster 升級失敗可能影響管理層面。</li>
+                        <li><strong>控制層頻寬：</strong> 若配置極其龐大，需注意 vMaster 同步時的控制層負載。</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. 隨堂測驗 (Quiz) -->
+        <section class="bg-white rounded-xl shadow-md p-6">
+            <h3 class="text-2xl font-bold text-a10blue mb-6 flex items-center">
+                <span class="bg-a10blue text-white w-8 h-8 rounded-full flex items-center justify-center text-sm mr-3">5</span>
+                隨堂測驗 (Quiz)
+            </h3>
+
+            <div class="space-y-8" id="quiz-container">
+                <!-- Question 1 -->
+                <div class="quiz-item">
+                    <p class="font-semibold text-lg mb-3">1. 在 aVCS 架構中，負責管理整個 Cluster 並同步配置給其他設備的角色是？</p>
+                    <div class="space-y-2">
+                        <div class="flex items-center">
+                            <input type="radio" name="q1" id="q1a" value="wrong" class="mr-2 quiz-option">
+                            <label for="q1a" class="cursor-pointer w-full p-2 rounded hover:bg-gray-100">A. vBlade</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="radio" name="q1" id="q1b" value="correct" class="mr-2 quiz-option">
+                            <label for="q1b" class="cursor-pointer w-full p-2 rounded hover:bg-gray-100">B. vMaster</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="radio" name="q1" id="q1c" value="wrong" class="mr-2 quiz-option">
+                            <label for="q1c" class="cursor-pointer w-full p-2 rounded hover:bg-gray-100">C. vRouter</label>
+                        </div>
+                    </div>
+                    <div class="hidden mt-3 p-3 rounded bg-gray-100 text-sm feedback"></div>
+                </div>
+
+                <!-- Question 2 -->
+                <div class="quiz-item">
+                    <p class="font-semibold text-lg mb-3">2. 當管理員想要透過 CLI 設定 aVCS Cluster 時，應該連線到哪裡？</p>
+                    <div class="space-y-2">
+                        <div class="flex items-center">
+                            <input type="radio" name="q2" id="q2a" value="correct" class="mr-2 quiz-option">
+                            <label for="q2a" class="cursor-pointer w-full p-2 rounded hover:bg-gray-100">A. aVCS Floating IP (虛擬管理 IP)</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="radio" name="q2" id="q2b" value="wrong" class="mr-2 quiz-option">
+                            <label for="q2b" class="cursor-pointer w-full p-2 rounded hover:bg-gray-100">B. 每一台 vBlade 的實體管理 IP</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="radio" name="q2" id="q2c" value="wrong" class="mr-2 quiz-option">
+                            <label for="q2c" class="cursor-pointer w-full p-2 rounded hover:bg-gray-100">C. 隨機選擇一台設備連線</label>
+                        </div>
+                    </div>
+                    <div class="hidden mt-3 p-3 rounded bg-gray-100 text-sm feedback"></div>
+                </div>
+
+                 <!-- Question 3 -->
+                 <div class="quiz-item">
+                    <p class="font-semibold text-lg mb-3">3. 如果目前的 vMaster 設備發生硬體故障斷電，aVCS 會發生什麼事？</p>
+                    <div class="space-y-2">
+                        <div class="flex items-center">
+                            <input type="radio" name="q3" id="q3a" value="wrong" class="mr-2 quiz-option">
+                            <label for="q3a" class="cursor-pointer w-full p-2 rounded hover:bg-gray-100">A. 整個系統停止運作，直到 vMaster 修復</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="radio" name="q3" id="q3b" value="wrong" class="mr-2 quiz-option">
+                            <label for="q3b" class="cursor-pointer w-full p-2 rounded hover:bg-gray-100">B. 所有配置檔會遺失，需要重新設定</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="radio" name="q3" id="q3c" value="correct" class="mr-2 quiz-option">
+                            <label for="q3c" class="cursor-pointer w-full p-2 rounded hover:bg-gray-100">C. 系統會自動從剩下的 vBlade 中選舉出新的 vMaster 接手管理</label>
+                        </div>
+                    </div>
+                    <div class="hidden mt-3 p-3 rounded bg-gray-100 text-sm feedback"></div>
+                </div>
+
+                <!-- Question 4 -->
+                <div class="quiz-item">
+                    <p class="font-semibold text-lg mb-3">4. 關於 aVCS 的擴充性 (Scaling)，下列敘述何者正確？</p>
+                    <div class="space-y-2">
+                        <div class="flex items-center">
+                            <input type="radio" name="q4" id="q4a" value="correct" class="mr-2 quiz-option">
+                            <label for="q4a" class="cursor-pointer w-full p-2 rounded hover:bg-gray-100">A. 新加入的設備會自動從 vMaster 同步配置，無需手動重打指令</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="radio" name="q4" id="q4b" value="wrong" class="mr-2 quiz-option">
+                            <label for="q4b" class="cursor-pointer w-full p-2 rounded hover:bg-gray-100">B. 必須先在新設備上手動建立所有 VIP 才能加入 Cluster</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="radio" name="q4" id="q4c" value="wrong" class="mr-2 quiz-option">
+                            <label for="q4c" class="cursor-pointer w-full p-2 rounded hover:bg-gray-100">C. aVCS 僅支援 2 台設備，無法擴充</label>
+                        </div>
+                    </div>
+                    <div class="hidden mt-3 p-3 rounded bg-gray-100 text-sm feedback"></div>
+                </div>
+
+                <!-- Question 5 -->
+                <div class="quiz-item">
+                    <p class="font-semibold text-lg mb-3">5. 在 aVCS 邏輯拓撲圖中，使用者通常會看到幾個管理介面？</p>
+                    <div class="space-y-2">
+                        <div class="flex items-center">
+                            <input type="radio" name="q5" id="q5a" value="wrong" class="mr-2 quiz-option">
+                            <label for="q5a" class="cursor-pointer w-full p-2 rounded hover:bg-gray-100">A. 依據設備數量而定，有幾台就看到幾個</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="radio" name="q5" id="q5b" value="correct" class="mr-2 quiz-option">
+                            <label for="q5b" class="cursor-pointer w-full p-2 rounded hover:bg-gray-100">B. 只看到單一個統一的管理入口 (Single Pane of Glass)</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="radio" name="q5" id="q5c" value="wrong" class="mr-2 quiz-option">
+                            <label for="q5c" class="cursor-pointer w-full p-2 rounded hover:bg-gray-100">C. 看到兩個，一個讀取用，一個寫入用</label>
+                        </div>
+                    </div>
+                    <div class="hidden mt-3 p-3 rounded bg-gray-100 text-sm feedback"></div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-a10blue text-white py-6 mt-8">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-sm opacity-80 font-light tracking-wide">
+                Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0
+            </p>
+        </div>
+    </footer>
+
+    <!-- JavaScript for Quiz Logic -->
+    <script>
+        document.querySelectorAll('.quiz-option').forEach(option => {
+            option.addEventListener('change', function() {
+                const parent = this.closest('.quiz-item');
+                const feedback = parent.querySelector('.feedback');
+                
+                // Reset styling
+                feedback.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
+                
+                if (this.value === 'correct') {
+                    feedback.textContent = "✅ 正確！ 解析：非常棒的觀念。";
+                    feedback.classList.add('bg-green-100', 'text-green-800');
+                    if(this.id === 'q1b') feedback.textContent += " vMaster 是大腦，負責派送指令。";
+                    if(this.id === 'q2a') feedback.textContent += " Floating IP 保證無論哪台實體機當 Master，你都連到同一個管理入口。";
+                    if(this.id === 'q3c') feedback.textContent += " 高可用性是 aVCS 的核心優勢之一。";
+                    if(this.id === 'q4a') feedback.textContent += " 這是 aVCS 簡化維運的最大優點，新機上架自動同步。";
+                    if(this.id === 'q5b') feedback.textContent += " 邏輯上視為單一設備管理。";
+                } else {
+                    feedback.textContent = "❌ 錯誤。 再想一下，回顧上面的「運作原理」章節喔！";
+                    feedback.classList.add('bg-red-100', 'text-red-800');
+                }
+                
+                feedback.classList.remove('hidden');
+            });
+        });
+    </script>
+</body>
+</html>
