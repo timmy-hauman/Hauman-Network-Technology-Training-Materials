@@ -220,7 +220,7 @@
 
     <!-- Footer -->
     <footer class="mt-12 text-center text-xs text-gray-400 w-full max-w-5xl border-t border-gray-200 pt-6">
-        <p>Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0</p>
+        <p>Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.1</p>
     </footer>
 
     <script>
@@ -385,10 +385,20 @@
              try {
                 const dnsRes = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(input)}&type=A`);
                 const dnsData = await dnsRes.json();
+                
+                // FIXED: Prioritize finding Type 1 (A record) instead of taking the first result (which could be CNAME)
                 if (dnsData.Answer && dnsData.Answer.length > 0) {
-                    return dnsData.Answer[0].data;
+                    const aRecord = dnsData.Answer.find(rec => rec.type === 1);
+                    if (aRecord) {
+                        return aRecord.data;
+                    }
+                    // Fallback: if no A record explicitly found but there are answers, use the last one (often the resolved IP in a chain)
+                    // or just return the first one if we can't find type 1.
+                    // But for GeoIP, we strictly need IP.
+                    const lastRecord = dnsData.Answer[dnsData.Answer.length - 1];
+                    if (lastRecord.type === 1) return lastRecord.data;
                 }
-                throw new Error("無法解析 IP (沒有 A 紀錄)");
+                throw new Error("無法解析 IP (沒有 A 紀錄或僅有 CNAME)");
              } catch (e) {
                  throw new Error("DNS 解析失敗: " + e.message);
              }
@@ -525,38 +535,74 @@
             let targetIp = await resolveDomainToIp(input);
             const isIp = targetIp === input; // if input was ip
 
+            // Private IP Check
+            if (isPrivateIp(targetIp)) {
+                throw new Error(`無法查詢私有 IP (Private IP) 或保留位址: ${targetIp}`);
+            }
+
             document.getElementById('loadingText').innerText = `查詢 IP 位置: ${targetIp}...`;
 
-            // Try ipwho.is -> fallback ipapi.co
+            // Strategy: Try ipwho.is -> fallback ipapi.co -> fallback freeipapi.com
             let geoData = null;
             let rawData = null;
 
             try {
+                // 1. Try ipwho.is
                 const data = await fetchIpWhoIs(targetIp);
                 geoData = data; rawData = data.raw;
             } catch (e1) {
+                console.warn("ipwho.is failed:", e1);
                 try {
+                    // 2. Try ipapi.co
                     const data = await fetchIpApiCo(targetIp);
                     geoData = data; rawData = data.raw;
                 } catch (e2) {
-                    throw new Error("所有 GeoIP 服務皆無法使用。");
+                    console.warn("ipapi.co failed:", e2);
+                    try {
+                        // 3. Try freeipapi.com
+                        const data = await fetchFreeIpApi(targetIp);
+                        geoData = data; rawData = data.raw;
+                    } catch (e3) {
+                        console.error("All GeoIP services failed:", e3);
+                        throw new Error(`所有 GeoIP 服務皆無法使用 (可能是 API 連線限制或 IP 無效)。`);
+                    }
                 }
             }
             renderGenericResults(formatGeoData(geoData, input, isIp), rawData);
         }
 
+        function isPrivateIp(ip) {
+            // Simple check for IPv4 Private Ranges (10.x, 172.16-31.x, 192.168.x, 127.x)
+            const parts = ip.split('.').map(Number);
+            if (parts.length !== 4 || parts.some(isNaN)) return false; // Skip check if not standard IPv4
+            if (parts[0] === 10) return true;
+            if (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) return true;
+            if (parts[0] === 192 && parts[1] === 168) return true;
+            if (parts[0] === 127) return true;
+            return false;
+        }
+
         // (Helper functions for Location fetch)
         async function fetchIpWhoIs(ip) {
             const r = await fetch(`https://ipwho.is/${ip}`);
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
             const d = await r.json();
-            if (!d.success) throw new Error("Failed");
+            if (!d.success) throw new Error(d.message || "Failed");
             return { ip: d.ip, country: d.country, city: d.city, isp: d.connection.isp, raw: d, flag_img: d.flag?.img };
         }
         async function fetchIpApiCo(ip) {
             const r = await fetch(`https://ipapi.co/${ip}/json/`);
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
             const d = await r.json();
-            if (d.error) throw new Error("Failed");
+            if (d.error) throw new Error(d.reason || "Failed");
             return { ip: d.ip, country: d.country_name, city: d.city, isp: d.org, raw: d, flag_img: null };
+        }
+
+        async function fetchFreeIpApi(ip) {
+            const r = await fetch(`https://freeipapi.com/api/json/${ip}`);
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            const d = await r.json();
+            return { ip: d.ipAddress, country: d.countryName, city: d.cityName, isp: "N/A", raw: d, flag_img: null };
         }
 
         function formatGeoData(data, originalInput, wasIp) {
