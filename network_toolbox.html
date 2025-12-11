@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>網路工具箱 | DNS、WHOIS、IP、Port、SSL、Calc</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* JSON Syntax Highlighting */
+        .string { color: #059669; }
+        .number { color: #d97706; }
+        .boolean { color: #2563eb; }
+        .null { color: #dc2626; }
+        .key { color: #4b5563; font-weight: bold; }
+        
+        /* Tab Transitions */
+        .tab-btn { transition: all 0.3s; border-bottom: 2px solid transparent; }
+        .tab-btn.active { border-bottom-color: #2563eb; color: #2563eb; background-color: #eff6ff; }
+
+        /* Terminal Style for Nmap */
+        .terminal {
+            background-color: #1e1e1e;
+            color: #00ff00;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            white-space: pre;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center py-10 px-4">
+
+    <!-- Main Container -->
+    <div class="w-full max-w-5xl space-y-6">
+        
+        <!-- Header -->
+        <div class="text-center space-y-2">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-800 tracking-tight">
+                <i class="fa-solid fa-toolbox text-blue-600 mr-2"></i>網路查詢工具箱
+            </h1>
+            <p class="text-gray-500">DNS 紀錄、WHOIS、IP 地理位置、Port 掃描、SSL 檢測、IP 計算</p>
+        </div>
+
+        <!-- Tool Selection Tabs -->
+        <div class="bg-white rounded-t-2xl shadow-sm border-b border-gray-200 flex overflow-x-auto">
+            <button onclick="switchTab('dns')" id="tab-dns" class="tab-btn active flex-1 py-4 px-4 md:px-6 text-sm font-bold text-gray-600 hover:text-blue-600 whitespace-nowrap">
+                <i class="fa-solid fa-network-wired mr-2"></i>DNS 查詢
+            </button>
+            <button onclick="switchTab('whois')" id="tab-whois" class="tab-btn flex-1 py-4 px-4 md:px-6 text-sm font-bold text-gray-600 hover:text-blue-600 whitespace-nowrap">
+                <i class="fa-solid fa-id-card mr-2"></i>WHOIS
+            </button>
+            <button onclick="switchTab('location')" id="tab-location" class="tab-btn flex-1 py-4 px-4 md:px-6 text-sm font-bold text-gray-600 hover:text-blue-600 whitespace-nowrap">
+                <i class="fa-solid fa-location-dot mr-2"></i>IP Location
+            </button>
+            <button onclick="switchTab('port')" id="tab-port" class="tab-btn flex-1 py-4 px-4 md:px-6 text-sm font-bold text-gray-600 hover:text-blue-600 whitespace-nowrap">
+                <i class="fa-solid fa-crosshairs mr-2"></i>Port Scan
+            </button>
+            <button onclick="switchTab('ssl')" id="tab-ssl" class="tab-btn flex-1 py-4 px-4 md:px-6 text-sm font-bold text-gray-600 hover:text-blue-600 whitespace-nowrap">
+                <i class="fa-solid fa-lock mr-2"></i>SSL 檢測
+            </button>
+            <button onclick="switchTab('ipcalc')" id="tab-ipcalc" class="tab-btn flex-1 py-4 px-4 md:px-6 text-sm font-bold text-gray-600 hover:text-blue-600 whitespace-nowrap">
+                <i class="fa-solid fa-calculator mr-2"></i>IP 計算
+            </button>
+        </div>
+
+        <!-- Input Area -->
+        <div class="glass-panel shadow-xl rounded-b-2xl p-6 md:p-8 -mt-6 z-10 relative">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                
+                <!-- Input Field -->
+                <div class="md:col-span-6" id="inputContainer">
+                    <label class="block text-sm font-medium text-gray-700 mb-1" id="inputLabel">網域名稱 / IP 位址</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
+                        </div>
+                        <input type="text" id="domainInput" 
+                            class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition shadow-sm" 
+                            placeholder="例如: google.com 或 8.8.8.8"
+                            onkeypress="handleEnter(event)">
+                    </div>
+                </div>
+
+                <!-- Record Type Dropdown (DNS Only) -->
+                <div class="md:col-span-4" id="dnsTypeContainer">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">紀錄類型</label>
+                    <div class="relative">
+                        <select id="typeInput" class="block w-full pl-3 pr-10 py-3 border border-gray-300 bg-white rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm appearance-none">
+                            <option value="A" selected>A (IPv4 地址)</option>
+                            <option value="AAAA">AAAA (IPv6 地址)</option>
+                            <option value="MX">MX (郵件伺服器)</option>
+                            <option value="CNAME">CNAME (別名)</option>
+                            <option value="TXT">TXT (文本/驗證)</option>
+                            <option value="NS">NS (名稱伺服器)</option>
+                            <option value="PTR">PTR (反向解析)</option>
+                            <option value="SOA">SOA (起始授權)</option>
+                            <option value="ANY">ANY (所有紀錄)</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                            <i class="fa-solid fa-chevron-down text-xs"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search Button -->
+                <div class="md:col-span-2 flex items-end" id="btnContainer">
+                    <button onclick="performAction()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200 shadow-lg flex justify-center items-center gap-2">
+                        查詢 <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="mt-2 text-xs text-gray-400 flex justify-between">
+                <span id="apiInfoText">* 使用 Google Public DNS API</span>
+                <span id="autoPtrMsg" class="text-blue-500 hidden"><i class="fa-solid fa-wand-magic-sparkles"></i> 偵測到 IP，已自動切換為 PTR</span>
+                <span id="autoResolveMsg" class="text-blue-500 hidden"><i class="fa-solid fa-wand-magic-sparkles"></i> 偵測到網域，將自動解析 IP</span>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading" class="hidden flex flex-col items-center justify-center py-12">
+            <div class="loading-spinner mb-4"></div>
+            <p class="text-gray-500 animate-pulse" id="loadingText">正在查詢...</p>
+        </div>
+
+        <!-- Error Message -->
+        <div id="errorBox" class="hidden bg-red-50 border-l-4 border-red-500 p-4 rounded shadow-sm">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <i class="fa-solid fa-circle-exclamation text-red-500"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-red-700 font-bold">查詢失敗</p>
+                    <p class="text-sm text-red-600 mt-1" id="errorText">無法連接伺服器。</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="resultsArea" class="hidden space-y-6">
+            
+            <!-- Summary Stats (DNS Only) -->
+            <div id="dnsStats" class="grid grid-cols-1 md:grid-cols-3 gap-4 hidden">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                    <div class="text-xs text-gray-500 uppercase font-bold tracking-wider">查詢狀態</div>
+                    <div id="resStatus" class="text-lg font-mono font-bold mt-1 text-green-600">NOERROR</div>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                    <div class="text-xs text-gray-500 uppercase font-bold tracking-wider">回應時間</div>
+                    <div id="resTime" class="text-lg font-mono mt-1 text-gray-800">45ms</div>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                    <div class="text-xs text-gray-500 uppercase font-bold tracking-wider">DNSSEC</div>
+                    <div id="resDnssec" class="text-lg font-mono mt-1 text-gray-800">False</div>
+                </div>
+            </div>
+
+            <!-- DNS Table -->
+            <div id="dnsResultBlock" class="hidden bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
+                <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                    <h3 class="font-bold text-gray-700">DNS 解析結果</h3>
+                    <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full" id="resultCount">0 筆紀錄</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">類型</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">名稱 (Name)</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">TTL</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">資料內容 (Data)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dnsTableBody" class="bg-white divide-y divide-gray-200">
+                            <!-- Rows inserted via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Generic Content Block (WHOIS, Geo, Port, SSL, Calc) -->
+            <div id="genericResultBlock" class="hidden bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                 <div id="genericContent" class="prose max-w-none text-gray-800"></div>
+            </div>
+
+            <!-- Raw JSON Toggle -->
+            <div class="text-right" id="rawJsonToggleContainer">
+                <button onclick="toggleRawJson()" class="text-sm text-blue-600 hover:text-blue-800 underline">顯示/隱藏 原始資料</button>
+            </div>
+            <div id="rawJsonArea" class="hidden">
+                <pre id="jsonOutput" class="bg-gray-900 text-gray-100 p-4 rounded-lg text-sm overflow-x-auto font-mono shadow-inner"></pre>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let currentMode = 'dns'; // 'dns', 'whois', 'location', 'port', 'ssl', 'ipcalc'
+
+        // DNS Type ID to String Mapping
+        const dnsTypes = {
+            1: "A",
+            2: "NS",
+            5: "CNAME",
+            6: "SOA",
+            12: "PTR",
+            15: "MX",
+            16: "TXT",
+            28: "AAAA",
+            255: "ANY"
+        };
+
+        // Common Port Names
+        const commonPorts = {
+            20: "FTP (Data)", 21: "FTP (Control)", 22: "SSH", 23: "Telnet", 25: "SMTP", 53: "DNS",
+            80: "HTTP", 110: "POP3", 123: "NTP", 143: "IMAP", 443: "HTTPS", 465: "SMTPS",
+            587: "SMTP (Sub)", 993: "IMAPS", 995: "POP3S", 1433: "MSSQL", 1521: "Oracle",
+            3306: "MySQL", 3389: "RDP", 5432: "PostgreSQL", 5900: "VNC", 6379: "Redis",
+            8080: "HTTP Alt", 8443: "HTTPS Alt", 27017: "MongoDB"
+        };
+
+        // --- Event Listeners & Input Logic ---
+
+        const domainInput = document.getElementById('domainInput');
+        const typeInput = document.getElementById('typeInput');
+        const autoPtrMsg = document.getElementById('autoPtrMsg');
+        const autoResolveMsg = document.getElementById('autoResolveMsg');
+
+        domainInput.addEventListener('input', function(e) {
+            const val = e.target.value.trim();
+            const isIp = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(val.split('/')[0]); // Split for CIDR check
+            
+            if (currentMode === 'dns') {
+                if (isIp && typeInput.value !== 'PTR') {
+                    typeInput.value = 'PTR';
+                    showAutoMsg(autoPtrMsg);
+                }
+            } else if (currentMode === 'location' || currentMode === 'port') {
+                if (!isIp && val.length > 3) {
+                    showAutoMsg(autoResolveMsg); 
+                }
+            }
+        });
+
+        function showAutoMsg(el) {
+            el.classList.remove('hidden');
+            setTimeout(() => el.classList.add('hidden'), 3000);
+        }
+
+        function handleEnter(e) {
+            if(e.key === 'Enter') performAction();
+        }
+
+        function switchTab(mode) {
+            currentMode = mode;
+            
+            // Update Tab UI
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active', 'bg-blue-50'));
+            document.getElementById(`tab-${mode}`).classList.add('active');
+
+            // Update Input UI
+            const dnsTypeContainer = document.getElementById('dnsTypeContainer');
+            const inputContainer = document.getElementById('inputContainer');
+            const btnContainer = document.getElementById('btnContainer');
+            const apiInfoText = document.getElementById('apiInfoText');
+            const inputLabel = document.getElementById('inputLabel');
+            const rawJsonToggleContainer = document.getElementById('rawJsonToggleContainer');
+
+            // Reset UI States
+            document.getElementById('resultsArea').classList.add('hidden');
+            document.getElementById('errorBox').classList.add('hidden');
+            
+            // Default Inputs
+            dnsTypeContainer.classList.add('hidden');
+            inputContainer.className = "md:col-span-10"; 
+            btnContainer.className = "md:col-span-2 flex items-end";
+            rawJsonToggleContainer.classList.remove('hidden'); // Show by default
+
+            if (mode === 'dns') {
+                dnsTypeContainer.classList.remove('hidden');
+                inputContainer.className = "md:col-span-6";
+                apiInfoText.innerText = "* 使用 Google Public DNS API (DoH)";
+                inputLabel.innerText = "網域名稱 / IP 位址";
+                domainInput.placeholder = "例如: google.com 或 8.8.8.8";
+            } else if(mode === 'whois') {
+                apiInfoText.innerText = "* 使用 RDAP 協議查詢 (類似 WHOIS)";
+                inputLabel.innerText = "網域名稱 / IP 位址";
+                domainInput.placeholder = "例如: google.com 或 1.1.1.1";
+            } else if(mode === 'location') {
+                apiInfoText.innerText = "* 整合多個 GeoIP 來源 (ipwho.is / ipapi.co)";
+                inputLabel.innerText = "IP 位址 / 網域名稱 (自動解析)";
+                domainInput.placeholder = "例如: 8.8.8.8 或 google.com";
+            } else if (mode === 'port') {
+                apiInfoText.innerText = "* 優先使用 Shodan InternetDB (Passive)";
+                inputLabel.innerText = "IP 位址 / 網域名稱 (自動解析)";
+                domainInput.placeholder = "例如: 8.8.8.8 或 scanme.nmap.org";
+            } else if (mode === 'ssl') {
+                apiInfoText.innerText = "* 使用 crt.sh 查詢憑證紀錄，並提供外部深層掃描";
+                inputLabel.innerText = "網域名稱";
+                domainInput.placeholder = "例如: google.com";
+            } else if (mode === 'ipcalc') {
+                apiInfoText.innerText = "* 純前端計算 (無後端 API)";
+                inputLabel.innerText = "IP 位址 / CIDR";
+                domainInput.placeholder = "例如: 192.168.1.1/24 或 10.0.0.1";
+                rawJsonToggleContainer.classList.add('hidden'); // Hide raw json for calc
+            }
+        }
+
+        function toggleRawJson() {
+            document.getElementById('rawJsonArea').classList.toggle('hidden');
+        }
+
+        async function performAction() {
+            const input = domainInput.value.trim();
+            if (!input) { alert("請輸入內容"); return; }
+
+            // Reset UI
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('resultsArea').classList.add('hidden');
+            document.getElementById('errorBox').classList.add('hidden');
+            document.getElementById('rawJsonArea').classList.add('hidden');
+            
+            // Hide specific result blocks
+            document.getElementById('dnsStats').classList.add('hidden');
+            document.getElementById('dnsResultBlock').classList.add('hidden');
+            document.getElementById('genericResultBlock').classList.add('hidden');
+
+            try {
+                if (currentMode === 'dns') {
+                    await runDnsQuery(input);
+                } else if (currentMode === 'whois') {
+                    await runWhoisQuery(input);
+                } else if (currentMode === 'location') {
+                    await runLocationQuery(input);
+                } else if (currentMode === 'port') {
+                    await runPortQuery(input);
+                } else if (currentMode === 'ssl') {
+                    await runSslQuery(input);
+                } else if (currentMode === 'ipcalc') {
+                    await runIpCalc(input);
+                }
+            } catch (error) {
+                document.getElementById('errorText').innerText = error.message || "發生未知錯誤";
+                document.getElementById('errorBox').classList.remove('hidden');
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+            }
+        }
+
+        // --- Helper: Resolve Domain to IP ---
+        async function resolveDomainToIp(input) {
+             const isIp = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(input);
+             if (isIp) return input;
+
+             document.getElementById('loadingText').innerText = `解析網域 IP: ${input}...`;
+             try {
+                const dnsRes = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(input)}&type=A`);
+                const dnsData = await dnsRes.json();
+                if (dnsData.Answer && dnsData.Answer.length > 0) {
+                    return dnsData.Answer[0].data;
+                }
+                throw new Error("無法解析 IP (沒有 A 紀錄)");
+             } catch (e) {
+                 throw new Error("DNS 解析失敗: " + e.message);
+             }
+        }
+
+
+        // --- DNS Logic ---
+        function reverseIp(ip) {
+            if (/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(ip)) {
+                return ip.split('.').reverse().join('.') + '.in-addr.arpa';
+            }
+            return ip;
+        }
+
+        async function runDnsQuery(domain) {
+            let type = document.getElementById('typeInput').value;
+            if (type === 'PTR') domain = reverseIp(domain);
+
+            document.getElementById('loadingText').innerText = "正在查詢 DNS...";
+            const startTime = performance.now();
+            const url = `https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=${type}`;
+            
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+            const data = await response.json();
+            const endTime = performance.now();
+
+            renderDnsResults(data, Math.round(endTime - startTime));
+        }
+
+        function renderDnsResults(data, latency) {
+            document.getElementById('resultsArea').classList.remove('hidden');
+            document.getElementById('dnsStats').classList.remove('hidden');
+            document.getElementById('dnsResultBlock').classList.remove('hidden');
+
+            // Stats
+            const statusMap = { 0: "NOERROR", 1: "FORMERR", 2: "SERVFAIL", 3: "NXDOMAIN", 5: "REFUSED" };
+            const statusText = statusMap[data.Status] || data.Status;
+            document.getElementById('resStatus').innerText = statusText;
+            document.getElementById('resStatus').className = data.Status === 0 ? "text-lg font-mono font-bold mt-1 text-green-600" : "text-lg font-mono font-bold mt-1 text-red-600";
+            document.getElementById('resTime').innerText = `${latency}ms`;
+            document.getElementById('resDnssec').innerText = data.AD ? "True" : "False";
+
+            // Table
+            const tbody = document.getElementById('dnsTableBody');
+            tbody.innerHTML = '';
+            const records = [...(data.Answer || []), ...(data.Authority || [])];
+            document.getElementById('resultCount').innerText = `${records.length} 筆`;
+
+            if (records.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">查無結果 (NXDOMAIN 或 無此紀錄)</td></tr>`;
+            } else {
+                records.forEach(rec => {
+                    const typeName = dnsTypes[rec.type] || rec.type;
+                    tbody.innerHTML += `
+                        <tr>
+                            <td class="px-6 py-4"><span class="px-2 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">${typeName}</span></td>
+                            <td class="px-6 py-4 text-sm font-mono text-gray-500">${rec.name}</td>
+                            <td class="px-6 py-4 text-sm text-gray-500">${rec.TTL}s</td>
+                            <td class="px-6 py-4 text-sm font-mono break-all text-gray-800">${rec.data}</td>
+                        </tr>
+                    `;
+                });
+            }
+            document.getElementById('jsonOutput').innerHTML = syntaxHighlight(data);
+        }
+
+        // --- WHOIS Logic ---
+        async function runWhoisQuery(input) {
+            document.getElementById('loadingText').innerText = "正在查詢 RDAP/WHOIS...";
+            
+            const isIp = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(input);
+            const path = isIp ? 'ip' : 'domain';
+            const url = `https://rdap.org/${path}/${encodeURIComponent(input)}`;
+            
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    if(response.status === 404) throw new Error("找不到此網域/IP 的註冊資訊 (404)");
+                    throw new Error(`查詢失敗: ${response.status}`);
+                }
+                const data = await response.json();
+                renderGenericResults(formatRdapData(data, isIp), data);
+            } catch (e) {
+                throw new Error(e.message + " (部分 TLD 可能不支援 RDAP 跨域查詢)");
+            }
+        }
+
+        function formatRdapData(data, isIp) {
+            let html = `<h3 class="text-xl font-bold mb-4 flex items-center"><i class="fa-solid fa-id-card text-blue-500 mr-2"></i> 註冊資訊 (${isIp ? 'IP' : 'Domain'})</h3>`;
+            html += `<div class="grid grid-cols-1 md:grid-cols-2 gap-4">`;
+            const getEventDate = (action) => {
+                const ev = data.events?.find(e => e.eventAction === action);
+                return ev ? new Date(ev.eventDate).toLocaleString('zh-TW') : 'N/A';
+            };
+            const safeGet = (val) => val || 'N/A';
+
+            html += `
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <span class="block text-xs text-gray-500 font-bold uppercase">Handle / ID</span>
+                    <span class="font-mono font-bold text-gray-800 break-all">${safeGet(data.handle)}</span>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <span class="block text-xs text-gray-500 font-bold uppercase">名稱 (Name)</span>
+                    <span class="font-mono text-gray-800 break-all">${safeGet(data.name || data.ldhName)}</span>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <span class="block text-xs text-gray-500 font-bold uppercase">註冊商 (Registrar)</span>
+                    <span class="text-gray-800 font-bold">${data.entities ? getEntityName(data.entities) : 'N/A'}</span>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <span class="block text-xs text-gray-500 font-bold uppercase">最後更新</span>
+                    <span class="text-gray-800">${getEventDate('last changed')}</span>
+                </div>
+            `;
+            html += `</div>`;
+            return html;
+        }
+
+        function getEntityName(entities) {
+             for(let e of entities) {
+                 if (e.vcardArray) {
+                     const fn = e.vcardArray[1].find(prop => prop[0] === 'fn');
+                     if (fn) return fn[3];
+                 }
+             }
+             return "Unknown Entity";
+        }
+
+
+        // --- Location Logic ---
+        async function runLocationQuery(input) {
+            document.getElementById('loadingText').innerText = "解析中...";
+            let targetIp = await resolveDomainToIp(input);
+            const isIp = targetIp === input; // if input was ip
+
+            document.getElementById('loadingText').innerText = `查詢 IP 位置: ${targetIp}...`;
+
+            // Try ipwho.is -> fallback ipapi.co
+            let geoData = null;
+            let rawData = null;
+
+            try {
+                const data = await fetchIpWhoIs(targetIp);
+                geoData = data; rawData = data.raw;
+            } catch (e1) {
+                try {
+                    const data = await fetchIpApiCo(targetIp);
+                    geoData = data; rawData = data.raw;
+                } catch (e2) {
+                    throw new Error("所有 GeoIP 服務皆無法使用。");
+                }
+            }
+            renderGenericResults(formatGeoData(geoData, input, isIp), rawData);
+        }
+
+        // (Helper functions for Location fetch)
+        async function fetchIpWhoIs(ip) {
+            const r = await fetch(`https://ipwho.is/${ip}`);
+            const d = await r.json();
+            if (!d.success) throw new Error("Failed");
+            return { ip: d.ip, country: d.country, city: d.city, isp: d.connection.isp, raw: d, flag_img: d.flag?.img };
+        }
+        async function fetchIpApiCo(ip) {
+            const r = await fetch(`https://ipapi.co/${ip}/json/`);
+            const d = await r.json();
+            if (d.error) throw new Error("Failed");
+            return { ip: d.ip, country: d.country_name, city: d.city, isp: d.org, raw: d, flag_img: null };
+        }
+
+        function formatGeoData(data, originalInput, wasIp) {
+            let flagHtml = data.flag_img ? `<img src="${data.flag_img}" class="w-6 h-4 mr-2 shadow-sm">` : `<i class="fa-solid fa-flag text-blue-500 mr-2"></i>`;
+            return `
+                <div class="flex flex-col md:flex-row gap-6">
+                    <div class="flex-1 space-y-4">
+                        <h3 class="text-xl font-bold flex items-center"><i class="fa-solid fa-location-dot text-red-500 mr-2"></i> 地理位置資訊</h3>
+                        ${!wasIp ? `<div class="bg-blue-50 text-blue-800 p-3 rounded text-sm mb-4"><i class="fa-solid fa-link mr-1"></i> 已解析 <strong>${originalInput}</strong> 為 <strong>${data.ip}</strong></div>` : ''}
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="p-3 bg-gray-50 rounded"><div class="text-xs text-gray-500 font-bold">IP 位址</div><div class="font-mono font-bold text-lg">${data.ip}</div></div>
+                            <div class="p-3 bg-gray-50 rounded"><div class="text-xs text-gray-500 font-bold">國家</div><div class="font-bold flex items-center">${flagHtml}${data.country}</div></div>
+                            <div class="p-3 bg-gray-50 rounded"><div class="text-xs text-gray-500 font-bold">城市</div><div class="font-bold">${data.city}</div></div>
+                            <div class="p-3 bg-gray-50 rounded"><div class="text-xs text-gray-500 font-bold">ISP</div><div class="font-bold text-sm">${data.isp}</div></div>
+                        </div>
+                    </div>
+                     <div class="flex-1 min-h-[250px] bg-gray-100 rounded-xl overflow-hidden relative shadow-inner border border-gray-300">
+                         <iframe width="100%" height="100%" frameborder="0" style="border:0" src="https://maps.google.com/maps?q=${data.raw.latitude || data.raw.lat},${data.raw.longitude || data.raw.lon}&z=10&output=embed"></iframe>
+                    </div>
+                </div>`;
+        }
+
+        // --- PORT SCAN Logic ---
+        async function runPortQuery(input) {
+            document.getElementById('loadingText').innerText = "解析目標 IP...";
+            let targetIp = await resolveDomainToIp(input);
+            const isIp = targetIp === input;
+
+            document.getElementById('loadingText').innerText = `查詢 Shodan InternetDB (${targetIp})...`;
+
+            try {
+                // Shodan InternetDB API (CORS friendly usually)
+                const url = `https://internetdb.shodan.io/${targetIp}`;
+                const response = await fetch(url);
+                
+                if (response.status === 404) {
+                    renderGenericResults(formatPortData(null, targetIp, input, isIp), { info: "No passive data found" });
+                } else if (!response.ok) {
+                    throw new Error("API 連線錯誤");
+                } else {
+                    const data = await response.json();
+                    renderGenericResults(formatPortData(data, targetIp, input, isIp), data);
+                }
+            } catch (e) {
+                renderGenericResults(formatPortData(null, targetIp, input, isIp), { error: e.message });
+            }
+        }
+
+        function formatPortData(data, ip, originalInput, wasIp) {
+            let html = `
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold flex items-center"><i class="fa-solid fa-crosshairs text-purple-600 mr-2"></i> Port 掃描結果</h3>
+                    ${!wasIp ? `<span class="text-sm bg-gray-100 px-3 py-1 rounded text-gray-600 font-mono">Target: ${ip}</span>` : ''}
+                </div>
+            `;
+
+            if (data) {
+                // Have Shodan Data
+                html += `
+                    <div class="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg mb-6 flex justify-between items-center">
+                        <div><i class="fa-solid fa-check-circle mr-2"></i> 找到公開資料庫紀錄 (Passive Scan)</div>
+                        <div class="text-xs text-green-600">Source: Shodan InternetDB</div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white border rounded-xl overflow-hidden shadow-sm">
+                            <div class="bg-gray-50 px-4 py-3 border-b font-bold text-gray-700">開放連接埠 (Open Ports)</div>
+                            <div class="p-4">
+                                ${data.ports && data.ports.length > 0 
+                                    ? `<div class="flex flex-wrap gap-2">
+                                        ${data.ports.map(p => {
+                                            const service = commonPorts[p] ? `(${commonPorts[p]})` : '';
+                                            return `<span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-lg text-sm font-mono font-bold">${p} ${service}</span>`;
+                                        }).join('')}
+                                       </div>`
+                                    : `<p class="text-gray-500 italic">無開放 Port 紀錄</p>`
+                                }
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div class="bg-white border rounded-xl overflow-hidden shadow-sm">
+                                <div class="bg-gray-50 px-4 py-3 border-b font-bold text-gray-700">主機名稱 (Hostnames)</div>
+                                <div class="p-4 text-sm text-gray-600">
+                                    ${data.hostnames && data.hostnames.length > 0 ? data.hostnames.join('<br>') : 'N/A'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg mb-6">
+                        <i class="fa-solid fa-circle-info mr-2"></i> 公開資料庫中未找到此 IP 的快取紀錄。
+                    </div>
+                `;
+            }
+
+            html += `
+                <div class="mt-8 border-t pt-6">
+                    <h4 class="font-bold text-gray-700 mb-2">進階主動掃描 (Active Scan)</h4>
+                    <p class="text-sm text-gray-500 mb-4">如果您需要即時 (Real-time) 的 Port Scan，請使用以下支援自動執行的外部工具：</p>
+                    <div class="flex flex-wrap gap-3">
+                        <a href="https://viewdns.info/portscan/?host=${ip}" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition flex items-center shadow-md">
+                            <i class="fa-solid fa-external-link-alt mr-2"></i> ViewDNS
+                        </a>
+                        <a href="https://dnschecker.org/port-scanner.php?query=${ip}" target="_blank" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded transition flex items-center shadow-md">
+                            <i class="fa-solid fa-network-wired mr-2"></i> DNSChecker
+                        </a>
+                        <a href="https://www.shodan.io/host/${ip}" target="_blank" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition flex items-center shadow-md">
+                            <i class="fa-solid fa-search mr-2"></i> Shodan
+                        </a>
+                    </div>
+                </div>
+            `;
+
+            return html;
+        }
+
+        // --- SSL Logic ---
+        async function runSslQuery(domain) {
+            document.getElementById('loadingText').innerText = "查詢憑證紀錄 (CT Logs)...";
+
+            try {
+                // Fetch Certificate Transparency logs from crt.sh via proxy to avoid CORS
+                // We use a proxy because crt.sh usually doesn't allow cross-origin requests
+                const targetUrl = `https://crt.sh/?q=${domain}&output=json`;
+                const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+                
+                const response = await fetch(proxyUrl);
+                
+                if (!response.ok) {
+                    throw new Error("無法連接憑證資料庫");
+                }
+                
+                // Handling empty or non-JSON responses gracefully
+                const text = await response.text();
+                let data = [];
+                try {
+                    data = JSON.parse(text);
+                } catch(e) {
+                    // Sometimes crt.sh fails or returns HTML on overload
+                    data = []; 
+                }
+
+                renderGenericResults(formatSslData(data, domain), data);
+
+            } catch (e) {
+                // Even if CT log fails, we still show the external links
+                renderGenericResults(formatSslData([], domain), { error: e.message });
+            }
+        }
+
+        function formatSslData(data, domain) {
+            // Process certificates: deduplicate and sort by date desc
+            const certs = data
+                .filter(c => !c.name_value.includes('*')) // Optional: filter wildcards if too noisy
+                .sort((a, b) => new Date(b.entry_timestamp) - new Date(a.entry_timestamp))
+                .slice(0, 5); // Take top 5
+
+            let html = `
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold flex items-center"><i class="fa-solid fa-lock text-green-600 mr-2"></i> SSL/TLS 安全檢測</h3>
+                    <span class="text-sm bg-gray-100 px-3 py-1 rounded text-gray-600 font-mono">${domain}</span>
+                </div>
+
+                <div class="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg mb-6 text-sm">
+                    <i class="fa-solid fa-info-circle mr-2"></i> 
+                    <strong>注意：</strong> 瀏覽器限制無法直接透過網頁檢測 TLS 協定版本 (1.0/1.1/1.2/1.3)。
+                    <br>請使用下方的「外部專業檢測」按鈕，它們會從伺服器端發起完整的握手測試。
+                </div>
+
+                <!-- External Deep Scanners -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                    <a href="https://www.ssllabs.com/ssltest/analyze.html?d=${domain}&hideResults=on" target="_blank" class="block p-4 border rounded-xl hover:shadow-md transition bg-white group">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="bg-blue-100 text-blue-600 w-10 h-10 rounded-lg flex items-center justify-center mr-3 group-hover:bg-blue-600 group-hover:text-white transition">
+                                    <i class="fa-solid fa-shield-halved"></i>
+                                </div>
+                                <div>
+                                    <div class="font-bold text-gray-800">Qualys SSL Labs</div>
+                                    <div class="text-xs text-gray-500">業界標準 (等級 A-F, TLS 版本)</div>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-external-link-alt text-gray-400"></i>
+                        </div>
+                    </a>
+
+                    <a href="https://decoder.link/sslchecker/${domain}/443" target="_blank" class="block p-4 border rounded-xl hover:shadow-md transition bg-white group">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="bg-purple-100 text-purple-600 w-10 h-10 rounded-lg flex items-center justify-center mr-3 group-hover:bg-purple-600 group-hover:text-white transition">
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                </div>
+                                <div>
+                                    <div class="font-bold text-gray-800">Decoder.link</div>
+                                    <div class="text-xs text-gray-500">快速檢測 (中間憑證, Chain)</div>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-external-link-alt text-gray-400"></i>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- CT Logs Table -->
+                <h4 class="font-bold text-gray-700 mb-3 flex items-center">
+                    <i class="fa-solid fa-file-contract mr-2"></i> 最近簽發的憑證 (CT Logs)
+                    <span class="ml-2 text-xs font-normal text-gray-500 bg-gray-100 px-2 py-0.5 rounded">來源: crt.sh</span>
+                </h4>
+            `;
+
+            if (certs.length > 0) {
+                html += `
+                    <div class="overflow-x-auto border rounded-lg">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">簽發日期</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">簽發單位 (Issuer)</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">通用名稱 (CN)</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200 text-sm">
+                                ${certs.map(c => `
+                                    <tr>
+                                        <td class="px-4 py-3 whitespace-nowrap text-gray-500">${new Date(c.entry_timestamp).toLocaleDateString()}</td>
+                                        <td class="px-4 py-3 text-gray-800 font-bold">${c.issuer_name.split('O=')[1]?.split(',')[0] || 'Unknown'}</td>
+                                        <td class="px-4 py-3 text-gray-600 font-mono">${c.common_name}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div class="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                        <p class="text-gray-500">未找到近期的憑證透明度紀錄，或查詢逾時。</p>
+                    </div>
+                `;
+            }
+
+            return html;
+        }
+
+        // --- IP Calc Logic ---
+        function runIpCalc(input) {
+            document.getElementById('loadingText').innerText = "計算中...";
+            
+            // 1. Parse Input (192.168.1.1 or 192.168.1.1/24)
+            const parts = input.trim().split('/');
+            let ip = parts[0];
+            let cidr = parts[1] ? parseInt(parts[1], 10) : 24; // Default to 24 if no CIDR
+
+            if (!/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(ip)) {
+                throw new Error("無效的 IP 位址格式");
+            }
+            if (isNaN(cidr) || cidr < 0 || cidr > 32) {
+                throw new Error("無效的 CIDR 遮罩 (範圍 0-32)");
+            }
+
+            // 2. Calculations
+            const ipInt = ipToInt(ip);
+            const maskInt = (cidr === 0) ? 0 : (~0 << (32 - cidr));
+            const networkInt = ipInt & maskInt;
+            const broadcastInt = networkInt | (~maskInt);
+            const wildcardInt = ~maskInt;
+            
+            const count = (cidr === 32) ? 1 : Math.pow(2, 32 - cidr);
+            const usableCount = (cidr >= 31) ? 0 : count - 2;
+
+            const firstIpInt = (cidr >= 31) ? 0 : networkInt + 1;
+            const lastIpInt = (cidr >= 31) ? 0 : broadcastInt - 1;
+
+            const data = {
+                ip: ip,
+                cidr: cidr,
+                netmask: intToIp(maskInt),
+                network: intToIp(networkInt),
+                broadcast: intToIp(broadcastInt),
+                firstIp: (cidr >= 31) ? "N/A" : intToIp(firstIpInt),
+                lastIp: (cidr >= 31) ? "N/A" : intToIp(lastIpInt),
+                totalHosts: count.toLocaleString(),
+                usableHosts: usableCount.toLocaleString(),
+                wildcard: intToIp(wildcardInt),
+                binaryIp: toBinary(ipInt),
+                binaryMask: toBinary(maskInt),
+                ipClass: getIpClass(ipInt)
+            };
+
+            // 3. Render
+            renderGenericResults(formatIpCalcHtml(data), data);
+        }
+
+        function ipToInt(ip) {
+            return ip.split('.').reduce((acc, octet) => (acc << 8) + parseInt(octet, 10), 0) >>> 0;
+        }
+
+        function intToIp(int) {
+            return [
+                (int >>> 24) & 0xFF,
+                (int >>> 16) & 0xFF,
+                (int >>> 8) & 0xFF,
+                int & 0xFF
+            ].join('.');
+        }
+
+        function toBinary(int) {
+            let bin = (int >>> 0).toString(2).padStart(32, '0');
+            return bin.match(/.{1,8}/g).join('.');
+        }
+
+        function getIpClass(ipInt) {
+            const firstOctet = (ipInt >>> 24) & 0xFF;
+            let cls = '';
+            if (firstOctet >= 0 && firstOctet <= 127) cls = 'A';
+            else if (firstOctet >= 128 && firstOctet <= 191) cls = 'B';
+            else if (firstOctet >= 192 && firstOctet <= 223) cls = 'C';
+            else if (firstOctet >= 224 && firstOctet <= 239) cls = 'D (Multicast)';
+            else cls = 'E (Experimental)';
+
+            // Private Check
+            let isPrivate = false;
+            if (firstOctet === 10) isPrivate = true; // 10.0.0.0/8
+            else if (firstOctet === 172 && ((ipInt >>> 16) & 0xFF) >= 16 && ((ipInt >>> 16) & 0xFF) <= 31) isPrivate = true; // 172.16.0.0/12
+            else if (firstOctet === 192 && ((ipInt >>> 16) & 0xFF) === 168) isPrivate = true; // 192.168.0.0/16
+
+            return `${cls} ${isPrivate ? '(Private)' : '(Public)'}`;
+        }
+
+        function formatIpCalcHtml(d) {
+            return `
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold flex items-center"><i class="fa-solid fa-calculator text-indigo-600 mr-2"></i> IP 子網路計算</h3>
+                    <span class="text-lg bg-indigo-100 text-indigo-800 px-3 py-1 rounded font-mono font-bold">${d.ip}/${d.cidr}</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Basic Info -->
+                    <div class="bg-white border rounded-xl overflow-hidden shadow-sm">
+                        <div class="bg-gray-50 px-4 py-3 border-b font-bold text-gray-700">網路資訊</div>
+                        <div class="p-4 space-y-3">
+                            <div class="flex justify-between border-b border-gray-100 pb-2">
+                                <span class="text-gray-500">網路位址 (Network)</span>
+                                <span class="font-mono font-bold text-indigo-600">${d.network}</span>
+                            </div>
+                            <div class="flex justify-between border-b border-gray-100 pb-2">
+                                <span class="text-gray-500">廣播位址 (Broadcast)</span>
+                                <span class="font-mono font-bold text-indigo-600">${d.broadcast}</span>
+                            </div>
+                            <div class="flex justify-between border-b border-gray-100 pb-2">
+                                <span class="text-gray-500">子網路遮罩 (Mask)</span>
+                                <span class="font-mono text-gray-800">${d.netmask}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-500">萬用字元遮罩 (Wildcard)</span>
+                                <span class="font-mono text-gray-800">${d.wildcard}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Host Info -->
+                    <div class="bg-white border rounded-xl overflow-hidden shadow-sm">
+                        <div class="bg-gray-50 px-4 py-3 border-b font-bold text-gray-700">主機範圍與數量</div>
+                        <div class="p-4 space-y-3">
+                             <div class="flex justify-between border-b border-gray-100 pb-2">
+                                <span class="text-gray-500">可用 IP 起始 (First)</span>
+                                <span class="font-mono font-bold text-green-600">${d.firstIp}</span>
+                            </div>
+                            <div class="flex justify-between border-b border-gray-100 pb-2">
+                                <span class="text-gray-500">可用 IP 結束 (Last)</span>
+                                <span class="font-mono font-bold text-green-600">${d.lastIp}</span>
+                            </div>
+                             <div class="flex justify-between border-b border-gray-100 pb-2">
+                                <span class="text-gray-500">可用主機數</span>
+                                <span class="font-bold text-gray-800">${d.usableHosts}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-500">總 IP 數量</span>
+                                <span class="text-gray-800">${d.totalHosts}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advanced Info -->
+                <div class="mt-6 bg-gray-50 border border-gray-200 rounded-xl p-4">
+                    <h4 class="font-bold text-gray-700 mb-3 text-sm uppercase">進階資訊</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <span class="block text-gray-500 text-xs">IP 二進位</span>
+                            <span class="font-mono text-gray-800">${d.binaryIp}</span>
+                        </div>
+                        <div>
+                            <span class="block text-gray-500 text-xs">遮罩 二進位</span>
+                            <span class="font-mono text-gray-800">${d.binaryMask}</span>
+                        </div>
+                        <div>
+                             <span class="block text-gray-500 text-xs">IP 類別</span>
+                             <span class="font-bold text-gray-800">${d.ipClass}</span>
+                        </div>
+                        <div>
+                             <span class="block text-gray-500 text-xs">CIDR 表示法</span>
+                             <span class="font-bold text-gray-800">/${d.cidr}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- Generic Render & Syntax Highlight ---
+        function renderGenericResults(htmlContent, jsonData) {
+            document.getElementById('resultsArea').classList.remove('hidden');
+            document.getElementById('genericResultBlock').classList.remove('hidden');
+            document.getElementById('genericContent').innerHTML = htmlContent;
+            document.getElementById('jsonOutput').innerHTML = syntaxHighlight(jsonData);
+        }
+
+        function syntaxHighlight(json) {
+            if (typeof json != 'string') json = JSON.stringify(json, undefined, 2);
+            json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+                var cls = 'number';
+                if (/^"/.test(match)) {
+                    if (/:$/.test(match)) cls = /:$/.test(match) ? 'key' : 'string';
+                } else if (/true|false/.test(match)) cls = 'boolean';
+                else if (/null/.test(match)) cls = 'null';
+                return '<span class="' + cls + '">' + match + '</span>';
+            });
+        }
+    </script>
+</body>
+</html>
