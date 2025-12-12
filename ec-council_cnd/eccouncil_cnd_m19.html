@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EC-Council CND 網路防禦課程 - Module 19</title>
+    <!-- Google Fonts for Tech Vibe -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            black: '#111111',
+                            dark: '#0a0a0a',
+                            panel: '#161616',
+                            red: '#FF0000',
+                            red_dim: '#8a0000',
+                            gray: '#2a2a2a',
+                            text: '#c0c0c0',
+                            white: '#ffffff'
+                        }
+                    },
+                    fontFamily: {
+                        headers: ['Orbitron', 'sans-serif'],
+                        body: ['Rajdhani', 'sans-serif'],
+                        mono: ['Share Tech Mono', 'monospace'],
+                    },
+                    backgroundImage: {
+                        'grid-pattern': "linear-gradient(to right, #1f1f1f 1px, transparent 1px), linear-gradient(to bottom, #1f1f1f 1px, transparent 1px)",
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #111111;
+            color: #c0c0c0;
+            background-image: 
+                linear-gradient(rgba(17, 17, 17, 0.9), rgba(17, 17, 17, 0.95)),
+                url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%231a1a1a' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        
+        .cyber-border {
+            position: relative;
+            border: 1px solid #333;
+            transition: all 0.3s ease;
+        }
+
+        .cyber-border::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 10px;
+            height: 10px;
+            border-top: 2px solid #FF0000;
+            border-left: 2px solid #FF0000;
+        }
+
+        .cyber-border::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 10px;
+            height: 10px;
+            border-bottom: 2px solid #FF0000;
+            border-right: 2px solid #FF0000;
+        }
+
+        .cyber-border:hover {
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.2);
+            border-color: #FF0000;
+        }
+
+        .hud-line {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #FF0000, transparent);
+            margin: 20px 0;
+            opacity: 0.5;
+        }
+
+        .glow-text {
+            text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+        }
+
+        .quiz-option {
+            transition: all 0.2s;
+        }
+        
+        .quiz-option:hover:not(.disabled) {
+            background-color: rgba(255, 0, 0, 0.1);
+            border-color: #FF0000;
+            cursor: pointer;
+        }
+
+        .quiz-option.selected {
+            background-color: rgba(255, 0, 0, 0.2);
+            border-color: #FF0000;
+        }
+        
+        .quiz-option.correct {
+            border-color: #00ff00;
+            background-color: rgba(0, 255, 0, 0.1);
+            color: #00ff00;
+        }
+        
+        .quiz-option.wrong {
+            border-color: #FF0000;
+            background-color: rgba(255, 0, 0, 0.1);
+            color: #FF0000;
+        }
+
+        /* Scanline effect */
+        .scanline {
+            width: 100%;
+            height: 100px;
+            z-index: 10;
+            background: linear-gradient(0deg, rgba(0,0,0,0) 0%, rgba(255, 0, 0, 0.02) 50%, rgba(0,0,0,0) 100%);
+            opacity: 0.1;
+            position: absolute;
+            bottom: 100%;
+            animation: scanline 10s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes scanline {
+            0% { bottom: 100%; }
+            100% { bottom: -100%; }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333; 
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #FF0000; 
+        }
+    </style>
+</head>
+<body class="font-body selection:bg-cyber-red selection:text-white relative overflow-x-hidden">
+
+    <div class="scanline fixed top-0 left-0 w-full h-screen pointer-events-none"></div>
+
+    <!-- Header -->
+    <header class="border-b border-cyber-gray bg-cyber-black/90 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <svg class="w-10 h-10 text-cyber-red" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                </svg>
+                <div>
+                    <h1 class="font-headers text-2xl font-bold tracking-wider text-white uppercase glow-text">
+                        EC-Council CND 網路防禦課程
+                    </h1>
+                    <p class="font-mono text-xs text-cyber-red tracking-widest">MODULE 19: THREAT PREDICTION & CTI</p>
+                </div>
+            </div>
+            <div class="hidden md:flex font-mono text-xs space-x-6 text-cyber-text">
+                <span class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>SYSTEM: ONLINE</span>
+                <span class="flex items-center"><span class="w-2 h-2 bg-cyber-red rounded-full mr-2"></span>DEFCON: 3</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16">
+
+        <!-- Intro Section -->
+        <section class="cyber-border bg-cyber-panel p-8">
+            <h2 class="font-headers text-3xl text-white mb-6 border-l-4 border-cyber-red pl-4">什麼是 Cyber Threat Intelligence (CTI)?</h2>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="space-y-4">
+                    <p class="text-lg text-justify leading-relaxed">
+                        <strong class="text-cyber-red">威脅情資 (Cyber Threat Intelligence)</strong> 並不只是「數據 (Data)」或「資訊 (Information)」。它是經過收集、處理、分析後的成品，能幫助組織了解潛在或當前的攻擊者，並據此做出防禦決策。
+                    </p>
+                    <ul class="space-y-2 font-mono text-sm text-gray-400">
+                        <li class="flex items-center"><span class="text-cyber-red mr-2">></span> Data: 原始日誌、IP 地址 (未經處理)</li>
+                        <li class="flex items-center"><span class="text-cyber-red mr-2">></span> Information: 經過整理的數據 (例如：此 IP 來自惡意殭屍網路)</li>
+                        <li class="flex items-center"><span class="text-cyber-red mr-2">></span> Intelligence: 分析後的洞見 (例如：此 IP 是 APT29 針對金融業攻擊活動的一部分，建議阻擋並監控特定端口)</li>
+                    </ul>
+                </div>
+                <div class="bg-cyber-dark border border-gray-800 p-4 flex items-center justify-center relative overflow-hidden">
+                    <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
+                    <div class="text-center z-10">
+                        <h3 class="font-headers text-xl text-white mb-2">CTI 核心目標</h3>
+                        <p class="text-cyber-red font-mono">PREDICTION (預測) & PREVENTION (預防)</p>
+                        <div class="mt-4 grid grid-cols-3 gap-2 text-xs font-mono">
+                            <div class="border border-gray-700 p-2">識別攻擊者</div>
+                            <div class="border border-gray-700 p-2">了解動機</div>
+                            <div class="border border-gray-700 p-2">預測行為</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- The 4 Types of CTI -->
+        <section>
+            <div class="flex items-end justify-between mb-8">
+                <h2 class="font-headers text-3xl text-white border-l-4 border-cyber-red pl-4">四大威脅情資類型 (Types of CTI)</h2>
+                <span class="font-mono text-cyber-red text-sm hidden sm:block">CLASSIFIED INFORMATION</span>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Strategic -->
+                <div class="cyber-border bg-cyber-panel p-6 hover:bg-cyber-gray transition-colors group">
+                    <div class="h-10 w-10 bg-cyber-red/20 rounded flex items-center justify-center mb-4 group-hover:bg-cyber-red/40 transition">
+                        <span class="font-headers text-cyber-red font-bold">01</span>
+                    </div>
+                    <h3 class="font-headers text-xl text-white mb-2">Strategic (戰略型)</h3>
+                    <p class="text-sm text-gray-400 mb-4">For: 高階主管 (C-Level, Board)</p>
+                    <div class="h-px bg-gray-700 mb-4"></div>
+                    <p class="text-sm leading-relaxed">
+                        關注長期趨勢、攻擊者的動機、以及對業務的財務影響。非技術性為主。例如：某國家駭客組織針對製造業的間諜活動趨勢報告。
+                    </p>
+                </div>
+
+                <!-- Tactical -->
+                <div class="cyber-border bg-cyber-panel p-6 hover:bg-cyber-gray transition-colors group">
+                    <div class="h-10 w-10 bg-cyber-red/20 rounded flex items-center justify-center mb-4 group-hover:bg-cyber-red/40 transition">
+                        <span class="font-headers text-cyber-red font-bold">02</span>
+                    </div>
+                    <h3 class="font-headers text-xl text-white mb-2">Tactical (戰術型)</h3>
+                    <p class="text-sm text-gray-400 mb-4">For: 安全架構師, 系統管理員</p>
+                    <div class="h-px bg-gray-700 mb-4"></div>
+                    <p class="text-sm leading-relaxed">
+                        關注攻擊者的 <strong class="text-white">TTPs</strong> (Tactics, Techniques, and Procedures)。描述攻擊者「如何」進行攻擊。例如：惡意軟體通常透過魚叉式釣魚郵件傳遞，利用 PowerShell 執行。
+                    </p>
+                </div>
+
+                <!-- Operational -->
+                <div class="cyber-border bg-cyber-panel p-6 hover:bg-cyber-gray transition-colors group">
+                    <div class="h-10 w-10 bg-cyber-red/20 rounded flex items-center justify-center mb-4 group-hover:bg-cyber-red/40 transition">
+                        <span class="font-headers text-cyber-red font-bold">03</span>
+                    </div>
+                    <h3 class="font-headers text-xl text-white mb-2">Operational (行動型)</h3>
+                    <p class="text-sm text-gray-400 mb-4">For: SOC 分析師, 事件回應團隊</p>
+                    <div class="h-px bg-gray-700 mb-4"></div>
+                    <p class="text-sm leading-relaxed">
+                        針對具體的、即將發生的或正在進行的攻擊活動。包括具體的攻擊特徵。例如：發現來自某 IP 範圍的 DDoS 攻擊正在醞釀中。
+                    </p>
+                </div>
+
+                <!-- Technical -->
+                <div class="cyber-border bg-cyber-panel p-6 hover:bg-cyber-gray transition-colors group">
+                    <div class="h-10 w-10 bg-cyber-red/20 rounded flex items-center justify-center mb-4 group-hover:bg-cyber-red/40 transition">
+                        <span class="font-headers text-cyber-red font-bold">04</span>
+                    </div>
+                    <h3 class="font-headers text-xl text-white mb-2">Technical (技術型)</h3>
+                    <p class="text-sm text-gray-400 mb-4">For: 防火牆, IDS/IPS, SIEM (自動化)</p>
+                    <div class="h-px bg-gray-700 mb-4"></div>
+                    <p class="text-sm leading-relaxed">
+                        原子級別的指標，有效期短，通常自動匯入設備。例如：惡意 IP 清單、惡意檔案 Hash 值 (MD5/SHA)、惡意 URL。
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <div class="hud-line"></div>
+
+        <!-- IoC vs IoA -->
+        <section class="grid md:grid-cols-2 gap-12">
+            <!-- IoC -->
+            <div class="cyber-border bg-cyber-panel p-8 relative overflow-hidden">
+                <div class="absolute -right-4 -top-4 text-8xl text-gray-800 opacity-20 font-headers font-bold select-none">IoC</div>
+                <h3 class="font-headers text-2xl text-white mb-4 z-10 relative">Indicators of Compromise (IoC)</h3>
+                <h4 class="font-mono text-cyber-red mb-4 text-sm">關鍵問題：發生了什麼？ (What happened?)</h4>
+                <p class="text-gray-400 mb-4 text-justify">
+                    IoC 是指在系統或網路中發現的證據，顯示系統<strong class="text-white">已經遭受入侵</strong>。這些是「鑑識數據 (Forensic Data)」。
+                </p>
+                <div class="bg-cyber-black p-4 border border-gray-700 font-mono text-sm space-y-2">
+                    <p class="text-green-500"># Examples:</p>
+                    <p>> 惡意軟體的 MD5/SHA256 Hash 值</p>
+                    <p>> 已知的 C2 (Command & Control) 伺服器 IP</p>
+                    <p>> 異常的 Registry 修改紀錄</p>
+                    <p>> 防毒軟體的簽章偵測紀錄</p>
+                </div>
+            </div>
+
+            <!-- IoA -->
+            <div class="cyber-border bg-cyber-panel p-8 relative overflow-hidden">
+                <div class="absolute -right-4 -top-4 text-8xl text-gray-800 opacity-20 font-headers font-bold select-none">IoA</div>
+                <h3 class="font-headers text-2xl text-white mb-4 z-10 relative">Indicators of Attack (IoA)</h3>
+                <h4 class="font-mono text-cyber-red mb-4 text-sm">關鍵問題：正在發生什麼？ (What is happening?)</h4>
+                <p class="text-gray-400 mb-4 text-justify">
+                    IoA 關注的是攻擊者的<strong class="text-white">意圖與行為</strong>。無論攻擊者使用什麼工具，他們的行為模式可能不變。這有助於在攻擊<strong class="text-white">初期</strong>就進行偵測。
+                </p>
+                <div class="bg-cyber-black p-4 border border-gray-700 font-mono text-sm space-y-2">
+                    <p class="text-green-500"># Examples:</p>
+                    <p>> 來自內網的持續性 Port Scanning</p>
+                    <p>> 下班時間的異常登入嘗試</p>
+                    <p>> PowerShell 執行編碼過的指令 (Obfuscated scripts)</p>
+                    <p>> 數據庫伺服器主動對外發起連線</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pyramid of Pain -->
+        <section class="cyber-border bg-cyber-panel p-8">
+            <h2 class="font-headers text-3xl text-white mb-8 border-l-4 border-cyber-red pl-4">痛苦金字塔 (The Pyramid of Pain)</h2>
+            <div class="flex flex-col md:flex-row gap-8 items-center">
+                <div class="w-full md:w-1/2 space-y-4">
+                    <div class="h-12 bg-red-900 flex items-center justify-center text-white font-bold border border-red-700 shadow-[0_0_10px_rgba(255,0,0,0.5)]">TTPs (最難修改/防禦價值最高)</div>
+                    <div class="h-12 bg-red-800 flex items-center justify-center text-white font-bold border border-red-600 w-[90%] mx-auto">Tools</div>
+                    <div class="h-12 bg-red-700 flex items-center justify-center text-white font-bold border border-red-500 w-[80%] mx-auto">Network / Host Artifacts</div>
+                    <div class="h-12 bg-red-600 flex items-center justify-center text-white font-bold border border-red-400 w-[70%] mx-auto">Domain Names</div>
+                    <div class="h-12 bg-red-500 flex items-center justify-center text-white font-bold border border-red-300 w-[60%] mx-auto">IP Addresses</div>
+                    <div class="h-12 bg-red-400 flex items-center justify-center text-white font-bold border border-red-200 w-[50%] mx-auto">Hash Values (最易修改)</div>
+                </div>
+                <div class="w-full md:w-1/2">
+                    <h3 class="text-xl font-headers text-white mb-4">概念解析</h3>
+                    <p class="text-gray-400 mb-4 text-justify">
+                        由 David Bianco 提出。這個金字塔展示了各類指標對攻擊者而言「修改的痛苦程度」。
+                    </p>
+                    <ul class="list-disc pl-5 space-y-2 text-sm text-gray-300">
+                        <li><strong class="text-white">Hash Values:</strong> 攻擊者只需更改文件一個 bit 就能改變 Hash，非常容易繞過防禦。</li>
+                        <li><strong class="text-white">IP / Domains:</strong> 攻擊者可以輕易更換 IP 或註冊新域名。</li>
+                        <li><strong class="text-white">TTPs (Tactics, Techniques, Procedures):</strong> 這是攻擊者的行為習慣與知識體系。要改變這一點，攻擊者必須重新學習、重新設計工具與流程，代價極高。因此防禦者若能針對 TTPs 進行防禦，效果最佳。</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <div class="hud-line"></div>
+
+        <!-- Quiz Section -->
+        <section id="quiz-section" class="max-w-4xl mx-auto">
+            <div class="text-center mb-10">
+                <h2 class="font-headers text-4xl text-white mb-2">TACTICAL SIMULATION</h2>
+                <p class="font-mono text-cyber-red">TEST YOUR KNOWLEDGE: MODULE 19</p>
+            </div>
+
+            <div id="quiz-container" class="space-y-8">
+                <!-- Questions will be injected here by JS -->
+            </div>
+
+            <div class="mt-8 text-center hidden" id="result-panel">
+                <button onclick="resetQuiz()" class="bg-cyber-red hover:bg-red-700 text-white font-bold py-3 px-8 rounded border border-red-500 shadow-[0_0_15px_rgba(255,0,0,0.5)] font-headers tracking-wider transition">
+                    RE-INITIALIZE SIMULATION
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-cyber-gray bg-cyber-black py-6 mt-12">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="font-mono text-xs text-gray-500 tracking-wider">
+                Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        const quizData = [
+            {
+                id: 1,
+                question: "作為一名資安分析師，您正在向公司的董事會(Board of Directors)報告關於勒索軟體對該產業財務影響的長期趨勢，以及未來的潛在風險。您正在使用哪種類型的威脅情資？",
+                options: [
+                    "Technical Threat Intelligence (技術型)",
+                    "Tactical Threat Intelligence (戰術型)",
+                    "Operational Threat Intelligence (行動型)",
+                    "Strategic Threat Intelligence (戰略型)"
+                ],
+                correct: 3,
+                explanation: "戰略型情資 (Strategic CTI) 專為高階主管設計，關注長期趨勢、財務影響與總體風險，協助進行高層決策。"
+            },
+            {
+                id: 2,
+                question: "您的防火牆自動從外部情資來源下載了一份惡意 IP 黑名單，並設定規則阻擋這些 IP。這些 IP 地址屬於哪一層級的痛苦金字塔 (Pyramid of Pain)，以及哪種類型的情資？",
+                options: [
+                    "TTPs; Strategic",
+                    "IP Addresses; Technical",
+                    "Domain Names; Operational",
+                    "Network Artifacts; Tactical"
+                ],
+                correct: 1,
+                explanation: "IP 地址屬於痛苦金字塔的下層，容易被攻擊者更換。直接用於設備阻擋的原子指標 (如 IP, Hash) 屬於技術型情資 (Technical CTI)。"
+            },
+            {
+                id: 3,
+                question: "在分析一起攻擊事件時，您發現攻擊者習慣使用特定的 PowerShell 腳本進行橫向移動，並利用排程任務 (Scheduled Tasks) 維持持久性。這些觀察描述了攻擊者的什麼？",
+                options: [
+                    "IoCs (Indicators of Compromise)",
+                    "TTPs (Tactics, Techniques, and Procedures)",
+                    "Vulnerabilities (漏洞)",
+                    "Risk Appetite (風險偏好)"
+                ],
+                correct: 1,
+                explanation: "TTPs 描述了攻擊者的行為模式與方法（如何攻擊），例如使用什麼技術進行橫向移動或維持持久性。這屬於戰術型情資。"
+            },
+            {
+                id: 4,
+                question: "以下哪一項最符合 Indicators of Attack (IoA) 的定義？",
+                options: [
+                    "防毒軟體偵測到的惡意檔案 MD5 Hash 值",
+                    "防火牆日誌中顯示來自外部 C2 伺服器的連線紀錄",
+                    "內網中某台主機正在對其他伺服器進行異常的端口掃描 (Port Scanning)",
+                    "在硬碟中發現已知的惡意軟體執行檔"
+                ],
+                correct: 2,
+                explanation: "IoA (攻擊指標) 關注的是「正在發生的行為」與意圖。異常的端口掃描是一個主動的攻擊行為跡象。其他選項多為 IoC (妥協指標)，是攻擊發生後的證據。"
+            },
+            {
+                id: 5,
+                question: "為了標準化威脅情資的分享，您決定採用一種結構化的語言來描述威脅資訊，以便在不同組織與工具間自動化交換。您應該使用什麼標準？",
+                options: [
+                    "STIX (Structured Threat Information eXpression)",
+                    "TAXII (Trusted Automated eXchange of Indicator Information)",
+                    "CVSS (Common Vulnerability Scoring System)",
+                    "OWASP (Open Web Application Security Project)"
+                ],
+                correct: 0,
+                explanation: "STIX 是用於「描述」威脅情資的標準化語言 (XML/JSON 格式)。TAXII 是用於「傳輸」STIX 訊息的協議。題目問的是「描述語言」，故選 STIX。"
+            },
+            {
+                id: 6,
+                question: "在痛苦金字塔 (Pyramid of Pain) 中，哪一項指標對防禦者來說最有價值，且一旦防禦成功，會讓攻擊者最為痛苦（因為必須重新設計攻擊流程）？",
+                options: [
+                    "Hash Values",
+                    "Domain Names",
+                    "IP Addresses",
+                    "TTPs"
+                ],
+                correct: 3,
+                explanation: "TTPs 位於金字塔頂端。防禦 TTPs 意味著破解了攻擊者的行為模式，攻擊者必須學習新技術或開發新工具才能繞過防禦，代價最高。"
+            },
+            {
+                id: 7,
+                question: "SOC 團隊收到一份情資，警告有一個特定的駭客組織 'APT-X' 預計在接下來的 48 小時內針對您所在的金融產業發動 DDoS 攻擊。這屬於哪種類型的情資？",
+                options: [
+                    "Strategic Threat Intelligence",
+                    "Operational Threat Intelligence",
+                    "Technical Threat Intelligence",
+                    "Vulnerability Assessment"
+                ],
+                correct: 1,
+                explanation: "行動型情資 (Operational CTI) 針對具體的、即將發生或正在進行的威脅活動，提供細節讓回應團隊能提前準備。"
+            },
+            {
+                id: 8,
+                question: "您正在使用開源情報 (OSINT) 工具來收集關於您公司網域名稱的公開資訊，以評估潛在的攻擊面。這屬於威脅情資生命週期的哪個階段？",
+                options: [
+                    "Dissemination (發布)",
+                    "Analysis (分析)",
+                    "Collection (收集)",
+                    "Planning (規劃)"
+                ],
+                correct: 2,
+                explanation: "使用工具從公開來源獲取數據屬於「收集 (Collection)」階段。"
+            },
+            {
+                id: 9,
+                question: "當我們討論「歸因 (Attribution)」時，我們試圖回答什麼問題？",
+                options: [
+                    "攻擊使用了什麼惡意軟體？",
+                    "攻擊利用了哪個漏洞？",
+                    "誰是攻擊的幕後黑手？ (Who is behind the attack?)",
+                    "攻擊造成了多少財務損失？"
+                ],
+                correct: 2,
+                explanation: "歸因 (Attribution) 是指識別攻擊發起者（個人、組織或國家）的過程。"
+            },
+            {
+                id: 10,
+                question: "以下關於 Cyber Threat Intelligence (CTI) 的敘述，何者正確？",
+                options: [
+                    "CTI 僅包含來自內部的日誌數據",
+                    "CTI 只要收集越多數據越好，不需要分析",
+                    "CTI 的主要目標是幫助組織從被動防禦轉變為「主動預測與防禦」",
+                    "CTI 只能由政府機構提供，企業無法自行產生"
+                ],
+                correct: 2,
+                explanation: "CTI 的核心價值在於透過分析情資，預測攻擊者的行為，讓防禦者能提前部署，實現主動防禦 (Proactive Defense)。"
+            }
+        ];
+
+        function initQuiz() {
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = '';
+
+            quizData.forEach((q, index) => {
+                const card = document.createElement('div');
+                card.className = 'cyber-border bg-cyber-panel p-6 mb-8';
+                
+                let optionsHtml = '';
+                q.options.forEach((opt, optIndex) => {
+                    optionsHtml += `
+                        <div class="quiz-option border border-gray-700 p-4 mb-3 rounded text-sm text-gray-300 font-mono" 
+                             onclick="checkAnswer(${index}, ${optIndex}, this)">
+                            <span class="mr-2 text-cyber-red">[${String.fromCharCode(65 + optIndex)}]</span> ${opt}
+                        </div>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <div class="flex items-start mb-4">
+                        <span class="font-headers text-2xl text-cyber-red mr-4">Q${index + 1}</span>
+                        <p class="text-lg text-white font-body leading-relaxed">${q.question}</p>
+                    </div>
+                    <div class="ml-0 md:ml-12 space-y-2">
+                        ${optionsHtml}
+                    </div>
+                    <div id="feedback-${index}" class="hidden mt-6 ml-0 md:ml-12 p-4 border-l-4 bg-gray-900/50 text-sm">
+                        <!-- Feedback injected here -->
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+            
+            document.getElementById('result-panel').classList.remove('hidden');
+        }
+
+        function checkAnswer(qIndex, optIndex, element) {
+            // Prevent re-answering
+            const card = element.parentElement.parentElement;
+            if (card.dataset.answered === 'true') return;
+            card.dataset.answered = 'true';
+
+            const question = quizData[qIndex];
+            const options = element.parentElement.children;
+            const feedbackEl = document.getElementById(`feedback-${qIndex}`);
+
+            // Visual feedback for options
+            for (let i = 0; i < options.length; i++) {
+                options[i].classList.add('disabled', 'cursor-default');
+                if (i === question.correct) {
+                    options[i].classList.add('correct'); // Always show correct answer
+                }
+            }
+
+            if (optIndex === question.correct) {
+                // User is correct
+                element.classList.add('selected'); // Highlight user choice
+                feedbackEl.className = 'mt-6 ml-0 md:ml-12 p-4 border-l-4 border-green-500 bg-green-900/20 text-green-400 font-mono block';
+                feedbackEl.innerHTML = `<strong class="text-lg">CORRECT</strong><br><br>${question.explanation}`;
+            } else {
+                // User is wrong
+                element.classList.add('wrong'); // Highlight wrong choice
+                feedbackEl.className = 'mt-6 ml-0 md:ml-12 p-4 border-l-4 border-cyber-red bg-red-900/20 text-red-400 font-mono block';
+                feedbackEl.innerHTML = `<strong class="text-lg">INCORRECT</strong><br><br>${question.explanation}`;
+            }
+        }
+
+        function resetQuiz() {
+            initQuiz();
+            window.scrollTo({
+                top: document.getElementById('quiz-section').offsetTop,
+                behavior: 'smooth'
+            });
+        }
+
+        // Start
+        initQuiz();
+    </script>
+</body>
+</html>
