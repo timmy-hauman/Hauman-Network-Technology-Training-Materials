@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EC-Council CND Module 20: Threat Prediction</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto+Mono:wght@400;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #111111;
+            --card-bg: #1a1a1a;
+            --text-main: #e0e0e0;
+            --text-muted: #a0a0a0;
+            --accent-red: #FF0000;
+            --accent-red-dim: #5c0000;
+            --neon-glow: 0 0 10px rgba(255, 0, 0, 0.7);
+            --border-color: #333;
+            --tech-font: 'Orbitron', sans-serif;
+            --code-font: 'Roboto Mono', monospace;
+            --body-font: 'Roboto', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--body-font);
+            line-height: 1.6;
+            overflow-x: hidden;
+            background-image: 
+                linear-gradient(rgba(17, 17, 17, 0.9), rgba(17, 17, 17, 0.95)),
+                url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23222222' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-color);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-red);
+            border-radius: 2px;
+        }
+
+        /* Header Section */
+        header {
+            background: linear-gradient(180deg, rgba(0,0,0,0.9) 0%, rgba(20,20,20,0.8) 100%);
+            border-bottom: 2px solid var(--accent-red);
+            padding: 2rem 5%;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(255, 0, 0, 0.2);
+        }
+
+        header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent-red), transparent);
+            animation: scanline 3s linear infinite;
+        }
+
+        @keyframes scanline {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        h1 {
+            font-family: var(--tech-font);
+            font-size: 2.5rem;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 0.5rem;
+            text-shadow: var(--neon-glow);
+        }
+
+        .subtitle {
+            font-family: var(--code-font);
+            color: var(--accent-red);
+            font-size: 1.1rem;
+            text-transform: uppercase;
+        }
+
+        .instructor-badge {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.25rem 1rem;
+            border: 1px solid var(--accent-red);
+            color: var(--accent-red);
+            font-size: 0.8rem;
+            font-family: var(--code-font);
+            background: rgba(255, 0, 0, 0.1);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Grid System */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--accent-red);
+            padding: 1.5rem;
+            position: relative;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            border-color: var(--accent-red);
+        }
+
+        .card h2 {
+            font-family: var(--tech-font);
+            color: #fff;
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #333;
+            padding-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .card h2::before {
+            content: ">>";
+            color: var(--accent-red);
+            margin-right: 10px;
+            font-size: 1rem;
+        }
+
+        .card-content {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .card-content strong {
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .highlight {
+            color: var(--accent-red);
+            font-family: var(--code-font);
+            background: rgba(255, 0, 0, 0.05);
+            padding: 0 4px;
+        }
+
+        /* Section Dividers */
+        .section-header {
+            border-left: 5px solid var(--accent-red);
+            padding-left: 1rem;
+            margin: 3rem 0 2rem 0;
+            font-family: var(--tech-font);
+            font-size: 1.8rem;
+            color: #fff;
+            text-transform: uppercase;
+            position: relative;
+        }
+
+        .section-header::after {
+            content: " // SYSTEM_LOG";
+            font-family: var(--code-font);
+            font-size: 1rem;
+            color: var(--text-muted);
+            opacity: 0.5;
+        }
+
+        /* Comparison Table Style */
+        .tech-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+            background: #151515;
+        }
+
+        .tech-table th, .tech-table td {
+            border: 1px solid #333;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .tech-table th {
+            background-color: #222;
+            color: var(--accent-red);
+            font-family: var(--tech-font);
+            text-transform: uppercase;
+        }
+
+        .tech-table tr:hover {
+            background-color: rgba(255, 0, 0, 0.05);
+        }
+
+        /* List Styles */
+        ul.tech-list {
+            list-style: none;
+            margin-top: 1rem;
+        }
+
+        ul.tech-list li {
+            margin-bottom: 0.5rem;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        ul.tech-list li::before {
+            content: "■";
+            color: var(--accent-red);
+            position: absolute;
+            left: 0;
+            font-size: 0.8rem;
+            top: 4px;
+        }
+
+        /* Quiz Section */
+        .quiz-section {
+            background: #0f0f0f;
+            border: 1px solid #333;
+            padding: 2rem;
+            margin-top: 2rem;
+            position: relative;
+        }
+
+        .quiz-section::before {
+            content: "SIMULATION_MODE_ACTIVE";
+            position: absolute;
+            top: -12px;
+            right: 20px;
+            background: var(--bg-color);
+            color: var(--accent-red);
+            font-family: var(--code-font);
+            padding: 0 10px;
+            border: 1px solid var(--accent-red);
+            font-size: 0.8rem;
+        }
+
+        .question-block {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+        }
+
+        .question-text {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: #fff;
+            display: flex;
+        }
+
+        .q-num {
+            color: var(--accent-red);
+            margin-right: 1rem;
+            font-family: var(--tech-font);
+        }
+
+        .options-grid {
+            display: grid;
+            gap: 10px;
+        }
+
+        .option-btn {
+            background: #222;
+            border: 1px solid #444;
+            color: var(--text-muted);
+            padding: 12px;
+            text-align: left;
+            cursor: pointer;
+            font-family: var(--body-font);
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option-btn:hover {
+            background: #2a2a2a;
+            border-color: #666;
+            color: #fff;
+        }
+
+        .option-btn.correct {
+            background: rgba(0, 255, 0, 0.1) !important;
+            border-color: #00ff00 !important;
+            color: #fff !important;
+        }
+
+        .option-btn.wrong {
+            background: rgba(255, 0, 0, 0.1) !important;
+            border-color: #ff0000 !important;
+            color: #fff !important;
+        }
+
+        .explanation {
+            display: none;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 3px solid var(--accent-red);
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+        
+        .explanation strong {
+            color: var(--accent-red);
+            display: block;
+            margin-bottom: 0.5rem;
+            font-family: var(--tech-font);
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 5rem;
+            padding: 2rem;
+            background: #000;
+            border-top: 1px solid #333;
+            text-align: center;
+            font-family: var(--code-font);
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        footer span {
+            display: inline-block;
+            margin: 0 10px;
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8rem; }
+            .grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>EC-Council CND 網路防禦課程</h1>
+        <div class="subtitle">Module 20: Threat Prediction with Cyber Threat Intelligence</div>
+        <div class="instructor-badge">INSTRUCTOR: CND DEFENSE EXPERT</div>
+    </header>
+
+    <div class="container">
+        
+        <!-- Intro Section -->
+        <div class="card" style="margin-bottom: 3rem;">
+            <h2>// 模組概觀 (Module Overview)</h2>
+            <div class="card-content">
+                <p>在傳統的網路安全防禦中，我們往往處於「被動」狀態：等待攻擊發生，然後進行回應。<strong>Module 20</strong> 的核心在於轉變這種思維，透過 <span class="highlight">Cyber Threat Intelligence (CTI, 網路威脅情資)</span> 來實現「主動防禦」。</p>
+                <br>
+                <p>身為防禦者 (Defender)，我們不僅要防守，更要「預測」。這需要將原始的數據 (Data) 轉化為資訊 (Information)，最終提煉成可採取行動的情報 (Intelligence)。本章節將帶領學員深入了解 CTI 的生命週期、不同層次的情報應用，以及如何利用 IoC (入侵指標) 與 IoA (攻擊指標) 來強化防禦縱深。</p>
+            </div>
+        </div>
+
+        <div class="section-header">核心防禦概念 (Core Concepts)</div>
+
+        <div class="grid">
+            <!-- Card 1: Data vs Info vs Intel -->
+            <div class="card">
+                <h2>01. 數據 vs 資訊 vs 情報</h2>
+                <div class="card-content">
+                    <p>在 CTI 的領域中，區分這三者至關重要：</p>
+                    <ul class="tech-list">
+                        <li><strong>Data (數據):</strong> 原始的、未經處理的事實。例如：防火牆日誌中的一串 IP 位址、Hash 值。</li>
+                        <li><strong>Information (資訊):</strong> 經過整理、具備上下文 (Context) 的數據。例如：該 IP 位址來自某個已知的惡意殭屍網路，且在上班時間頻繁連線。</li>
+                        <li><strong>Intelligence (情報):</strong> 經過分析，能支持決策與行動的產出。例如：該殭屍網路正針對金融業進行 DDoS 攻擊，我們應立即阻擋該網段並調整 IDS 規則。</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Card 2: CTI 四大層次 -->
+            <div class="card">
+                <h2>02. 威脅情資的四個層次</h2>
+                <div class="card-content">
+                    <table class="tech-table">
+                        <thead>
+                            <tr>
+                                <th>層次 (Type)</th>
+                                <th>目標受眾 (Audience)</th>
+                                <th>內容範例</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Strategic (戰略型)</strong></td>
+                                <td>CISO, 高階管理層</td>
+                                <td>攻擊趨勢分析、財務衝擊評估、歸因 (Attribution)。</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Tactical (戰術型)</strong></td>
+                                <td>IT 經理, SOC 架構師</td>
+                                <td>攻擊者的 TTPs (戰術、技術與程序)、惡意軟體行為模式。</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Operational (作戰型)</strong></td>
+                                <td>SOC 分析師, 應變團隊</td>
+                                <td>具體的攻擊活動細節、即將發生的攻擊預警。</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Technical (技術型)</strong></td>
+                                <td>防火牆/IDS 設備</td>
+                                <td>IoCs (IPs, URLs, Hashes) - 壽命最短，可自動化匯入。</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Card 3: IoC vs IoA -->
+            <div class="card">
+                <h2>03. IoC vs IoA</h2>
+                <div class="card-content">
+                    <p>這是藍隊防禦的關鍵指標：</p>
+                    <br>
+                    <p><span class="highlight">Indicators of Compromise (IoC)</span></p>
+                    <p><strong>定義：</strong> 證據顯示「入侵已經發生」。</p>
+                    <p><strong>用途：</strong> 用於鑑識與清理。例如：惡意軟體的 Hash 值、已知的 C2 伺服器 IP、被竄改的 Registry Key。</p>
+                    <br>
+                    <p><span class="highlight">Indicators of Attack (IoA)</span></p>
+                    <p><strong>定義：</strong> 跡象顯示「攻擊正在進行」或「意圖發動攻擊」。</p>
+                    <p><strong>用途：</strong> 用於早期預警與主動防禦。關注的是<strong>攻擊者的意圖與行為</strong>，而非靜態特徵。例如：在非上班時間的異常登入嘗試、PowerShell 執行編碼過的指令。</p>
+                </div>
+            </div>
+
+            <!-- Card 4: Pyramid of Pain -->
+            <div class="card">
+                <h2>04. 痛苦金字塔 (Pyramid of Pain)</h2>
+                <div class="card-content">
+                    <p>這是一個衡量「防禦措施對攻擊者造成多少痛苦」的模型：</p>
+                    <ul class="tech-list">
+                        <li><strong>Hash Values (最底層):</strong> 最容易獲取，但也最容易被攻擊者改變 (重新編譯即可)。對攻擊者無痛苦。</li>
+                        <li><strong>IP Addresses:</strong> 容易封鎖，但攻擊者可輕易更換代理。</li>
+                        <li><strong>Domain Names:</strong> 稍微麻煩一點，需要重新註冊。</li>
+                        <li><strong>Network/Host Artifacts:</strong> 攻擊工具留下的特徵 (如 User-Agent)。</li>
+                        <li><strong>Tools:</strong> 迫使攻擊者重新開發工具，相當痛苦。</li>
+                        <li><strong>TTPs (最頂層):</strong> 改變戰術、技術與程序。這需要攻擊者重新訓練與設計攻擊鏈，對其造成<strong>最大痛苦</strong>。</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quiz Section -->
+        <div class="section-header">戰術模擬測驗 (Tactical Simulation)</div>
+        <div class="quiz-section">
+            <p style="margin-bottom: 2rem; color: #aaa;">指令：閱讀下列情境，選擇最佳的防禦策略或技術解釋。點擊選項即可查看即時戰術分析。</p>
+
+            <!-- Q1 -->
+            <div class="question-block">
+                <div class="question-text">
+                    <span class="q-num">Q1</span>
+                    情境：作為 SOC 分析師，你收到一份報告，列出了特定的 IP 地址、惡意域名和檔案 Hash 值。這些資訊可以直接匯入防火牆進行阻擋。請問這屬於哪一層次的威脅情資？
+                </div>
+                <div class="options-grid">
+                    <div class="option-btn" onclick="checkAnswer(this, false, 'Strategic Intelligence 關注高層決策與趨勢。')">A. Strategic Intelligence (戰略情資)</div>
+                    <div class="option-btn" onclick="checkAnswer(this, true, '正確。Technical Intelligence (技術情資) 包含可由機器讀取的指標，如 IP、Hash、Domain，通常用於自動化防禦設備。')">B. Technical Intelligence (技術情資)</div>
+                    <div class="option-btn" onclick="checkAnswer(this, false, 'Tactical Intelligence 關注攻擊者的 TTPs (戰術、技術、程序)。')">C. Tactical Intelligence (戰術情資)</div>
+                    <div class="option-btn" onclick="checkAnswer(this, false, 'Operational Intelligence 關注具體攻擊活動的細節與意圖。')">D. Operational Intelligence (作戰情資)</div>
+                </div>
+                <div class="explanation"></div>
+            </div>
+
+            <!-- Q2 -->
+            <div class="question-block">
+                <div class="question-text">
+                    <span class="q-num">Q2</span>
+                    情境：在「痛苦金字塔 (Pyramid of Pain)」模型中，哪一種指標對防禦者來說最有價值，因為一旦被偵測並阻擋，會迫使攻擊者必須徹底改變其行為模式與攻擊方法？
+                </div>
+                <div class="options-grid">
+                    <div class="option-btn" onclick="checkAnswer(this, false, 'Hash Values 位於金字塔最底層，攻擊者只需重新編譯程式即可改變，痛苦程度最低。')">A. Hash Values</div>
+                    <div class="option-btn" onclick="checkAnswer(this, false, 'IP Addresses 容易被封鎖，但也容易被攻擊者更換 (如使用 Proxy 或 Botnet)。')">B. IP Addresses</div>
+                    <div class="option-btn" onclick="checkAnswer(this, false, 'Domain Names 雖然比 IP 難更換，但仍不是最頂層的痛點。')">C. Domain Names</div>
+                    <div class="option-btn" onclick="checkAnswer(this, true, '正確。TTPs (Tactics, Techniques, and Procedures) 位於金字塔頂端。偵測並阻斷 TTPs 意味著攻擊者必須重新學習或設計攻擊流程，代價最高。')">D. TTPs (Tactics, Techniques, and Procedures)</div>
+                </div>
+                <div class="explanation"></div>
+            </div>
+
+            <!-- Q3 -->
+            <div class="question-block">
+                <div class="question-text">
+                    <span class="q-num">Q3</span>
+                    情境：你的團隊發現內部網路中有一台主機正試圖使用 PowerShell 執行一段經過 Base64 編碼的可疑指令，這並不符合該主機的正常業務行為。這是一個什麼樣的指標？
+                </div>
+                <div class="options-grid">
+                    <div class="option-btn" onclick="checkAnswer(this, true, '正確。IoA (Indicator of Attack) 關注攻擊者的行為與意圖 (如異常的 PowerShell 執行)，目的是在攻擊完成前進行偵測。')">A. Indicator of Attack (IoA)</div>
+                    <div class="option-btn" onclick="checkAnswer(this, false, 'IoC (Indicator of Compromise) 通常指攻擊發生後的證據，如留下的惡意檔案 Hash 或 C2 連線紀錄。雖有關聯，但「執行中的行為」更偏向 IoA。')">B. Indicator of Compromise (IoC)</div>
+                    <div class="option-btn" onclick="checkAnswer(this, false, 'Vulnerability Assessment 是評估系統弱點，而非偵測攻擊行為。')">C. Vulnerability Assessment Result</div>
+                    <div class="option-btn" onclick="checkAnswer(this, false, 'Risk Matrix 是風險評估工具，非即時指標。')">D. Risk Matrix Indicator</div>
+                </div>
+                <div class="explanation"></div>
+            </div>
+
+            <!-- Q4 -->
+            <div class="question-block">
+                <div class="question-text">
+                    <span class="q-num">Q4</span>
+                    情境：CISO 要求你提供一份報告，說明特定駭客組織 (如 APT29) 的動機、過去針對同產業的攻擊趨勢，以及對公司未來一年的潛在財務影響。這屬於哪種情資？
+                </div>
+                <div class="options-grid">
+                    <div class="option-btn" onclick="checkAnswer(this, true, '正確。Strategic Intelligence (戰略情資) 是非技術性的，專注於長期趨勢、風險、動機與財務影響，供高階主管決策使用。')">A. Strategic Intelligence</div>
+                    <div class="option-btn" onclick="checkAnswer(this, false, 'Operational Intelligence 比較偏向攻擊活動的具體細節。')">B. Operational Intelligence</div>
+                    <div class="option-btn" onclick="checkAnswer(this, false, 'Technical Intelligence 關注具體指標 (IP, Hash)。')">C. Technical Intelligence</div>
+                    <div class="option-btn" onclick="checkAnswer(this, false, 'Tactical Intelligence 關注 TTPs。')">D. Tactical Intelligence</div>
+                </div>
+                <div class="explanation"></div>
+            </div>
+
+            <!-- Q5 -->
+            <div class="question-block">
+                <div class="question-text">
+                    <span class="q-num">Q5</span>
+                    情境：為了促進不同組織間自動化交換威脅情資，OASIS 開發了標準化的語言與傳輸協議。請問下列哪一個組合是用來「定義情資結構」與「傳輸情資」的？
+                </div>
+                <div class="options-grid">
+                    <div class="option-btn" onclick="checkAnswer(this, false, 'JSON 是格式，REST 是架構風格，並非專門的資安情資標準。')">A. JSON and REST</div>
+                    <div class="option-btn" onclick="checkAnswer(this, true, '正確。STIX (Structured Threat Information eXpression) 用於定義情資結構；TAXII (Trusted Automated eXchange of Indicator Information) 用於傳輸情資。')">B. STIX and TAXII</div>
+                    <div class="option-btn" onclick="checkAnswer(this, false, 'CVE 是漏洞編號，CVSS 是評分系統。')">C. CVE and CVSS</div>
+                    <div class="option-btn" onclick="checkAnswer(this, false, 'SIEM 是管理平台，SOAR 是自動化回應平台，非交換標準。')">D. SIEM and SOAR</div>
+                </div>
+                <div class="explanation"></div>
+            </div>
+
+            <!-- Q6 -->
+            <div class="question-block">
+                <div class="question-text">
+                    <span class="q-num">Q6</span>
+                    情境：你正在分析一個受感染的端點，發現了一個名為 "malware.exe" 的檔案，其 SHA-256 Hash 值為 "e3b0c442..."。這個 Hash 值被視為：
+                </div>
+                <div class="options-grid">
+                    <div class="option-btn" onclick="checkAnswer(this, false, 'IoA 關注行為與意圖，而非靜態檔案特徵。')">A. Indicator of Attack (IoA)</div>
+                    <div class="option-btn" onclick="checkAnswer(this, true, '正確。IoC (Indicator of Compromise) 是被駭的證據，檔案 Hash 值是最典型的 IoC 之一。')">B. Indicator of Compromise (IoC)</div>
+                    <div class="option-btn" onclick="checkAnswer(this, false, 'TTP 是攻擊者的手法，不是單一檔案特徵。')">C. TTP (Tactics, Techniques, Procedures)</div>
+                    <div class="option-btn" onclick="checkAnswer(this, false, 'APT 是進階持續性威脅的攻擊者類型，非指標本身。')">D. APT (Advanced Persistent Threat)</div>
+                </div>
+                <div class="explanation"></div>
+            </div>
+
+            <!-- Q7 -->
+            <div class="question-block">
+                <div class="question-text">
+                    <span class="q-num">Q7</span>
+                    情境：網路管理員希望訂閱一個開源的威脅情資來源，該平台允許使用者分享、關聯和下載各種惡意指標 (Pulses)。下列哪個平台最符合此描述？
+                </div>
+                <div class="options-grid">
+                    <div class="option-btn" onclick="checkAnswer(this, false, 'Wireshark 是封包分析工具。')">A. Wireshark</div>
+                    <div class="option-btn" onclick="checkAnswer(this, false, 'Nmap 是網路掃描工具。')">B. Nmap</div>
+                    <div class="option-btn" onclick="checkAnswer(this, true, '正確。AlienVault OTX (Open Threat Exchange) 是一個廣受歡迎的社群驅動威脅情資共享平台。')">C. AlienVault OTX</div>
+                    <div class="option-btn" onclick="checkAnswer(this, false, 'Metasploit 是滲透測試框架。')">D. Metasploit</div>
+                </div>
+                <div class="explanation"></div>
+            </div>
+
+            <!-- Q8 -->
+            <div class="question-block">
+                <div class="question-text">
+                    <span class="q-num">Q8</span>
+                    情境：在 Cyber Kill Chain (網路殺傷鏈) 的哪個階段，攻擊者會試圖將帶有惡意負載 (Payload) 的媒介 (如釣魚郵件或 USB) 傳送給目標？
+                </div>
+                <div class="options-grid">
+                    <div class="option-btn" onclick="checkAnswer(this, false, 'Reconnaissance 是偵察階段，收集資訊。')">A. Reconnaissance</div>
+                    <div class="option-btn" onclick="checkAnswer(this, false, 'Weaponization 是將 Exploit 與 Backdoor 結合成武器，發生在攻擊者端。')">B. Weaponization</div>
+                    <div class="option-btn" onclick="checkAnswer(this, true, '正確。Delivery (傳送) 階段是攻擊者將武器化的惡意軟體傳送給受害者的過程。')">C. Delivery</div>
+                    <div class="option-btn" onclick="checkAnswer(this, false, 'Exploitation 是觸發漏洞執行程式碼。')">D. Exploitation</div>
+                </div>
+                <div class="explanation"></div>
+            </div>
+
+            <!-- Q9 -->
+            <div class="question-block">
+                <div class="question-text">
+                    <span class="q-num">Q9</span>
+                    情境：公司決定採用 MISP (Malware Information Sharing Platform)。這個平台的主要功能是什麼？
+                </div>
+                <div class="options-grid">
+                    <div class="option-btn" onclick="checkAnswer(this, false, 'MISP 不是防毒軟體。')">A. 執行即時防毒掃描</div>
+                    <div class="option-btn" onclick="checkAnswer(this, true, '正確。MISP 是一個開源平台，用於收集、儲存、分發和共享網路安全指標和威脅分析。')">B. 儲存與共享威脅情資 (Threat Intelligence Sharing)</div>
+                    <div class="option-btn" onclick="checkAnswer(this, false, 'MISP 主要用於防禦情資，而非主動滲透測試。')">C. 進行自動化滲透測試</div>
+                    <div class="option-btn" onclick="checkAnswer(this, false, '這通常是 RADIUS 或 TACACS+ 的功能。')">D. 管理使用者身份認證</div>
+                </div>
+                <div class="explanation"></div>
+            </div>
+
+            <!-- Q10 -->
+            <div class="question-block">
+                <div class="question-text">
+                    <span class="q-num">Q10</span>
+                    情境：防禦團隊正在分析攻擊者使用的「與其基礎設施相關的技術特徵」，例如特定的 User-Agent 字串或特殊的通訊協議標頭。在痛苦金字塔中，這屬於哪一層？
+                </div>
+                <div class="options-grid">
+                    <div class="option-btn" onclick="checkAnswer(this, false, '這是最底層。')">A. Hash Values</div>
+                    <div class="option-btn" onclick="checkAnswer(this, true, '正確。Network/Host Artifacts (網路/主機痕跡) 包括 User-Agent、C2 協議特徵等，位於金字塔中層，比域名更難更改，但比工具容易。')">B. Network/Host Artifacts</div>
+                    <div class="option-btn" onclick="checkAnswer(this, false, '這是金字塔頂層。')">C. TTPs</div>
+                    <div class="option-btn" onclick="checkAnswer(this, false, '這是金字塔次底層。')">D. IP Addresses</div>
+                </div>
+                <div class="explanation"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <footer>
+        Planning & Design by Timmy(timmyc@hauman.com.tw) <span>|</span> 豪勉科技 Hauman Technologies Corporation <span>|</span> Ver 1.0
+    </footer>
+
+    <script>
+        function checkAnswer(element, isCorrect, explanationText) {
+            // Get the parent question block
+            const questionBlock = element.closest('.question-block');
+            const options = questionBlock.querySelectorAll('.option-btn');
+            const explanationDiv = questionBlock.querySelector('.explanation');
+
+            // Disable all options in this question
+            options.forEach(opt => {
+                opt.style.pointerEvents = 'none';
+                opt.style.opacity = '0.7';
+            });
+
+            // Highlight selected answer
+            if (isCorrect) {
+                element.classList.add('correct');
+                explanationDiv.innerHTML = `<strong>[ SYSTEM_CHECK: ACCESS GRANTED ]</strong> ${explanationText}`;
+                explanationDiv.style.borderLeftColor = '#00ff00';
+            } else {
+                element.classList.add('wrong');
+                // Find correct answer to highlight it
+                // Note: In a real app, we'd mark the correct one too, but for now we just show red.
+                // Let's find the correct one logically if possible, or just explain.
+                explanationDiv.innerHTML = `<strong>[ SYSTEM_CHECK: ACCESS DENIED ]</strong> ${explanationText}`;
+                explanationDiv.style.borderLeftColor = '#ff0000';
+            }
+
+            // Show explanation
+            explanationDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
