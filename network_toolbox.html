@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>網路工具箱 | DNS、WHOIS、IP、Port、SSL、Calc</title>
+    <title>網路工具箱 | DNS、WHOIS、IP、Port、SSL、MAC、Calc</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -50,6 +50,11 @@
             white-space: pre;
             box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
         }
+        
+        /* Binary Bit Styles */
+        .bit-net { color: #2563eb; font-weight: bold; } /* Blue for Network */
+        .bit-host { color: #9ca3af; } /* Gray for Host */
+        .bit-dot { color: #d1d5db; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center py-10 px-4">
@@ -62,7 +67,7 @@
             <h1 class="text-3xl md:text-4xl font-bold text-gray-800 tracking-tight">
                 <i class="fa-solid fa-toolbox text-blue-600 mr-2"></i>網路查詢工具箱
             </h1>
-            <p class="text-gray-500">DNS 紀錄、WHOIS、IP 地理位置、Port 掃描、SSL 檢測、IP 計算</p>
+            <p class="text-gray-500">DNS 紀錄、WHOIS、IP 地理位置、Port 掃描、SSL 檢測、MAC 廠商、IP 計算</p>
         </div>
 
         <!-- Tool Selection Tabs -->
@@ -81,6 +86,9 @@
             </button>
             <button onclick="switchTab('ssl')" id="tab-ssl" class="tab-btn flex-1 py-4 px-4 md:px-6 text-sm font-bold text-gray-600 hover:text-blue-600 whitespace-nowrap">
                 <i class="fa-solid fa-lock mr-2"></i>SSL 檢測
+            </button>
+            <button onclick="switchTab('mac')" id="tab-mac" class="tab-btn flex-1 py-4 px-4 md:px-6 text-sm font-bold text-gray-600 hover:text-blue-600 whitespace-nowrap">
+                <i class="fa-solid fa-barcode mr-2"></i>MAC ADDRESS 製造商查詢
             </button>
             <button onclick="switchTab('ipcalc')" id="tab-ipcalc" class="tab-btn flex-1 py-4 px-4 md:px-6 text-sm font-bold text-gray-600 hover:text-blue-600 whitespace-nowrap">
                 <i class="fa-solid fa-calculator mr-2"></i>IP 計算
@@ -202,7 +210,7 @@
                 </div>
             </div>
 
-            <!-- Generic Content Block (WHOIS, Geo, Port, SSL, Calc) -->
+            <!-- Generic Content Block (WHOIS, Geo, Port, SSL, MAC, Calc) -->
             <div id="genericResultBlock" class="hidden bg-white p-6 rounded-xl shadow-lg border border-gray-200">
                  <div id="genericContent" class="prose max-w-none text-gray-800"></div>
             </div>
@@ -220,11 +228,11 @@
 
     <!-- Footer -->
     <footer class="mt-12 text-center text-xs text-gray-400 w-full max-w-5xl border-t border-gray-200 pt-6">
-        <p>Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.1</p>
+        <p>Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.3</p>
     </footer>
 
     <script>
-        let currentMode = 'dns'; // 'dns', 'whois', 'location', 'port', 'ssl', 'ipcalc'
+        let currentMode = 'dns'; // 'dns', 'whois', 'location', 'port', 'ssl', 'mac', 'ipcalc'
 
         // DNS Type ID to String Mapping
         const dnsTypes = {
@@ -257,14 +265,15 @@
 
         domainInput.addEventListener('input', function(e) {
             const val = e.target.value.trim();
-            const isIp = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(val.split('/')[0]); // Split for CIDR check
             
             if (currentMode === 'dns') {
+                const isIp = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(val.split('/')[0]);
                 if (isIp && typeInput.value !== 'PTR') {
                     typeInput.value = 'PTR';
                     showAutoMsg(autoPtrMsg);
                 }
             } else if (currentMode === 'location' || currentMode === 'port') {
+                const isIp = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(val.split('/')[0]);
                 if (!isIp && val.length > 3) {
                     showAutoMsg(autoResolveMsg); 
                 }
@@ -327,11 +336,15 @@
                 apiInfoText.innerText = "* 使用 crt.sh 查詢憑證紀錄，並提供外部深層掃描";
                 inputLabel.innerText = "網域名稱";
                 domainInput.placeholder = "例如: google.com";
+            } else if (mode === 'mac') {
+                apiInfoText.innerText = "* 使用 maclookup.app API";
+                inputLabel.innerText = "MAC 位址 (OUI)";
+                domainInput.placeholder = "例如: 00:1A:2B:3C:4D:5E 或 00-1A-2B...";
             } else if (mode === 'ipcalc') {
-                apiInfoText.innerText = "* 純前端計算 (無後端 API)";
-                inputLabel.innerText = "IP 位址 / CIDR";
-                domainInput.placeholder = "例如: 192.168.1.1/24 或 10.0.0.1";
-                rawJsonToggleContainer.classList.add('hidden'); // Hide raw json for calc
+                apiInfoText.innerText = "* 單IP顯示網段 | 雙IP(空格隔開)顯示比對";
+                inputLabel.innerText = "IP 位址 / CIDR (支援雙輸入比對)";
+                domainInput.placeholder = "例如: 192.168.1.1/24 (比對: 192.168.1.1/24 192.168.1.20/24)";
+                rawJsonToggleContainer.classList.add('hidden'); 
             }
         }
 
@@ -365,6 +378,8 @@
                     await runPortQuery(input);
                 } else if (currentMode === 'ssl') {
                     await runSslQuery(input);
+                } else if (currentMode === 'mac') {
+                    await runMacQuery(input);
                 } else if (currentMode === 'ipcalc') {
                     await runIpCalc(input);
                 }
@@ -386,15 +401,11 @@
                 const dnsRes = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(input)}&type=A`);
                 const dnsData = await dnsRes.json();
                 
-                // FIXED: Prioritize finding Type 1 (A record) instead of taking the first result (which could be CNAME)
                 if (dnsData.Answer && dnsData.Answer.length > 0) {
                     const aRecord = dnsData.Answer.find(rec => rec.type === 1);
                     if (aRecord) {
                         return aRecord.data;
                     }
-                    // Fallback: if no A record explicitly found but there are answers, use the last one (often the resolved IP in a chain)
-                    // or just return the first one if we can't find type 1.
-                    // But for GeoIP, we strictly need IP.
                     const lastRecord = dnsData.Answer[dnsData.Answer.length - 1];
                     if (lastRecord.type === 1) return lastRecord.data;
                 }
@@ -533,33 +544,28 @@
         async function runLocationQuery(input) {
             document.getElementById('loadingText').innerText = "解析中...";
             let targetIp = await resolveDomainToIp(input);
-            const isIp = targetIp === input; // if input was ip
+            const isIp = targetIp === input; 
 
-            // Private IP Check
             if (isPrivateIp(targetIp)) {
                 throw new Error(`無法查詢私有 IP (Private IP) 或保留位址: ${targetIp}`);
             }
 
             document.getElementById('loadingText').innerText = `查詢 IP 位置: ${targetIp}...`;
 
-            // Strategy: Try ipwho.is -> fallback ipapi.co -> fallback freeipapi.com
             let geoData = null;
             let rawData = null;
 
             try {
-                // 1. Try ipwho.is
                 const data = await fetchIpWhoIs(targetIp);
                 geoData = data; rawData = data.raw;
             } catch (e1) {
                 console.warn("ipwho.is failed:", e1);
                 try {
-                    // 2. Try ipapi.co
                     const data = await fetchIpApiCo(targetIp);
                     geoData = data; rawData = data.raw;
                 } catch (e2) {
                     console.warn("ipapi.co failed:", e2);
                     try {
-                        // 3. Try freeipapi.com
                         const data = await fetchFreeIpApi(targetIp);
                         geoData = data; rawData = data.raw;
                     } catch (e3) {
@@ -572,9 +578,8 @@
         }
 
         function isPrivateIp(ip) {
-            // Simple check for IPv4 Private Ranges (10.x, 172.16-31.x, 192.168.x, 127.x)
             const parts = ip.split('.').map(Number);
-            if (parts.length !== 4 || parts.some(isNaN)) return false; // Skip check if not standard IPv4
+            if (parts.length !== 4 || parts.some(isNaN)) return false; 
             if (parts[0] === 10) return true;
             if (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) return true;
             if (parts[0] === 192 && parts[1] === 168) return true;
@@ -582,7 +587,6 @@
             return false;
         }
 
-        // (Helper functions for Location fetch)
         async function fetchIpWhoIs(ip) {
             const r = await fetch(`https://ipwho.is/${ip}`);
             if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -634,7 +638,6 @@
             document.getElementById('loadingText').innerText = `查詢 Shodan InternetDB (${targetIp})...`;
 
             try {
-                // Shodan InternetDB API (CORS friendly usually)
                 const url = `https://internetdb.shodan.io/${targetIp}`;
                 const response = await fetch(url);
                 
@@ -660,7 +663,6 @@
             `;
 
             if (data) {
-                // Have Shodan Data
                 html += `
                     <div class="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg mb-6 flex justify-between items-center">
                         <div><i class="fa-solid fa-check-circle mr-2"></i> 找到公開資料庫紀錄 (Passive Scan)</div>
@@ -727,8 +729,6 @@
             document.getElementById('loadingText').innerText = "查詢憑證紀錄 (CT Logs)...";
 
             try {
-                // Fetch Certificate Transparency logs from crt.sh via proxy to avoid CORS
-                // We use a proxy because crt.sh usually doesn't allow cross-origin requests
                 const targetUrl = `https://crt.sh/?q=${domain}&output=json`;
                 const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
                 
@@ -738,30 +738,26 @@
                     throw new Error("無法連接憑證資料庫");
                 }
                 
-                // Handling empty or non-JSON responses gracefully
                 const text = await response.text();
                 let data = [];
                 try {
                     data = JSON.parse(text);
                 } catch(e) {
-                    // Sometimes crt.sh fails or returns HTML on overload
                     data = []; 
                 }
 
                 renderGenericResults(formatSslData(data, domain), data);
 
             } catch (e) {
-                // Even if CT log fails, we still show the external links
                 renderGenericResults(formatSslData([], domain), { error: e.message });
             }
         }
 
         function formatSslData(data, domain) {
-            // Process certificates: deduplicate and sort by date desc
             const certs = data
-                .filter(c => !c.name_value.includes('*')) // Optional: filter wildcards if too noisy
+                .filter(c => !c.name_value.includes('*')) 
                 .sort((a, b) => new Date(b.entry_timestamp) - new Date(a.entry_timestamp))
-                .slice(0, 5); // Take top 5
+                .slice(0, 5);
 
             let html = `
                 <div class="flex items-center justify-between mb-4">
@@ -849,14 +845,145 @@
             return html;
         }
 
+        // --- MAC Address Logic ---
+        async function runMacQuery(input) {
+            // Clean input: remove common delimiters
+            const cleanMac = input.replace(/[:-]/g, '').trim();
+            
+            // Basic validation (hex chars, length check)
+            if (!/^[0-9a-fA-F]{6,}$/.test(cleanMac)) {
+                throw new Error("MAC 位址格式錯誤。請輸入至少 6 位十六進位字元 (例如 001A2B)。");
+            }
+
+            document.getElementById('loadingText').innerText = "查詢 MAC 廠商資料...";
+
+            try {
+                // Use maclookup.app API via CORS Proxy to avoid "Failed to fetch"
+                const targetUrl = `https://api.maclookup.app/v2/macs/${cleanMac}`;
+                // Using allorigins.win/raw to get the JSON response directly
+                const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+                
+                const response = await fetch(proxyUrl);
+                
+                if (!response.ok) {
+                    // Check if it's a 404 (Not Found) from the API
+                    if (response.status === 404) {
+                         throw new Error("資料庫中找不到此 MAC 位址");
+                    }
+                    throw new Error(`API 連線失敗 (HTTP ${response.status})`);
+                }
+
+                const data = await response.json();
+                
+                // API logic: Check 'success' or 'found' flag
+                if (data.success === false || data.found === false) {
+                    throw new Error("找不到此 MAC 位址的製造商資料。");
+                }
+
+                renderGenericResults(formatMacData(data, input), data);
+
+            } catch (e) {
+                // If the error message is about JSON parsing, it usually means the proxy failed or returned HTML
+                if (e.message.includes("JSON")) {
+                    throw new Error("查詢失敗：API 暫時無法使用或回應格式錯誤。");
+                }
+                throw new Error(`查詢失敗: ${e.message}`);
+            }
+        }
+
+        function formatMacData(data, originalInput) {
+            const found = data.found;
+            const company = found ? data.company : "未知 (Unknown)";
+            const address = data.address || "無地址資料";
+            const country = data.country || "N/A";
+            const blockStart = data.blockStart || "N/A";
+            const blockEnd = data.blockEnd || "N/A";
+            const type = data.blockType || "N/A";
+
+            let html = `
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold flex items-center"><i class="fa-solid fa-barcode text-gray-700 mr-2"></i> MAC 廠商查詢結果</h3>
+                    <span class="text-lg bg-gray-100 text-gray-800 px-3 py-1 rounded font-mono font-bold">${originalInput}</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Manufacturer Info -->
+                    <div class="bg-white border rounded-xl overflow-hidden shadow-sm">
+                        <div class="bg-blue-50 px-4 py-3 border-b border-blue-100 font-bold text-blue-800 flex items-center">
+                            <i class="fa-solid fa-building mr-2"></i> 製造商資訊
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <div>
+                                <div class="text-xs text-gray-500 uppercase font-bold mb-1">公司名稱 (Company)</div>
+                                <div class="text-xl font-bold text-gray-800">${company}</div>
+                            </div>
+                            <div>
+                                <div class="text-xs text-gray-500 uppercase font-bold mb-1">地址 (Address)</div>
+                                <div class="text-sm text-gray-600 whitespace-pre-line">${address}</div>
+                            </div>
+                            <div>
+                                <div class="text-xs text-gray-500 uppercase font-bold mb-1">國家 (Country)</div>
+                                <div class="text-sm text-gray-800 font-bold">${country}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Block Info -->
+                    <div class="bg-white border rounded-xl overflow-hidden shadow-sm">
+                        <div class="bg-gray-50 px-4 py-3 border-b border-gray-200 font-bold text-gray-700 flex items-center">
+                            <i class="fa-solid fa-network-wired mr-2"></i> OUI 區塊資訊
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <div class="text-xs text-gray-500 uppercase font-bold mb-1">MAC 前綴</div>
+                                    <div class="font-mono text-gray-800 font-bold">${data.macPrefix || 'N/A'}</div>
+                                </div>
+                                <div>
+                                    <div class="text-xs text-gray-500 uppercase font-bold mb-1">類型</div>
+                                    <div class="font-mono text-gray-800 font-bold">${type}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="border-t border-gray-100 pt-4 mt-2">
+                                <div class="text-xs text-gray-500 uppercase font-bold mb-2">區塊範圍 (Hex)</div>
+                                <div class="flex flex-col space-y-1 font-mono text-sm">
+                                    <div class="flex justify-between">
+                                        <span class="text-green-600">Start:</span>
+                                        <span>${blockStart}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-red-600">End:</span>
+                                        <span>${blockEnd}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            ${data.updated ? `<div class="text-xs text-gray-400 text-right mt-2">最後更新: ${data.updated}</div>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+            return html;
+        }
+
         // --- IP Calc Logic ---
         function runIpCalc(input) {
             document.getElementById('loadingText').innerText = "計算中...";
             
-            // 1. Parse Input (192.168.1.1 or 192.168.1.1/24)
-            const parts = input.trim().split('/');
+            // Check for comparison mode: detect 2 IPs separated by space or comma
+            const inputs = input.trim().split(/[\s,]+/);
+            
+            if (inputs.length === 2) {
+                // Compare Mode
+                runIpCompare(inputs[0], inputs[1]);
+                return;
+            }
+
+            // Single Mode
+            const parts = inputs[0].split('/');
             let ip = parts[0];
-            let cidr = parts[1] ? parseInt(parts[1], 10) : 24; // Default to 24 if no CIDR
+            let cidr = parts[1] ? parseInt(parts[1], 10) : 24; 
 
             if (!/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(ip)) {
                 throw new Error("無效的 IP 位址格式");
@@ -865,7 +992,42 @@
                 throw new Error("無效的 CIDR 遮罩 (範圍 0-32)");
             }
 
-            // 2. Calculations
+            const calcData = calculateIpSubnet(ip, cidr);
+            renderGenericResults(formatIpCalcHtml(calcData), calcData);
+        }
+
+        function runIpCompare(input1, input2) {
+            // Parse IP 1
+            const parts1 = input1.split('/');
+            let ip1 = parts1[0];
+            let cidr1 = parts1[1] ? parseInt(parts1[1], 10) : 24;
+
+            // Parse IP 2
+            const parts2 = input2.split('/');
+            let ip2 = parts2[0];
+            let cidr2 = parts2[1] ? parseInt(parts2[1], 10) : 24;
+
+            if (!validateIp(ip1) || !validateIp(ip2)) {
+                throw new Error("IP 格式錯誤，請檢查輸入");
+            }
+
+            const d1 = calculateIpSubnet(ip1, cidr1);
+            const d2 = calculateIpSubnet(ip2, cidr2);
+
+            // Compare Logic: Are they in the same subnet?
+            // Strict definition: Network Address must match AND Mask must match
+            const sameNetwork = (d1.network === d2.network);
+            const sameMask = (d1.cidr === d2.cidr);
+            const isSameSubnet = sameNetwork && sameMask;
+
+            renderGenericResults(formatIpCompareHtml(d1, d2, isSameSubnet), { ip1: d1, ip2: d2, match: isSameSubnet });
+        }
+
+        function validateIp(ip) {
+            return /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(ip);
+        }
+
+        function calculateIpSubnet(ip, cidr) {
             const ipInt = ipToInt(ip);
             const maskInt = (cidr === 0) ? 0 : (~0 << (32 - cidr));
             const networkInt = ipInt & maskInt;
@@ -878,7 +1040,7 @@
             const firstIpInt = (cidr >= 31) ? 0 : networkInt + 1;
             const lastIpInt = (cidr >= 31) ? 0 : broadcastInt - 1;
 
-            const data = {
+            return {
                 ip: ip,
                 cidr: cidr,
                 netmask: intToIp(maskInt),
@@ -891,11 +1053,9 @@
                 wildcard: intToIp(wildcardInt),
                 binaryIp: toBinary(ipInt),
                 binaryMask: toBinary(maskInt),
+                binaryNetwork: toBinary(networkInt),
                 ipClass: getIpClass(ipInt)
             };
-
-            // 3. Render
-            renderGenericResults(formatIpCalcHtml(data), data);
         }
 
         function ipToInt(ip) {
@@ -914,6 +1074,25 @@
         function toBinary(int) {
             let bin = (int >>> 0).toString(2).padStart(32, '0');
             return bin.match(/.{1,8}/g).join('.');
+        }
+        
+        // Format binary with color highlighting for network bits
+        function formatBinary(binStr, cidr) {
+            // binStr format: "11000000.10101000.00000001.00000001"
+            const cleanBin = binStr.replace(/\./g, '');
+            let html = '';
+            
+            // Octet logic
+            for (let i = 0; i < 32; i++) {
+                if (i > 0 && i % 8 === 0) html += '<span class="bit-dot">.</span>';
+                
+                if (i < cidr) {
+                    html += `<span class="bit-net">${cleanBin[i]}</span>`;
+                } else {
+                    html += `<span class="bit-host">${cleanBin[i]}</span>`;
+                }
+            }
+            return html;
         }
 
         function getIpClass(ipInt) {
@@ -991,15 +1170,15 @@
 
                 <!-- Advanced Info -->
                 <div class="mt-6 bg-gray-50 border border-gray-200 rounded-xl p-4">
-                    <h4 class="font-bold text-gray-700 mb-3 text-sm uppercase">進階資訊</h4>
+                    <h4 class="font-bold text-gray-700 mb-3 text-sm uppercase">進階資訊 (二進位)</h4>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                         <div>
                             <span class="block text-gray-500 text-xs">IP 二進位</span>
-                            <span class="font-mono text-gray-800">${d.binaryIp}</span>
+                            <span class="font-mono text-gray-800 tracking-wider">${formatBinary(d.binaryIp, d.cidr)}</span>
                         </div>
                         <div>
                             <span class="block text-gray-500 text-xs">遮罩 二進位</span>
-                            <span class="font-mono text-gray-800">${d.binaryMask}</span>
+                            <span class="font-mono text-gray-800 tracking-wider">${formatBinary(d.binaryMask, d.cidr)}</span>
                         </div>
                         <div>
                              <span class="block text-gray-500 text-xs">IP 類別</span>
@@ -1008,6 +1187,80 @@
                         <div>
                              <span class="block text-gray-500 text-xs">CIDR 表示法</span>
                              <span class="font-bold text-gray-800">/${d.cidr}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function formatIpCompareHtml(d1, d2, isMatch) {
+            return `
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold flex items-center"><i class="fa-solid fa-code-compare text-orange-600 mr-2"></i> 網段比對結果</h3>
+                    ${isMatch 
+                        ? '<span class="text-lg bg-green-100 text-green-800 px-4 py-1 rounded font-bold border border-green-200"><i class="fa-solid fa-check-circle"></i> 相同網段</span>' 
+                        : '<span class="text-lg bg-red-100 text-red-800 px-4 py-1 rounded font-bold border border-red-200"><i class="fa-solid fa-times-circle"></i> 不同網段</span>'
+                    }
+                </div>
+
+                <!-- Comparison Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <!-- IP 1 -->
+                    <div class="bg-white border rounded-xl overflow-hidden shadow-sm">
+                        <div class="bg-gray-50 px-4 py-2 border-b font-bold text-gray-700">IP 1: ${d1.ip}/${d1.cidr}</div>
+                        <div class="p-4 space-y-2">
+                            <div class="flex justify-between">
+                                <span class="text-gray-500 text-sm">網路位址 (Network)</span>
+                                <span class="font-mono font-bold">${d1.network}</span>
+                            </div>
+                            <div class="text-xs text-gray-400 font-mono tracking-wider">${formatBinary(d1.binaryNetwork, d1.cidr)}</div>
+                        </div>
+                    </div>
+
+                    <!-- IP 2 -->
+                    <div class="bg-white border rounded-xl overflow-hidden shadow-sm">
+                        <div class="bg-gray-50 px-4 py-2 border-b font-bold text-gray-700">IP 2: ${d2.ip}/${d2.cidr}</div>
+                        <div class="p-4 space-y-2">
+                            <div class="flex justify-between">
+                                <span class="text-gray-500 text-sm">網路位址 (Network)</span>
+                                <span class="font-mono font-bold">${d2.network}</span>
+                            </div>
+                            <div class="text-xs text-gray-400 font-mono tracking-wider">${formatBinary(d2.binaryNetwork, d2.cidr)}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Analysis -->
+                <div class="bg-gray-800 text-gray-200 rounded-xl p-6 font-mono text-sm overflow-x-auto shadow-inner">
+                    <h4 class="text-gray-400 mb-4 uppercase tracking-widest text-xs font-bold">二進位運算過程</h4>
+                    
+                    <!-- IP 1 Process -->
+                    <div class="mb-6">
+                        <div class="text-orange-300 mb-1">Target 1: ${d1.ip} / ${d1.cidr}</div>
+                        <div class="grid grid-cols-[80px_1fr] gap-2">
+                            <div class="text-gray-500">IP Addr:</div>
+                            <div>${formatBinary(d1.binaryIp, d1.cidr)}</div>
+                            
+                            <div class="text-gray-500">Mask:</div>
+                            <div>${formatBinary(d1.binaryMask, d1.cidr)}</div>
+                            
+                            <div class="text-gray-500 border-t border-gray-600 mt-1 pt-1">AND Op:</div>
+                            <div class="border-t border-gray-600 mt-1 pt-1 text-white">${formatBinary(d1.binaryNetwork, d1.cidr)} <span class="text-gray-500">(Network 1)</span></div>
+                        </div>
+                    </div>
+
+                    <!-- IP 2 Process -->
+                    <div>
+                        <div class="text-orange-300 mb-1">Target 2: ${d2.ip} / ${d2.cidr}</div>
+                        <div class="grid grid-cols-[80px_1fr] gap-2">
+                            <div class="text-gray-500">IP Addr:</div>
+                            <div>${formatBinary(d2.binaryIp, d2.cidr)}</div>
+                            
+                            <div class="text-gray-500">Mask:</div>
+                            <div>${formatBinary(d2.binaryMask, d2.cidr)}</div>
+                            
+                            <div class="text-gray-500 border-t border-gray-600 mt-1 pt-1">AND Op:</div>
+                            <div class="border-t border-gray-600 mt-1 pt-1 text-white">${formatBinary(d2.binaryNetwork, d2.cidr)} <span class="text-gray-500">(Network 2)</span></div>
                         </div>
                     </div>
                 </div>
