@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExtremeXOS 網路架構大師 - 深入淺出 Routing (路由)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&display=swap');
+        body { font-family: 'Noto Sans TC', sans-serif; }
+        .mermaid { background-color: #f3f4f6; padding: 20px; border-radius: 8px; display: flex; justify-content: center; }
+        .quiz-answer { display: none; margin-top: 10px; padding: 10px; background-color: #e5ffe5; border-left: 4px solid #00aa00; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <!-- Header -->
+    <header class="bg-purple-900 text-white p-6 shadow-lg">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-3xl font-bold">ExtremeXOS 網路架構大師</h1>
+            <p class="mt-2 text-purple-200">主題：Routing (路由) 的藝術與科學</p>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto p-6 space-y-8">
+
+        <!-- 1. 核心概念 -->
+        <section class="bg-white rounded-lg shadow-md p-6 border-l-4 border-purple-600">
+            <h2 class="text-2xl font-bold mb-4 flex items-center">
+                <span class="bg-purple-600 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 text-sm">1</span>
+                核心概念 (Concept)
+            </h2>
+            <div class="space-y-4">
+                <div>
+                    <h3 class="font-bold text-lg text-gray-700">一句話定義：</h3>
+                    <p class="text-gray-600">路由 (Routing) 是指網路設備決定資料封包從來源端傳輸到目的端「最佳路徑」的過程。</p>
+                </div>
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <h3 class="font-bold text-lg text-blue-800">生活化比喻：Google Maps 導航</h3>
+                    <p class="mt-2 text-blue-700">
+                        想像路由器 (Router) 就像是您的車用導航系統。
+                    </p>
+                    <ul class="list-disc list-inside mt-2 text-blue-600 ml-4">
+                        <li><strong>資料封包 (Packet)</strong>：就是您開的車。</li>
+                        <li><strong>IP 位址</strong>：就是您要去的「地址」。</li>
+                        <li><strong>路由表 (Routing Table)</strong>：就是導航系統內建的「地圖資料庫」。</li>
+                        <li><strong>Metric (權重/跳數)</strong>：導航計算出的「預計時間」或「距離」，越短越好。</li>
+                    </ul>
+                    <p class="mt-2 text-sm italic text-blue-500">當前面路段塞車 (連結斷線) 時，導航會自動幫您重新規劃另一條路 (Dynamic Routing)，這就是路由器的核心功能。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. 運作原理 -->
+        <section class="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-600">
+            <h2 class="text-2xl font-bold mb-4 flex items-center">
+                <span class="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 text-sm">2</span>
+                運作原理 (Mechanism)
+            </h2>
+            
+            <div class="space-y-4">
+                <h3 class="font-bold text-lg text-gray-700">技術細節：</h3>
+                <p>當 Router 收到一個封包時，會依循以下邏輯處理：</p>
+                <ol class="list-decimal list-inside space-y-2 ml-4 text-gray-600">
+                    <li><strong>拆解標頭：</strong>檢查 L2 Frame Check Sequence (FCS)，確認無誤後剝離 L2 Header，讀取 L3 IP Header 的 Destination IP。</li>
+                    <li><strong>查表 (Lookup)：</strong>在路由表 (Routing Table/RIB) 中尋找匹配的網段。</li>
+                    <li><strong>最長比對原則 (Longest Prefix Match)：</strong>這是最重要的黃金法則。如果同時有多條路徑符合，Router 會選擇遮罩 (Mask) 最長的那一條。
+                        <br><span class="text-xs text-gray-500 ml-6">例：去 192.168.1.1，若有 192.168.1.0/24 和 192.168.1.0/28，會選 /28。</span>
+                    </li>
+                    <li><strong>轉發 (Forwarding)：</strong>根據查表結果，決定由哪個介面 (Egress Interface) 送出，並指向下一個跳點 (Next Hop)。</li>
+                    <li><strong>重封裝：</strong>將 TTL 減 1，查詢 ARP Table 獲取 Next Hop 的 MAC Address，重新封裝 L2 Header 並送出。</li>
+                </ol>
+
+                <div class="mt-4 p-4 bg-gray-50 rounded border border-gray-200">
+                    <h4 class="font-bold text-sm text-gray-500 uppercase">關鍵參數與術語</h4>
+                    <ul class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2 text-sm">
+                        <li>
+                            <strong class="text-gray-800">Administrative Distance (AD)：</strong>
+                            <br>路由來源的可信度。數值越小越優先 (例如：Static Route 優於 OSPF)。
+                        </li>
+                        <li>
+                            <strong class="text-gray-800">Metric (成本)：</strong>
+                            <br>同一種協定中，路徑的成本。OSPF 看頻寬，RIP 看跳數。
+                        </li>
+                        <li>
+                            <strong class="text-gray-800">Gateway of Last Resort：</strong>
+                            <br>預設路由 (Default Route, 0.0.0.0/0)，當找不到路時的最後出口。
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 新增區塊：路由表組成 -->
+            <div class="mt-8 pt-6 border-t border-gray-200">
+                <h3 class="font-bold text-xl text-blue-800 mb-4">深入剖析：路由表組成 (Routing Table Anatomy)</h3>
+                <p class="text-gray-600 mb-4">
+                    在 ExtremeXOS 中輸入指令 <code class="bg-gray-800 text-green-400 px-2 py-0.5 rounded text-sm">show iproute</code>，您會看到路由器的大腦結構。以下是一張典型路由表的解剖圖：
+                </p>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white border border-gray-300 text-sm">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="py-2 px-4 border-b text-left text-gray-700">Destination/Mask</th>
+                                <th class="py-2 px-4 border-b text-left text-gray-700">Gateway (Next Hop)</th>
+                                <th class="py-2 px-4 border-b text-left text-gray-700">Flags</th>
+                                <th class="py-2 px-4 border-b text-left text-gray-700">Metric</th>
+                                <th class="py-2 px-4 border-b text-left text-gray-700">Interface</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="hover:bg-blue-50">
+                                <td class="py-2 px-4 border-b font-mono">192.168.10.0/24</td>
+                                <td class="py-2 px-4 border-b font-mono">192.168.10.254</td>
+                                <td class="py-2 px-4 border-b font-bold text-green-600">#d (Direct)</td>
+                                <td class="py-2 px-4 border-b">1</td>
+                                <td class="py-2 px-4 border-b">v10-Finance</td>
+                            </tr>
+                            <tr class="hover:bg-blue-50">
+                                <td class="py-2 px-4 border-b font-mono">10.0.0.0/8</td>
+                                <td class="py-2 px-4 border-b font-mono">172.16.1.1</td>
+                                <td class="py-2 px-4 border-b font-bold text-blue-600">#s (Static)</td>
+                                <td class="py-2 px-4 border-b">1</td>
+                                <td class="py-2 px-4 border-b">v20-Uplink</td>
+                            </tr>
+                            <tr class="hover:bg-blue-50">
+                                <td class="py-2 px-4 border-b font-mono">0.0.0.0/0</td>
+                                <td class="py-2 px-4 border-b font-mono">172.16.1.254</td>
+                                <td class="py-2 px-4 border-b font-bold text-purple-600">UG (Gateway)</td>
+                                <td class="py-2 px-4 border-b">10</td>
+                                <td class="py-2 px-4 border-b">v20-Uplink</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm bg-gray-50 p-4 rounded-lg">
+                    <div>
+                        <h4 class="font-bold text-gray-700 mb-2">欄位說明：</h4>
+                        <ul class="space-y-1 list-disc list-inside text-gray-600">
+                            <li><strong>Destination：</strong> 目的地網段。</li>
+                            <li><strong>Gateway：</strong> 下一跳 (Next Hop) 的 IP 位址。</li>
+                            <li><strong>Interface：</strong> 封包送出的本機介面 (通常是 VLAN)。</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-gray-700 mb-2">常見 Flags (標記) 解碼：</h4>
+                        <ul class="space-y-1 text-gray-600">
+                            <li><span class="font-mono font-bold text-green-600">d (Direct)</span>：直連網段，介面 Up 就會出現。</li>
+                            <li><span class="font-mono font-bold text-blue-600">s (Static)</span>：管理員手動設定的靜態路由。</li>
+                            <li><span class="font-mono font-bold text-purple-600">G (Gateway)</span>：表示這是一條通往 Gateway 的路由 (通常用於 Default Route)。</li>
+                            <li><span class="font-mono font-bold text-orange-600">o (OSPF)</span>：透過 OSPF 協定學到的路由。</li>
+                            <li><span class="font-mono font-bold text-red-600">bh (Blackhole)</span>：黑洞路由，丟棄封包用。</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. 架構視覺化 -->
+        <section class="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-600">
+            <h2 class="text-2xl font-bold mb-4 flex items-center">
+                <span class="bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 text-sm">3</span>
+                架構視覺化 (Visuals)
+            </h2>
+            
+            <div class="mb-8">
+                <h3 class="font-bold text-gray-700 mb-2">路由決策流程圖 (Flowchart)</h3>
+                <p class="text-sm text-gray-500 mb-2">封包進入路由器內部的處理邏輯。</p>
+                <div class="mermaid">
+flowchart TD
+    Start[封包進入介面 Ingress] --> L2Check{L2 檢查 FCS/MAC?}
+    L2Check -- 錯誤/非本機MAC --> Drop[丟棄封包 Drop]
+    L2Check -- 正確 --> StripL2[剝離 L2 Header]
+    StripL2 --> ReadIP[讀取 Destination IP]
+    ReadIP --> Lookup{查詢 Routing Table}
+    Lookup -- 無匹配且無 Default Route --> ICMPErr[回傳 ICMP Unreachable]
+    Lookup -- 匹配成功 (最長比對) --> TTLCheck{TTL > 1?}
+    TTLCheck -- 否 --> ICMPTime[回傳 ICMP Time Exceeded]
+    TTLCheck -- 是 --> DecrementTTL[TTL 減 1]
+    DecrementTTL --> ARPCheck{ARP Table 有 Next Hop MAC?}
+    ARPCheck -- 否 --> SendARP[發送 ARP Request]
+    SendARP --> WaitARP[等待 ARP Reply]
+    WaitARP --> ARPCheck
+    ARPCheck -- 是 --> RewriteL2[重寫 L2 Header <br> Source MAC=本機出口, Dest MAC=Next Hop]
+    RewriteL2 --> Forward[從 Egress Interface 送出]
+                </div>
+            </div>
+
+            <div>
+                <h3 class="font-bold text-gray-700 mb-2">多重路徑選擇示意圖 (Topology)</h3>
+                <p class="text-sm text-gray-500 mb-2">當前往目的地有兩條路，Router 如何選擇 (假設使用 OSPF)。</p>
+                <div class="mermaid">
+graph LR
+    PC[用戶 PC] -- 封包 --> R1((Router 1))
+    R2((Router 2)) -- 封包 --> Server[應用伺服器]
+
+    subgraph Path_A [路徑 A: 10G 光纖 - Cost 低]
+    direction LR
+    SW1[Core Switch]
+    end
+
+    subgraph Path_B [路徑 B: 1G 備援線路 - Cost 高]
+    direction LR
+    FW1[Firewall]
+    end
+
+    %% Main Path Connections
+    R1 -- 10Gbps --> SW1
+    SW1 -- 10Gbps --> R2
+
+    %% Backup Path Connections
+    R1 -- 1Gbps --> FW1
+    FW1 -- 1Gbps --> R2
+
+    %% Styles
+    style Path_A fill:#e6fffa,stroke:#00b894,stroke-width:2px
+    style Path_B fill:#fff5f5,stroke:#ff7675,stroke-width:2px,stroke-dasharray: 5 5
+
+    %% Link Styling (Index based on creation order)
+    %% 0: PC->R1, 1: R2->Server
+    %% 2: R1->SW1, 3: SW1->R2 (Path A)
+    %% 4: R1->FW1, 5: FW1->R2 (Path B)
+    
+    linkStyle 2,3 stroke:#00b894,stroke-width:4px
+    linkStyle 4,5 stroke:#ff7675,stroke-width:2px,stroke-dasharray: 5 5
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. 實務應用場景 -->
+        <section class="bg-white rounded-lg shadow-md p-6 border-l-4 border-orange-600">
+            <h2 class="text-2xl font-bold mb-4 flex items-center">
+                <span class="bg-orange-600 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 text-sm">4</span>
+                實務應用場景 (Use Case)
+            </h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2">
+                    <h3 class="font-bold text-lg text-gray-800">企業總部與分公司互連 (Hybrid Routing)</h3>
+                    <p class="text-gray-600 mt-2">
+                        <strong>情境：</strong> 一家擁有台北總部 (HQ) 與高雄分公司 (Branch) 的企業。
+                    </p>
+                    <ul class="list-disc list-inside mt-2 text-gray-600 space-y-1">
+                        <li><strong>網際網路存取：</strong> 使用 <strong>Static Default Route</strong> (<code>0.0.0.0/0</code>) 指向 ISP 提供的 Gateway。這最簡單且節省資源。</li>
+                        <li><strong>內網互連 (VPN/專線)：</strong> 使用 <strong>OSPF</strong> 動態路由協定。讓總部與分公司的網段可以自動交換，當新增 VLAN 時不需要手動去每一台設備加路由。</li>
+                        <li><strong>路由備援 (Floating Static Route)：</strong> 設定一條 AD 值較高 (例如 200) 的靜態路由指向備援的 4G 路由器，平時不生效，主線路斷線時自動接手。</li>
+                    </ul>
+                </div>
+                <div class="bg-orange-50 p-4 rounded-lg">
+                    <h4 class="font-bold text-orange-800 mb-2">優缺點分析</h4>
+                    <div class="space-y-3">
+                        <div>
+                            <span class="text-xs font-bold bg-green-200 text-green-800 px-2 py-1 rounded">優點</span>
+                            <p class="text-xs mt-1 text-gray-600">結合了靜態的穩定性與動態的擴充性。備援機制確保業務不中斷。</p>
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold bg-red-200 text-red-800 px-2 py-1 rounded">缺點</span>
+                            <p class="text-xs mt-1 text-gray-600">混合設定增加了除錯複雜度。Floating Static Route 若沒設好可能造成路由黑洞。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. 隨堂測驗 -->
+        <section class="bg-white rounded-lg shadow-md p-6 border-l-4 border-indigo-600">
+            <h2 class="text-2xl font-bold mb-4 flex items-center">
+                <span class="bg-indigo-600 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 text-sm">5</span>
+                隨堂測驗 (Quiz)
+            </h2>
+
+            <div class="space-y-6">
+                <!-- Q1 -->
+                <div class="border-b pb-4">
+                    <p class="font-bold text-gray-800">Q1. 在路由表中，若同時存在兩筆前往目的地的路由：一筆來自 OSPF (AD=110)，一筆來自 Static Route (AD=1)，路由器會優先選擇哪一條進入路由表？</p>
+                    <button onclick="document.getElementById('ans1').style.display='block'" class="mt-2 text-sm bg-indigo-100 text-indigo-700 px-3 py-1 rounded hover:bg-indigo-200">顯示答案</button>
+                    <div id="ans1" class="quiz-answer">
+                        <strong>答案：Static Route (AD=1)。</strong>
+                        <p class="text-sm mt-1">解析：Administrative Distance (AD) 代表可信度，數值越小越可信。因為 1 < 110，所以路由器相信手動設定的靜態路由。</p>
+                    </div>
+                </div>
+
+                <!-- Q2 -->
+                <div class="border-b pb-4">
+                    <p class="font-bold text-gray-800">Q2. 路由表中有兩筆路由：<code>192.168.10.0/24</code> 與 <code>192.168.10.0/26</code>。當封包目的地為 <code>192.168.10.5</code> 時，會匹配哪一筆？</p>
+                    <button onclick="document.getElementById('ans2').style.display='block'" class="mt-2 text-sm bg-indigo-100 text-indigo-700 px-3 py-1 rounded hover:bg-indigo-200">顯示答案</button>
+                    <div id="ans2" class="quiz-answer">
+                        <strong>答案：192.168.10.0/26。</strong>
+                        <p class="text-sm mt-1">解析：根據「最長比對原則 (Longest Prefix Match)」，/26 的遮罩長度 (26 bits) 大於 /24 (24 bits)，且目的地位址皆在兩者範圍內，故選最精確的 /26。</p>
+                    </div>
+                </div>
+
+                <!-- Q3 -->
+                <div>
+                    <p class="font-bold text-gray-800">Q3. 在 ExtremeXOS 中，若要設定一條預設路由 (Default Route) 指向 Gateway 10.0.0.1，正確的指令邏輯為何？</p>
+                    <button onclick="document.getElementById('ans3').style.display='block'" class="mt-2 text-sm bg-indigo-100 text-indigo-700 px-3 py-1 rounded hover:bg-indigo-200">顯示答案</button>
+                    <div id="ans3" class="quiz-answer">
+                        <strong>答案：configure iproute add default 10.0.0.1</strong>
+                        <p class="text-sm mt-1">解析：這是標準的 ExtremeXOS 語法，用來新增靜態路由。<code>default</code> 等同於 <code>0.0.0.0/0</code>。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer Signature -->
+        <footer class="text-center text-gray-500 text-xs mt-12 mb-6 border-t pt-4">
+            <p>Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0</p>
+        </footer>
+
+    </main>
+
+</body>
+</html>

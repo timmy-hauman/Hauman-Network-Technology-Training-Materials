@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExtremeXOS 網路架構大師班 - 路由 ECMP 深度解析</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&display=swap');
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f3f4f6; }
+        .card { transition: all 0.3s ease; }
+        .card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .mermaid { background: white; border-radius: 8px; padding: 20px; text-align: center; display: flex; justify-content: center; }
+        .correct { background-color: #d1fae5; border-color: #34d399; color: #065f46; }
+        .wrong { background-color: #fee2e2; border-color: #f87171; color: #991b1b; }
+        .terminal { background-color: #1e293b; color: #4ade80; font-family: 'Menlo', 'Monaco', 'Courier New', monospace; }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-blue-800 to-indigo-900 text-white p-6 shadow-lg">
+        <div class="container mx-auto">
+            <div class="flex items-center gap-4">
+                <div class="bg-white text-blue-900 p-3 rounded-full">
+                    <i class="fas fa-network-wired text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-3xl font-bold">路由 ECMP (Equal-Cost Multi-Path)</h1>
+                    <p class="text-blue-200 mt-1">ExtremeXOS 網路架構大師班 | 20 年經驗資深架構師觀點</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-6 space-y-8">
+
+        <!-- 1. 核心概念 (Concept) -->
+        <section id="concept" class="bg-white rounded-xl p-6 shadow-md card border-l-4 border-blue-500">
+            <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+                <i class="fas fa-lightbulb text-yellow-500"></i> 一、核心概念 (Concept)
+            </h2>
+            
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-700 mb-2">一句話定義</h3>
+                    <p class="text-gray-600 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        當路由器發現前往同一個目的地有<span class="font-bold text-red-500">多條路徑</span>，且這些路徑的<span class="font-bold text-red-500">成本 (Cost/Metric) 完全相同</span>時，同時利用這些路徑來轉送封包，以達到負載平衡與備援的效果。
+                    </p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-gray-700 mb-2">生活化比喻：高速公路收費站</h3>
+                    <div class="flex items-start gap-3 bg-blue-50 p-4 rounded-lg border border-blue-100">
+                        <i class="fas fa-road text-blue-500 mt-1"></i>
+                        <p class="text-gray-700">
+                            想像你要從台北開車到高雄（封包傳輸）。如果在某個收費站（路由器）後方，有 <strong>4 個開放的閘道（Links）</strong> 都可以通往同一個出口。<br><br>
+                            ECMP 就像是聰明的交管人員，不會讓所有車都擠在第 1 車道，而是根據車牌號碼（Header Hash），平均將車輛引導到這 4 個閘道，讓整體車流更順暢。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. 運作原理 (Mechanism) -->
+        <section id="mechanism" class="bg-white rounded-xl p-6 shadow-md card border-l-4 border-purple-500">
+            <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+                <i class="fas fa-cogs text-purple-500"></i> 二、運作原理 (Mechanism)
+            </h2>
+
+            <div class="space-y-6">
+                <!-- Part 1: Hash Algorithm -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="font-bold text-lg text-gray-800 mb-2">1. 技術細節：Hash Algorithm (雜湊演算法)</h3>
+                    <p class="text-gray-600 mb-2">
+                        很多人誤以為 ECMP 是「輪流發送 (Round-Robin)」，即第1個封包走 A 路徑，第2個走 B 路徑。<strong>這是錯誤的觀念！</strong> 
+                        在現代高速網路 (包含 ExtremeXOS) 中，為了避免封包順序錯亂 (Out-of-Order)，通常採用 <strong>Flow-based Load Balancing</strong>。
+                    </p>
+                    <ul class="list-disc list-inside text-gray-600 ml-4 space-y-1">
+                        <li><strong>5-Tuple Hashing：</strong> 路由器會讀取封包的 5 個特徵值 (來源 IP, 目的 IP, 來源 Port, 目的 Port, 協定)。</li>
+                        <li><strong>計算結果：</strong> 將這些值丟入演算法計算，得出一個 Hash Key。</li>
+                        <li><strong>路徑選擇：</strong> 相同的 Hash Key 永遠走同一條路徑；不同的連線 (Flow) 才會被分配到不同路徑。</li>
+                    </ul>
+                </div>
+
+                <!-- Part 2: Parameters -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="font-bold text-lg text-gray-800 mb-2">2. 關鍵參數與 ExtremeXOS 設定</h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <p class="font-bold text-gray-700">通用標準：</p>
+                            <ul class="list-disc list-inside text-gray-600 text-sm">
+                                <li><strong>Cost/Metric：</strong> 必須完全一致 (例如 OSPF Cost 都是 10)。</li>
+                                <li><strong>Maximum Paths：</strong> 大多數設備預設支援 4-8 條路徑，現代 Data Center 交換機可支援 64+。</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <p class="font-bold text-gray-700">ExtremeXOS 視角：</p>
+                            <ul class="list-disc list-inside text-gray-600 text-sm">
+                                <li><strong>指令：</strong> <code class="bg-gray-200 px-1 rounded text-red-600">enable iproute sharing</code></li>
+                                <li><strong>演算法：</strong> 預設多為 address-based (L3+L4)，可確保同一 Session 走同一條路。</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Part 3: Routing Table Verification (New Added) -->
+                <div class="bg-gray-800 text-green-400 p-5 rounded-lg shadow-inner">
+                    <h3 class="font-bold text-lg text-white mb-3 flex items-center gap-2">
+                        <i class="fas fa-terminal"></i> 3. 實戰驗證：如何確認路由同時 Active？
+                    </h3>
+                    <p class="text-gray-300 text-sm mb-3">
+                        在 ExtremeXOS 輸入 <code class="bg-gray-700 px-1 rounded">show iproute &lt;目的地&gt;</code>，若 ECMP 生效，您會看到<strong>多行相同的 Destination</strong>，但指向<strong>不同的 Gateway</strong>，且 <strong>Metric (Mtr) 必須相同</strong>。
+                    </p>
+                    
+                    <!-- Simulated Terminal -->
+                    <div class="terminal p-4 rounded border border-gray-600 overflow-x-auto">
+                        <div class="border-b border-gray-600 pb-2 mb-2 flex justify-between text-xs text-gray-400">
+                            <span>admin@CoreSwitch# show iproute 192.168.100.0/24</span>
+                            <span>-- ExtremeXOS Output --</span>
+                        </div>
+                        <pre class="leading-relaxed">
+Ori  Destination        Gateway         Mtr  Flags        VLAN       Duration
+<span class="text-yellow-400">#s   192.168.100.0/24</span>   <span class="text-cyan-400">10.1.1.2</span>        <span class="text-pink-500 font-bold">10</span>   UG---S-um--f Uplink_1   0d:4h:20m
+<span class="text-yellow-400">#s   192.168.100.0/24</span>   <span class="text-cyan-400">10.1.2.2</span>        <span class="text-pink-500 font-bold">10</span>   UG---S-um--f Uplink_2   0d:4h:20m
+<span class="text-yellow-400">#s   192.168.100.0/24</span>   <span class="text-cyan-400">10.1.3.2</span>        <span class="text-pink-500 font-bold">10</span>   UG---S-um--f Uplink_3   0d:4h:20m</pre>
+                    </div>
+                    
+                    <div class="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-gray-300">
+                        <div class="flex items-center gap-2">
+                            <span class="w-3 h-3 bg-yellow-400 rounded-full inline-block"></span> 相同的目的網段
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-3 h-3 bg-cyan-400 rounded-full inline-block"></span> 不同的下一跳
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-3 h-3 bg-pink-500 rounded-full inline-block"></span> 相同的 Cost
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="border border-white px-1 rounded">UG</span> Flags: Up & Gateway
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 3. 架構視覺化 (Visuals) -->
+        <section id="visuals" class="bg-white rounded-xl p-6 shadow-md card border-l-4 border-green-500">
+            <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+                <i class="fas fa-project-diagram text-green-500"></i> 三、架構視覺化 (Visuals)
+            </h2>
+            
+            <!-- 將原本的 grid 佈局改為垂直堆疊 (Vertical Stack) -->
+            <div class="flex flex-col space-y-8">
+                
+                <!-- 1. 拓撲圖 -->
+                <div class="w-full">
+                    <h3 class="text-center font-bold text-gray-700 mb-2 border-b pb-2">圖表 A: ECMP 拓撲示意圖</h3>
+                    <div class="mermaid">
+                        graph TD
+                            Client[使用者電腦] -->|發送封包| CoreA[核心交換機 A]
+                            
+                            subgraph ECMPGroup [ECMP 路徑群組]
+                                direction LR
+                                CoreA -->|Path 1 Hash A| FW1[防火牆/路徑 1]
+                                CoreA -->|Path 2 Hash B| FW2[防火牆/路徑 2]
+                                CoreA -->|Path 3 Hash C| FW3[防火牆/路徑 3]
+                            end
+                            
+                            FW1 --> Server[應用伺服器]
+                            FW2 --> Server
+                            FW3 --> Server
+                            
+                            style CoreA fill:#f9f,stroke:#333,stroke-width:2px
+                            style ECMPGroup fill:#e1f5fe,stroke:#0288d1,stroke-dasharray: 5 5
+                    </div>
+                    <p class="text-xs text-center text-gray-500 mt-2">圖說：核心交換機透過 Hashing 將流量分散至三條實體路徑</p>
+                </div>
+
+                <!-- 2. 流程圖 -->
+                <div class="w-full">
+                    <h3 class="text-center font-bold text-gray-700 mb-2 border-b pb-2">圖表 B: Hashing 決策流程 (Sequence Diagram)</h3>
+                    <div class="mermaid">
+                        sequenceDiagram
+                            participant Pkt as 進站封包
+                            participant CPU as 轉送引擎(ASIC)
+                            participant Hash as Hash計算器
+                            participant Table as 路由表(ECMP)
+                            participant Egress as 出口介面
+                            
+                            Pkt->>CPU: 1. 抵達交換機
+                            CPU->>Hash: 2. 提取 5-Tuple (Src/Dst IP+Port)
+                            Hash-->>CPU: 3. 回傳 Hash Index (例如: 2)
+                            CPU->>Table: 4. 查詢路由 (Next-Hop)
+                            Table-->>CPU: 5. 發現 ECMP 群組 (共 3 條路徑)
+                            Note right of CPU: 根據 Index 2 選擇<br/>第 2 條路徑
+                            CPU->>Egress: 6. 從 Port 2 送出
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. 實務應用場景 (Use Case) -->
+        <section id="usecase" class="bg-white rounded-xl p-6 shadow-md card border-l-4 border-orange-500">
+            <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+                <i class="fas fa-briefcase text-orange-500"></i> 四、實務應用場景 (Use Case)
+            </h2>
+
+            <div class="mb-6">
+                <h3 class="font-bold text-lg text-gray-800 mb-2">案例：企業資料中心 Spine-Leaf 架構</h3>
+                <p class="text-gray-600">
+                    在現代化資料中心，我們不再使用傳統的 STP (Spanning Tree) 來阻擋備援路徑。相反地，我們在 Leaf Switch (存取層) 與 Spine Switch (骨幹層) 之間建立 Full Mesh 連線，並開啟 Layer 3 ECMP。
+                </p>
+                <div class="mt-2 p-3 bg-orange-50 rounded border border-orange-100 text-sm text-gray-700">
+                    <strong>ExtremeXOS 設定情境：</strong><br>
+                    Leaf Switch 設定指向所有 Spine Switch 的 Default Route (0.0.0.0/0)，由於 Metric 相同，流量會自動分散到所有 Uplink，頻寬利用率從 50% (STP Active/Standby) 提升至 100%。
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-4">
+                <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                    <h4 class="font-bold text-green-800 mb-2"><i class="fas fa-plus-circle"></i> 優點 (Pros)</h4>
+                    <ul class="list-disc list-inside text-gray-700 text-sm">
+                        <li><strong>頻寬聚合：</strong> 將多條 10G 線路合併使用，無需購買昂貴的 40G/100G 介面。</li>
+                        <li><strong>高可用性：</strong> 若其中一條路徑斷線，Hashing 會自動重新計算，將流量導向剩餘路徑，使用者幾乎無感。</li>
+                        <li><strong>配置簡單：</strong> 相較於複雜的 MPLS TE，ECMP 只要路由 Metric 一樣即可生效。</li>
+                    </ul>
+                </div>
+                <div class="bg-red-50 p-4 rounded-lg border border-red-200">
+                    <h4 class="font-bold text-red-800 mb-2"><i class="fas fa-minus-circle"></i> 缺點/限制 (Cons)</h4>
+                    <ul class="list-disc list-inside text-gray-700 text-sm">
+                        <li><strong>Hash 碰撞 (Polarization)：</strong> 若演算法不佳，可能導致流量分配不均（例如所有大流量剛好都被 Hash 到同一條路）。</li>
+                        <li><strong>除錯困難：</strong> 使用 <code class="bg-white px-1 rounded border">traceroute</code> 時，可能每次看到的路徑都不同，難以定位掉包發生在哪一條線路。</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. 隨堂測驗 (Quiz) -->
+        <section id="quiz" class="bg-white rounded-xl p-6 shadow-md card border-l-4 border-indigo-500">
+            <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+                <i class="fas fa-clipboard-question text-indigo-500"></i> 五、隨堂測驗 (Quiz)
+            </h2>
+            <p class="text-gray-600 mb-6">身為未來的架構師，請測試看看你是否掌握了 ECMP 的精隨。</p>
+
+            <div id="quiz-container" class="space-y-6">
+                <!-- Questions will be injected here by JS -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-gray-400 py-8 mt-12 text-center text-sm">
+        <div class="container mx-auto">
+            <p class="mb-2">Planning & Design by Timmy (timmyc@hauman.com.tw)</p>
+            <p class="font-bold text-gray-300">豪勉科技 Hauman Technologies Corporation</p>
+            <p class="mt-2 text-xs">Ver 1.0</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Mermaid Initialization - 確保在頁面載入後重新渲染
+        document.addEventListener('DOMContentLoaded', function () {
+            mermaid.initialize({ startOnLoad: true, theme: 'default' });
+        });
+
+        // Quiz Data
+        const quizData = [
+            {
+                question: "1. 關於 ECMP (Equal-Cost Multi-Path) 的定義，下列何者正確？",
+                options: [
+                    "必須透過不同成本的路徑傳送封包以節省頻寬",
+                    "僅支援 Layer 2 的負載平衡，不支援 Layer 3",
+                    "利用多條成本 (Metric) 相同的路徑同時轉送封包",
+                    "主要用途是為了防止網路迴圈 (Loop Prevention)"
+                ],
+                answer: 2,
+                explanation: "ECMP 的核心定義就是利用「成本相同」的多條路徑進行負載分擔。防止迴圈通常是 STP 的工作。"
+            },
+            {
+                question: "2. 在 ExtremeXOS 或一般路由器中，ECMP 預設通常採用哪種機制來避免封包順序錯亂 (Out-of-Order)？",
+                options: [
+                    "Per-Packet Load Balancing (依封包輪詢)",
+                    "Per-Flow / 5-Tuple Hashing (依流量雜湊)",
+                    "Random Drop (隨機丟棄)",
+                    "First-Come First-Served (先搶先贏)"
+                ],
+                answer: 1,
+                explanation: "為了確保同一條連線 (TCP Session) 的封包依序抵達，路由器會計算 5-Tuple Hash，確保同一個 Flow 走同一條路徑。Per-Packet 容易造成亂序，現代網路較少使用。"
+            },
+            {
+                question: "3. 若要在 ExtremeXOS 上啟用 ECMP 功能，最相關的關鍵字是什麼？",
+                options: [
+                    "enable spanning-tree",
+                    "configure vlan tagging",
+                    "enable iproute sharing",
+                    "disable port blocking"
+                ],
+                answer: 2,
+                explanation: "在 ExtremeXOS 中，與 L3 ECMP 相關的指令通常涉及 'iproute sharing' (負載分擔)。"
+            },
+            {
+                question: "4. 下列哪一個是 ECMP 架構的主要缺點或挑戰？",
+                options: [
+                    "無法提供備援機制",
+                    "除錯 (Troubleshooting) 較困難，因為路徑不固定",
+                    "只能使用光纖介面，不支援銅纜",
+                    "會導致所有的封包都被加密"
+                ],
+                answer: 1,
+                explanation: "由於流量分散在多條路徑，當發生掉包時，工程師很難第一時間判斷是哪一條物理線路或介面卡有問題，Traceroute 結果也可能浮動。"
+            },
+            {
+                question: "5. 在 Data Center Spine-Leaf 架構中，ECMP 取代了哪種傳統技術來提升頻寬利用率？",
+                options: [
+                    "STP (Spanning Tree Protocol)",
+                    "DHCP (Dynamic Host Configuration Protocol)",
+                    "DNS (Domain Name System)",
+                    "SNMP (Simple Network Management Protocol)"
+                ],
+                answer: 0,
+                explanation: "傳統 STP 會將備援路徑 Block 起來，導致頻寬浪費 (Active/Standby)。ECMP 允許所有路徑同時轉送 (Active/Active)，因此在 DC 架構中取代了 STP 的轉送角色。"
+            }
+        ];
+
+        // Render Quiz
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const qDiv = document.createElement('div');
+            qDiv.className = 'bg-gray-50 p-5 rounded-lg border border-gray-200';
+            
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <button onclick="checkAnswer(${index}, ${optIndex}, this)" 
+                            class="w-full text-left p-3 mt-2 rounded border border-gray-300 bg-white hover:bg-blue-50 transition-colors">
+                        ${String.fromCharCode(65 + optIndex)}. ${opt}
+                    </button>
+                `;
+            });
+
+            qDiv.innerHTML = `
+                <h3 class="font-bold text-lg mb-3 text-gray-800">Q${index + 1}: ${item.question}</h3>
+                <div class="options-group">${optionsHtml}</div>
+                <div id="feedback-${index}" class="hidden mt-4 p-3 rounded text-sm"></div>
+            `;
+            quizContainer.appendChild(qDiv);
+        });
+
+        // Check Answer Logic
+        function checkAnswer(qIndex, userChoice, btnElement) {
+            const question = quizData[qIndex];
+            const feedbackDiv = document.getElementById(`feedback-${qIndex}`);
+            const allBtns = btnElement.parentElement.querySelectorAll('button');
+
+            // Disable all buttons in this question
+            allBtns.forEach(btn => {
+                btn.disabled = true;
+                btn.classList.add('opacity-60', 'cursor-not-allowed');
+            });
+
+            feedbackDiv.classList.remove('hidden');
+
+            if (userChoice === question.answer) {
+                btnElement.classList.remove('bg-white', 'hover:bg-blue-50');
+                btnElement.classList.add('bg-green-100', 'border-green-500', 'text-green-800', 'font-bold');
+                feedbackDiv.className = "mt-4 p-3 rounded text-sm bg-green-50 border border-green-200 text-green-800";
+                feedbackDiv.innerHTML = `<strong><i class="fas fa-check-circle"></i> 正確！</strong><br>${question.explanation}`;
+            } else {
+                btnElement.classList.remove('bg-white', 'hover:bg-blue-50');
+                btnElement.classList.add('bg-red-100', 'border-red-500', 'text-red-800');
+                
+                // Highlight correct answer
+                allBtns[question.answer].classList.remove('bg-white');
+                allBtns[question.answer].classList.add('bg-green-100', 'border-green-500', 'text-green-800');
+
+                feedbackDiv.className = "mt-4 p-3 rounded text-sm bg-red-50 border border-red-200 text-red-800";
+                feedbackDiv.innerHTML = `<strong><i class="fas fa-times-circle"></i> 錯誤。</strong><br>${question.explanation}`;
+            }
+        }
+    </script>
+</body>
+</html>

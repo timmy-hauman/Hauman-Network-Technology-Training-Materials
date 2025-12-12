@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARP 協定深度解析 | ExtremeXOS 架構大師</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 修正：改用 ESM 模組方式載入 Mermaid -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f0f4f8;
+            color: #1a202c;
+        }
+        
+        .code-font {
+            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+        }
+
+        .mermaid {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Extreme Networks Purple Theme Accent */
+        .extreme-gradient {
+            background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 100%);
+        }
+
+        .section-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border-left: 5px solid #7c3aed;
+        }
+
+        .quiz-option:hover {
+            background-color: #f3f4f6;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <!-- Header -->
+    <header class="extreme-gradient text-white py-12 shadow-lg">
+        <div class="container mx-auto px-6">
+            <div class="flex items-center gap-4 mb-4">
+                <i class="fas fa-network-wired text-4xl opacity-80"></i>
+                <div>
+                    <h1 class="text-4xl font-bold tracking-tight">ARP 協定深度解析</h1>
+                    <p class="text-purple-200 mt-2 font-medium">Address Resolution Protocol</p>
+                </div>
+            </div>
+            <p class="max-w-2xl text-lg text-purple-100 border-l-4 border-purple-400 pl-4">
+                我是 ExtremeXOS 網路架構大師。在網路的世界裡，如果 IP 是門牌號碼，MAC Address 就是接收者的身分證。今天我們來解構這兩者之間的橋樑——ARP。
+            </p>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-10 max-w-5xl">
+
+        <!-- 1. 核心概念 -->
+        <section class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                <span class="bg-purple-100 text-purple-700 p-2 rounded-lg mr-3 text-lg">01</span>
+                核心概念 (Concept)
+            </h2>
+            
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-blue-50 p-6 rounded-xl border border-blue-100">
+                    <h3 class="font-bold text-blue-800 mb-3"><i class="fas fa-lightbulb mr-2"></i>一句話定義</h3>
+                    <p class="text-gray-700 leading-relaxed">
+                        ARP (RFC 826) 是一個運作在 OSI 模型第 2.5 層的協定，其唯一任務是<span class="font-bold text-red-600">將已知的 IP 位址 (L3) 解析為實體 MAC 位址 (L2)</span>，讓封包能在區域網路(LAN)中正確傳遞。
+                    </p>
+                </div>
+
+                <div class="bg-green-50 p-6 rounded-xl border border-green-100">
+                    <h3 class="font-bold text-green-800 mb-3"><i class="fas fa-coffee mr-2"></i>生活化比喻</h3>
+                    <p class="text-gray-700 leading-relaxed">
+                        想像你在一個吵雜的會議室（LAN）裡，你想把一份文件交給「財務經理」（IP Address）。
+                        <br><br>
+                        你不知道誰是財務經理，所以你站起來大喊：<strong>「誰是財務經理？」</strong>（ARP Request - 廣播）。
+                        <br>
+                        某個人舉手回答：<strong>「我是，我的座位在 C 排 5 號。」</strong>（ARP Reply - 單播）。
+                        <br>
+                        於是你走過去把文件放到 C 排 5 號（MAC Address）。
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. 運作原理 -->
+        <section class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                <span class="bg-purple-100 text-purple-700 p-2 rounded-lg mr-3 text-lg">02</span>
+                運作原理 (Mechanism)
+            </h2>
+
+            <div class="space-y-6">
+                <div>
+                    <h3 class="text-xl font-semibold text-gray-700 mb-3">封包流向與技術細節</h3>
+                    <ul class="list-none space-y-4 text-gray-600">
+                        <li class="flex items-start">
+                            <i class="fas fa-arrow-right text-purple-600 mt-1 mr-3"></i>
+                            <div>
+                                <strong class="text-gray-800">Step 1: 檢查 ARP Cache</strong><br>
+                                當主機 A 要傳送資料給主機 B (同網段) 時，會先檢查自己的 ARP Table (快取)。若有紀錄，直接封裝 Frame 傳送；若無 (Cache Miss)，則啟動 ARP 程序。
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-broadcast-tower text-purple-600 mt-1 mr-3"></i>
+                            <div>
+                                <strong class="text-gray-800">Step 2: 發送 ARP Request (廣播)</strong><br>
+                                主機 A 發送廣播封包。
+                                <br>
+                                <span class="text-sm bg-gray-100 px-2 py-1 rounded code-font">Dst MAC: FF:FF:FF:FF:FF:FF (Broadcast)</span>
+                                <br>
+                                <span class="text-sm bg-gray-100 px-2 py-1 rounded code-font">Opcode: 1 (Request)</span>
+                                <br>
+                                Switch 收到後，會將此封包 Flood 到該 VLAN 的所有 Port (除了來源 Port)。
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-reply text-purple-600 mt-1 mr-3"></i>
+                            <div>
+                                <strong class="text-gray-800">Step 3: 回傳 ARP Reply (單播)</strong><br>
+                                只有主機 B 發現 "Target IP" 是自己，才會回應。
+                                <br>
+                                <span class="text-sm bg-gray-100 px-2 py-1 rounded code-font">Dst MAC: Host A MAC (Unicast)</span>
+                                <br>
+                                <span class="text-sm bg-gray-100 px-2 py-1 rounded code-font">Opcode: 2 (Reply)</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="border-t pt-6">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-4">廠商視角：ExtremeXOS vs Cisco IOS</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
+                                    <th class="py-3 px-6 text-left">功能</th>
+                                    <th class="py-3 px-6 text-left text-purple-700 font-bold">ExtremeXOS</th>
+                                    <th class="py-3 px-6 text-left text-blue-700 font-bold">Cisco IOS</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-600 text-sm font-light">
+                                <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                    <td class="py-3 px-6 font-medium">查看 ARP 表</td>
+                                    <td class="py-3 px-6 code-font">show iparp</td>
+                                    <td class="py-3 px-6 code-font">show arp</td>
+                                    <!-- 備註：Extreme 較強調這是 IP 協定的 ARP -->
+                                </tr>
+                                <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                    <td class="py-3 px-6 font-medium">清除 ARP</td>
+                                    <td class="py-3 px-6 code-font">clear iparp [all | vlan &lt;name&gt;]</td>
+                                    <td class="py-3 px-6 code-font">clear arp-cache</td>
+                                </tr>
+                                <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                    <td class="py-3 px-6 font-medium">Timeout 設定</td>
+                                    <td class="py-3 px-6 code-font">configure iparp timeout &lt;sec&gt;</td>
+                                    <td class="py-3 px-6 code-font">arp timeout &lt;sec&gt;</td>
+                                    <!-- Extreme 預設通常為 20分鐘，視版本而定 -->
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2 italic">* 備註：在 ExtremeXOS 中，ARP 屬於 Layer 3 轉發的重要依據，常結合 "FDB (Layer 2)" 一起除錯。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. 架構視覺化 -->
+        <section class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                <span class="bg-purple-100 text-purple-700 p-2 rounded-lg mr-3 text-lg">03</span>
+                架構視覺化 (Visuals)
+            </h2>
+            
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-gray-700 mb-2">標準 ARP 請求與回應流程 (Sequence Diagram)</h3>
+                <div class="mermaid">
+sequenceDiagram
+    participant A as Host A (192.168.1.10)
+    participant S as L2 Switch
+    participant B as Host B (192.168.1.20)
+    participant C as Host C (Other)
+
+    Note over A: 準備發送資料給 .20<br/>查 ARP Table: MISS
+
+    rect rgb(255, 240, 240)
+    Note right of A: ARP Request (Broadcast)
+    A->>S: Who has 192.168.1.20? Tell 192.168.1.10
+    S-->>C: Flood (Broadcast)
+    S-->>B: Flood (Broadcast)
+    end
+
+    Note over C: IP 不符，丟棄
+    Note over B: IP 符合! 紀錄 A 的 MAC
+
+    rect rgb(240, 255, 240)
+    Note left of B: ARP Reply (Unicast)
+    B->>S: 192.168.1.20 is at BB:BB:BB:BB:BB:BB
+    S->>A: Forward to Port A
+    end
+
+    Note over A: 更新 ARP Table<br/>開始傳送 Data Frame
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-lg font-semibold text-gray-700 mb-2">ARP 解析決策流程 (Flowchart)</h3>
+                <div class="mermaid">
+flowchart LR
+    Start([封包傳送請求]) --> CheckCache{查詢 ARP Cache}
+    
+    CheckCache -- Hit (有紀錄) --> Encap[封裝 Frame <br/> Dest MAC = Cache Entry]
+    Encap --> Send[傳送至 L2 層]
+    
+    CheckCache -- Miss (無紀錄) --> Buffer[緩衝原始封包]
+    Buffer --> GenReq[生成 ARP Request <br/> Opcode=1, Dst=FF:FF...]
+    GenReq --> Broad[廣播發送]
+    Broad --> Wait{等待 Reply}
+    
+    Wait -- Timeout --> Drop[丟棄封包]
+    Wait -- Receive Reply --> Learn[學習 MAC <br/> 更新 ARP Cache]
+    Learn --> Unbuffer[取出緩衝封包]
+    Unbuffer --> Encap
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. 實務應用場景 -->
+        <section class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                <span class="bg-purple-100 text-purple-700 p-2 rounded-lg mr-3 text-lg">04</span>
+                實務應用場景 (Use Case)
+            </h2>
+
+            <div class="bg-gray-50 p-6 rounded-lg border-l-4 border-blue-500 mb-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-2">場景：預設閘道 (Default Gateway) 的 ARP 解析</h3>
+                <p class="text-gray-700">
+                    企業網路中，當員工要連線到 Internet (例如 Google 8.8.8.8) 時，因為目的 IP 不在同一個網段，電腦必須將封包交給路由器 (Gateway)。
+                    <br><br>
+                    <strong>關鍵點：</strong> 電腦會發送 ARP Request 詢問 <strong>"Who has [Gateway IP]?"</strong> 而不是 "Who has 8.8.8.8?"。這是一個初學者常犯的觀念錯誤。得到的 MAC Address 將是 Router 介面的 MAC。
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <h4 class="font-bold text-green-700 mb-2"><i class="fas fa-check-circle mr-2"></i>優點</h4>
+                    <ul class="list-disc list-inside text-gray-600 space-y-2">
+                        <li><strong>即插即用：</strong> 使用者無需手動設定 MAC 與 IP 的對應，完全自動化。</li>
+                        <li><strong>靈活性：</strong> 更換網卡 (MAC 改變) 後，Gratuitous ARP (GARP) 可快速更新鄰居的 Cache。</li>
+                        <li><strong>低成本：</strong> 協定簡單，對設備 CPU 負擔通常較小。</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-red-700 mb-2"><i class="fas fa-exclamation-triangle mr-2"></i>缺點與風險</h4>
+                    <ul class="list-disc list-inside text-gray-600 space-y-2">
+                        <li><strong>廣播風暴 (Broadcast Storm)：</strong> 若 L2 Loop 未被 STP 阻擋，ARP 廣播會癱瘓網路。</li>
+                        <li><strong>ARP Spoofing (欺騙)：</strong> 駭客發送偽造的 ARP Reply，將 Gateway 的 IP 對應到駭客自己的 MAC，導致中間人攻擊 (MITM)。</li>
+                        <li><strong>不穩定性：</strong> 若 ARP Cache Timeout 設定過短，會增加廣播流量。</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="mt-4 p-4 bg-yellow-50 text-sm text-yellow-800 rounded border border-yellow-200">
+                <strong>ExtremeXOS 安全提示：</strong> 為了防止 ARP Spoofing，我們通常會在 Switch 上設定 <em>Dynamic ARP Inspection (DAI)</em> 或將重要設備的 ARP 設為 Static entry。
+            </div>
+        </section>
+
+        <!-- 5. 隨堂測驗 -->
+        <section class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                <span class="bg-purple-100 text-purple-700 p-2 rounded-lg mr-3 text-lg">05</span>
+                隨堂測驗 (Quiz)
+            </h2>
+
+            <div class="space-y-6">
+                <!-- Q1 -->
+                <div class="quiz-item border-b pb-4">
+                    <p class="font-bold text-lg mb-3">Q1. 當主機 A (10.1.1.5) 想要 Ping 主機 B (10.1.1.6)，發出 ARP Request 時，該 Ethernet Frame 的 Destination MAC 是什麼？</p>
+                    <div class="space-y-2 ml-4">
+                        <label class="block quiz-option p-2 rounded"><input type="radio" name="q1" class="mr-2"> A. 10.1.1.6 的 MAC</label>
+                        <label class="block quiz-option p-2 rounded"><input type="radio" name="q1" class="mr-2"> B. 00:00:00:00:00:00</label>
+                        <label class="block quiz-option p-2 rounded"><input type="radio" name="q1" class="mr-2"> C. FF:FF:FF:FF:FF:FF</label>
+                        <label class="block quiz-option p-2 rounded"><input type="radio" name="q1" class="mr-2"> D. Gateway 的 MAC</label>
+                    </div>
+                    <button onclick="toggleAnswer('ans1')" class="mt-3 text-sm text-purple-600 hover:text-purple-800 font-bold focus:outline-none">
+                        查看答案與解析 <i class="fas fa-chevron-down ml-1"></i>
+                    </button>
+                    <div id="ans1" class="hidden mt-2 p-3 bg-gray-100 text-gray-700 rounded text-sm">
+                        <strong>答案：C</strong><br>
+                        解析：ARP Request 是一個廣播封包 (Broadcast)，目的是詢問網段內「所有人」，所以 L2 Destination MAC 必須是全為 1 的 FF:FF:FF:FF:FF:FF。
+                    </div>
+                </div>
+
+                <!-- Q2 -->
+                <div class="quiz-item border-b pb-4">
+                    <p class="font-bold text-lg mb-3">Q2. 在 ExtremeXOS Switch 中，若要查看目前的 ARP 對應表，應使用哪個指令？</p>
+                    <div class="space-y-2 ml-4">
+                        <label class="block quiz-option p-2 rounded"><input type="radio" name="q2" class="mr-2"> A. show mac-address-table</label>
+                        <label class="block quiz-option p-2 rounded"><input type="radio" name="q2" class="mr-2"> B. show arp</label>
+                        <label class="block quiz-option p-2 rounded"><input type="radio" name="q2" class="mr-2"> C. show iparp</label>
+                        <label class="block quiz-option p-2 rounded"><input type="radio" name="q2" class="mr-2"> D. display arp</label>
+                    </div>
+                    <button onclick="toggleAnswer('ans2')" class="mt-3 text-sm text-purple-600 hover:text-purple-800 font-bold focus:outline-none">
+                        查看答案與解析 <i class="fas fa-chevron-down ml-1"></i>
+                    </button>
+                    <div id="ans2" class="hidden mt-2 p-3 bg-gray-100 text-gray-700 rounded text-sm">
+                        <strong>答案：C</strong><br>
+                        解析：ExtremeXOS 的指令是 `show iparp`。`show arp` 是 Cisco IOS 的指令；`show mac-address-table` 是查看 L2 FDB 表，不包含 IP 資訊。
+                    </div>
+                </div>
+
+                <!-- Q3 -->
+                <div class="quiz-item">
+                    <p class="font-bold text-lg mb-3">Q3. 什麼是 "Gratuitous ARP" (GARP)？</p>
+                    <div class="space-y-2 ml-4">
+                        <label class="block quiz-option p-2 rounded"><input type="radio" name="q3" class="mr-2"> A. 用來詢問 Gateway MAC 的請求</label>
+                        <label class="block quiz-option p-2 rounded"><input type="radio" name="q3" class="mr-2"> B. 設備主動發送 ARP Reply/Request 宣告自己的 IP 與 MAC，無需他人請求</label>
+                        <label class="block quiz-option p-2 rounded"><input type="radio" name="q3" class="mr-2"> C. 用來攻擊網路的惡意封包</label>
+                        <label class="block quiz-option p-2 rounded"><input type="radio" name="q3" class="mr-2"> D. 當 ARP Table 滿了之後自動刪除的機制</label>
+                    </div>
+                    <button onclick="toggleAnswer('ans3')" class="mt-3 text-sm text-purple-600 hover:text-purple-800 font-bold focus:outline-none">
+                        查看答案與解析 <i class="fas fa-chevron-down ml-1"></i>
+                    </button>
+                    <div id="ans3" class="hidden mt-2 p-3 bg-gray-100 text-gray-700 rounded text-sm">
+                        <strong>答案：B</strong><br>
+                        解析：GARP 通常用於 1. 偵測 IP 衝突 (Duplicate Address Detection) 2. 在 HA 架構 (如 VRRP/HSRP) 切換時，通知 Switch 更新 MAC table。
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-800 text-gray-400 py-8 mt-12 text-center">
+        <p class="mb-2">ExtremeXOS 網路架構大師 © 2024</p>
+        <p class="text-sm mb-4">Teaching network fundamentals with precision and passion.</p>
+        <p class="text-xs text-gray-500 mt-4 pt-4 border-t border-gray-700 w-full max-w-2xl mx-auto px-4">
+            Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0
+        </p>
+    </footer>
+
+    <script>
+        // Quiz 答案切換功能
+        function toggleAnswer(id) {
+            const element = document.getElementById(id);
+            if (element.classList.contains('hidden')) {
+                element.classList.remove('hidden');
+            } else {
+                element.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>

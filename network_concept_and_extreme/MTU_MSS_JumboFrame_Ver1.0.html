@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExtremeXOS 網路大師課程：MTU 與 MSS 深度解析</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+        body { font-family: 'Noto Sans TC', sans-serif; }
+        .mermaid { background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); display: flex; justify-content: center; }
+        .term-card:hover { transform: translateY(-5px); transition: all 0.3s ease; }
+        .code-block { background-color: #1e1e1e; color: #d4d4d4; padding: 1rem; border-radius: 0.5rem; font-family: 'Courier New', Courier, monospace; overflow-x: auto; }
+        .hidden-answer { filter: blur(5px); cursor: pointer; transition: filter 0.3s; }
+        .hidden-answer:hover, .hidden-answer.revealed { filter: blur(0); }
+        /* Mock Wireshark Styles */
+        .wireshark-pane { background-color: #2d2d2d; color: #e6e6e6; font-family: 'Consolas', 'Monaco', monospace; font-size: 0.9rem; border-radius: 0.5rem; overflow: hidden; border: 1px solid #444; }
+        .ws-row { padding: 2px 8px; border-bottom: 1px solid #3d3d3d; display: flex; align-items: center; }
+        .ws-row:hover { background-color: #3d3d3d; }
+        .ws-icon { color: #8ab4f8; margin-right: 8px; font-size: 0.7rem; }
+        .ws-highlight { background-color: #2c4c3b; color: #fff; padding: 0 4px; border-radius: 2px; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <!-- Navbar -->
+    <nav class="bg-purple-900 text-white p-4 shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-network-wired text-2xl"></i>
+                <h1 class="text-xl font-bold">ExtremeXOS 網路架構大師</h1>
+            </div>
+            <div class="text-sm bg-purple-800 px-3 py-1 rounded-full">
+                主題：MTU、MSS 與 Jumbo Frame 全攻略
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <!-- Header Section -->
+        <header class="mb-12 text-center">
+            <h2 class="text-4xl font-bold text-slate-900 mb-4">為什麼網頁打不開，但在這卻 Ping 得到？</h2>
+            <p class="text-xl text-slate-600">深入理解封包破碎 (Fragmentation)、Jumbo Frame 與傳輸效能</p>
+        </header>
+
+        <!-- 一、核心概念 (Concept) -->
+        <section class="mb-16">
+            <div class="flex items-center space-x-2 mb-6 border-b-2 border-purple-500 pb-2">
+                <div class="bg-purple-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold">1</div>
+                <h3 class="text-2xl font-bold">核心概念 (Concept)</h3>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- MTU Card -->
+                <div class="bg-white p-6 rounded-xl shadow-md term-card border-l-4 border-blue-500">
+                    <div class="flex items-center mb-4">
+                        <i class="fa-solid fa-ruler-horizontal text-3xl text-blue-500 mr-3"></i>
+                        <h4 class="text-xl font-bold">MTU (Maximum Transmission Unit)</h4>
+                    </div>
+                    <p class="text-gray-600 mb-4"><span class="font-bold">定義：</span>最大傳輸單元。指的是第二層（Data Link Layer）網路介面所能通過的最大封包大小（不含 Ethernet Header）。</p>
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <h5 class="font-bold text-blue-800 mb-2"><i class="fa-solid fa-lightbulb"></i> 生活化比喻：隧道的限高</h5>
+                        <p class="text-sm text-blue-700">
+                            想像網路線是一條<b>隧道</b>。MTU 就是這個隧道的<b>「限高/限寬」</b>（標準乙太網為 1500 bytes）。<br>
+                            如果不遵守這個限制，車子（封包）就必須被拆解（分片）才能通過，或者直接撞牆（Drop）。
+                        </p>
+                    </div>
+                </div>
+
+                <!-- MSS Card -->
+                <div class="bg-white p-6 rounded-xl shadow-md term-card border-l-4 border-green-500">
+                    <div class="flex items-center mb-4">
+                        <i class="fa-solid fa-box-open text-3xl text-green-500 mr-3"></i>
+                        <h4 class="text-xl font-bold">MSS (Maximum Segment Size)</h4>
+                    </div>
+                    <p class="text-gray-600 mb-4"><span class="font-bold">定義：</span>最大區段大小。指的是 TCP 封包中，「實際能裝載資料（Payload）」的最大量。</p>
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <h5 class="font-bold text-green-800 mb-2"><i class="fa-solid fa-lightbulb"></i> 生活化比喻：卡車的貨櫃容量</h5>
+                        <p class="text-sm text-green-700">
+                            如果整個 IP 封包是一輛<b>卡車</b>，扣除車頭（IP Header）和駕駛座（TCP Header），剩下的<b>「貨櫃空間」</b>就是 MSS。<br>
+                            如果貨物太多，我們必須協商好每次只載多少貨（MSS），才不會讓整台卡車超過隧道的限高（MTU）。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 二、運作原理 (Mechanism) -->
+        <section class="mb-16">
+            <div class="flex items-center space-x-2 mb-6 border-b-2 border-purple-500 pb-2">
+                <div class="bg-purple-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold">2</div>
+                <h3 class="text-2xl font-bold">運作原理與計算 (Mechanism)</h3>
+            </div>
+
+            <!-- Interactive Calculator -->
+            <div class="bg-slate-800 text-white p-6 rounded-xl shadow-lg mb-8">
+                <h4 class="text-lg font-bold mb-4 text-purple-300"><i class="fa-solid fa-calculator"></i> 傳輸層/網路層負載計算機 (TCP / UDP / ICMP)</h4>
+                <div class="grid md:grid-cols-3 gap-6 items-end">
+                    <!-- Column 1: MTU Input -->
+                    <div>
+                        <label class="block text-sm mb-1 text-gray-400">網路介面 MTU (Bytes)</label>
+                        <input type="number" id="mtuInput" value="1500" class="w-full bg-slate-700 border border-slate-600 rounded p-2 text-white focus:outline-none focus:border-purple-500" oninput="calculate()">
+                        <p class="text-xs text-gray-500 mt-1">標準乙太網預設為 1500</p>
+                    </div>
+
+                    <!-- Column 2: Protocol Selection & Overhead -->
+                    <div>
+                        <div class="flex justify-center space-x-4 mb-3">
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="protocol" value="tcp" checked onchange="calculate()" class="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 focus:ring-purple-500">
+                                <span class="ml-2 text-sm font-medium text-gray-300">TCP</span>
+                            </label>
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="protocol" value="udp" onchange="calculate()" class="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 focus:ring-purple-500">
+                                <span class="ml-2 text-sm font-medium text-gray-300">UDP</span>
+                            </label>
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="protocol" value="icmp" onchange="calculate()" class="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 focus:ring-purple-500">
+                                <span class="ml-2 text-sm font-medium text-gray-300">ICMP</span>
+                            </label>
+                        </div>
+
+                        <div id="overheadDetails" class="space-y-1 mb-2">
+                            <!-- JS will populate this -->
+                        </div>
+
+                        <div class="w-full h-10 bg-slate-700 rounded flex items-center justify-center text-gray-400 border border-slate-600 border-dashed text-sm">
+                            總 Header 開銷 = <span id="overheadTotal" class="mx-1 text-white font-bold">40</span> Bytes
+                        </div>
+                    </div>
+
+                    <!-- Column 3: Result -->
+                    <div>
+                        <label class="block text-sm mb-1 text-green-400 font-bold" id="resultLabel">TCP MSS (Payload)</label>
+                        <div class="w-full bg-green-900 border border-green-600 rounded p-2 text-green-300 font-mono text-xl text-center" id="calcResult">
+                            1460
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                <h4 class="font-bold text-lg mb-3">關鍵技術細節</h4>
+                <ul class="list-disc pl-5 space-y-2 text-gray-700">
+                    <li><span class="font-bold text-purple-700">TCP MSS 計算：</span> MTU - IP Header (20) - TCP Header (20) = 預設 1460。這是 TCP 三向交握時協商的內容。</li>
+                    <li><span class="font-bold text-purple-700">UDP Payload 計算：</span> UDP Header 佔 8 Bytes。最大 Payload = MTU - 28。若超過此值且 DF=1，會被丟棄。</li>
+                    <li><span class="font-bold text-purple-700">ICMP Data 計算：</span> ICMP Header 佔 8 Bytes。若要進行 Ping 測試且不分片 (Do not Fragment)，資料長度 (Data Size) 不能超過 MTU - 28。</li>
+                    <li><span class="font-bold text-purple-700">DF Bit (Don't Fragment)：</span> 現代作業系統通常將 IP 封包的 DF 位元設為 1。如果封包大於路徑上某設備的 MTU 且 DF=1，路由器會丟棄封包並回傳 ICMP Type 3 Code 4 (Fragmentation Needed)。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 三、架構視覺化 (Visuals) -->
+        <section class="mb-16">
+            <div class="flex items-center space-x-2 mb-6 border-b-2 border-purple-500 pb-2">
+                <div class="bg-purple-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold">3</div>
+                <h3 class="text-2xl font-bold">架構視覺化 (Visuals)</h3>
+            </div>
+
+            <div class="space-y-8">
+                <!-- Diagram 1: Packet Structure (Traditional Horizontal View) -->
+                <div>
+                    <h4 class="text-center font-bold mb-4 text-gray-600 text-xl">乙太網封包結構</h4>
+                    <div class="mermaid">
+                        graph LR
+                            %% Nodes representing fields horizontally
+                            EthH["Ethernet Header<br>(14 Bytes)"]
+                            
+                            subgraph MTU_Zone ["MTU (1500 Bytes)"]
+                                direction LR
+                                IPH["IP Header<br>(20 Bytes)"]
+                                L4H["TCP/UDP Header<br>(20/8 Bytes)"]
+                                Data["Data Payload<br>(MSS)"]
+                            end
+                            
+                            FCS["FCS<br>(4 Bytes)"]
+
+                            %% Connections
+                            EthH --- IPH --- L4H --- Data --- FCS
+
+                            %% Styling
+                            classDef eth fill:#e2e8f0,stroke:#64748b;
+                            classDef ip fill:#dbeafe,stroke:#3b82f6;
+                            classDef l4 fill:#dcfce7,stroke:#22c55e;
+                            classDef data fill:#fef9c3,stroke:#eab308;
+                            classDef fcs fill:#f1f5f9,stroke:#94a3b8;
+                            classDef mtuZone fill:#f8fafc,stroke:#334155,stroke-dasharray: 5 5;
+
+                            class EthH eth;
+                            class IPH ip;
+                            class L4H l4;
+                            class Data data;
+                            class FCS fcs;
+                            class MTU_Zone mtuZone;
+                    </div>
+                    <p class="text-center text-sm text-gray-500 mt-2">傳統線性封包結構：左至右依序排列，虛線框內為 MTU 範圍</p>
+                </div>
+
+                <!-- Diagram 2: TCP MSS Negotiation -->
+                <div>
+                    <h4 class="text-center font-bold mb-4 text-gray-600 text-xl">TCP MSS 協商過程</h4>
+                    <div class="mermaid">
+                        sequenceDiagram
+                            participant PC as 使用者電腦<br/>(MTU 1500)
+                            participant Router as VPN 路由器<br/>(MTU 1400)
+                            participant Server as 網站伺服器<br/>(MTU 1500)
+
+                            Note over PC, Server: 三向交握階段 (SYN)
+                            PC->>Server: SYN (MSS=1460)
+                            Note right of PC: 本地 1500 - 40 = 1460
+                            
+                            Server->>PC: SYN, ACK (MSS=1460)
+                            Note left of Server: 伺服器也認為它是 1460
+
+                            Note over PC, Server: 資料傳輸階段 (問題發生)
+                            PC->>Router: 發送 1500 bytes 封包 (DF=1)
+                            Router--xRouter: 封包太大 (1500 > 1400) 且 DF=1
+                            Router-->>PC: ICMP Type 3 Code 4 (需分片但 DF 設為 1)
+                            
+                            Note over PC, Server: 解決方案：MSS Clamping
+                            Note right of Router: 路由器修改 SYN 封包中的 MSS
+                            PC->>Router: SYN (MSS=1460)
+                            Router->>Server: SYN (MSS=1360) <br/>(強制修改為 1400-40)
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 四、封包分析實戰 (Packet Analysis) - NEW SECTION -->
+        <section class="mb-16">
+            <div class="flex items-center space-x-2 mb-6 border-b-2 border-purple-500 pb-2">
+                <div class="bg-purple-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold">4</div>
+                <h3 class="text-2xl font-bold">封包分析實戰：Wireshark 裡的 MSS</h3>
+            </div>
+            
+            <div class="grid md:grid-cols-5 gap-8">
+                <!-- Explainer Text -->
+                <div class="md:col-span-2 space-y-4">
+                    <p class="text-gray-700">
+                        要驗證 MSS 是否正確，最直接的方式就是抓封包 (Packet Capture)。MSS 數值位於 <strong>TCP Header</strong> 的 <strong>Options</strong> 欄位中。
+                    </p>
+                    <div class="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-400">
+                        <h5 class="font-bold text-yellow-800 mb-2">🔍 觀察重點</h5>
+                        <ul class="list-disc pl-5 text-sm text-yellow-800 space-y-1">
+                            <li><strong>封包類型：</strong>只出現在 <span class="bg-gray-200 px-1 rounded font-mono text-gray-700">SYN</span> 或 <span class="bg-gray-200 px-1 rounded font-mono text-gray-700">SYN, ACK</span> 封包中。</li>
+                            <li><strong>協商原則：</strong>雙方會比較彼此的 MSS，並使用「較小」的值作為最終傳輸上限。</li>
+                            <li><strong>位置：</strong>TCP 層 > Options > Maximum segment size。</li>
+                        </ul>
+                    </div>
+                    <p class="text-sm text-gray-500">
+                        如果中間經過 VPN 設備進行了 MSS Clamping，你會發現雖然來源端送出 1460，但接收端收到的 SYN 封包中，MSS 已經被修改（例如變成 1360）。
+                    </p>
+                </div>
+
+                <!-- Mock Wireshark UI -->
+                <div class="md:col-span-3">
+                    <div class="bg-gray-800 rounded-t-lg p-2 flex items-center space-x-2 border-b border-gray-600">
+                        <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                        <span class="text-gray-400 text-xs ml-2 font-mono">Wireshark - Packet 1 [SYN]</span>
+                    </div>
+                    <div class="wireshark-pane rounded-t-none border-t-0 h-full shadow-2xl">
+                        <!-- Frame -->
+                        <div class="ws-row">
+                            <i class="fa-solid fa-caret-right ws-icon"></i> Frame 1: 66 bytes on wire (528 bits), 66 bytes captured
+                        </div>
+                        <!-- Ethernet -->
+                        <div class="ws-row">
+                            <i class="fa-solid fa-caret-right ws-icon"></i> Ethernet II, Src: Intel_a1:b2:c3, Dst: Extreme_d4:e5:f6
+                        </div>
+                        <!-- IP -->
+                        <div class="ws-row">
+                            <i class="fa-solid fa-caret-right ws-icon"></i> Internet Protocol Version 4, Src: 192.168.1.10, Dst: 8.8.8.8
+                        </div>
+                        <!-- TCP Expanded -->
+                        <div class="ws-row bg-gray-700">
+                            <i class="fa-solid fa-caret-down ws-icon"></i> Transmission Control Protocol, Src Port: 54321, Dst Port: 443, Seq: 0
+                        </div>
+                        <div class="ws-row pl-8 border-none text-gray-400">
+                            Source Port: 54321
+                        </div>
+                        <div class="ws-row pl-8 border-none text-gray-400">
+                            Destination Port: 443
+                        </div>
+                        <div class="ws-row pl-8 border-none text-gray-400">
+                            .... 0000 0000 0010 = Flags: 0x002 (SYN)
+                        </div>
+                        <!-- TCP Options Expanded -->
+                        <div class="ws-row pl-8">
+                            <i class="fa-solid fa-caret-down ws-icon"></i> Options: (12 bytes), Maximum segment size, No-Operation...
+                        </div>
+                        <!-- MSS Highlighted -->
+                        <div class="ws-row pl-12 bg-gray-600 border-l-4 border-green-500">
+                            <i class="fa-solid fa-caret-down ws-icon"></i> <span class="ws-highlight">TCP Option - Maximum segment size: 1460 bytes</span>
+                        </div>
+                        <div class="ws-row pl-16 border-none text-green-300">
+                            Kind: Maximum Segment Size (2)
+                        </div>
+                        <div class="ws-row pl-16 border-none text-green-300">
+                            Length: 4
+                        </div>
+                        <div class="ws-row pl-16 border-none text-green-300">
+                            MSS Value: 1460
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 五、實務應用場景 (Use Case) - VPN Focus -->
+        <section class="mb-16">
+            <div class="flex items-center space-x-2 mb-6 border-b-2 border-purple-500 pb-2">
+                <div class="bg-purple-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold">5</div>
+                <h3 class="text-2xl font-bold">實務應用：VPN 與 MSS Clamping</h3>
+            </div>
+
+            <!-- Use Case Content -->
+            <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                <h4 class="text-xl font-bold mb-3 flex items-center"><i class="fa-solid fa-triangle-exclamation text-orange-500 mr-2"></i> 問題：VPN 連線後部分網頁打不開</h4>
+                <p class="mb-4 text-gray-700">當企業使用 GRE Tunnel 或 IPsec VPN 時，額外的 Header 會佔用空間。如果不調整 MSS，Server 送來的大封包會被中間的 VPN Gateway 丟棄，造成連線不穩。</p>
+                
+                <h5 class="font-bold text-gray-800 mb-2">解決方案：TCP MSS Clamping (Adjust)</h5>
+                <p class="text-sm text-gray-600 mb-2">在路由器介面上強制修改通過的 TCP SYN 封包中的 MSS 值。</p>
+                
+                <div class="grid md:grid-cols-2 gap-4 mt-4">
+                    <div>
+                        <div class="bg-gray-800 text-gray-200 px-3 py-1 text-sm rounded-t">Cisco IOS</div>
+                        <pre class="code-block rounded-t-none">
+interface Tunnel0
+ ip tcp adjust-mss 1360
+! 通常建議值為 MTU - 40
+                        </pre>
+                    </div>
+                    <div>
+                        <div class="bg-purple-900 text-gray-200 px-3 py-1 text-sm rounded-t">ExtremeXOS / VOSS</div>
+                        <pre class="code-block rounded-t-none">
+# ExtremeXOS 通常在 VLAN 層級設定
+configure vlan "VPN-Vlan" ip-mtu 1400
+
+# 針對 TCP MSS Adjustment (部分型號/版本)
+configure ip tcp-mss 1360 vlan "VPN-Vlan"
+                        </pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 六、效能怪獸：Jumbo Frame (New Section) -->
+        <section class="mb-16">
+            <div class="flex items-center space-x-2 mb-6 border-b-2 border-purple-500 pb-2">
+                <div class="bg-purple-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold">6</div>
+                <h3 class="text-2xl font-bold">效能怪獸：Jumbo Frame (巨型封包)</h3>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200 mb-8">
+                <!-- Layout changed to flex-col for better readability -->
+                <div class="flex flex-col gap-6">
+                    <div>
+                        <h4 class="text-xl font-bold text-indigo-700 mb-2">什麼是 Jumbo Frame?</h4>
+                        <p class="text-gray-700 mb-4">
+                            標準乙太網的 MTU 是 1500 Bytes。而 Jumbo Frame 允許將 MTU 提高到 <span class="font-bold text-red-600">9000 Bytes</span> 甚至更高（ExtremeXOS 支援到 9216）。
+                        </p>
+                        
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <h5 class="font-bold text-gray-800 mb-2"><i class="fa-solid fa-truck-moving text-indigo-500"></i> 比喻：搬家工程</h5>
+                                <ul class="list-disc pl-5 space-y-2 text-gray-600 text-sm">
+                                    <li><span class="font-bold">標準封包 (1500)：</span> 像用小貨車搬家。搬完一個家需要跑 6 趟，每趟都要重新發動引擎、過收費站 (Header Overhead)。</li>
+                                    <li><span class="font-bold">Jumbo Frame (9000)：</span> 像用大型貨櫃車搬家。跑 1 趟就搬完了。節省了 5 次的發動與過站時間。</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h5 class="font-bold text-gray-800 mb-2">優點 (Benefits)</h5>
+                                <ul class="list-disc pl-5 space-y-1 text-gray-600 text-sm">
+                                    <li><span class="font-bold text-green-600">提升傳輸效率：</span> 減少了 Header 佔用的比例 (Payload Ratio 上升)。</li>
+                                    <li><span class="font-bold text-green-600">降低 CPU 負載：</span> 相同資料量下，封包數量減少，網卡的 CPU 中斷 (Interrupts) 次數大幅下降。這對 iSCSI 儲存網路至關重要。</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Visualization of Efficiency (Full width & Syntax Fixed) -->
+                    <div class="w-full">
+                        <h4 class="text-center font-bold mb-4 text-gray-600 text-xl">傳輸效率對比圖 (封包流比較)</h4>
+                        <div class="mermaid">
+                            graph LR
+                                %% Visualizing Overhead comparison
+                                
+                                subgraph STD ["標準傳輸 (6 x 1500 Bytes)"]
+                                    direction LR
+                                    S1["Head|Data"] --- S2["Head|Data"] --- S3["Head|Data"] --- S4["Head|Data"] --- S5["Head|Data"] --- S6["Head|Data"]
+                                end
+                                
+                                subgraph JUMBO ["Jumbo Frame (1 x 9000 Bytes)"]
+                                    direction LR
+                                    J1["Header | --------------------------------------------- Huge Data Payload ---------------------------------------------"]
+                                end
+                                
+                                %% Styling
+                                classDef stdPacket fill:#e2e8f0,stroke:#64748b,stroke-width:1px;
+                                classDef jumboPacket fill:#dcfce7,stroke:#16a34a,stroke-width:2px;
+                                
+                                class S1,S2,S3,S4,S5,S6 stdPacket;
+                                class J1 jumboPacket;
+                        </div>
+                        <p class="text-center text-sm text-gray-500 mt-2">上方需要 6 個 Header 開銷，下方僅需 1 個。Jumbo Frame 大幅減少了「過路費」(Overhead)。</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Risk Diagram -->
+            <div class="bg-red-50 p-6 rounded-xl border-l-4 border-red-500 mb-8">
+                <h4 class="text-xl font-bold text-red-700 mb-3"><i class="fa-solid fa-skull-crossbones"></i> 極度重要：端對端一致性 (End-to-End)</h4>
+                <p class="text-gray-700 mb-4">
+                    Jumbo Frame 就像一輛超寬卡車，路徑上<span class="font-bold">所有的橋樑與隧道 (Switch, Router, Server, Storage)</span> 都必須拓寬 (支援 MTU 9000)。只要中間有一個設備只支援 1500，封包就會被丟棄 (Drop)，導致連線中斷。
+                </p>
+                <div class="mermaid">
+                    graph LR
+                        A[Server A<br>MTU 9000] --OK--> B[Extreme Switch<br>MTU 9000]
+                        B --OK--> C[Storage Array<br>MTU 9000]
+                        B -- "DROP!" --> D[Legacy Switch<br>MTU 1500]
+                        D -.- E[Server B<br>MTU 9000]
+                        
+                        style A fill:#dcfce7,stroke:#16a34a
+                        style B fill:#dcfce7,stroke:#16a34a
+                        style C fill:#dcfce7,stroke:#16a34a
+                        style D fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+                        style E fill:#f3f4f6,stroke:#9ca3af,stroke-dasharray: 5 5
+                        
+                        linkStyle 2 stroke:#ef4444,stroke-width:3px,color:red
+                </div>
+            </div>
+
+            <!-- ExtremeXOS Config for Jumbo -->
+            <div class="bg-gray-800 text-gray-200 p-6 rounded-xl shadow-lg">
+                <div class="flex justify-between items-center mb-4">
+                    <h4 class="text-lg font-bold text-purple-300"><i class="fa-solid fa-terminal"></i> ExtremeXOS 實戰指令</h4>
+                    <span class="text-xs bg-purple-700 px-2 py-1 rounded">EXOS 30.x+</span>
+                </div>
+                
+                <div class="space-y-4">
+                    <div>
+                        <p class="text-sm text-gray-400 mb-1">1. 全域啟用 Jumbo Frame (Layer 2 介面層級)</p>
+                        <pre class="code-block">enable jumbo-frame ports all
+# 或者指定特定 Port
+enable jumbo-frame ports 1:1,1:2,2:1-10</pre>
+                    </div>
+
+                    <div>
+                        <p class="text-sm text-gray-400 mb-1">2. 設定 VLAN 的 IP MTU (Layer 3 路由層級)</p>
+                        <p class="text-xs text-gray-500 mb-1">*僅當 Switch 需要對 Jumbo 封包進行 Routing 時才需要設定</p>
+                        <pre class="code-block">configure vlan "iSCSI_VLAN" ip-mtu 9000</pre>
+                    </div>
+
+                    <div>
+                        <p class="text-sm text-gray-400 mb-1">3. 驗證設定 (Verification)</p>
+                        <pre class="code-block">show port 1:1 info detail
+# 尋找輸出中的 "Max Frame Size"
+# 預設 Jumbo 上限通常為 9216 Bytes</pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 七、隨堂測驗 (Quiz) -->
+        <section class="mb-16">
+            <div class="flex items-center space-x-2 mb-6 border-b-2 border-purple-500 pb-2">
+                <div class="bg-purple-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold">7</div>
+                <h3 class="text-2xl font-bold">大師隨堂測驗 (Quiz)</h3>
+            </div>
+            
+            <div class="space-y-4">
+                <!-- Q1 -->
+                <div class="bg-white p-4 rounded shadow">
+                    <p class="font-bold mb-2">Q1. 標準乙太網 (Ethernet) 的預設 MTU 是多少 Bytes？</p>
+                    <div class="space-y-1">
+                        <button class="w-full text-left p-2 hover:bg-gray-100 rounded" onclick="checkAnswer(this, false)">A. 1518</button>
+                        <button class="w-full text-left p-2 hover:bg-gray-100 rounded" onclick="checkAnswer(this, true)">B. 1500</button>
+                        <button class="w-full text-left p-2 hover:bg-gray-100 rounded" onclick="checkAnswer(this, false)">C. 1460</button>
+                    </div>
+                    <div class="hidden-answer text-sm text-blue-600 mt-2 p-2 bg-blue-50 rounded" onclick="this.classList.add('revealed')">
+                        <span class="font-bold">解析：</span> 答案是 B。1500 是 Payload (IP Packet) 的上限。1518 包含了 Ethernet Header (14) + FCS (4)。
+                    </div>
+                </div>
+
+                <!-- Q2 -->
+                <div class="bg-white p-4 rounded shadow">
+                    <p class="font-bold mb-2">Q2. 關於 Jumbo Frame 的部署，下列何者正確？</p>
+                    <div class="space-y-1">
+                        <button class="w-full text-left p-2 hover:bg-gray-100 rounded" onclick="checkAnswer(this, false)">A. 只要伺服器端開啟 9000 MTU 即可，Switch 會自動適應</button>
+                        <button class="w-full text-left p-2 hover:bg-gray-100 rounded" onclick="checkAnswer(this, true)">B. 傳輸路徑上所有設備 (Server, Switch, Storage) 都必須支援並設定一致的 MTU</button>
+                        <button class="w-full text-left p-2 hover:bg-gray-100 rounded" onclick="checkAnswer(this, false)">C. Jumbo Frame 主要用於 100Mbps 的網路環境</button>
+                    </div>
+                    <div class="hidden-answer text-sm text-blue-600 mt-2 p-2 bg-blue-50 rounded" onclick="this.classList.add('revealed')">
+                        <span class="font-bold">解析：</span> 答案是 B。Jumbo Frame 必須 End-to-End 一致。中間只要有一台設備 MTU 較小 (1500)，就會導致封包遺失 (Drop)，因為 Layer 2 通常不進行分片。
+                    </div>
+                </div>
+
+                <!-- Q3 -->
+                <div class="bg-white p-4 rounded shadow">
+                    <p class="font-bold mb-2">Q3. 在 ExtremeXOS 中，開啟 Jumbo Frame 的指令為何？</p>
+                    <div class="space-y-1">
+                        <button class="w-full text-left p-2 hover:bg-gray-100 rounded" onclick="checkAnswer(this, true)">A. enable jumbo-frame ports all</button>
+                        <button class="w-full text-left p-2 hover:bg-gray-100 rounded" onclick="checkAnswer(this, false)">B. configure ip-mtu 9000</button>
+                        <button class="w-full text-left p-2 hover:bg-gray-100 rounded" onclick="checkAnswer(this, false)">C. set port jumbo on</button>
+                    </div>
+                    <div class="hidden-answer text-sm text-blue-600 mt-2 p-2 bg-blue-50 rounded" onclick="this.classList.add('revealed')">
+                        <span class="font-bold">解析：</span> 答案是 A。`enable jumbo-frame ports` 用於 Layer 2 實體層級。`configure ip-mtu` 是用於 Layer 3 VLAN 介面。
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <footer class="text-center text-gray-500 text-sm mt-12 mb-8 border-t border-gray-200 pt-8">
+            <p class="font-bold text-slate-700">Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0</p>
+            <p class="text-xs mt-2">Disclaimer: 指令僅供參考，實際操作請依據設備版本手冊 (EXOS User Guide) 為準。</p>
+        </footer>
+
+    </main>
+
+    <script>
+        // Initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            mermaid.initialize({ startOnLoad: true });
+            calculate();
+        });
+
+        // Combined Calculator Logic
+        function calculate() {
+            const mtu = parseInt(document.getElementById('mtuInput').value) || 0;
+            const ipHeader = 20;
+            const protocol = document.querySelector('input[name="protocol"]:checked').value;
+            
+            let protoHeader = 0;
+            let resultLabelText = "";
+            
+            const detailContainer = document.getElementById('overheadDetails');
+            
+            if (protocol === 'tcp') {
+                protoHeader = 20;
+                resultLabelText = "TCP MSS (Payload)";
+                detailContainer.innerHTML = `
+                    <div class="flex justify-between text-xs text-gray-400"><span>扣除 IP Header</span><span>-20 Bytes</span></div>
+                    <div class="flex justify-between text-xs text-gray-400"><span>扣除 TCP Header</span><span>-20 Bytes</span></div>
+                `;
+            } else if (protocol === 'udp') {
+                protoHeader = 8;
+                resultLabelText = "Max UDP Payload";
+                detailContainer.innerHTML = `
+                    <div class="flex justify-between text-xs text-gray-400"><span>扣除 IP Header</span><span>-20 Bytes</span></div>
+                    <div class="flex justify-between text-xs text-gray-400"><span>扣除 UDP Header</span><span>-8 Bytes</span></div>
+                `;
+            } else {
+                // ICMP
+                protoHeader = 8;
+                resultLabelText = "Max ICMP Data";
+                detailContainer.innerHTML = `
+                    <div class="flex justify-between text-xs text-gray-400"><span>扣除 IP Header</span><span>-20 Bytes</span></div>
+                    <div class="flex justify-between text-xs text-gray-400"><span>扣除 ICMP Header</span><span>-8 Bytes</span></div>
+                `;
+            }
+
+            const totalOverhead = ipHeader + protoHeader;
+            const result = mtu - totalOverhead;
+            
+            // Update UI
+            document.getElementById('overheadTotal').textContent = totalOverhead;
+            document.getElementById('resultLabel').textContent = resultLabelText;
+            
+            const resultElement = document.getElementById('calcResult');
+            resultElement.textContent = result > 0 ? result : "無效數值";
+            
+            if (result <= 0) {
+                resultElement.classList.replace('bg-green-900', 'bg-red-900');
+                resultElement.classList.replace('text-green-300', 'text-red-300');
+            } else {
+                resultElement.classList.replace('bg-red-900', 'bg-green-900');
+                resultElement.classList.replace('text-red-300', 'text-green-300');
+            }
+        }
+
+        // Quiz Logic
+        function checkAnswer(btn, isCorrect) {
+            const allBtns = btn.parentElement.querySelectorAll('button');
+            allBtns.forEach(b => {
+                b.classList.remove('bg-green-100', 'bg-red-100', 'text-green-800', 'text-red-800');
+                b.disabled = true;
+            });
+
+            if (isCorrect) {
+                btn.classList.add('bg-green-100', 'text-green-800');
+                btn.innerHTML += ' <i class="fa-solid fa-check ml-2"></i>';
+            } else {
+                btn.classList.add('bg-red-100', 'text-red-800');
+                btn.innerHTML += ' <i class="fa-solid fa-xmark ml-2"></i>';
+            }
+        }
+    </script>
+</body>
+</html>

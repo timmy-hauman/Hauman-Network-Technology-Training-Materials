@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extreme XOS 網路架構大師班 - 故障排除與實務</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            padding-bottom: 60px; /* Space for footer */
+        }
+        .section-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+        .section-card:hover {
+            transform: translateY(-2px);
+        }
+        .section-header {
+            background: linear-gradient(90deg, #4f46e5 0%, #3b82f6 100%);
+            color: white;
+            padding: 1rem 1.5rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+        }
+        .section-content {
+            padding: 1.5rem;
+        }
+        .keyword {
+            color: #d97706;
+            font-weight: 600;
+        }
+        .cmd-block {
+            background-color: #1e1e1e;
+            color: #00ff00;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 1rem;
+            border-radius: 6px;
+            margin: 1rem 0;
+            overflow-x: auto;
+            border-left: 4px solid #d97706;
+        }
+        .analogy-box {
+            background-color: #ecfdf5;
+            border-left: 4px solid #10b981;
+            padding: 1rem;
+            margin: 1rem 0;
+            color: #065f46;
+        }
+        .diagram-container {
+            background: white;
+            padding: 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: center; /* Center if smaller than container */
+            align-items: flex-start; /* Align top */
+            overflow-x: auto; /* CRITICAL: Allow scrolling for wide diagrams */
+            -webkit-overflow-scrolling: touch;
+        }
+        /* Custom scrollbar for diagrams */
+        .diagram-container::-webkit-scrollbar {
+            height: 12px; /* Taller scrollbar for easier grabbing */
+        }
+        .diagram-container::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+            border-radius: 6px;
+        }
+        .diagram-container::-webkit-scrollbar-thumb {
+            background-color: #94a3b8;
+            border-radius: 6px;
+            border: 3px solid #f1f1f1;
+        }
+        .quiz-option {
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .quiz-option:hover {
+            background-color: #eff6ff;
+        }
+        .quiz-option.selected {
+            background-color: #bfdbfe;
+            border-color: #3b82f6;
+        }
+        .quiz-feedback {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 6px;
+            display: none;
+        }
+        .footer-sig {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background-color: #1f2937;
+            color: #9ca3af;
+            text-align: center;
+            padding: 10px;
+            font-size: 0.85rem;
+            border-top: 1px solid #374151;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="bg-white shadow-md mb-8">
+        <div class="container mx-auto px-4 py-6">
+            <h1 class="text-3xl font-bold text-gray-800">Extreme XOS 網路架構大師班</h1>
+            <p class="text-gray-600 mt-2">單元：故障排除流程與實務技巧 (Troubleshooting & Diagnostics)</p>
+            <div class="mt-4 flex items-center space-x-2 text-sm text-blue-600 bg-blue-50 w-fit px-3 py-1 rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                </svg>
+                <span>講師：Extreme XOS 網路架構大師 | 20 年經驗資深架構師</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4">
+
+        <!-- 1. 核心概念 -->
+        <div class="section-card">
+            <div class="section-header">
+                <span>一、核心概念 (Concept)</span>
+            </div>
+            <div class="section-content">
+                <h3 class="text-xl font-bold mb-2 text-gray-800">什麼是分層故障排除？</h3>
+                <p class="mb-4">
+                    故障排除 (Troubleshooting) 並非盲目的嘗試，而是一套<strong>基於 OSI 模型的系統化邏輯演繹過程</strong>。在 Extreme XOS 中，我們利用豐富的診斷指令，由底層 (實體層) 至上層 (應用層) 逐一排除變數，直到鎖定問題根源。
+                </p>
+
+                <div class="analogy-box">
+                    <h4 class="font-bold flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                        </svg>
+                        生活化比喻：急診室醫生的診斷流程
+                    </h4>
+                    <p>
+                        想像網路故障就像「病人送進急診室」。<br>
+                        你不會一開始就推去開腦手術 (重灌系統/換設備)。<br>
+                        1. <strong>量心跳血壓 (Layer 1)</strong>：確認還活著嗎？(線有沒有插好？燈號亮不亮？)<br>
+                        2. <strong>問診與抽血 (Layer 2)</strong>：血液流動正常嗎？有無血栓？(MAC Address 有無學習到？VLAN 有無通？有沒有 Loop？)<br>
+                        3. <strong>全身掃描 (Layer 3)</strong>：神經傳導路徑對不對？(Routing Table 正確嗎？Ping 得到嗎？)<br>
+                        4. <strong>專科檢查 (Routing/System)</strong>：協調機制正常嗎？(OSPF 鄰居在嗎？RIP 版本對嗎？CPU 是否過載？)
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. 運作原理 -->
+        <div class="section-card">
+            <div class="section-header">
+                <span>二、運作原理與指令 (Mechanism & Commands)</span>
+            </div>
+            <div class="section-content">
+                <p class="mb-4">在 Extreme XOS 中，我們依據 OSI 模型進行「分層診斷」。以下是每個層級的關鍵檢測點與指令。</p>
+                
+                <h4 class="text-lg font-bold text-blue-800 mt-4 border-b pb-2">Step 1: 實體層 (Physical Layer) - "Is it plugged in?"</h4>
+                <ul class="list-disc list-inside space-y-2 mt-2 text-gray-700">
+                    <li><strong>檢查點：</strong> 連接埠狀態、光衰減、雙工模式、<span class="text-red-600 font-bold">詳細錯誤計數 (Rx/Tx Errors)</span>。</li>
+                    <li><strong>關鍵指令：</strong></li>
+                </ul>
+                <div class="cmd-block">
+                    # 查看連接埠基本狀態 (Ready/Active)<br>
+                    show ports 1:1 information detail<br>
+                    <br>
+                    # 檢查 Speed/Duplex 設定與協商狀態<br>
+                    show ports 1:1 configuration no-refresh<br>
+                    <br>
+                    # 查看光纖模組資訊 (Rx Power 是否過低)<br>
+                    show ports 1:1 transceiver information detail<br>
+                    <br>
+                    # 查看簡易統計 (CRC Error 等)<br>
+                    show ports 1:1 statistics no-refresh<br>
+                    <br>
+                    # *進階* 詳細檢查接收端錯誤 (CRC, Overrun, Fragment)<br>
+                    show ports 1:1 rxerrors no-refresh<br>
+                    <br>
+                    # *進階* 詳細檢查傳送端錯誤 (Collisions, Late Collisions)<br>
+                    show ports 1:1 txerrors no-refresh
+                </div>
+
+                <h4 class="text-lg font-bold text-blue-800 mt-4 border-b pb-2">Step 2: 資料連結層 (Data Link Layer) - "Who are you?"</h4>
+                <ul class="list-disc list-inside space-y-2 mt-2 text-gray-700">
+                    <li><strong>檢查點：</strong> MAC 位址表 (FDB)、VLAN 標籤 (Tagging)、迴圈偵測 (Loop Protection)。</li>
+                    <li><strong>關鍵指令：</strong></li>
+                </ul>
+                <div class="cmd-block">
+                    # 確認是否有學習到設備的 MAC<br>
+                    show fdb ports 1:1<br>
+                    <br>
+                    # 檢查 VLAN 配置 (Tagged/Untagged)<br>
+                    show vlan port 1:1<br>
+                    <br>
+                    # 檢查 STP 狀態 (是否被 Block)<br>
+                    show stp <span class="text-yellow-400">&lt;stpd_name&gt;</span> ports
+                </div>
+
+                <h4 class="text-lg font-bold text-blue-800 mt-4 border-b pb-2">Step 3: 網路層與系統 (Network & System) - "Where are you going?"</h4>
+                <ul class="list-disc list-inside space-y-2 mt-2 text-gray-700">
+                    <li><strong>檢查點：</strong> <span class="text-red-600 font-bold">VLAN IP 介面設定 (IP/Mask)</span>、路由表、ARP 表、CPU 負載、系統日誌 (Log)。</li>
+                    <li><strong>關鍵指令：</strong></li>
+                </ul>
+                <div class="cmd-block">
+                    # *重點檢查* VLAN IP 位址與子網路遮罩 (Mask) 是否正確<br>
+                    show vlan<br>
+                    # 或查看 IP 介面詳細資訊<br>
+                    show ipconfig<br>
+                    <br>
+                    # 檢查路由表<br>
+                    show iproute<br>
+                    <br>
+                    # 檢查 ARP (IP 對應 MAC)<br>
+                    show arp<br>
+                    <br>
+                    # *最重要* 系統日誌 (查看關鍵錯誤)<br>
+                    show log messages memory-buffer<br>
+                    <br>
+                    # 查看 CPU 使用率 (若過高可能遭受攻擊或 Loop)<br>
+                    top
+                </div>
+
+                <h4 class="text-lg font-bold text-blue-800 mt-4 border-b pb-2">Step 3.5: 動態路由協定 (Dynamic Routing) - "How do we talk?"</h4>
+                <ul class="list-disc list-inside space-y-2 mt-2 text-gray-700">
+                    <li><strong>RIP 檢查點：</strong> <span class="text-red-600 font-bold">版本一致性 (Version 1/2)</span>、介面是否啟用。RIP v1 不支援 VLSM，通常建議使用 v2。</li>
+                    <li><strong>OSPF 檢查點：</strong> <span class="text-red-600 font-bold">鄰居狀態 (Neighbor State)</span>、區域 (Area) ID 是否匹配、Hello/Dead Timer 間隔。</li>
+                </ul>
+                <div class="cmd-block">
+                    # [RIP] 檢查全域設定與版本 (確認 Version 1 或 2)<br>
+                    show rip<br>
+                    # 檢查 RIP 介面狀態 (確認介面 IP 網段正確)<br>
+                    show rip interface<br>
+                    <br>
+                    # [OSPF] 檢查 OSPF 鄰居建立狀態 (目標狀態: Full 或 2-Way)<br>
+                    show ospf neighbor<br>
+                    # 檢查 OSPF 介面設定 (Area, Timer, Auth 必須匹配)<br>
+                    show ospf interface detail<br>
+                    # 查看 LSDB (Link State Database) 確認路由交換<br>
+                    show ospf lsdb stats
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. 架構視覺化 -->
+        <div class="section-card">
+            <div class="section-header">
+                <span>三、故障排除流程圖 (Visuals)</span>
+            </div>
+            <div class="section-content">
+                <p class="mb-4">以下圖表展示了標準的故障排除決策樹。<strong>為了確保文字清晰可讀，圖表已設定為原始大小，請左右滑動捲軸以查看完整大圖。</strong></p>
+                
+                <h4 class="font-bold text-center mb-2">圖一：標準故障排除決策樹 (含動態路由)</h4>
+                <div class="diagram-container">
+                    <div class="mermaid">
+                        %%{init: { 'flowchart': { 'useMaxWidth': false }, 'theme': 'base', 'themeVariables': { 'fontSize': '15px', 'fontFamily': 'Noto Sans TC'}}}%%
+                        flowchart TD
+                            Start[故障發生] --> CheckLog[查看 Log:<br/>show log]
+                            CheckLog --> Analyze{是硬體<br/>還是軟體?}
+                            
+                            Analyze -- 硬體/L1 --> PhyCheck[實體層檢查]
+                            PhyCheck --> Cabling[檢查線材<br/>與模組]
+                            Cabling --> SpeedDup[檢查 Speed<br/>Duplex]
+                            SpeedDup --> Errors[檢查 Rx/Tx<br/>Errors]
+                            Errors --> ResolveL1[更換線材<br/>或固定速率]
+                            
+                            Analyze -- 軟體/L2/L3 --> L2Check[資料連結層<br/>檢查]
+                            L2Check --> VLANCheck[檢查 VLAN<br/>Tag/Untag]
+                            VLANCheck --> FDBCheck[檢查 MAC<br/>FDB 表]
+                            FDBCheck --> LoopCheck[檢查 Loop:<br/>ELRP/STP]
+                            LoopCheck --> L3Check[網路層<br/>檢查]
+                            
+                            L3Check --> IPCheck[檢查 IP &<br/>Mask 設定]
+                            IPCheck --> RoutingType{路由類型?}
+                            
+                            RoutingType -- 靜態 Static --> RouteCheck[檢查 Routing<br/>Table]
+                            RoutingType -- 動態 Dynamic --> ProtocolCheck{RIP 或<br/>OSPF?}
+                            
+                            ProtocolCheck -- RIP --> RipVer[檢查 RIP<br/>Version/Interface]
+                            ProtocolCheck -- OSPF --> OspfNeigh[檢查 OSPF<br/>Neighbor/Area]
+                            
+                            RipVer --> Resolve[問題解決]
+                            OspfNeigh --> Resolve
+                            RouteCheck --> Resolve
+
+                            style Start fill:#f56565,stroke:#333,color:white
+                            style Resolve fill:#48bb78,stroke:#333,color:white
+                            style CheckLog fill:#4299e1,stroke:#333,color:white
+                            style IPCheck fill:#d69e2e,stroke:#333,color:white
+                            style Errors fill:#d69e2e,stroke:#333,color:white
+                            style OspfNeigh fill:#805ad5,stroke:#333,color:white
+                    </div>
+                </div>
+
+                <h4 class="font-bold text-center mb-2 mt-8">圖二：ELRP 迴圈偵測機制 (請左右滑動查看)</h4>
+                <div class="diagram-container">
+                    <div class="mermaid">
+                        %%{init: { 'sequence': { 'useMaxWidth': false }, 'theme': 'base', 'themeVariables': { 'fontSize': '40px', 'actorFontSize': '40px', 'noteFontSize': '40px', 'messageFontSize': '40px', 'fontFamily': 'Noto Sans TC'}}}%%
+                        sequenceDiagram
+                            participant Core as Extreme<br/>Core Switch
+                            participant Edge as Edge<br/>Switch
+                            participant User as User<br/>PC/Hub
+                            
+                            Note over Core: 啟用 ELRP<br/>(Master)
+                            Core->>Edge: 發送 ELRP<br/>偵測封包
+                            Edge->>User: 轉發 ELRP<br/>封包
+                            
+                            opt User 端發生 Loop
+                                User-->>Edge: 封包被<br/>Loop 彈回
+                            end
+                            
+                            Edge-->>Core: 封包流回<br/>Core Switch
+                            Note over Core: Core 收到<br/>ELRP 封包
+                            Core->>Core: 判定發生 Loop!<br/>(Log, Disable Port)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. 實務應用場景 -->
+        <div class="section-card">
+            <div class="section-header">
+                <span>四、實務應用場景 (Use Case)</span>
+            </div>
+            <div class="section-content">
+                <h3 class="text-xl font-bold mb-2">案例：辦公室網路癱瘓，CPU 飆高</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="font-bold text-blue-600">情境描述</h4>
+                        <p class="text-gray-700 mb-2">
+                            某財務部門使用者反映網路極慢，MIS 查看 Core Switch 發現 CPU 使用率高達 90%，且 Log 出現大量 MAC 移動 (MAC Flapping) 訊息。
+                        </p>
+                        
+                        <h4 class="font-bold text-blue-600">原因分析</h4>
+                        <p class="text-gray-700 mb-2">
+                            通常這是 Layer 2 Loop 造成的廣播風暴。某位員工私自攜帶老舊 Hub 並將其兩端同時接到牆上網孔，造成迴圈。
+                        </p>
+
+                        <h4 class="font-bold text-blue-600">解決方案 (Extreme ELRP)</h4>
+                        <p class="text-gray-700">
+                            啟用 Extreme 專有的 ELRP (Extreme Loop Recovery Protocol)。不同於 STP 需要計算拓撲，ELRP 直接發送測試封包，若收回則代表有 Loop，反應速度極快。
+                        </p>
+                    </div>
+
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <h4 class="font-bold text-gray-800 mb-2 border-b pb-1">多廠商比較：Loop 防護</h4>
+                        <table class="w-full text-sm text-left">
+                            <thead>
+                                <tr class="bg-gray-200">
+                                    <th class="p-2">特性</th>
+                                    <th class="p-2">Extreme Networks</th>
+                                    <th class="p-2">Cisco / 其他</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b">
+                                    <td class="p-2 font-semibold">技術名稱</td>
+                                    <td class="p-2 text-blue-600 font-bold">ELRP</td>
+                                    <td class="p-2">Loopguard / BPDU Guard</td>
+                                </tr>
+                                <tr class="border-b">
+                                    <td class="p-2 font-semibold">運作方式</td>
+                                    <td class="p-2">主動發送偵測封包</td>
+                                    <td class="p-2">被動監聽 STP BPDU</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-2 font-semibold">優點</td>
+                                    <td class="p-2">不需依賴 STP，設定簡單，對非 STP 設備(如 Hub)極有效</td>
+                                    <td class="p-2">標準 STP 延伸功能，相容性高</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="mt-4 text-xs text-gray-500">
+                            * ELRP 設定範例:<br>
+                            <code>enable elrp-client</code><br>
+                            <code>configure elrp-client periodic &lt;vlan&gt; ports all interval 1 log-and-trap disable-port duration 300</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. 隨堂測驗 -->
+        <div class="section-card">
+            <div class="section-header">
+                <span>五、隨堂測驗 (Quiz)</span>
+            </div>
+            <div class="section-content">
+                <p class="mb-4 text-gray-600">請選出正確答案，測試您對 Extreme XOS 故障排除的了解。</p>
+                
+                <div id="quiz-container">
+                    <!-- Questions will be injected here by JS -->
+                </div>
+                
+                <button onclick="checkAnswers()" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded shadow transition duration-200">
+                    提交答案
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer Signature -->
+    <div class="footer-sig">
+        Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0
+    </div>
+
+    <script>
+        // Initialize Mermaid with global settings to avoid scaling
+        mermaid.initialize({ 
+            startOnLoad: true,
+            flowchart: { useMaxWidth: false, htmlLabels: true },
+            sequence: { useMaxWidth: false }
+        });
+
+        // Quiz Data
+        const quizData = [
+            {
+                question: "1. 當您懷疑光纖線路品質不佳 (例如光衰減過大) 時，應該使用哪個指令查看收發光功率？",
+                options: [
+                    "show port info detail",
+                    "show port transceiver information detail",
+                    "show fdb",
+                    "show iproute"
+                ],
+                correct: 1,
+                explanation: "正確答案是 'show port transceiver information detail'。此指令可以顯示 SFP/SFP+ 模組的溫度、電壓、Tx Bias 以及最重要的 Tx/Rx Power (dBm)。"
+            },
+            {
+                question: "2. 在 Extreme XOS 中，想要快速偵測網路上是否有 Layer 2 Loop (例如使用者誤接 Hub)，且不依賴 STP，最推薦使用哪個功能？",
+                options: [
+                    "OSPF",
+                    "EAPS",
+                    "ELRP (Extreme Loop Recovery Protocol)",
+                    "VRRP"
+                ],
+                correct: 2,
+                explanation: "正確答案是 ELRP。ELRP 是 Extreme 專有的輕量級協議，透過發送 Multicast 測試封包來偵測迴圈，反應速度快且可直接 Disable 發生問題的 Port。"
+            },
+            {
+                question: "3. OSPF 鄰居無法建立 (Stuck in Init/Attempt)，下列哪個指令最能幫助我們確認鄰居狀態？",
+                options: [
+                    "show ospf neighbor",
+                    "show iproute",
+                    "show vlan",
+                    "show fdb"
+                ],
+                correct: 0,
+                explanation: "正確答案是 'show ospf neighbor'。這個指令能顯示與對端路由器的鄰居狀態 (Init, 2-Way, ExStart, Full)。若要查看 RIP 版本設定，則使用 'show rip'。"
+            },
+            {
+                question: "4. 故障排除的第一步 (Layer 1)，我們通常會先檢查什麼？",
+                options: [
+                    "路由表是否正確",
+                    "防火牆規則",
+                    "實體層燈號、線路連接狀態與錯誤計數 (CRC Errors)",
+                    "VLAN Tag 設定"
+                ],
+                correct: 2,
+                explanation: "正確答案是 '實體層燈號、線路連接狀態與錯誤計數'。依據 OSI 模型由下而上的原則，必須先確認實體連結正常，後續的 L2/L3 排查才有意義。"
+            },
+            {
+                question: "5. 若要查看歷史錯誤訊息 (Logs)，下列哪個指令是正確的？",
+                options: [
+                    "show history",
+                    "display log",
+                    "show log",
+                    "view system events"
+                ],
+                correct: 2,
+                explanation: "正確答案是 'show log'。這是 Extreme XOS 查看系統日誌的標準指令，可搭配 'messages memory-buffer' 參數查看記憶體中的詳細紀錄。"
+            }
+        ];
+
+        // Render Quiz
+        const quizContainer = document.getElementById('quiz-container');
+        
+        quizData.forEach((item, index) => {
+            const qDiv = document.createElement('div');
+            qDiv.className = 'mb-6 p-4 border-b border-gray-100';
+            
+            const title = document.createElement('h5');
+            title.className = 'font-bold text-lg mb-3';
+            title.innerText = item.question;
+            qDiv.appendChild(title);
+
+            const optionsDiv = document.createElement('div');
+            item.options.forEach((opt, optIndex) => {
+                const optDiv = document.createElement('div');
+                optDiv.className = 'quiz-option';
+                optDiv.innerText = opt;
+                optDiv.dataset.qIndex = index;
+                optDiv.dataset.oIndex = optIndex;
+                optDiv.onclick = () => selectOption(index, optIndex);
+                optionsDiv.appendChild(optDiv);
+            });
+            qDiv.appendChild(optionsDiv);
+
+            const feedbackDiv = document.createElement('div');
+            feedbackDiv.id = `feedback-${index}`;
+            feedbackDiv.className = 'quiz-feedback';
+            qDiv.appendChild(feedbackDiv);
+
+            quizContainer.appendChild(qDiv);
+        });
+
+        // Quiz State
+        const userAnswers = new Array(quizData.length).fill(null);
+
+        function selectOption(qIndex, oIndex) {
+            userAnswers[qIndex] = oIndex;
+            
+            // UI Update
+            const options = document.querySelectorAll(`[data-q-index="${qIndex}"]`);
+            options.forEach(opt => opt.classList.remove('selected'));
+            options[oIndex].classList.add('selected');
+        }
+
+        function checkAnswers() {
+            let score = 0;
+            quizData.forEach((item, index) => {
+                const feedbackEl = document.getElementById(`feedback-${index}`);
+                const selected = userAnswers[index];
+                
+                feedbackEl.style.display = 'block';
+                
+                if (selected === null) {
+                    feedbackEl.className = 'quiz-feedback bg-gray-100 text-gray-700';
+                    feedbackEl.innerText = '尚未作答。';
+                    return;
+                }
+
+                if (selected === item.correct) {
+                    score++;
+                    feedbackEl.className = 'quiz-feedback bg-green-100 text-green-800 border border-green-200';
+                    feedbackEl.innerHTML = `<strong>正確！</strong> ${item.explanation}`;
+                } else {
+                    feedbackEl.className = 'quiz-feedback bg-red-100 text-red-800 border border-red-200';
+                    feedbackEl.innerHTML = `<strong>錯誤。</strong> ${item.explanation}`;
+                }
+            });
+
+            alert(`測驗完成！您獲得了 ${score} / ${quizData.length} 分`);
+        }
+    </script>
+</body>
+</html>
