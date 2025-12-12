@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EC-Council CND Module 02: Network Attack & Defense</title>
+    <!-- Google Fonts for Tech/Cyber look -->
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Roboto+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #111111;
+            --card-bg: #1a1a1a;
+            --text-main: #e0e0e0;
+            --text-muted: #a0a0a0;
+            --accent-red: #FF0000;
+            --accent-red-dim: rgba(255, 0, 0, 0.1);
+            --border-color: #333333;
+            --hud-line: #FF0000;
+            --code-bg: #000;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Noto Sans TC', sans-serif;
+            line-height: 1.6;
+            overflow-x: hidden; /* Prevent horizontal scroll */
+        }
+
+        /* --- TYPOGRAPHY --- */
+        h1, h2, h3, h4 {
+            font-family: 'Rajdhani', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #fff;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            text-shadow: 0 0 15px rgba(255, 0, 0, 0.6);
+            margin: 0; /* Removed bottom margin for flex layout alignment */
+            line-height: 1;
+        }
+
+        h2 {
+            font-size: 2rem;
+            border-left: 5px solid var(--accent-red);
+            padding-left: 15px;
+            margin-bottom: 20px;
+        }
+
+        code {
+            font-family: 'Roboto Mono', monospace;
+            color: var(--accent-red);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        strong {
+            color: #fff;
+            font-weight: 700;
+        }
+
+        /* --- LAYOUT --- */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* --- HERO SECTION --- */
+        header {
+            background: linear-gradient(180deg, #1f1f1f 0%, #111111 100%);
+            border-bottom: 2px solid var(--accent-red);
+            padding: 30px 0; 
+            position: relative;
+            margin-bottom: 40px;
+            overflow: hidden;
+        }
+
+        /* Cyberpunk Grid Background Effect */
+        header::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(rgba(255, 0, 0, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 0, 0, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Flexbox Layout for Header */
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            text-align: left;
+        }
+
+        .subtitle {
+            font-family: 'Roboto Mono', monospace;
+            color: var(--accent-red);
+            font-size: 1.2rem;
+            margin-top: 5px;
+            letter-spacing: 2px;
+            line-height: 1.2;
+        }
+
+        .subtitle-en {
+            font-family: 'Roboto Mono', monospace;
+            color: var(--accent-red);
+            font-size: 0.9rem; 
+            margin-top: 2px;
+            opacity: 0.8;
+        }
+
+        .header-right {
+            text-align: right;
+            flex-shrink: 0; /* Prevent shrinking */
+            margin-left: 20px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border: 1px solid var(--accent-red);
+            background: var(--accent-red-dim);
+            color: var(--accent-red);
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            white-space: nowrap; /* Keep on one line */
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.2);
+        }
+
+        /* --- CONTENT CARDS --- */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 30px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .card::after {
+            content: "";
+            position: absolute;
+            top: 0; right: 0;
+            width: 20px; height: 20px;
+            border-top: 2px solid var(--accent-red);
+            border-right: 2px solid var(--accent-red);
+            opacity: 0.5;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: #444;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .card:hover::after {
+            opacity: 1;
+            width: 100%; height: 100%;
+            transition: all 0.4s ease;
+            pointer-events: none;
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 15px;
+        }
+
+        .icon-box {
+            width: 40px; height: 40px;
+            background: var(--accent-red);
+            color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        /* --- TERMINOLOGY SECTION --- */
+        .term-box {
+            margin-bottom: 20px;
+        }
+        .term-title {
+            color: var(--accent-red);
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+            font-family: 'Roboto Mono', monospace;
+            display: block;
+        }
+        .term-desc {
+            font-size: 0.95rem;
+            color: #ccc;
+        }
+
+        /* --- COMPARISON TABLE --- */
+        .cyber-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.95rem;
+            background: var(--card-bg);
+        }
+
+        .cyber-table th {
+            background: #2a0000;
+            color: var(--accent-red);
+            text-align: left;
+            padding: 15px;
+            font-family: 'Rajdhani', sans-serif;
+            text-transform: uppercase;
+            border: 1px solid #333;
+        }
+
+        .cyber-table td {
+            padding: 15px;
+            border: 1px solid #333;
+            color: #d0d0d0;
+        }
+
+        .cyber-table tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* --- STRATEGY DIAGRAM (CSS Only) --- */
+        .strategy-list {
+            list-style: none;
+            counter-reset: strategy-counter;
+        }
+        .strategy-list li {
+            position: relative;
+            padding-left: 50px;
+            margin-bottom: 20px;
+        }
+        .strategy-list li::before {
+            counter-increment: strategy-counter;
+            content: "0" counter(strategy-counter);
+            position: absolute;
+            left: 0; top: 0;
+            width: 35px; height: 35px;
+            border: 1px solid var(--accent-red);
+            color: var(--accent-red);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.9rem;
+        }
+
+        /* --- QUIZ SECTION --- */
+        .quiz-section {
+            margin-top: 80px;
+            border-top: 2px solid var(--accent-red);
+            padding-top: 40px;
+        }
+        
+        .quiz-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .quiz-question {
+            background: var(--card-bg);
+            border: 1px solid #333;
+            padding: 30px;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .q-title {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            color: #fff;
+            font-weight: 500;
+        }
+
+        .q-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .q-btn {
+            background: transparent;
+            border: 1px solid #444;
+            color: #aaa;
+            padding: 15px 20px;
+            text-align: left;
+            cursor: pointer;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .q-btn:hover:not(:disabled) {
+            border-color: var(--accent-red);
+            color: #fff;
+            background: rgba(255,0,0,0.05);
+        }
+
+        .q-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .q-btn.correct {
+            border-color: #00ff00 !important;
+            color: #00ff00 !important;
+            background: rgba(0, 255, 0, 0.1) !important;
+            opacity: 1 !important;
+        }
+
+        .q-btn.wrong {
+            border-color: #ff0000 !important;
+            color: #ff0000 !important;
+            opacity: 0.5 !important;
+        }
+
+        .explanation {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(0,0,0,0.3);
+            border-left: 3px solid var(--accent-red);
+            display: none;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- FOOTER --- */
+        footer {
+            margin-top: 80px;
+            background: #0d0d0d;
+            border-top: 1px solid #333;
+            padding: 20px 0;
+            text-align: center;
+        }
+
+        .footer-text {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.8rem;
+            color: #555;
+            letter-spacing: 1px;
+        }
+
+        /* Responsive - Switch back to vertical stack on mobile */
+        @media (max-width: 768px) {
+            .grid-2 { grid-template-columns: 1fr; }
+            h1 { font-size: 2rem; }
+            
+            .hero-content {
+                flex-direction: column;
+                align-items: center;
+            }
+            .header-left {
+                text-align: center;
+                margin-bottom: 20px;
+            }
+            .header-right {
+                text-align: center;
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="container hero-content">
+            <div class="header-left">
+                <h1>EC-Council CND</h1>
+                <div class="subtitle">MODULE 02: 網路攻擊與防禦策略</div>
+                <div class="subtitle-en">Network Attack and Defense Strategies</div>
+            </div>
+            
+            <div class="header-right">
+                <div class="status-badge">SYSTEM STATUS: SECURE // INSTRUCTOR: ACTIVE</div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        
+        <!-- SECTION 1: Intro -->
+        <div class="card" style="margin-bottom: 50px;">
+            <div class="card-title">
+                <div class="icon-box">00</div>
+                <h3>課程模組核心目標 (Objectives)</h3>
+            </div>
+            <p>本模組是網路防禦的基石。不同於紅隊（Red Team）專注於如何攻破系統，身為藍隊（Blue Team）的網路防禦者，我們必須理解攻擊者的 <strong>TTPs (Tactics, Techniques, and Procedures)</strong>，才能設計出有效的防禦架構。重點不在於「修補每一個漏洞」，而在於「增加攻擊者的成本」並「縮短偵測時間」。</p>
+        </div>
+
+        <!-- SECTION 2: Terminologies -->
+        <h2 id="terms">01. 關鍵資安術語解析 (Terminologies)</h2>
+        <div class="grid-2">
+            <div class="card">
+                <div class="card-title">
+                    <div class="icon-box">01</div>
+                    <h3>資安鐵三角 (Security Triad)</h3>
+                </div>
+                <div class="term-box">
+                    <span class="term-title">THREAT (威脅)</span>
+                    <div class="term-desc">對系統有潛在破壞力的因素。它是外部的，我們通常無法控制。<br><em>Ex: 駭客組織、惡意軟體、自然災害。</em></div>
+                </div>
+                <div class="term-box">
+                    <span class="term-title">VULNERABILITY (弱點)</span>
+                    <div class="term-desc">系統設計或實作上的缺陷。這是防禦者可以控制與修補的部分。<br><em>Ex: 未更新的 Windows Server、弱密碼、SQL Injection 漏洞。</em></div>
+                </div>
+                <div class="term-box">
+                    <span class="term-title">RISK (風險)</span>
+                    <div class="term-desc">威脅利用弱點造成損失的可能性。<br><strong>公式：Risk = Threat × Vulnerability × Impact</strong></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    <div class="icon-box">02</div>
+                    <h3>檢測指標 (Indicators)</h3>
+                </div>
+                <div class="term-box">
+                    <span class="term-title">IoC (Indicators of Compromise) - 入侵指標</span>
+                    <div class="term-desc">
+                        表示「已經被駭」的證據。通常是靜態的特徵。<br>
+                        <em>Ex: 惡意 IP 地址、已知的惡意檔案 Hash 值、異常的 Registry 修改。</em>
+                        <br><span style="color:var(--text-muted); font-size:0.8rem;">>> 用於傳統防毒與防火牆黑名單。</span>
+                    </div>
+                </div>
+                <div class="term-box" style="margin-top:20px;">
+                    <span class="term-title">IoA (Indicators of Attack) - 攻擊指標</span>
+                    <div class="term-desc">
+                        表示「正在被攻擊」的行為模式。關注攻擊者的意圖。<br>
+                        <em>Ex: PowerShell 執行了混淆代碼、短時間內大量的登入失敗、非上班時間的異常流量。</em>
+                        <br><span style="color:var(--text-muted); font-size:0.8rem;">>> 用於現代 EDR 與威脅獵捕 (Threat Hunting)。</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 3: Attacks & Defense -->
+        <h2 id="attacks">02. 常見攻擊向量與防禦策略</h2>
+        <p style="margin-bottom: 20px; color: #aaa;">以下表格從防禦者角度比較常見的網路層與應用層攻擊：</p>
+        
+        <table class="cyber-table">
+            <thead>
+                <tr>
+                    <th width="20%">攻擊類型 (Attack)</th>
+                    <th width="40%">攻擊原理 (Mechanism)</th>
+                    <th width="40%">藍隊防禦策略 (Defense Strategy)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Network Sniffing</strong><br>(網路監聽)</td>
+                    <td>攻擊者將網卡設為 Promiscuous Mode，攔截流經的封包 (Packet)。常見於 Hub 環境或 Wi-Fi。</td>
+                    <td>
+                        <ul style="padding-left: 20px;">
+                            <li>使用 <strong>Encryption</strong> (SSH, HTTPS) 取代明文協定 (Telnet, HTTP)。</li>
+                            <li>使用 Switch 取代 Hub (減少廣播域)。</li>
+                            <li>實施 Port Security。</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>Man-in-the-Middle</strong><br>(中間人攻擊)</td>
+                    <td>透過 <strong>ARP Spoofing</strong> 欺騙受害者與閘道器，讓流量經過攻擊者電腦。</td>
+                    <td>
+                        <ul style="padding-left: 20px;">
+                            <li>啟用交換器上的 <strong>Dynamic ARP Inspection (DAI)</strong>。</li>
+                            <li>使用 VPN 加密通道。</li>
+                            <li>監控 ARP Table 異常變動。</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>DoS / DDoS</strong><br>(阻斷服務)</td>
+                    <td>耗盡目標資源 (頻寬、連線數、CPU)。<br>Ex: SYN Flood, UDP Flood。</td>
+                    <td>
+                        <ul style="padding-left: 20px;">
+                            <li>啟用防火牆的 <strong>SYN Cookies</strong> 功能。</li>
+                            <li>實施 Rate Limiting (流量速率限制)。</li>
+                            <li>使用 CDN 或流量清洗中心 (Scrubbing Center)。</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>SQL Injection</strong><br>(資料隱碼)</td>
+                    <td>在 Web 輸入欄位注入 SQL 指令，操縱後端資料庫。</td>
+                    <td>
+                        <ul style="padding-left: 20px;">
+                            <li><strong>Input Validation:</strong> 驗證所有輸入。</li>
+                            <li><strong>Parameterized Queries:</strong> 使用參數化查詢 (最有效)。</li>
+                            <li>部署 WAF (Web Application Firewall)。</li>
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- SECTION 4: Frameworks -->
+        <h2 id="frameworks" style="margin-top: 60px;">03. 防禦架構與思維 (Frameworks)</h2>
+        <div class="grid-2">
+            <div class="card">
+                <div class="card-title">
+                    <div class="icon-box">LM</div>
+                    <h3>Cyber Kill Chain (網路殺傷鏈)</h3>
+                </div>
+                <p style="margin-bottom:15px;">由 Lockheed Martin 提出。防禦者的目標是在鏈條的「早期階段」切斷攻擊。越早發現，損失越小。</p>
+                <ol class="strategy-list">
+                    <li><strong>Reconnaissance (偵查):</strong> 攻擊者尋找目標 (Nmap, Whois)。</li>
+                    <li><strong>Weaponization (武器化):</strong> 製作惡意 Payload (如 PDF Exploit)。</li>
+                    <li><strong>Delivery (傳遞):</strong> 透過 Email 或 USB 傳送給受害者。</li>
+                    <li><strong>Exploitation (利用):</strong> 觸發漏洞。</li>
+                    <li><strong>Installation (安裝):</strong> 安裝後門或惡意軟體。</li>
+                    <li><strong>C2 (Command & Control):</strong> 建立遠端控制通道。</li>
+                    <li><strong>Actions on Objectives:</strong> 竊取資料、加密檔案。</li>
+                </ol>
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    <div class="icon-box">DiD</div>
+                    <h3>Defense-in-Depth (縱深防禦)</h3>
+                </div>
+                <p style="margin-bottom:15px;">沒有單一防禦是完美的。我們必須建立多層次的防護網 (Layered Security)。</p>
+                <div style="border-left: 2px solid var(--accent-red); padding-left: 15px;">
+                    <p style="margin-bottom: 10px;"><strong style="color:var(--accent-red)">1. Physical:</strong> 警衛、門禁、監視器。</p>
+                    <p style="margin-bottom: 10px;"><strong style="color:var(--accent-red)">2. Perimeter:</strong> 防火牆 (Firewall)、DMZ。</p>
+                    <p style="margin-bottom: 10px;"><strong style="color:var(--accent-red)">3. Network:</strong> IDS/IPS、VPN、NAC。</p>
+                    <p style="margin-bottom: 10px;"><strong style="color:var(--accent-red)">4. Host (Endpoint):</strong> 防毒軟體、EDR、修補程式管理 (Patching)。</p>
+                    <p style="margin-bottom: 10px;"><strong style="color:var(--accent-red)">5. Application:</strong> 程式碼審查、WAF。</p>
+                    <p><strong style="color:var(--accent-red)">6. Data:</strong> 加密 (Encryption)、備份、DLP。</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- QUIZ SECTION -->
+        <div class="quiz-section">
+            <div class="quiz-header">
+                <h2>04. CND 實戰模擬測驗 (Assessment)</h2>
+                <p style="color: var(--accent-red); font-family: 'Roboto Mono';">MISSION: Answer 10 Scenarios. Passing Score: 100%</p>
+            </div>
+            
+            <div id="quiz-container">
+                <!-- JS will inject questions here -->
+            </div>
+        </div>
+
+    </div>
+
+    <footer>
+        <div class="container">
+            <p class="footer-text">Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0</p>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        const questions = [
+            {
+                id: 1,
+                text: "Q1. 某網路管理員發現公司的 Web 伺服器日誌中出現大量來自單一 IP 的請求，導致 CPU 使用率飆升至 100% 且正常用戶無法存取服務。這是屬於哪種類型的攻擊？",
+                options: ["A. Man-in-the-Middle (MitM)", "B. SQL Injection", "C. DoS (Denial of Service)", "D. Cross-Site Scripting (XSS)"],
+                correct: 2,
+                explanation: "<strong>解析：C (DoS)</strong><br>攻擊耗盡了系統資源 (CPU/頻寬) 導致服務對合法用戶不可用，這是典型的 DoS 攻擊特徵。如果是來自『多個』分散 IP 則是 DDoS。"
+            },
+            {
+                id: 2,
+                text: "Q2. 在進行網路流量分析時，防禦者注意到 ARP 表格中，Gateway 的 MAC 位址不斷在改變，且對應到內網某台使用者的電腦 MAC。這最可能表示發生了什麼？",
+                options: ["A. DNS Poisoning", "B. ARP Spoofing / Poisoning", "C. DHCP Starvation", "D. MAC Flooding"],
+                correct: 1,
+                explanation: "<strong>解析：B (ARP Spoofing)</strong><br>ARP Spoofing 的特徵就是攻擊者發送偽造的 ARP 回應，將 Gateway 的 IP 對應到自己的 MAC 位址，以進行中間人攻擊 (MitM)。"
+            },
+            {
+                id: 3,
+                text: "Q3. 根據 Defense-in-Depth (縱深防禦) 原則，如果防火牆 (Perimeter Layer) 被繞過，下列哪一項措施屬於 Host Layer (主機層) 的最後防線？",
+                options: ["A. Network IDS (NIDS)", "B. VLAN Segmentation", "C. EDR (Endpoint Detection & Response) 與 Patching", "D. Web Application Firewall (WAF)"],
+                correct: 2,
+                explanation: "<strong>解析：C (EDR & Patching)</strong><br>A、B 屬於網路層，D 屬於應用層。只有 EDR 和修補程式 (Patching) 是直接運行在端點主機上的防禦措施。"
+            },
+            {
+                id: 4,
+                text: "Q4. 攻擊者試圖透過發送帶有惡意連結的電子郵件給財務部門員工，誘騙其點擊並下載勒索軟體。根據 Cyber Kill Chain，這屬於哪一個階段？",
+                options: ["A. Weaponization (武器化)", "B. Delivery (傳遞)", "C. Exploitation (利用)", "D. Installation (安裝)"],
+                correct: 1,
+                explanation: "<strong>解析：B (Delivery)</strong><br>將武器化的 Payload (惡意連結或檔案) 傳送給受害者的過程，稱為 Delivery。使用者點擊後的觸發才是 Exploitation。"
+            },
+            {
+                id: 5,
+                text: "Q5. 為了防範 SQL Injection 攻擊，身為 CND，你應該建議開發團隊優先採用哪種防禦代碼撰寫方式？",
+                options: ["A. 在前端使用 JavaScript 過濾特殊字元", "B. 使用參數化查詢 (Parameterized Queries)", "C. 隱藏資料庫錯誤訊息", "D. 定期重新啟動資料庫服務"],
+                correct: 1,
+                explanation: "<strong>解析：B (Parameterized Queries)</strong><br>參數化查詢 (或稱 Prepared Statements) 是防禦 SQLi 的黃金標準，它能確保資料庫將使用者輸入視為『資料』而非『可執行指令』。"
+            },
+            {
+                id: 6,
+                text: "Q6. 關於 Zero Trust (零信任) 架構的核心原則，下列敘述何者正確？",
+                options: ["A. 只要在內網的設備就是可信的", "B. 信任但驗證 (Trust but Verify)", "C. 永不信任，始終驗證 (Never Trust, Always Verify)", "D. 僅需在 VPN 登入時進行驗證"],
+                correct: 2,
+                explanation: "<strong>解析：C (Never Trust, Always Verify)</strong><br>零信任模型假設網路環境充滿威脅 (內外網皆不可信)，因此要求對每一次存取請求進行嚴格的身分驗證與授權，而非傳統的邊界防禦。"
+            },
+            {
+                id: 7,
+                text: "Q7. 某企業遭受到勒索軟體 (Ransomware) 攻擊，部分檔案已被加密。作為第一線應變人員，你的首要動作應該是什麼？",
+                options: ["A. 立即支付贖金以解鎖檔案", "B. 立即將受感染主機從網路隔離 (Isolate/Disconnect)", "C. 立即執行防毒軟體掃描", "D. 立即聯絡 FBI"],
+                correct: 1,
+                explanation: "<strong>解析：B (Isolate)</strong><br>在資安事故應變 (Incident Response) 中，首要任務是『遏止 (Containment)』，防止災情擴散到其他主機或網路共用磁碟，因此必須立即斷網或隔離受駭主機。"
+            },
+            {
+                id: 8,
+                text: "Q8. 下列哪一種攻擊主要針對無線網路的 Availability (可用性)，透過不斷發送 Deauthentication 封包讓使用者斷線？",
+                options: ["A. Evil Twin", "B. WEP Cracking", "C. Deauthentication / Jamming Attack", "D. Rogue AP"],
+                correct: 2,
+                explanation: "<strong>解析：C (Deauth Attack)</strong><br>Deauthentication Attack 利用 Wi-Fi 管理幀未加密的弱點，強制客戶端斷線，屬於針對可用性的攻擊 (DoS)。"
+            },
+            {
+                id: 9,
+                text: "Q9. 在密碼攻擊中，攻擊者使用一個包含常見密碼的預定義清單 (如 '123456', 'password') 來嘗試登入，這稱為什麼攻擊？",
+                options: ["A. Brute Force Attack", "B. Dictionary Attack", "C. Rainbow Table Attack", "D. Birthday Attack"],
+                correct: 1,
+                explanation: "<strong>解析：B (Dictionary Attack)</strong><br>使用預先收集好的單字或常用密碼清單進行嘗試稱為字典攻擊。Brute Force 則是嘗試所有字元組合。"
+            },
+            {
+                id: 10,
+                text: "Q10. 駭客利用各種技術隱藏自己的蹤跡，例如修改 Log 檔或使用 Rootkit。這在 Cyber Kill Chain 或駭客方法論中通常屬於哪個階段？",
+                options: ["A. Reconnaissance", "B. Actions on Objectives", "C. Covering Tracks", "D. Scanning"],
+                correct: 2,
+                explanation: "<strong>解析：C (Covering Tracks)</strong><br>Covering Tracks (掩蓋蹤跡) 是駭客為了維持存取權並避免被發現所採取的行動，例如刪除日誌、隱藏檔案或關閉稽核功能。"
+            }
+        ];
+
+        function renderQuiz() {
+            const container = document.getElementById('quiz-container');
+            
+            questions.forEach((q, index) => {
+                // Create Question Box
+                const qBox = document.createElement('div');
+                qBox.className = 'quiz-question';
+
+                // Title
+                const title = document.createElement('div');
+                title.className = 'q-title';
+                title.textContent = q.text;
+                qBox.appendChild(title);
+
+                // Options Container
+                const optContainer = document.createElement('div');
+                optContainer.className = 'q-options';
+
+                // Explanation Box (Hidden initially)
+                const explBox = document.createElement('div');
+                explBox.className = 'explanation';
+                explBox.innerHTML = q.explanation;
+
+                // Generate Buttons
+                q.options.forEach((optText, optIndex) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'q-btn';
+                    btn.textContent = optText;
+                    
+                    btn.onclick = function() {
+                        // Disable all buttons in this question
+                        const allBtns = optContainer.querySelectorAll('.q-btn');
+                        allBtns.forEach(b => b.disabled = true);
+
+                        // Check Answer
+                        if (optIndex === q.correct) {
+                            btn.classList.add('correct');
+                        } else {
+                            btn.classList.add('wrong');
+                            // Highlight correct answer automatically
+                            allBtns[q.correct].classList.add('correct');
+                        }
+
+                        // Show Explanation
+                        explBox.style.display = 'block';
+                    };
+
+                    optContainer.appendChild(btn);
+                });
+
+                qBox.appendChild(optContainer);
+                qBox.appendChild(explBox);
+                container.appendChild(qBox);
+            });
+        }
+
+        // Initialize Quiz on Load
+        window.onload = renderQuiz;
+    </script>
+</body>
+</html>

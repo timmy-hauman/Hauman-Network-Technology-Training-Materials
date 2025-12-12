@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EC-Council CND 網路防禦課程 - Module 16</title>
+    <style>
+        /* --- RESET & BASE STYLES --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #111111;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            overflow-x: hidden;
+            background-image: 
+                linear-gradient(rgba(17, 17, 17, 0.95), rgba(17, 17, 17, 0.95)),
+                url('data:image/svg+xml;utf8,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><g fill="%231a1a1a" fill-opacity="0.4"><path d="M10 10h10v10H10zM50 50h10v10H50zM80 20h10v10H80z"/></g></svg>');
+        }
+
+        /* --- TYPOGRAPHY --- */
+        h1, h2, h3, h4 {
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 700;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+            margin-bottom: 0.5rem;
+        }
+
+        h2 {
+            border-left: 5px solid #FF0000;
+            padding-left: 15px;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            color: #f0f0f0;
+        }
+
+        h3 {
+            color: #FF0000;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        p {
+            margin-bottom: 1.2rem;
+            font-size: 1rem;
+            color: #cccccc;
+        }
+
+        strong {
+            color: #ffffff;
+        }
+
+        .highlight-red {
+            color: #FF0000;
+        }
+
+        /* --- LAYOUT & GRID --- */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header-section {
+            text-align: center;
+            padding: 60px 20px;
+            border-bottom: 2px solid #333;
+            position: relative;
+        }
+
+        .header-section::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 2px;
+            background-color: #FF0000;
+            box-shadow: 0 0 10px #FF0000;
+        }
+
+        .module-badge {
+            display: inline-block;
+            background-color: rgba(255, 0, 0, 0.1);
+            border: 1px solid #FF0000;
+            color: #FF0000;
+            padding: 5px 15px;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        /* --- CARDS --- */
+        .card {
+            background-color: #1a1a1a;
+            border: 1px solid #333;
+            padding: 30px;
+            position: relative;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, #FF0000, transparent);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            border-color: #555;
+        }
+
+        .card-icon {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: #FF0000;
+        }
+
+        /* --- LISTS & TABLES --- */
+        ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        ul li {
+            position: relative;
+            padding-left: 20px;
+            margin-bottom: 10px;
+            color: #ccc;
+        }
+
+        ul li::before {
+            content: '>';
+            position: absolute;
+            left: 0;
+            color: #FF0000;
+            font-weight: bold;
+        }
+
+        .tech-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: #161616;
+        }
+
+        .tech-table th, .tech-table td {
+            border: 1px solid #333;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .tech-table th {
+            background-color: #222;
+            color: #FF0000;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+
+        .tech-table tr:hover {
+            background-color: #1e1e1e;
+        }
+
+        /* --- QUIZ SECTION --- */
+        .quiz-section {
+            margin-top: 80px;
+            background-color: #161616;
+            border: 1px solid #333;
+            padding: 40px;
+            position: relative;
+        }
+
+        .quiz-section::before {
+            content: 'SIMULATION MODE // ACTIVATED';
+            position: absolute;
+            top: -15px;
+            right: 20px;
+            background-color: #FF0000;
+            color: #000;
+            padding: 5px 15px;
+            font-weight: bold;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+
+        .question-block {
+            margin-bottom: 40px;
+            border-bottom: 1px solid #222;
+            padding-bottom: 30px;
+        }
+
+        .question-text {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 20px;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option-btn {
+            background-color: #222;
+            color: #aaa;
+            border: 1px solid #333;
+            padding: 15px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .option-btn:hover {
+            background-color: #2a2a2a;
+            border-color: #555;
+            color: #fff;
+        }
+
+        .option-btn.correct {
+            background-color: rgba(0, 255, 0, 0.1);
+            border-color: #00ff00;
+            color: #00ff00;
+        }
+
+        .option-btn.incorrect {
+            background-color: rgba(255, 0, 0, 0.1);
+            border-color: #FF0000;
+            color: #FF0000;
+        }
+
+        .explanation {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #1a1a1a;
+            border-left: 3px solid #FF0000;
+            color: #ddd;
+            font-size: 0.95rem;
+        }
+
+        .explanation-title {
+            color: #FF0000;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        /* --- FOOTER --- */
+        footer {
+            margin-top: 80px;
+            padding: 30px;
+            background-color: #000;
+            border-top: 1px solid #222;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #555;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* --- UTILS --- */
+        .hud-line {
+            height: 1px;
+            background-color: #333;
+            margin: 20px 0;
+            position: relative;
+        }
+        .hud-line::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: -2px;
+            width: 20px;
+            height: 5px;
+            background-color: #FF0000;
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8rem; }
+            .content-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- HEADER -->
+        <header class="header-section">
+            <div class="module-badge">SYSTEM STATUS: ONLINE // MODULE 16 LOADED</div>
+            <h1>EC-Council CND 網路防禦課程</h1>
+            <p>Incident Response and Forensic Investigation (事件回應與鑑識調查)</p>
+        </header>
+
+        <!-- INTRO -->
+        <div style="margin-top: 40px; max-width: 800px; margin-left: auto; margin-right: auto; text-align: center;">
+            <p>
+                作為一名認證網路防禦者 (CND)，我們的目標不僅是阻止攻擊，更要在防線被突破時，迅速執行<strong class="highlight-red">事件回應 (Incident Response)</strong>，將損害降至最低，並透過<strong class="highlight-red">鑑識調查 (Forensics)</strong> 確保證據的完整性以便追訴。
+                本模組將深入探討 IH&R 流程、數位證據處理原則以及第一線應變人員的關鍵職責。
+            </p>
+        </div>
+
+        <!-- CORE CONCEPTS GRID -->
+        <h2>核心防禦概念解析 (Core Concepts)</h2>
+        <div class="content-grid">
+
+            <!-- Concept 1: IH&R Process -->
+            <div class="card">
+                <div class="card-icon">01</div>
+                <h3>IH&R 流程 (Incident Handling & Response)</h3>
+                <div class="hud-line"></div>
+                <p>
+                    事件處理與回應 (IH&R) 是指組織應對和管理網路攻擊後果的結構化方法。NIST 與 EC-Council 將其劃分為數個關鍵階段，防禦者必須嚴格遵守此順序以確保處置得當。
+                </p>
+                <ul>
+                    <li><strong>Preparation (準備)：</strong> 建立 CSIRT 團隊、制定政策、配置工具 (如 SIEM, IDS) 以及培訓人員。這是事件發生前的基礎。</li>
+                    <li><strong>Identification (識別/檢測)：</strong> 透過分析 Log、IDS 警報或使用者回報，確認「資安事件 (Incident)」是否真實發生。需區分誤報 (False Positive)。</li>
+                    <li><strong>Containment (圍堵)：</strong> 首要任務是限制損害範圍。包括「短期圍堵」(如拔除網線) 與「長期圍堵」(如修改防火牆規則)。</li>
+                    <li><strong>Eradication (根除)：</strong> 移除惡意軟體、關閉漏洞帳號、修補系統漏洞，徹底清除威脅根源。</li>
+                    <li><strong>Recovery (復原)：</strong> 將系統恢復至正常運作狀態 (從乾淨備份還原)，並持續監控以防復發。</li>
+                    <li><strong>Lessons Learned (經驗學習)：</strong> 事件結束後召開檢討會議，更新政策與防禦策略。</li>
+                </ul>
+            </div>
+
+            <!-- Concept 2: Digital Evidence -->
+            <div class="card">
+                <div class="card-icon">02</div>
+                <h3>數位證據 (Digital Evidence)</h3>
+                <div class="hud-line"></div>
+                <p>
+                    在法律訴訟中，證據必須具備法律效力。作為網路防禦者，處理證據時必須遵循嚴格的標準。
+                </p>
+                <p><strong>證據的三大特性：</strong></p>
+                <ul>
+                    <li><strong>Admissible (可採納性)：</strong> 證據必須以合法方式取得，並在法庭上被接受。</li>
+                    <li><strong>Authentic (真實性)：</strong> 必須證明證據與現場發現時完全一致，未被竄改 (通常透過 Hash 值驗證)。</li>
+                    <li><strong>Complete (完整性)：</strong> 證據必須包含所有相關面向，而非斷章取義。</li>
+                </ul>
+                <p><strong>Chain of Custody (監管鏈)：</strong><br>
+                這是一份詳細的文件記錄，記載證據從收集、保管、移交到分析的每一個環節。必須記錄「誰、在何時、做了什麼操作」。若監管鏈中斷，證據將在法庭上失效。</p>
+            </div>
+
+            <!-- Concept 3: Order of Volatility -->
+            <div class="card">
+                <div class="card-icon">03</div>
+                <h3>揮發性順序 (Order of Volatility)</h3>
+                <div class="hud-line"></div>
+                <p>
+                    在進行活體鑑識 (Live Forensics) 時，收集證據的順序至關重要。必須優先收集「最容易消失」的數據。若先進行磁碟映像備份 (Disk Imaging) 再收集記憶體，將導致記憶體數據被覆蓋或遺失。
+                </p>
+                <p><strong>標準收集順序 (由高揮發性至低揮發性)：</strong></p>
+                <ol style="margin-left: 20px; color: #ccc;">
+                    <li><strong>CPU 暫存器與快取 (Registers, Cache)</strong>：數奈秒內消失。</li>
+                    <li><strong>路由表、ARP 快取、進程表、核心統計</strong>：系統關機即消失。</li>
+                    <li><strong>主記憶體 (RAM)</strong>：包含執行中的惡意程式、解密金鑰等關鍵資訊。</li>
+                    <li><strong>暫存檔案系統 (Temporary File Systems)</strong> / Swap Space。</li>
+                    <li><strong>硬碟數據 (Disk)</strong>：持久性儲存。</li>
+                    <li><strong>遠端日誌與監控數據 (Remote Logs)</strong>。</li>
+                    <li><strong>實體配置與網路拓樸</strong>。</li>
+                    <li><strong>封存媒體 (Archival Media)</strong>：如 CD/DVD/磁帶。</li>
+                </ol>
+            </div>
+
+            <!-- Concept 4: First Responder -->
+            <div class="card">
+                <div class="card-icon">04</div>
+                <h3>第一線應變人員 (First Responder)</h3>
+                <div class="hud-line"></div>
+                <p>
+                    第一線應變人員通常是網路管理員或現場技術人員，他們是最早發現或抵達事件現場的人。
+                </p>
+                <p><strong>核心職責：</strong></p>
+                <ul>
+                    <li><strong>識別與評估：</strong> 確認事件的嚴重性與範圍。</li>
+                    <li><strong>保護現場：</strong> 防止證據被污染或破壞。例如，不要隨意重啟受感染的機器，除非那是圍堵策略的一部分。</li>
+                    <li><strong>初步圍堵：</strong> 在不破壞證據的前提下，阻止災害擴大 (例如將受駭主機隔離至 VLAN)。</li>
+                    <li><strong>通報：</strong> 依據升級矩陣 (Escalation Matrix) 通知 CSIRT 或管理層。</li>
+                    <li><strong>記錄：</strong> 詳細記錄所見所聞與採取的行動。</li>
+                </ul>
+            </div>
+
+            <!-- Concept 5: Network Traffic Analysis -->
+            <div class="card">
+                <div class="card-icon">05</div>
+                <h3>IoC 與 IoA (指標分析)</h3>
+                <div class="hud-line"></div>
+                <p>
+                    在檢測階段，我們依賴兩種類型的指標來發現威脅：
+                </p>
+                <p><strong>Indicators of Compromise (IoC - 入侵指標)：</strong><br>
+                表示攻擊「已經發生」的證據。這是一種被動的事後分析。<br>
+                <em>例如：已知的惡意 IP 位址、惡意軟體的 MD5 Hash 值、特定的病毒檔名。</em></p>
+                <br>
+                <p><strong>Indicators of Attack (IoA - 攻擊指標)：</strong><br>
+                表示攻擊「正在發生」的意圖或行為。這是一種主動的即時防禦。<br>
+                <em>例如：來自內部的異常大量出站流量、PowerShell 執行混淆指令、短時間內多次登入失敗後突然成功。</em></p>
+                <p class="highlight-red" style="font-size: 0.9rem;">CND 強調從 IoC 進化到關注 IoA，以實現主動防禦。</p>
+            </div>
+
+        </div>
+
+        <!-- QUIZ SECTION -->
+        <div class="quiz-section">
+            <h2 style="border:none; padding:0; margin-top:0;">TACTICAL SIMULATION (情境模擬測驗)</h2>
+            <p style="margin-bottom: 30px;">以下 10 題為 CND 認證風格模擬題。請以「藍隊防禦者」的角度思考最佳解方。</p>
+
+            <div id="quiz-container">
+                <!-- Javascript will inject questions here -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+        Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        const questions = [
+            {
+                id: 1,
+                question: "Question 1: 您是公司的網路管理員 (First Responder)。您發現某台伺服器正在向外部不明 IP 傳送大量數據，疑似正在進行資料外洩。根據 CND 的事件回應標準程序，在考慮證據保全與損害控制的平衡下，您的「第一步」行動應為何？",
+                options: [
+                    "立即將伺服器關機 (Power off) 以停止傳輸。",
+                    "立即拔除該伺服器的網路線 (Disconnect form network) 進行隔離。",
+                    "立即重新格式化硬碟以清除惡意軟體。",
+                    "立即執行防毒軟體全系統掃描。"
+                ],
+                correctIndex: 1,
+                explanation: "正確答案是 B。解析：第一優先級是「圍堵 (Containment)」。拔除網路線可以立即阻止資料外洩，同時保持伺服器開機狀態，讓記憶體中的證據 (RAM) 得以保存。選項 A (關機) 會導致 RAM 中的揮發性證據消失；選項 C 與 D 屬於根除階段，且會破壞現場證據。"
+            },
+            {
+                id: 2,
+                question: "Question 2: 在進行鑑識調查時，您準備收集受駭系統的證據。為了符合法律上的可採納性 (Admissibility)，您必須遵循「揮發性順序 (Order of Volatility)」。下列哪一項數據必須「最優先」收集？",
+                options: [
+                    "系統硬碟中的 Log 檔案 (Hard Disk Logs)",
+                    "封存的備份磁帶 (Archival Media)",
+                    "主記憶體與暫存器 (RAM & Registers)",
+                    "暫存文件夾 (Temporary Files)"
+                ],
+                correctIndex: 2,
+                explanation: "正確答案是 C。解析：根據揮發性順序，CPU 暫存器、快取與主記憶體 (RAM) 的數據最容易因斷電或系統運作而消失，因此必須最先收集。硬碟資料是持久性的，優先級較低。"
+            },
+            {
+                id: 3,
+                question: "Question 3: 您正在處理一起內部威脅事件，並已收集了硬碟映像檔 (Disk Image) 作為證據。為了證明該證據在分析過程中「未被竄改」，您應該使用什麼技術？",
+                options: [
+                    "AES 加密 (Encryption)",
+                    "雜湊演算法 (Hashing, 如 SHA-256)",
+                    "數位簽章 (Digital Signature)",
+                    "資料壓縮 (Compression)"
+                ],
+                correctIndex: 1,
+                explanation: "正確答案是 B。解析：雜湊 (Hashing) 是驗證數據完整性 (Integrity) 的標準方法。在收集證據當下計算 Hash 值，並在分析後再次計算，若兩者一致，即可證明證據未被修改。加密是用於保密，而非驗證完整性。"
+            },
+            {
+                id: 4,
+                question: "Question 4: 您的組織遭受了勒索軟體 (Ransomware) 攻擊。IH&R 團隊已經完成了「圍堵 (Containment)」階段，確認感染範圍已被控制。接下來應該進入哪一個階段？",
+                options: [
+                    "準備 (Preparation)",
+                    "識別 (Identification)",
+                    "根除 (Eradication)",
+                    "復原 (Recovery)"
+                ],
+                correctIndex: 2,
+                explanation: "正確答案是 C。解析：IH&R 流程順序為：準備 -> 識別 -> 圍堵 -> 根除 -> 復原 -> 檢討。圍堵後，必須先「根除」惡意軟體與漏洞 (例如刪除惡意檔案、修補漏洞)，才能安全地進行「復原」。若直接復原，系統可能再次被感染。"
+            },
+            {
+                id: 5,
+                question: "Question 5: 作為鑑識分析師，您需要證明證據從收集到出庭的整個過程中，都有嚴密的監管記錄，沒有任何未授權的人接觸過該證據。這份記錄稱為什麼？",
+                options: [
+                    "Service Level Agreement (SLA)",
+                    "Chain of Custody (監管鏈)",
+                    "Incident Response Plan (IRP)",
+                    "Non-Disclosure Agreement (NDA)"
+                ],
+                correctIndex: 1,
+                explanation: "正確答案是 B。解析：Chain of Custody (監管鏈) 是法律文件中最重要的部分，詳細記錄了證據的收集、保管、移交過程。若監管鏈中斷或記錄不全，證據將在法庭上失效。"
+            },
+            {
+                id: 6,
+                question: "Question 6: 某公司懷疑其網路中存在 Advanced Persistent Threat (APT)。防禦團隊不再被動等待警報，而是主動搜尋網路中的異常行為與潛在威脅。這種主動防禦的方法稱為什麼？",
+                options: [
+                    "Penetration Testing (滲透測試)",
+                    "Threat Hunting (威脅獵捕)",
+                    "Vulnerability Scanning (弱點掃描)",
+                    "Patch Management (修補程式管理)"
+                ],
+                correctIndex: 1,
+                explanation: "正確答案是 B。解析：Threat Hunting (威脅獵捕) 是主動式防禦的核心，假設系統已被入侵，並主動搜尋潛伏的威脅 (IoA)。滲透測試是模擬攻擊以發現漏洞，通常是定期進行而非持續性的監控活動。"
+            },
+            {
+                id: 7,
+                question: "Question 7: 在事件回應的「識別 (Identification)」階段，您發現防火牆 Log 顯示有大量來自同一 IP 的連線請求被拒絕，這符合哪種攻擊特徵？",
+                options: [
+                    "SQL Injection",
+                    "Port Scanning (通訊埠掃描) 或 DoS 前兆",
+                    "Phishing (釣魚攻擊)",
+                    "Man-in-the-Middle (中間人攻擊)"
+                ],
+                correctIndex: 1,
+                explanation: "正確答案是 B。解析：大量被拒絕的連線請求通常意味著攻擊者正在進行網路偵察 (如 Port Scan) 尋找開放端口，或者是發動容量耗盡型的 DoS 攻擊。SQL Injection 針對應用層，Phishing 針對電子郵件，MITM 涉及流量攔截，通常不會產生大量防火牆拒絕日誌。"
+            },
+            {
+                id: 8,
+                question: "Question 8: 根據 NIST 的定義，以下哪項活動屬於 IH&R 流程中的「經驗學習 (Lessons Learned)」階段？",
+                options: [
+                    "重新安裝作業系統與應用程式",
+                    "撰寫事後檢討報告 (After-Action Report) 並更新資安政策",
+                    "將受感染的主機隔離至 VLAN",
+                    "備份關鍵業務資料"
+                ],
+                correctIndex: 1,
+                explanation: "正確答案是 B。解析：經驗學習階段的重點是檢討事件處理過程的成敗，產出報告，並根據此次經驗修正組織的資安政策與防禦架構，以防止未來再次發生。"
+            },
+            {
+                id: 9,
+                question: "Question 9: 在處理涉及法律訴訟的資安事件時，若您直接在原始硬碟 (Original Drive) 上進行分析，違反了哪項鑑識原則？",
+                options: [
+                    "Order of Volatility (揮發性順序)",
+                    "Data Preservation (數據保全 - 應分析複本)",
+                    "Data Recovery (數據恢復)",
+                    "Network Isolation (網路隔離)"
+                ],
+                correctIndex: 1,
+                explanation: "正確答案是 B。解析：鑑識黃金原則是「永遠不要在原始證據上進行操作」。必須先製作 Bit-by-bit 的映像檔 (Image) 複本，並在複本上進行分析，以確保原始證據的完整性不被破壞。"
+            },
+            {
+                id: 10,
+                question: "Question 10: 您發現某員工的電腦疑似被安裝了鍵盤側錄程式 (Keylogger)。該程式是一個已知的惡意軟體，其檔案雜湊值 (Hash) 已被公開。這個 Hash 值屬於哪種類型的指標？",
+                options: [
+                    "Indicator of Attack (IoA)",
+                    "Indicator of Compromise (IoC)",
+                    "Risk Indicator (RI)",
+                    "Performance Indicator (PI)"
+                ],
+                correctIndex: 1,
+                explanation: "正確答案是 B。解析：IoC (入侵指標) 是用於識別已知威脅的證據，如惡意軟體的 Hash、已知的惡意 IP。IoA (攻擊指標) 則更側重於攻擊者的行為模式與意圖 (如橫向移動的行為)。已知的惡意 Hash 值是典型的 IoC。"
+            }
+        ];
+
+        const quizContainer = document.getElementById('quiz-container');
+
+        questions.forEach((q, index) => {
+            const questionBlock = document.createElement('div');
+            questionBlock.className = 'question-block';
+
+            const questionText = document.createElement('div');
+            questionText.className = 'question-text';
+            questionText.innerText = q.question;
+            questionBlock.appendChild(questionText);
+
+            const optionsContainer = document.createElement('div');
+            optionsContainer.className = 'options-container';
+
+            const explanationDiv = document.createElement('div');
+            explanationDiv.className = 'explanation';
+            explanationDiv.innerHTML = `<span class="explanation-title">TACTICAL ANALYSIS // 解析</span>${q.explanation}`;
+
+            q.options.forEach((opt, optIndex) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt;
+                btn.onclick = function() {
+                    // Disable all buttons in this block
+                    const allBtns = optionsContainer.querySelectorAll('.option-btn');
+                    allBtns.forEach(b => {
+                        b.disabled = true;
+                        b.style.cursor = 'default';
+                    });
+
+                    // Check answer
+                    if (optIndex === q.correctIndex) {
+                        btn.classList.add('correct');
+                        btn.innerHTML += ' [CORRECT]';
+                    } else {
+                        btn.classList.add('incorrect');
+                        btn.innerHTML += ' [INCORRECT]';
+                        // Highlight correct one
+                        allBtns[q.correctIndex].classList.add('correct');
+                    }
+
+                    // Show explanation
+                    explanationDiv.style.display = 'block';
+                };
+                optionsContainer.appendChild(btn);
+            });
+
+            questionBlock.appendChild(optionsContainer);
+            questionBlock.appendChild(explanationDiv);
+            quizContainer.appendChild(questionBlock);
+        });
+    </script>
+</body>
+</html>

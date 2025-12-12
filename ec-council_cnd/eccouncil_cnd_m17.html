@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EC-Council CND 網路防禦課程 | Module 17</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&family=Noto+Sans+TC:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #111111;
+            --card-bg: #1a1a1a;
+            --text-main: #e0e0e0;
+            --text-dim: #a0a0a0;
+            --accent-red: #FF0000;
+            --accent-dark-red: #8a0000;
+            --hud-grid: rgba(255, 0, 0, 0.05);
+            --border-color: #333;
+            --success-green: #00ff41;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Rajdhani', 'Noto Sans TC', sans-serif;
+            line-height: 1.6;
+            background-image: 
+                linear-gradient(var(--hud-grid) 1px, transparent 1px),
+                linear-gradient(90deg, var(--hud-grid) 1px, transparent 1px);
+            background-size: 40px 40px;
+            overflow-x: hidden;
+        }
+
+        /* HUD Scanline Effect */
+        body::before {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 2;
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 3;
+        }
+
+        /* Header Section */
+        header {
+            border-bottom: 2px solid var(--accent-red);
+            padding: 40px 0;
+            margin-bottom: 40px;
+            position: relative;
+            text-align: center;
+        }
+
+        header::after {
+            content: "SYSTEM_READY";
+            position: absolute;
+            bottom: 5px;
+            right: 0;
+            font-size: 0.8rem;
+            color: var(--accent-red);
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        h1 {
+            font-size: 3rem;
+            text-shadow: 0 0 10px var(--accent-dark-red);
+        }
+
+        .subtitle {
+            color: var(--accent-red);
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        /* Module Content Cards */
+        .content-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 60px;
+        }
+
+        .cyber-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 25px;
+            position: relative;
+            transition: transform 0.3s, box-shadow 0.3s;
+            clip-path: polygon(
+                0 0, 
+                100% 0, 
+                100% calc(100% - 20px), 
+                calc(100% - 20px) 100%, 
+                0 100%
+            );
+        }
+
+        .cyber-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.2);
+            border-color: var(--accent-red);
+        }
+
+        .cyber-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100px;
+            height: 2px;
+            background: var(--accent-red);
+        }
+
+        .card-icon {
+            font-size: 2rem;
+            color: var(--accent-red);
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .cyber-card h3 {
+            border-left: 3px solid var(--accent-red);
+            padding-left: 10px;
+            margin-bottom: 15px;
+            color: #fff;
+        }
+
+        .cyber-card p, .cyber-card li {
+            font-size: 0.95rem;
+            color: var(--text-dim);
+            margin-bottom: 10px;
+        }
+
+        .cyber-card strong {
+            color: var(--text-main);
+            font-weight: 700;
+        }
+
+        .tech-list {
+            list-style: none;
+            margin-top: 15px;
+        }
+
+        .tech-list li {
+            position: relative;
+            padding-left: 20px;
+        }
+
+        .tech-list li::before {
+            content: ">";
+            position: absolute;
+            left: 0;
+            color: var(--accent-red);
+        }
+
+        /* Comparison Table */
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            margin: 20px 0;
+            border: 1px solid var(--border-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: #222;
+            color: var(--accent-red);
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+        }
+
+        tr:hover td {
+            background-color: rgba(255, 0, 0, 0.05);
+        }
+
+        /* Quiz Section */
+        .quiz-section {
+            margin-top: 80px;
+            border-top: 2px solid var(--border-color);
+            padding-top: 40px;
+        }
+
+        .quiz-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .quiz-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 30px;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .question-card h4 {
+            color: var(--accent-red);
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .question-text {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .options-grid {
+            display: grid;
+            gap: 10px;
+        }
+
+        .option-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-dim);
+            padding: 15px;
+            text-align: left;
+            cursor: pointer;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1rem;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background: rgba(255, 0, 0, 0.1);
+            border-color: var(--accent-red);
+            color: #fff;
+        }
+
+        .option-btn.correct {
+            border-color: var(--success-green);
+            background: rgba(0, 255, 65, 0.1);
+            color: #fff;
+        }
+
+        .option-btn.wrong {
+            border-color: var(--accent-red);
+            background: rgba(255, 0, 0, 0.1);
+            color: var(--accent-red);
+            text-decoration: line-through;
+        }
+
+        .explanation {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 3px solid var(--accent-red);
+            font-size: 0.95rem;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .explanation strong {
+            color: var(--accent-red);
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 80px;
+            border-top: 1px solid var(--border-color);
+            padding: 20px;
+            background: #000;
+            text-align: center;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+            width: 100%;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            .content-section { grid-template-columns: 1fr; }
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>EC-Council CND</h1>
+        <div class="subtitle">CERTIFIED NETWORK DEFENDER // MODULE 17</div>
+        <p style="color: var(--text-dim); margin-top: 10px;">資料復原與業務連續性 (Data Recovery and Business Continuity)</p>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Intro Card -->
+        <div class="cyber-card" style="margin-bottom: 30px; width: 100%;">
+            <h3><span class="card-icon">⚠️</span>藍隊防禦視角 (Blue Team Perspective)</h3>
+            <p>
+                在網路防禦中，<strong>可用性 (Availability)</strong> 是 CIA 三角中的關鍵一環。無論是面對勒索軟體 (Ransomware) 攻擊、硬體故障還是自然災害，網路防禦者 (Network Defender) 必須確保組織能在可接受的時間內恢復運作。
+            </p>
+            <p>
+                本模組重點在於：<strong>備份策略 (Backup Strategies)</strong>、<strong>災難復原 (Disaster Recovery)</strong> 以及 <strong>業務連續性規劃 (BCP)</strong>。這不僅是 IT 任務，更是遵循 <strong>NIST CSF (Recover Function)</strong> 與 <strong>GDPR</strong> 等法規的必要措施。
+            </p>
+        </div>
+
+        <section class="content-section">
+            
+            <!-- Backup Strategies -->
+            <div class="cyber-card">
+                <h3>01. 備份策略 (Backup Strategies)</h3>
+                <p>選擇正確的備份類型以平衡「儲存成本」與「復原時間 (RTO)」。</p>
+                <ul class="tech-list">
+                    <li><strong>完全備份 (Full Backup)：</strong> 備份所有選定的資料。復原最快，但備份最慢、佔空間最大。</li>
+                    <li><strong>增量備份 (Incremental Backup)：</strong> 僅備份自「上一次任何備份」後變更的資料。備份最快，但復原最慢 (需回放 Full + 所有 Incremental)。</li>
+                    <li><strong>差異備份 (Differential Backup)：</strong> 僅備份自「上一次完全備份」後變更的資料。復原速度中等 (需 Full + 最新 Differential)。</li>
+                    <li><strong>3-2-1 規則：</strong> 3 份副本，2 種不同介質，1 份異地存放 (Off-site)。</li>
+                </ul>
+            </div>
+
+            <!-- RAID Levels -->
+            <div class="cyber-card">
+                <h3>02. 磁碟陣列容錯 (RAID)</h3>
+                <p>RAID 提供硬體級別的可用性，但<strong>不是備份</strong>。</p>
+                <div class="table-container">
+                    <table>
+                        <tr>
+                            <th>Level</th>
+                            <th>描述</th>
+                            <th>容錯能力</th>
+                        </tr>
+                        <tr>
+                            <td>RAID 0</td>
+                            <td>Striping (條帶化)</td>
+                            <td>無 (任一壞即全毀)</td>
+                        </tr>
+                        <tr>
+                            <td>RAID 1</td>
+                            <td>Mirroring (鏡像)</td>
+                            <td>極高 (1/2 磁碟失效)</td>
+                        </tr>
+                        <tr>
+                            <td>RAID 5</td>
+                            <td>Parity (同位元檢查)</td>
+                            <td>容許 1 顆壞</td>
+                        </tr>
+                        <tr>
+                            <td>RAID 10</td>
+                            <td>RAID 1 + RAID 0</td>
+                            <td>高效能與高容錯</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- DR Sites -->
+            <div class="cyber-card">
+                <h3>03. 災難復原站點 (DR Sites)</h3>
+                <p>當主機房完全癱瘓時的備援方案。</p>
+                <ul class="tech-list">
+                    <li><strong>熱站 (Hot Site)：</strong> 設備齊全，資料即時同步。RTO 極短 (數分鐘至數小時)，成本最高。</li>
+                    <li><strong>溫站 (Warm Site)：</strong> 有硬體設備與網路，但資料不是最新的 (需從備份還原)。RTO 約數天。</li>
+                    <li><strong>冷站 (Cold Site)：</strong> 僅有電力與空間，無設備。成本最低，RTO 最長 (數週)。</li>
+                </ul>
+            </div>
+
+            <!-- RTO vs RPO -->
+            <div class="cyber-card">
+                <h3>04. 關鍵指標 (Key Metrics)</h3>
+                <p>業務影響分析 (BIA) 產出的核心指標。</p>
+                <ul class="tech-list">
+                    <li><strong>RPO (Recovery Point Objective)：</strong> 容許遺失多少資料？(決定備份頻率)。例如：RPO=4小時，代表最多損失4小時的資料。</li>
+                    <li><strong>RTO (Recovery Time Objective)：</strong> 容許系統當機多久？(決定DR方案)。例如：RTO=2小時，代表必須在2小時內恢復服務。</li>
+                    <li><strong>MTD (Maximum Tolerable Downtime)：</strong> 組織能忍受的最大停機極限。RTO 必須小於 MTD。</li>
+                </ul>
+            </div>
+
+            <!-- Compliance -->
+            <div class="cyber-card">
+                <h3>05. 標準與法規 (Standards)</h3>
+                <p>防禦者需依據框架制定計畫。</p>
+                <ul class="tech-list">
+                    <li><strong>NIST SP 800-34：</strong> 聯邦資訊系統應變計畫指南 (Contingency Planning)。</li>
+                    <li><strong>ISO 22301：</strong> 業務連續性管理系統 (BCMS) 國際標準。</li>
+                    <li><strong>GDPR / HIPAA：</strong> 強制要求資料可用性與復原能力的測試。</li>
+                </ul>
+            </div>
+
+        </section>
+
+        <!-- Quiz Section -->
+        <section class="quiz-section">
+            <div class="quiz-header">
+                <h2>TACTICAL SIMULATION EXAM</h2>
+                <div class="subtitle">EC-COUNCIL CND 模擬試題</div>
+                <p>請選擇最佳的防禦策略或解釋。</p>
+            </div>
+
+            <div class="quiz-container" id="quiz-output">
+                <!-- Javascript will render questions here -->
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0
+    </footer>
+</div>
+
+<script>
+    const questions = [
+        {
+            id: 1,
+            text: "某醫療機構遭遇勒索軟體攻擊，雖然他們支付了贖金，但數據庫部分損毀。經調查發現，他們上一次的備份是在 24 小時前進行的。若該機構的政策規定「最多只能損失 4 小時的資料」，請問這是違反了哪一個指標？",
+            options: [
+                "A. RTO (Recovery Time Objective)",
+                "B. RPO (Recovery Point Objective)",
+                "C. MTD (Maximum Tolerable Downtime)",
+                "D. MTBF (Mean Time Between Failures)"
+            ],
+            correct: 1,
+            explanation: "<strong>解析：B (RPO)。</strong> Recovery Point Objective (RPO) 定義了在災難發生時，組織能容忍的「數據丟失量」或時間點。題目中提到「只能損失 4 小時資料」，但備份卻是 24 小時前的，這表示實際數據損失超過了設定的 RPO。RTO 則是關於「恢復服務所需的時間」。"
+        },
+        {
+            id: 2,
+            text: "作為網路管理員，你需要為一個讀取頻繁但寫入較少的檔案伺服器配置磁碟陣列。預算有限，但必須容許至少一顆硬碟損壞而不遺失資料。下列哪種 RAID 層級最符合需求？",
+            options: [
+                "A. RAID 0",
+                "B. RAID 1",
+                "C. RAID 5",
+                "D. RAID 10"
+            ],
+            correct: 2,
+            explanation: "<strong>解析：C (RAID 5)。</strong> RAID 5 使用分散式同位元檢查 (Distributed Parity)，容許一顆硬碟損壞，且硬碟空間利用率優於 RAID 1 (N-1 的容量)。RAID 0 無容錯；RAID 1 成本較高 (僅 50% 利用率)；RAID 10 成本最高。對於讀取頻繁且有預算考量的情境，RAID 5 是常見選擇。"
+        },
+        {
+            id: 3,
+            text: "一家跨國銀行要求其核心交易系統必須具備最高的可用性。若主資料中心發生地震，備援中心必須在「幾分鐘內」接手運作，且數據必須幾乎同步。請問應建立哪種災難復原站點？",
+            options: [
+                "A. Cold Site (冷站)",
+                "B. Warm Site (溫站)",
+                "C. Hot Site (熱站)",
+                "D. Mobile Site (移動站)"
+            ],
+            correct: 2,
+            explanation: "<strong>解析：C (Hot Site)。</strong> 熱站配備了所有必要的硬體、軟體和即時數據同步 (Real-time mirroring)，能在極短時間內接管業務。冷站只有空間無設備；溫站有設備但數據需要時間還原。"
+        },
+        {
+            id: 4,
+            text: "你正在制定備份策略。為了優化每週的備份窗口 (Backup Window)，你決定週日進行完全備份 (Full Backup)，週一至週六進行差異備份 (Differential Backup)。若系統在週四發生故障，請問復原步驟為何？",
+            options: [
+                "A. 僅還原週四的差異備份",
+                "B. 還原週日的完全備份，然後依序還原週一、週二、週三的差異備份",
+                "C. 還原週日的完全備份，然後僅還原週三的差異備份",
+                "D. 還原週日的完全備份，然後還原週三（或最新）的差異備份"
+            ],
+            correct: 3,
+            explanation: "<strong>解析：D。</strong> 差異備份 (Differential) 備份的是「自上一次完全備份以來」的所有變更。因此，復原時只需要：最後一次的 Full Backup + 「最新的一份」Differential Backup。如果是增量備份 (Incremental)，才需要依序還原每一天的備份。"
+        },
+        {
+            id: 5,
+            text: "在執行業務影響分析 (BIA) 時，識別出某個關鍵業務流程如果中斷超過 24 小時，公司將面臨破產風險。這 24 小時代表什麼？",
+            options: [
+                "A. MTD (Maximum Tolerable Downtime)",
+                "B. RTO (Recovery Time Objective)",
+                "C. WRT (Work Recovery Time)",
+                "D. MTTR (Mean Time To Repair)"
+            ],
+            correct: 0,
+            explanation: "<strong>解析：A (MTD)。</strong> 最大可容忍停機時間 (MTD) 是組織在遭受不可逆轉的損害（如破產、商譽全毀）前，能忍受的最長停機時間。RTO 必須設定得比 MTD 短，以確保在極限來臨前恢復。"
+        },
+        {
+            id: 6,
+            text: "根據 3-2-1 備份規則，下列哪項配置是正確的實踐？",
+            options: [
+                "A. 3 份資料副本，存放在 2 個不同的雲端資料夾，1 個在本地硬碟",
+                "B. 3 份資料副本，使用 2 種不同的儲存介質，其中 1 份存放在異地",
+                "C. 3 種不同的備份軟體，2 個備份管理員，1 個備份伺服器",
+                "D. 3 個不同的資料中心，2 份資料副本，1 個雲端帳號"
+            ],
+            correct: 1,
+            explanation: "<strong>解析：B。</strong> 3-2-1 規則的標準定義是：至少 3 份資料副本 (一份正本+兩份備份)，存放在 2 種不同的儲存介質 (如硬碟+磁帶，或 NAS+雲端)，其中至少 1 份必須存放在異地 (Off-site)，以防本地發生物理災難。"
+        },
+        {
+            id: 7,
+            text: "某管理員使用 `tar` 指令在 Linux 伺服器上進行備份。他希望透過網路將備份檔加密傳輸到異地伺服器。下列哪個工具最適合搭配使用以確保傳輸安全？",
+            options: [
+                "A. FTP",
+                "B. TFTP",
+                "C. Telnet",
+                "D. SCP / SSH"
+            ],
+            correct: 3,
+            explanation: "<strong>解析：D (SCP / SSH)。</strong> 作為防禦者，必須確保 Data in Transit 的安全。FTP, TFTP, Telnet 都是明文傳輸協議，容易被嗅探 (Sniffing)。SCP (Secure Copy) 基於 SSH 協議，提供加密傳輸，是傳輸備份檔案的安全選擇。"
+        },
+        {
+            id: 8,
+            text: "在虛擬化環境中，管理員使用「快照 (Snapshot)」功能來保護虛擬機。關於快照與備份的區別，下列敘述何者正確？",
+            options: [
+                "A. 快照可以完全取代傳統備份",
+                "B. 快照是長期的資料保存方案",
+                "C. 快照依賴於原始磁碟映像檔，若原始檔案損毀，快照也可能無效",
+                "D. 快照通常存放在異地磁帶機中"
+            ],
+            correct: 2,
+            explanation: "<strong>解析：C。</strong> EC-Council 強調，快照 (Snapshot) 是「時間點的狀態紀錄」，主要用於測試或快速回滾，它依賴於底層的虛擬硬碟結構。如果存儲陣列損毀，快照通常也會遺失。因此快照不能取代獨立的備份 (Backup)。"
+        },
+        {
+            id: 9,
+            text: "為了符合 GDPR 對於「個人資料完整性與機密性」的要求，當你將備份磁帶運送到異地倉庫保存時，最關鍵的安全控制措施是什麼？",
+            options: [
+                "A. 使用快遞追蹤號碼",
+                "B. 對磁帶內的資料進行加密 (Encryption)",
+                "C. 定期清洗磁頭",
+                "D. 將磁帶放入防火箱"
+            ],
+            correct: 1,
+            explanation: "<strong>解析：B。</strong> 雖然實體安全很重要，但為了防止運送過程中磁帶遺失或被竊導致資料外洩 (Data Breach)，最關鍵的措施是「加密」。即使磁帶被偷，攻擊者也無法讀取其中的敏感個資。"
+        },
+        {
+            id: 10,
+            text: "災難復原計畫 (DRP) 制定後，如果沒有經過測試就等同無效。哪一種測試方法是在不中斷實際業務運作的情況下，各部門主管聚集在會議室中，透過口頭演練討論災難發生時的應對流程？",
+            options: [
+                "A. Full Interruption Test (全面中斷測試)",
+                "B. Parallel Test (平行測試)",
+                "C. Tabletop Exercise / Structured Walkthrough (桌上演練/結構化預排)",
+                "D. Simulation Test (模擬測試)"
+            ],
+            correct: 2,
+            explanation: "<strong>解析：C。</strong> 桌上演練 (Tabletop Exercise) 或結構化預排 (Structured Walkthrough) 是成本最低、對業務無影響的測試方式。主要用於確認計畫的邏輯、人員職責與溝通流程是否正確。全面中斷測試風險最高。"
+        }
+    ];
+
+    function renderQuiz() {
+        const container = document.getElementById('quiz-output');
+        
+        questions.forEach((q, index) => {
+            const card = document.createElement('div');
+            card.className = 'question-card';
+            
+            let optionsHtml = '';
+            q.options.forEach((opt, optIndex) => {
+                optionsHtml += `<button class="option-btn" onclick="checkAnswer(${index}, ${optIndex}, this)">${opt}</button>`;
+            });
+
+            card.innerHTML = `
+                <h4>QUESTION ${q.id}</h4>
+                <div class="question-text">${q.text}</div>
+                <div class="options-grid" id="q-options-${index}">
+                    ${optionsHtml}
+                </div>
+                <div class="explanation" id="explanation-${index}">
+                    ${q.explanation}
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function checkAnswer(qIndex, selectedOptIndex, btnElement) {
+        const question = questions[qIndex];
+        const optionsContainer = document.getElementById(`q-options-${qIndex}`);
+        const buttons = optionsContainer.getElementsByClassName('option-btn');
+        const explanation = document.getElementById(`explanation-${qIndex}`);
+
+        // Disable all buttons for this question
+        for (let btn of buttons) {
+            btn.disabled = true;
+            btn.style.cursor = 'default';
+        }
+
+        // Check correct answer
+        if (selectedOptIndex === question.correct) {
+            btnElement.classList.add('correct');
+        } else {
+            btnElement.classList.add('wrong');
+            // Highlight the correct one
+            buttons[question.correct].classList.add('correct');
+        }
+
+        // Show explanation
+        explanation.style.display = 'block';
+    }
+
+    // Initialize Quiz
+    window.onload = renderQuiz;
+
+</script>
+
+</body>
+</html>
