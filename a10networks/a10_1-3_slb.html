@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A10 Networks Thunder 實戰課程 | SLB 核心邏輯</title>
+    
+    <!-- Fonts: Rubik -->
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons: FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Mermaid JS (Fixed Version) -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.0/dist/mermaid.min.js"></script>
+
+    <!-- Custom Config for Colors -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Rubik', 'sans-serif'],
+                    },
+                    colors: {
+                        a10blue: '#002F6C',    /* Midnight Blue */
+                        a10light: '#F4F6F8',   /* Light Grey */
+                        a10magenta: '#CF0072', /* Magenta */
+                        a10orange: '#FF6600',  /* Orange */
+                        a10purple: '#663399',  /* Purple Accent */
+                        a10teal: '#008080',    /* Teal for new section */
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Rubik', sans-serif;
+            background-color: #F4F6F8;
+            color: #333;
+        }
+        .gradient-header {
+            background: linear-gradient(135deg, #002F6C 0%, #1a4c8a 100%);
+        }
+        .card-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+        }
+        .card-shadow:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .mermaid {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+        }
+        .code-block {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #1e293b;
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            overflow-x: auto;
+            line-height: 1.5;
+            white-space: pre; 
+        }
+        .code-comment {
+            color: #94a3b8;
+            font-style: italic;
+        }
+        .code-keyword {
+            color: #a78bfa; 
+            font-weight: bold;
+        }
+        .code-object {
+            color: #fbbf24; 
+        }
+        .code-ip {
+            color: #34d399; 
+        }
+        .quiz-option:hover {
+            background-color: #f0f9ff;
+            border-color: #002F6C;
+        }
+        .quiz-option.selected-correct {
+            background-color: #d1fae5;
+            border-color: #059669;
+            color: #065f46;
+        }
+        .quiz-option.selected-wrong {
+            background-color: #fee2e2;
+            border-color: #dc2626;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="gradient-header text-white py-8 shadow-lg">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold mb-2"><i class="fa-solid fa-server mr-3"></i>A10 Networks Thunder 實戰課程</h1>
+                    <p class="text-blue-100 text-lg">Level 1 - Foundation: 3. SLB (Server Load Balancing) 核心邏輯</p>
+                </div>
+                <div class="mt-4 md:mt-0 bg-white/10 px-4 py-2 rounded-lg backdrop-blur-sm border border-white/20">
+                    <span class="text-a10orange font-bold">講師：</span> A10 Thunder 架構大師
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-10 space-y-12">
+
+        <!-- 1. Core Concept -->
+        <section id="concept" class="bg-white rounded-2xl p-8 card-shadow border-t-4 border-a10magenta">
+            <h2 class="text-2xl font-bold text-a10blue mb-6 flex items-center">
+                <span class="bg-blue-100 text-a10blue p-2 rounded-lg mr-3"><i class="fa-solid fa-lightbulb"></i></span>
+                一、核心概念 (Concept)
+            </h2>
+            
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="space-y-4">
+                    <h3 class="text-xl font-semibold text-gray-800">一句話定義</h3>
+                    <p class="text-gray-600 leading-relaxed text-lg">
+                        SLB (伺服器負載平衡) 就像是一位<strong>交通指揮官</strong>，將來自用戶端的請求，依據特定的規則，聰明地分配給後端多台伺服器，確保沒有一台伺服器過勞，也沒有一台閒置。
+                    </p>
+                </div>
+                <div class="bg-blue-50 p-6 rounded-xl border border-blue-100">
+                    <h3 class="text-xl font-semibold text-a10blue mb-3">生活化比喻：銀行櫃台</h3>
+                    <p class="text-gray-700">
+                        想像你去銀行辦事：
+                        <ul class="list-disc ml-5 mt-2 space-y-2">
+                            <li><strong>Virtual Server (VIP)</strong>：抽號碼牌機（你只認得這個入口）。</li>
+                            <li><strong>A10 Thunder (SLB)</strong>：大廳經理（負責看哪個櫃台沒人，叫你的號碼）。</li>
+                            <li><strong>Real Server</strong>：實際辦理業務的行員（真正處理工作的人）。</li>
+                        </ul>
+                        <div class="mt-4 text-sm text-a10magenta font-medium">
+                            <i class="fa-solid fa-star mr-1"></i> 重點：客戶不需要知道哪個行員有空，只找大廳經理即可。
+                        </div>
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. Mechanism -->
+        <section id="mechanism" class="space-y-8">
+            <div class="bg-white rounded-2xl p-8 card-shadow border-t-4 border-a10blue">
+                <h2 class="text-2xl font-bold text-a10blue mb-6 flex items-center">
+                    <span class="bg-blue-100 text-a10blue p-2 rounded-lg mr-3"><i class="fa-solid fa-gears"></i></span>
+                    二、運作原理 (Mechanism)
+                </h2>
+
+                <!-- Key Objects -->
+                <div class="mb-10">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">1. 關鍵物件階層 (Hierarchy)</h3>
+                    <div class="grid md:grid-cols-3 gap-6 text-center">
+                        <div class="bg-gray-50 p-6 rounded-xl border hover:border-a10blue transition">
+                            <div class="text-4xl text-a10blue mb-3"><i class="fa-solid fa-server"></i></div>
+                            <h4 class="font-bold text-lg mb-2">Real Server (RS)</h4>
+                            <p class="text-sm text-gray-600">真實的物理或虛擬主機 IP。<br>(例如：192.168.1.10)</p>
+                        </div>
+                        <div class="bg-gray-50 p-6 rounded-xl border hover:border-a10blue transition">
+                            <div class="text-4xl text-a10purple mb-3"><i class="fa-solid fa-layer-group"></i></div>
+                            <h4 class="font-bold text-lg mb-2">Service Group (SG)</h4>
+                            <p class="text-sm text-gray-600">將一群提供相同服務的 RS 綁定在一起的邏輯群組。</p>
+                        </div>
+                        <div class="bg-gray-50 p-6 rounded-xl border hover:border-a10blue transition">
+                            <div class="text-4xl text-a10magenta mb-3"><i class="fa-solid fa-globe"></i></div>
+                            <h4 class="font-bold text-lg mb-2">Virtual Server (VIP)</h4>
+                            <p class="text-sm text-gray-600">對外服務的 IP 地址，接收使用者流量的入口。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Algorithms -->
+                <div class="mb-10">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">2. 負載平衡演算法 (Algorithms)</h3>
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <div class="p-4 border rounded-lg border-l-4 border-l-blue-500">
+                            <h4 class="font-bold text-a10blue">Round Robin (RR)</h4>
+                            <p class="text-sm mt-2 text-gray-600">輪流發牌。1號、2號、3號、1號... 公平但無視伺服器效能差異。</p>
+                        </div>
+                        <div class="p-4 border rounded-lg border-l-4 border-l-purple-500">
+                            <h4 class="font-bold text-a10purple">Least Connection (LC)</h4>
+                            <p class="text-sm mt-2 text-gray-600">誰最閒給誰。將連線丟給當前連線數最少的伺服器。適合長連線服務。</p>
+                        </div>
+                        <div class="p-4 border rounded-lg border-l-4 border-l-orange-500">
+                            <h4 class="font-bold text-a10orange">Weighted (加權)</h4>
+                            <p class="text-sm mt-2 text-gray-600">能者多勞。效能強的伺服器設高權重 (Weight)，處理更多流量。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Health Monitors -->
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">3. 健康檢查 (Health Monitor)</h3>
+                    <div class="overflow-hidden rounded-xl border border-gray-200">
+                        <table class="min-w-full bg-white">
+                            <thead class="bg-a10blue text-white">
+                                <tr>
+                                    <th class="py-3 px-4 text-left">類型</th>
+                                    <th class="py-3 px-4 text-left">檢查方式</th>
+                                    <th class="py-3 px-4 text-left">優缺點</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-700">
+                                <tr class="border-b">
+                                    <td class="py-3 px-4 font-medium">L3/L4 Check (Ping/TCP)</td>
+                                    <td class="py-3 px-4">Ping IP 或 Telnet Port (如 TCP 80)。</td>
+                                    <td class="py-3 px-4"><span class="text-green-600">快、省資源</span>。但無法得知 Web 服務是否當機 (例如 IIS 服務掛掉但 Port 還開著)。</td>
+                                </tr>
+                                <tr class="bg-gray-50">
+                                    <td class="py-3 px-4 font-medium">L7 Check (HTTP/Content)</td>
+                                    <td class="py-3 px-4">發送 HTTP GET，檢查回應是否為 "200 OK" 或包含特定關鍵字。</td>
+                                    <td class="py-3 px-4"><span class="text-a10magenta">精準</span>。能確認應用程式真的活著，但較耗資源。</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Operation Modes -->
+        <section id="modes" class="bg-white rounded-2xl p-8 card-shadow border-t-4 border-a10orange">
+            <h2 class="text-2xl font-bold text-a10blue mb-6 flex items-center">
+                <span class="bg-blue-100 text-a10blue p-2 rounded-lg mr-3"><i class="fa-solid fa-network-wired"></i></span>
+                三、運作模式 (Operation Modes)
+            </h2>
+            <p class="text-gray-600 mb-6">A10 Thunder 支援多種網路部署模式，選擇哪種模式取決於現有的網路拓撲與是否需要保留來源 IP。</p>
+            
+            <div class="grid md:grid-cols-1 gap-8">
+                <!-- Route Mode -->
+                <div class="border rounded-xl p-6 hover:shadow-md transition relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 w-20 h-20 bg-blue-100 rounded-bl-full -mr-10 -mt-10 transition-all group-hover:bg-blue-200"></div>
+                    <h3 class="text-xl font-bold text-a10blue mb-3 relative z-10"><i class="fa-solid fa-signs-post mr-2"></i>1. Route Mode (路由模式)</h3>
+                    <p class="text-gray-600 mb-4">
+                        A10 位於 Client 與 Server 之間，並且擔任後端 Server 的 <strong>預設閘道 (Default Gateway)</strong>。
+                    </p>
+                    <div class="bg-blue-50 p-4 rounded-lg text-sm text-gray-700 space-y-2">
+                        <p><strong><i class="fa-solid fa-check text-green-500 mr-2"></i>特性：</strong>Server 回程流量自然經過 A10 (因為 Gateway 指向 A10)。</p>
+                        <p><strong><i class="fa-solid fa-star text-a10orange mr-2"></i>優點：</strong>通常不需要設定 Source NAT，Server 可以看到真實的 Client IP。</p>
+                        <p><strong><i class="fa-solid fa-network-wired text-a10blue mr-2"></i>適用：</strong>新架設的網路環境，結構最單純。</p>
+                    </div>
+                </div>
+
+                <!-- One-Arm Mode -->
+                <div class="border rounded-xl p-6 hover:shadow-md transition bg-gradient-to-r from-white to-orange-50 border-l-4 border-l-a10magenta">
+                    <h3 class="text-xl font-bold text-a10magenta mb-3"><i class="fa-solid fa-code-branch mr-2"></i>2. One-Arm Mode (單臂模式)</h3>
+                    <p class="text-gray-600 mb-4">
+                        A10 以「旁掛」方式連接在 Core Switch 旁。Server 的 Gateway 指向 Core Switch，<strong>而非 A10</strong>。
+                    </p>
+                    <div class="bg-white border border-orange-200 p-4 rounded-lg text-sm text-gray-700 space-y-2">
+                        <p><strong><i class="fa-solid fa-triangle-exclamation text-red-500 mr-2"></i>關鍵限制：</strong>必須開啟 <strong>Source NAT (SNAT)</strong>。</p>
+                        <p><strong><i class="fa-solid fa-circle-question text-a10blue mr-2"></i>為什麼？</strong>若不做 SNAT，Server 回程流量會直接丟給 Gateway (Switch) 轉回給 Client，導致「來回不對稱路由」(Asymmetric Routing)，連線會失敗。</p>
+                        <p><strong><i class="fa-solid fa-network-wired text-a10blue mr-2"></i>適用：</strong>既有資料中心環境，無法更動 Server Gateway 設定時。</p>
+                    </div>
+                </div>
+
+                <!-- Transparent Mode -->
+                <div class="border rounded-xl p-6 hover:shadow-md transition">
+                    <h3 class="text-xl font-bold text-gray-700 mb-3"><i class="fa-solid fa-ghost mr-2"></i>3. Transparent Mode (透明模式)</h3>
+                    <p class="text-gray-600 mb-4">
+                        A10 作為 L2 Bridge (橋接器) 串接在網路中，不參與 L3 路由轉發。
+                    </p>
+                    <div class="bg-gray-50 p-4 rounded-lg text-sm text-gray-700 space-y-2">
+                        <p><strong><i class="fa-solid fa-check text-green-500 mr-2"></i>特性：</strong>不需更動現有 IP 架構，設備就像「隱形」一樣。</p>
+                        <p><strong><i class="fa-solid fa-network-wired text-a10blue mr-2"></i>適用：</strong>需要在不改變現有路由架構下，插入 SLB 或防火牆檢查功能。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. Visuals (Renumbered) -->
+        <section id="visuals" class="bg-white rounded-2xl p-8 card-shadow border-t-4 border-a10purple">
+            <h2 class="text-2xl font-bold text-a10blue mb-6 flex items-center">
+                <span class="bg-blue-100 text-a10blue p-2 rounded-lg mr-3"><i class="fa-solid fa-project-diagram"></i></span>
+                四、架構視覺化 (Visuals)
+            </h2>
+
+            <div class="space-y-12">
+                <!-- Diagram 1: Objects -->
+                <div>
+                    <h3 class="text-lg font-bold text-gray-700 mb-2 text-center">圖一：ACOS 設定物件階層關係</h3>
+                    <div class="mermaid">
+                        flowchart TD
+                            %% Nodes
+                            Client((Client Device))
+                            
+                            subgraph A10_Thunder [A10 Thunder ADC]
+                                direction TB
+                                VIP["Virtual Server (VIP)<br/>1.1.1.1:80"]
+                                SG["Service Group<br/>Algorithm: Round Robin"]
+                                RS1["Real Server 1<br/>192.168.1.10"]
+                                RS2["Real Server 2<br/>192.168.1.11"]
+                                RS3["Real Server 3<br/>192.168.1.12"]
+                                
+                                VIP -->|Bound to| SG
+                                SG -->|Member| RS1
+                                SG -->|Member| RS2
+                                SG -->|Member| RS3
+                            end
+
+                            subgraph Backend [Backend Environment]
+                                direction TB
+                                App1["Web App A"]
+                                App2["Web App A"]
+                                App3["Web App A"]
+                            end
+
+                            %% Edge Connections
+                            Client -->|Internet| VIP
+                            RS1 -.->|Health Check| App1
+                            RS2 -.->|Health Check| App2
+                            RS3 -.->|Health Check| App3
+
+                            %% Styles
+                            classDef vip fill:#CF0072,stroke:#333,stroke-width:2px,color:#fff;
+                            classDef sg fill:#663399,stroke:#333,stroke-width:2px,color:#fff;
+                            classDef rs fill:#002F6C,stroke:#333,stroke-width:2px,color:#fff;
+                            
+                            class VIP vip;
+                            class SG sg;
+                            class RS1,RS2,RS3 rs;
+                    </div>
+                </div>
+
+                <!-- Diagram 2: Route Mode (Fixed) -->
+                <div>
+                    <h3 class="text-lg font-bold text-gray-700 mb-2 text-center">圖二：Route Mode 架構 (Inline)</h3>
+                    <p class="text-sm text-gray-500 text-center mb-4">A10 也是 Server 的 Gateway，流量一進一出自然對稱</p>
+                    <div class="mermaid">
+                        flowchart TD
+                            User((User))
+                            Router["Core Router"]
+                            A10["A10 Thunder<br/>Gateway for Servers"]
+                            Server["Real Server"]
+
+                            User -->|1. Request| Router
+                            Router -->|2. Traffic| A10
+                            A10 -->|3. Load Balance| Server
+                            Server -->|4. Return| A10
+                            A10 -->|5. Reply| Router
+                            
+                            classDef a10 fill:#002F6C,stroke:#333,stroke-width:2px,color:#fff;
+                            classDef server fill:#e2e8f0,stroke:#333,stroke-width:2px;
+                            
+                            class A10 a10;
+                            class Server server;
+                    </div>
+                </div>
+
+                <!-- Diagram 3: One-Arm Mode (Fixed) -->
+                <div>
+                    <h3 class="text-lg font-bold text-gray-700 mb-2 text-center">圖三：One-Arm Mode 架構 (Side-arm)</h3>
+                    <p class="text-sm text-gray-500 text-center mb-4"><span class="text-red-500 font-bold">注意！</span> 必須使用 SNAT，否則 Server 會直接回給 Router</p>
+                    <div class="mermaid">
+                        flowchart TD
+                            User((User))
+                            Router["Core Router<br/>Gateway for Servers"]
+                            A10["A10 Thunder"]
+                            Server["Real Server"]
+
+                            User -->|1. Request| Router
+                            Router -->|2. Traffic| A10
+                            A10 -->|3. SNAT + LB| Router
+                            Router -->|4. Forward| Server
+                            
+                            Server -->|5. Return to A10 IP| Router
+                            Router -->|6. Return to A10| A10
+                            A10 -->|7. Reply to User| Router
+                            
+                            classDef a10 fill:#CF0072,stroke:#333,stroke-width:2px,color:#fff;
+                            classDef router fill:#FF6600,stroke:#333,stroke-width:2px,color:#fff;
+                            
+                            class A10 a10;
+                            class Router router;
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. Use Case (Renumbered) -->
+        <section id="usecase" class="bg-white rounded-2xl p-8 card-shadow border-t-4 border-a10orange">
+            <h2 class="text-2xl font-bold text-a10blue mb-6 flex items-center">
+                <span class="bg-blue-100 text-a10blue p-2 rounded-lg mr-3"><i class="fa-solid fa-briefcase"></i></span>
+                五、實務應用場景 (Use Case)
+            </h2>
+            
+            <div class="flex flex-col md:flex-row gap-8">
+                <div class="md:w-1/2">
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">場景：電商網站「雙11」搶購活動</h3>
+                    <p class="text-gray-600 mb-4 leading-relaxed">
+                        企業部署了一組 Web 伺服器叢集 (Server Farm) 來應對瞬間爆量的搶購流量。使用 A10 Thunder ADC 作為 SLB。
+                    </p>
+                    <div class="bg-orange-50 border-l-4 border-a10orange p-4">
+                        <h4 class="font-bold text-a10orange mb-2">設定策略：</h4>
+                        <ul class="list-disc ml-5 text-sm text-gray-700 space-y-1">
+                            <li><strong>模式選擇</strong>：採用 <strong>One-Arm Mode</strong>，因為不想更改舊有伺服器的 Gateway 設定。</li>
+                            <li><strong>演算法</strong>：使用 <code>Weighted Round Robin</code>。</li>
+                            <li><strong>會話保持</strong>：啟用 <code>Cookie Persistence</code>，確保使用者在結帳過程中購物車不會清空。</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="md:w-1/2">
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">優缺點分析</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 mt-1">
+                                <i class="fa-solid fa-thumbs-up"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h4 class="font-bold text-gray-800">優點 (Pros)</h4>
+                                <p class="text-sm text-gray-600">高可用性 (HA)；One-Arm 模式下部署快速，不影響網路主骨幹。</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-600 mt-1">
+                                <i class="fa-solid fa-thumbs-down"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h4 class="font-bold text-gray-800">缺點/挑戰 (Cons)</h4>
+                                <p class="text-sm text-gray-600">One-Arm 模式下 Server 看到的來源 IP 都是 A10 的 IP (因 SNAT)，若需記錄真實 Client IP，需在 HTTP Header 插入 <code>X-Forwarded-For</code>。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. Configuration Example (Renumbered) -->
+        <section id="configuration" class="bg-white rounded-2xl p-8 card-shadow border-t-4 border-a10blue">
+            <h2 class="text-2xl font-bold text-a10blue mb-6 flex items-center">
+                <span class="bg-blue-100 text-a10blue p-2 rounded-lg mr-3"><i class="fa-solid fa-laptop-code"></i></span>
+                六、綜合設定範例 (Integrated Config)
+            </h2>
+
+            <div class="mb-8">
+                <h3 class="text-xl font-bold text-gray-800 mb-3">場景：雙 Service Port 服務配置 (HTTP + HTTPS)</h3>
+                <p class="text-gray-600 leading-relaxed mb-4">
+                    在此範例中，VIP 需要同時提供 <strong>Port 80 (HTTP)</strong> 與 <strong>Port 443 (HTTPS)</strong> 的負載平衡服務。
+                </p>
+                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg">
+                    <p class="text-sm text-yellow-800">
+                        <strong><i class="fa-solid fa-triangle-exclamation"></i> 注意：</strong> 
+                        針對 Port 443，本範例展示 <strong>Layer 4 (TCP) Pass-through</strong> 模式 (未綁定憑證)。若要使用 SSL Offload，請參考第八章的設定範例。
+                    </p>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- CLI Code Block -->
+                <div>
+                    <h4 class="font-bold text-gray-700 mb-2">CLI 配置範例 (Command Line)</h4>
+                    <div class="code-block text-sm">
+<span class="code-comment">! 1. 設定 Real Server (定義後端實體主機)</span>
+<span class="code-comment">! 需明確定義該主機有開啟哪些 Port</span>
+<span class="code-keyword">slb server</span> <span class="code-object">RS-01</span> <span class="code-ip">192.168.1.10</span>
+  <span class="code-keyword">port</span> 80 tcp
+  <span class="code-keyword">port</span> 443 tcp
+<span class="code-keyword">slb server</span> <span class="code-object">RS-02</span> <span class="code-ip">192.168.1.11</span>
+  <span class="code-keyword">port</span> 80 tcp
+  <span class="code-keyword">port</span> 443 tcp
+
+<span class="code-comment">! 2. 設定 Service Group (分組)</span>
+<span class="code-comment">! [重點] 將 Port 80 的成員綁成一組</span>
+<span class="code-keyword">slb service-group</span> <span class="code-object">SG-Web-80</span> tcp
+  <span class="code-keyword">member</span> <span class="code-object">RS-01</span> 80
+  <span class="code-keyword">member</span> <span class="code-object">RS-02</span> 80
+
+<span class="code-comment">! [重點] 將 Port 443 的成員綁成另一組</span>
+<span class="code-keyword">slb service-group</span> <span class="code-object">SG-Web-443</span> tcp
+  <span class="code-keyword">member</span> <span class="code-object">RS-01</span> 443
+  <span class="code-keyword">member</span> <span class="code-object">RS-02</span> 443
+
+<span class="code-comment">! 3. 設定 Virtual Server (VIP)</span>
+<span class="code-comment">! 定義 VIP IP 與對外服務 Port</span>
+<span class="code-keyword">slb virtual-server</span> <span class="code-object">VIP-Web</span> <span class="code-ip">10.0.0.100</span>
+  <span class="code-comment">! 綁定 80 Group (L7 Mode)</span>
+  <span class="code-keyword">port</span> 80 http
+    <span class="code-keyword">service-group</span> <span class="code-object">SG-Web-80</span>
+  
+  <span class="code-comment">! 綁定 443 Group (L4 Mode, No Cert)</span>
+  <span class="code-keyword">port</span> 443 tcp
+    <span class="code-keyword">service-group</span> <span class="code-object">SG-Web-443</span>
+                    </div>
+                </div>
+
+                <!-- Logical Diagram -->
+                <div>
+                    <h4 class="font-bold text-gray-700 mb-2">邏輯架構圖 (Mapping Logic)</h4>
+                    <div class="mermaid">
+                        flowchart TD
+                            subgraph VIP_Layer ["Virtual Server (VIP)"]
+                                V80["VIP Port 80<br/>(HTTP Mode)"]
+                                V443["VIP Port 443<br/>(TCP Mode)"]
+                            end
+
+                            subgraph SG_Layer ["Service Groups"]
+                                SG80["SG-Web-80<br/>(Port 80 Only)"]
+                                SG443["SG-Web-443<br/>(Port 443 Only)"]
+                            end
+
+                            subgraph RS_Layer ["Real Servers"]
+                                RS1_80["RS-01:80"]
+                                RS1_443["RS-01:443"]
+                                RS2_80["RS-02:80"]
+                                RS2_443["RS-02:443"]
+                            end
+
+                            %% Connections
+                            V80 -->|Bind| SG80
+                            V443 -->|Bind| SG443
+
+                            SG80 --> RS1_80
+                            SG80 --> RS2_80
+
+                            SG443 --> RS1_443
+                            SG443 --> RS2_443
+
+                            %% Styles
+                            classDef vip fill:#CF0072,stroke:#333,color:#fff;
+                            classDef sg fill:#663399,stroke:#333,color:#fff;
+                            classDef rs fill:#002F6C,stroke:#333,color:#fff;
+
+                            class V80,V443 vip;
+                            class SG80,SG443 sg;
+                            class RS1_80,RS1_443,RS2_80,RS2_443 rs;
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. Persistence (Moved from 4) -->
+        <section id="persistence" class="bg-white rounded-2xl p-8 card-shadow border-t-4 border-a10blue">
+            <h2 class="text-2xl font-bold text-a10blue mb-6 flex items-center">
+                <span class="bg-blue-100 text-a10blue p-2 rounded-lg mr-3"><i class="fa-solid fa-magnet"></i></span>
+                七、關鍵功能：會話保持 (Persistence)
+            </h2>
+            
+            <div class="mb-6">
+                <p class="text-gray-600 leading-relaxed text-lg">
+                    <strong>Persistence (又稱 Session Affinity)</strong> 是一種確保來自「同一位使用者」的請求，在一段時間內都會被分配到「同一台後端伺服器」的機制。
+                    <br>
+                    <span class="text-sm text-gray-500 italic">如果沒有 Persistence，使用者的購物車可能會因為請求跳轉到另一台伺服器而「憑空消失」。</span>
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6">
+                <!-- Method 1: Source IP -->
+                <div class="border rounded-xl p-5 hover:border-a10blue transition">
+                    <h3 class="text-lg font-bold text-a10blue mb-2">1. Source IP Persistence (來源 IP 保持)</h3>
+                    <p class="text-sm text-gray-600 mb-3">
+                        根據 Client 的 IP 地址來決定分配給哪台伺服器。相同 IP 永遠去同一台。
+                    </p>
+                    <ul class="text-sm space-y-2">
+                        <li class="flex items-start"><i class="fa-solid fa-check text-green-500 mt-1 mr-2"></i> <span>簡單、支援所有 TCP/UDP 協定。</span></li>
+                        <li class="flex items-start"><i class="fa-solid fa-xmark text-red-500 mt-1 mr-2"></i> <span><strong>Mega-Proxy 問題：</strong>若大量使用者躲在同一個 NAT/Proxy 後面，負載會不均。</span></li>
+                    </ul>
+                </div>
+
+                <!-- Method 2: Cookie -->
+                <div class="border rounded-xl p-5 hover:border-a10magenta transition">
+                    <h3 class="text-lg font-bold text-a10magenta mb-2">2. Cookie Persistence (HTTP Cookie 保持)</h3>
+                    <p class="text-sm text-gray-600 mb-3">
+                        A10 在回應使用者的 HTTP Header 中插入一個專屬 Cookie，下次使用者帶這個 Cookie 來時即可識別。
+                    </p>
+                    <ul class="text-sm space-y-2">
+                        <li class="flex items-start"><i class="fa-solid fa-check text-green-500 mt-1 mr-2"></i> <span><strong>最精準：</strong>能精確識別每一個瀏覽器 Session，不受 Proxy 影響。</span></li>
+                        <li class="flex items-start"><i class="fa-solid fa-info-circle text-blue-500 mt-1 mr-2"></i> <span>僅適用於 HTTP/HTTPS 流量。</span></li>
+                    </ul>
+                </div>
+
+                <!-- Method 3: Dest IP -->
+                <div class="border rounded-xl p-5 hover:border-a10teal transition">
+                    <h3 class="text-lg font-bold text-a10teal mb-2">3. Destination IP Persistence (目的 IP 保持)</h3>
+                    <p class="text-sm text-gray-600 mb-3">
+                        根據封包的「目的 IP」來決定分配路徑。
+                    </p>
+                    <ul class="text-sm space-y-2">
+                        <li class="flex items-start"><i class="fa-solid fa-check text-green-500 mt-1 mr-2"></i> <span><strong>適用場景：</strong>主要用於 <strong>Wildcard VIP</strong> (接收所有網段流量) 或 <strong>FWLB (防火牆負載平衡)</strong>。</span></li>
+                        <li class="flex items-start"><i class="fa-solid fa-lightbulb text-yellow-500 mt-1 mr-2"></i> <span>確保前往特定目的地的流量，總是經過同一台防火牆或路由器，避免路由路徑不一致。</span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <hr class="my-8 border-gray-200">
+
+            <!-- Persistence Config Examples -->
+            <div class="space-y-6">
+                <h3 class="text-xl font-bold text-gray-800"><i class="fa-solid fa-code mr-2 text-a10orange"></i>Persistence 設定範例與 Match Type 解析</h3>
+                
+                <!-- Match Type Explanation -->
+                <div class="bg-blue-50 p-4 rounded-lg border-l-4 border-a10blue mb-4">
+                    <h4 class="font-bold text-a10blue mb-2">Source IP Persistence 的 Match Type (匹配類型)</h4>
+                    <p class="text-sm text-gray-700 leading-relaxed mb-2">
+                        在設定 <strong>Source IP Persistence</strong> 時，<code>match-type</code> 決定了會話保持的顆粒度 (Granularity)。根據 CLI Reference，主要選項如下：
+                    </p>
+                    <div class="text-sm text-gray-700 space-y-3">
+                        <div>
+                            <span class="font-bold text-gray-800"><i class="fa-solid fa-circle-check text-a10orange mr-1"></i> Default (預設值/無設定)：</span>
+                            <p class="ml-5 mt-1">
+                                最細緻的模式。來自特定 Client 存取「同一個 Virtual IP 的 ServicePort」的流量，會被送往「同一個 Real Server」。
+                            </p>
+                        </div>
+                        
+                        <div>
+                            <span class="font-bold text-gray-800"><i class="fa-solid fa-circle-check text-a10orange mr-1"></i> server [scan-all-members]：</span>
+                            <p class="ml-5 mt-1">
+                                針對「後端實體伺服器 (Real Server)」進行保持。
+                                <br>來自特定 Client 存取同一個 VIP 的<strong>任何 Service Port</strong>，都會被送往同一台 Real Server。
+                                <br><span class="text-gray-500 italic text-xs">應用場景：跨 Port 保持 (Cross-port persistence)，如 HTTP (80) 跳轉 HTTPS (443) 需連回同一台主機。`scan-all-members` 用於掃描所有成員狀態。</span>
+                            </p>
+                        </div>
+
+                        <div>
+                            <span class="font-bold text-gray-800"><i class="fa-solid fa-circle-check text-a10orange mr-1"></i> service-group：</span>
+                            <p class="ml-5 mt-1">
+                                適用於搭配 <strong>URL Switching</strong> 或 <strong>Host Switching</strong> 使用。
+                                <br>確保當 Switching 規則選定某個 Service Group 後，後續請求持續鎖定該 Service Group。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-6">
+                    <!-- Config: Cookie -->
+                    <div class="bg-gray-800 rounded-lg p-4 text-xs text-gray-200 font-mono overflow-x-auto">
+                        <div class="mb-2 text-a10magenta font-bold border-b border-gray-600 pb-1">範例 A: Cookie Persistence</div>
+                        <div class="mb-4">
+                            <span class="code-comment">! 1. 建立 Persistence Template</span><br>
+                            slb template persist cookie <span class="text-yellow-400">tmpl-cookie-web</span><br>
+                            &nbsp;&nbsp;cookie-name <span class="text-blue-300">MySiteID</span><br>
+                            &nbsp;&nbsp;expire 0  <span class="code-comment">! 0 = Session Cookie</span>
+                        </div>
+                        <div>
+                            <span class="code-comment">! 2. 綁定到 Virtual Server</span><br>
+                            slb virtual-server VIP-Web 10.0.0.100<br>
+                            &nbsp;&nbsp;port 80 http<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;template persist cookie <span class="text-yellow-400">tmpl-cookie-web</span>
+                        </div>
+                    </div>
+
+                    <!-- Config: Source IP -->
+                    <div class="bg-gray-800 rounded-lg p-4 text-xs text-gray-200 font-mono overflow-x-auto">
+                        <div class="mb-2 text-a10blue font-bold border-b border-gray-600 pb-1">範例 B: Source IP Persistence</div>
+                        <div class="mb-4">
+                            <span class="code-comment">! 1. 建立 Source IP Template</span><br>
+                            slb template persist source-ip <span class="text-yellow-400">tmpl-src-ip</span><br>
+                            <span class="code-comment">! 設定為 server 模式 (跨 Port)</span><br>
+                            &nbsp;&nbsp;<span class="code-keyword">match-type</span> server<br>
+                            &nbsp;&nbsp;timeout 5
+                        </div>
+                        <div>
+                            <span class="code-comment">! 2. 綁定到 Virtual Server</span><br>
+                            slb virtual-server VIP-Service 10.0.0.100<br>
+                            &nbsp;&nbsp;port 443 tcp<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;template persist source-ip <span class="text-yellow-400">tmpl-src-ip</span>
+                        </div>
+                    </div>
+
+                    <!-- Config: Dest IP -->
+                    <div class="bg-gray-800 rounded-lg p-4 text-xs text-gray-200 font-mono overflow-x-auto">
+                        <div class="mb-2 text-a10teal font-bold border-b border-gray-600 pb-1">範例 C: Destination IP Persistence</div>
+                        <div class="mb-4">
+                            <span class="code-comment">! 1. 建立 Dest IP Template</span><br>
+                            slb template persist destination-ip <span class="text-yellow-400">tmpl-dst-ip</span><br>
+                            &nbsp;&nbsp;timeout 5      <span class="code-comment">! 閒置 5 分鐘清除紀錄</span>
+                        </div>
+                        <div>
+                            <span class="code-comment">! 2. 綁定到 Wildcard VIP</span><br>
+                            slb virtual-server VIP-Wildcard 0.0.0.0<br>
+                            &nbsp;&nbsp;port 0 others<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;template persist destination-ip <span class="text-yellow-400">tmpl-dst-ip</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 8. SSL Offload (Renumbered) -->
+        <section id="ssloffload" class="bg-white rounded-2xl p-8 card-shadow border-t-4 border-a10blue">
+            <h2 class="text-2xl font-bold text-a10blue mb-6 flex items-center">
+                <span class="bg-blue-100 text-a10blue p-2 rounded-lg mr-3"><i class="fa-solid fa-lock"></i></span>
+                八、進階功能：SSL Offload (SSL 卸載)
+            </h2>
+            
+            <div class="mb-8">
+                <p class="text-gray-600 leading-relaxed text-lg">
+                    <strong>SSL Offload (SSL Termination)</strong> 是一種將加密流量的「解密與加密」工作，從後端伺服器轉移到 A10 Thunder 設備上執行的技術。
+                    <br>用戶端與 A10 之間透過加密的 HTTPS 連線，而 A10 解密後，再以明文 HTTP (或輕量加密) 與後端伺服器溝通。
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-10">
+                <!-- Benefits -->
+                <div class="space-y-6">
+                    <h3 class="text-xl font-bold text-gray-800 border-b pb-2">三大核心優勢 (Benefits)</h3>
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-a10blue mt-1">
+                            <i class="fa-solid fa-microchip"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="font-bold text-gray-800">1. 降低伺服器負載 (Server Offload)</h4>
+                            <p class="text-sm text-gray-600">SSL/TLS 的握手 (Handshake) 與加解密運算非常消耗 CPU 資源。將此工作交給 A10 的專用 ASIC 晶片處理，後端伺服器只需專注於產生網頁內容，大幅提升效能。</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-a10purple mt-1">
+                            <i class="fa-solid fa-certificate"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="font-bold text-gray-800">2. 憑證集中管理 (Centralized Certs)</h4>
+                            <p class="text-sm text-gray-600">企業不需在每一台 Web Server 上安裝與更新憑證。只需將憑證匯入 A10，即可統一管理與更新，減少過期風險與維運成本。</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-a10orange mt-1">
+                            <i class="fa-solid fa-eye"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="font-bold text-gray-800">3. L7 可視性與安全性 (Visibility)</h4>
+                            <p class="text-sm text-gray-600">流量若是加密的，防火牆無法檢查內容。SSL Offload 解密後，A10 可以執行 <strong>WAF (網頁防火牆)</strong>、<strong>Cookie Persistence</strong> 或 <strong>URL Switching</strong> 等進階 L7 功能。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Architecture & Config -->
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800 border-b pb-2 mb-4">運作架構與設定 (Architecture & Config)</h3>
+                    
+                    <!-- Mermaid Diagram -->
+                    <div class="mermaid mb-6">
+                        flowchart TD
+                            Client((Client)) -- "HTTPS (Encrypted)" --> VIP[A10 VIP:443]
+                            
+                            subgraph A10 [A10 Thunder]
+                                VIP -- "Decrypt" --> Logic[L7 Engine]
+                                Logic -- "Inspect/LB" --> SG[Service Group]
+                            end
+                            
+                            SG -- "HTTP (Plain Text)" --> Server[Real Server:80]
+                            
+                            style A10 fill:#f0f9ff,stroke:#002F6C
+                            style Logic fill:#CF0072,color:#fff
+                    </div>
+
+                    <!-- Config Example -->
+                    <div class="bg-gray-800 rounded-lg p-4 text-xs text-gray-200 font-mono overflow-x-auto">
+                        <div class="mb-2 text-green-400">! 1. 建立 Client-SSL Template (綁定憑證)</div>
+                        <div class="mb-4">
+                            slb template client-ssl <span class="text-yellow-400">tmpl-ssl-web</span><br>
+                            &nbsp;&nbsp;cert <span class="text-blue-300">my-site-cert</span><br>
+                            &nbsp;&nbsp;key <span class="text-blue-300">my-site-key</span>
+                        </div>
+
+                        <div class="mb-2 text-green-400">! 2. 設定 VIP (使用 HTTPS 並套用 Template)</div>
+                        <div>
+                            slb virtual-server <span class="text-yellow-400">VIP-Web</span> 10.0.0.100<br>
+                            &nbsp;&nbsp;port 443 <span class="text-red-400">https</span><br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;service-group SG-Web-80<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;template client-ssl <span class="text-yellow-400">tmpl-ssl-web</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 9. Quiz (Renumbered) -->
+        <section id="quiz" class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-8 card-shadow border border-gray-200">
+            <h2 class="text-2xl font-bold text-a10blue mb-6 flex items-center">
+                <span class="bg-blue-100 text-a10blue p-2 rounded-lg mr-3"><i class="fa-solid fa-clipboard-question"></i></span>
+                九、隨堂測驗 (Quiz)
+            </h2>
+            
+            <div id="quiz-container" class="space-y-6">
+                <!-- Questions will be injected here by JS -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-a10blue text-white py-6 mt-12">
+        <div class="container mx-auto px-4 text-center">
+            <p class="text-sm opacity-80 font-light tracking-wide">
+                Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0
+            </p>
+        </div>
+    </footer>
+
+    <!-- JavaScript for Quiz -->
+    <script>
+        // Initialize Mermaid
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+
+        // Quiz Data
+        const quizData = [
+            {
+                id: 1,
+                question: "在 A10 SLB 架構中，哪一個物件直接對應到「後端實體伺服器的 IP 地址」？",
+                options: [
+                    "Virtual Server (VIP)",
+                    "Service Group",
+                    "Real Server",
+                    "Health Monitor"
+                ],
+                correct: 2, // Index 0-based
+                explanation: "Real Server (RS) 是用來定義後端實體伺服器 IP 的物件。"
+            },
+            {
+                id: 2,
+                question: "在 One-Arm Mode (單臂模式) 下，若沒有開啟 Source NAT (SNAT)，通常會發生什麼事？",
+                options: [
+                    "A10 負載過重",
+                    "Server 會直接回封包給 Client (或 Gateway)，導致來回不對稱路由，連線失敗",
+                    "Server 會拒絕連線",
+                    "沒有任何影響，一切正常"
+                ],
+                correct: 1,
+                explanation: "單臂模式下，Server 的 Gateway 通常指向 Router。若無 SNAT，Server 回程會繞過 A10，Client 收到非預期來源的回應會將其丟棄 (Asymmetric Routing)。"
+            },
+            {
+                id: 3,
+                question: "哪一種模式下，A10 通常擔任後端伺服器的 Default Gateway？",
+                options: [
+                    "One-Arm Mode",
+                    "Transparent Mode",
+                    "Route Mode (Inline)",
+                    "DSR Mode"
+                ],
+                correct: 2,
+                explanation: "在 Route Mode 中，A10 位於路徑上，Server 將 Gateway 指向 A10 以確保流量對稱。"
+            },
+            {
+                id: 4,
+                question: "若大量使用者位於同一個 Proxy 後方，使用哪種 Persistence 機制會導致流量分配不均 (Mega-Proxy 問題)？",
+                options: [
+                    "Cookie Persistence",
+                    "Source IP Persistence",
+                    "SSL Session ID",
+                    "URL Hash"
+                ],
+                correct: 1,
+                explanation: "Source IP Persistence 只看來源 IP。若多人共用一個 Proxy IP，這些人都會被視為同一個來源，導致全部被導向同一台伺服器。"
+            },
+            {
+                id: 5,
+                question: "若要對 HTTPS 加密流量進行 L7 內容檢查 (如 WAF、Cookie Persistence)，必須採用哪種配置？",
+                options: [
+                    "L4 TCP Pass-through (不解密)",
+                    "SSL Offload (SSL Termination)",
+                    "Direct Server Return (DSR)",
+                    "L3 Forwarding"
+                ],
+                correct: 1,
+                explanation: "只有透過 SSL Offload 將流量解密成明文，A10 的 CPU 才能讀取 HTTP Header 與 Payload 內容並執行 L7 功能。"
+            }
+        ];
+
+        // Render Quiz
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionEl = document.createElement('div');
+            questionEl.className = 'bg-white p-6 rounded-xl border border-gray-200';
+            questionEl.innerHTML = `
+                <h3 class="font-bold text-lg mb-4 text-gray-800"><span class="text-a10orange mr-2">Q${index + 1}.</span> ${item.question}</h3>
+                <div class="grid gap-3 mb-4">
+                    ${item.options.map((opt, optIndex) => `
+                        <button onclick="checkAnswer(${index}, ${optIndex}, this)" 
+                                class="quiz-option w-full text-left p-3 rounded-lg border border-gray-300 transition duration-200 text-gray-700">
+                            ${String.fromCharCode(65 + optIndex)}. ${opt}
+                        </button>
+                    `).join('')}
+                </div>
+                <div id="feedback-${index}" class="hidden mt-3 p-4 rounded-lg text-sm"></div>
+            `;
+            quizContainer.appendChild(questionEl);
+        });
+
+        // Check Answer Function
+        window.checkAnswer = function(qIndex, selectedOptIndex, btnElement) {
+            const question = quizData[qIndex];
+            const feedbackEl = document.getElementById(`feedback-${qIndex}`);
+            const parent = btnElement.parentElement;
+            
+            // Disable all buttons in this question
+            const buttons = parent.querySelectorAll('button');
+            buttons.forEach(btn => btn.disabled = true);
+
+            if (selectedOptIndex === question.correct) {
+                // Correct
+                btnElement.classList.add('selected-correct');
+                feedbackEl.className = "mt-3 p-4 rounded-lg text-sm bg-green-50 text-green-800 border border-green-200";
+                feedbackEl.innerHTML = `<strong><i class="fa-solid fa-check-circle"></i> 正確！</strong> ${question.explanation}`;
+            } else {
+                // Wrong
+                btnElement.classList.add('selected-wrong');
+                // Highlight correct one
+                buttons[question.correct].classList.add('selected-correct');
+                
+                feedbackEl.className = "mt-3 p-4 rounded-lg text-sm bg-red-50 text-red-800 border border-red-200";
+                feedbackEl.innerHTML = `<strong><i class="fa-solid fa-times-circle"></i> 錯誤。</strong> 正確答案是 ${String.fromCharCode(65 + question.correct)}。<br>${question.explanation}`;
+            }
+            feedbackEl.classList.remove('hidden');
+        };
+    </script>
+</body>
+</html>

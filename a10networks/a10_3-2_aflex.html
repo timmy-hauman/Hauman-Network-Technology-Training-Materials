@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A10 Networks Thunder 實戰課程 | aFleX 腳本語言</title>
+    
+    <!-- Google Fonts: Rubik -->
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Mermaid JS for Diagrams -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+    </script>
+
+    <style>
+        /* Custom Font Application */
+        body {
+            font-family: 'Rubik', sans-serif;
+            background-color: #F3F4F6; /* Light Grey background */
+            color: #333;
+        }
+
+        /* Color Palette Variables based on A10 Brand */
+        :root {
+            --midnight-blue: #001F3F; /* Primary Deep Blue */
+            --congress-blue: #003366; /* Secondary Blue */
+            --magenta-purple: #9C27B0; /* Accent */
+            --a10-orange: #FF851B; /* Highlight/Logo Color */
+            --text-grey: #4B5563;
+        }
+
+        /* Gradient Backgrounds */
+        .header-gradient {
+            background: linear-gradient(135deg, var(--midnight-blue) 0%, #1a237e 100%);
+        }
+
+        .accent-gradient {
+            background: linear-gradient(90deg, var(--magenta-purple) 0%, #7B1FA2 100%);
+        }
+
+        /* Card Styling */
+        .content-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s;
+            margin-bottom: 2rem;
+            border-top: 4px solid var(--midnight-blue);
+        }
+        
+        .content-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Code Block Styling */
+        .code-block {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            font-family: 'Consolas', 'Monaco', monospace;
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            border-left: 5px solid var(--a10-orange);
+            white-space: pre; /* Fixed: Preserves whitespace and indentation */
+        }
+
+        .keyword { color: #569cd6; }
+        .string { color: #ce9178; }
+        .comment { color: #6a9955; }
+        .variable { color: #9cdcfe; }
+
+        /* Footer Styling */
+        footer {
+            background-color: var(--midnight-blue);
+            color: white;
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.9rem;
+            border-top: 3px solid var(--a10-orange);
+        }
+
+        /* Interactive Elements */
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid #E5E7EB;
+        }
+        .quiz-option:hover {
+            border-color: var(--congress-blue);
+            background-color: #F0F9FF;
+        }
+        .quiz-correct {
+            background-color: #D1FAE5 !important;
+            border-color: #10B981 !important;
+            color: #065F46;
+        }
+        .quiz-wrong {
+            background-color: #FEE2E2 !important;
+            border-color: #EF4444 !important;
+            color: #991B1B;
+        }
+
+        .section-icon {
+            color: var(--a10-orange);
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="header-gradient text-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-network-wired text-3xl text-orange-500"></i>
+                <div>
+                    <h1 class="text-xl font-bold tracking-wide">A10 Networks Thunder 實戰課程</h1>
+                    <p class="text-xs text-gray-300 font-light">Level 3 - Architect | 大規模部署與自動化</p>
+                </div>
+            </div>
+            <div class="hidden md:block">
+                <span class="px-3 py-1 rounded-full bg-white/10 text-sm border border-white/20">
+                    <i class="fas fa-code mr-2"></i>aFleX Scripting
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <!-- Topic Title -->
+        <div class="text-center mb-12">
+            <h2 class="text-4xl font-bold text-slate-800 mb-3">aFleX 腳本語言實戰</h2>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                透過程式化邏輯實現 L7 流量操控：Tcl 語法、HTTP Header 改寫與內容過濾
+            </p>
+        </div>
+
+        <!-- Section 1: Core Concept -->
+        <section class="content-card p-8">
+            <h3 class="text-2xl font-bold text-slate-800 mb-6 flex items-center">
+                <i class="fas fa-lightbulb section-icon"></i> 一、核心概念 (Concept)
+            </h3>
+            
+            <div class="grid md:grid-cols-2 gap-8 items-center">
+                <div>
+                    <h4 class="font-bold text-lg text-blue-900 mb-2">一句話定義</h4>
+                    <p class="text-gray-700 leading-relaxed mb-6">
+                        aFleX 是 A10 Thunder ADC 上的流量控制腳本語言 (基於 Tcl)，它允許管理員在封包轉發的過程中，深入 Layer 7 (應用層) 進行即時的讀取、修改與邏輯判斷。
+                    </p>
+                    
+                    <h4 class="font-bold text-lg text-blue-900 mb-2">生活化比喻</h4>
+                    <div class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-600">
+                        <p class="text-gray-700">
+                            傳統的負載平衡就像是一個<strong>「郵局分信員」</strong>，他只看信封上的地址 (IP) 和收件人 (Port)，然後丟到對應的籃子裡。
+                            <br><br>
+                            <strong>aFleX 就像是一位「王牌大飯店的禮賓司 (Concierge)」</strong>。他不僅看客人是誰，還會聽客人具體說了什麼內容 (HTTP 內容)。如果客人說「我想找義大利餐廳」，他會直接帶去二樓；如果客人說的是日語，他會自動切換成日語服務；如果客人看起來像是搗亂的 (惡意特徵)，他會直接請保全處理，甚至不需要驚動經理 (後端伺服器)。
+                        </p>
+                    </div>
+                </div>
+                <div class="flex justify-center">
+                    <div class="w-full max-w-sm bg-gray-100 rounded-full h-64 flex items-center justify-center relative overflow-hidden">
+                         <!-- CSS Art for concept representation -->
+                         <i class="fas fa-file-code text-9xl text-gray-300 absolute"></i>
+                         <i class="fas fa-filter text-6xl text-purple-600 absolute animate-bounce"></i>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Mechanism -->
+        <section class="content-card p-8">
+            <h3 class="text-2xl font-bold text-slate-800 mb-6 flex items-center">
+                <i class="fas fa-cogs section-icon"></i> 二、運作原理 (Mechanism)
+            </h3>
+
+            <div class="mb-6">
+                <h4 class="font-bold text-lg text-slate-700 mb-2">1. 事件驅動 (Event-Driven)</h4>
+                <p class="text-gray-600 mb-4">
+                    aFleX 腳本不會一直執行，而是等待特定的「網路事件」觸發。最常用的是 HTTP 相關事件。
+                </p>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white border border-gray-200 rounded-lg">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="py-2 px-4 border-b text-left">事件 (Event)</th>
+                                <th class="py-2 px-4 border-b text-left">觸發時機</th>
+                                <th class="py-2 px-4 border-b text-left">常用動作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="py-2 px-4 border-b font-mono text-purple-700">when HTTP_REQUEST</td>
+                                <td class="py-2 px-4 border-b">ACOS 接收到客戶端完整的 HTTP 請求表頭後</td>
+                                <td class="py-2 px-4 border-b">網址重導、阻擋 IP、修改 Header</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 px-4 border-b font-mono text-purple-700">when HTTP_RESPONSE</td>
+                                <td class="py-2 px-4 border-b">伺服器回傳回應給 ACOS，準備轉發給客戶端前</td>
+                                <td class="py-2 px-4 border-b">隱藏 Server 版本資訊、插入 Cookie</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <h4 class="font-bold text-lg text-slate-700 mb-2">2. Tcl 基礎語法與常用指令</h4>
+                <p class="text-gray-600 mb-4">aFleX 基於標準 Tcl (Tool Command Language)，但增加了 ACOS 專屬的網路指令。</p>
+                
+                <div class="grid lg:grid-cols-2 gap-6">
+                    <!-- Code Snippet 1 -->
+                    <div>
+                        <p class="text-sm font-semibold text-gray-500 mb-1">範例：變數與條件判斷</p>
+                        <div class="code-block text-sm">
+<span class="keyword">when</span> <span class="variable">HTTP_REQUEST</span> {
+    <span class="comment"># 取得 URI</span>
+    <span class="keyword">set</span> uri [HTTP::uri]
+    
+    <span class="comment"># 判斷是否包含敏感字串</span>
+    <span class="keyword">if</span> { $uri <span class="keyword">contains</span> <span class="string">"admin"</span> } {
+        <span class="comment"># 拒絕連線</span>
+        reject
+    }
+}</div>
+                    </div>
+
+                    <!-- Code Snippet 2 -->
+                    <div>
+                        <p class="text-sm font-semibold text-gray-500 mb-1">範例：HTTP Header 修改</p>
+                        <div class="code-block text-sm">
+<span class="keyword">when</span> <span class="variable">HTTP_RESPONSE</span> {
+    <span class="comment"># 移除 Server 標頭以隱藏版本資訊</span>
+    HTTP::header remove <span class="string">"Server"</span>
+    
+    <span class="comment"># 插入安全標頭</span>
+    HTTP::header insert <span class="string">"X-Frame-Options"</span> <span class="string">"DENY"</span>
+}</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Visuals -->
+        <section class="content-card p-8">
+            <h3 class="text-2xl font-bold text-slate-800 mb-6 flex items-center">
+                <i class="fas fa-project-diagram section-icon"></i> 三、架構視覺化 (Visuals)
+            </h3>
+            
+            <p class="text-gray-600 mb-6">
+                下圖展示了封包流經 ACOS 設備時，aFleX 引擎介入的時機點。注意 aFleX 是在 TCP 三向交握完成後，針對 HTTP 內容進行處理。
+            </p>
+
+            <div class="flex flex-col items-center space-y-8">
+                <!-- Diagram 1: High Level Flow -->
+                <div class="w-full bg-white p-4 border rounded-lg">
+                    <h4 class="text-center font-bold text-gray-700 mb-4">aFleX 邏輯處理流程圖</h4>
+                    <div class="mermaid flex justify-center">
+                        sequenceDiagram
+                            participant Client as 用戶端 (Client)
+                            participant ACOS as A10 Thunder (aFleX)
+                            participant Server as 後端伺服器 (Server)
+
+                            Note over Client, ACOS: 1. TCP 三向交握完成 (Layer 4)
+                            
+                            Client->>ACOS: GET /index.php HTTP/1.1 (Layer 7 Request)
+                            activate ACOS
+                            Note right of ACOS: 觸發 when HTTP_REQUEST
+                            Note right of ACOS: 執行: 檢查 URL, 改寫 Header, 選擇 Server Pool
+                            
+                            alt 條件符合 (例如: 允許存取)
+                                ACOS->>Server: 轉發修改後的請求
+                                activate Server
+                                Server-->>ACOS: 200 OK (Layer 7 Response)
+                                deactivate Server
+                                Note left of ACOS: 觸發 when HTTP_RESPONSE
+                                Note left of ACOS: 執行: 隱藏敏感資訊, 插入 Cookie
+                                ACOS-->>Client: 回傳最終內容
+                            else 條件攔截 (例如: 惡意請求)
+                                ACOS-->>Client: 403 Forbidden (直接回應，不經過 Server)
+                            end
+                            deactivate ACOS
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Use Case -->
+        <section class="content-card p-8">
+            <h3 class="text-2xl font-bold text-slate-800 mb-6 flex items-center">
+                <i class="fas fa-briefcase section-icon"></i> 四、實務應用場景 (Use Case)
+            </h3>
+
+            <div class="space-y-8">
+                <!-- Use Case 1 -->
+                <div class="bg-gray-50 rounded-lg p-6 border-l-4 border-purple-600">
+                    <h4 class="text-xl font-bold text-slate-800 mb-3">案例一：強制 HTTP 轉 HTTPS (Redirect)</h4>
+                    <p class="text-gray-700 mb-4">
+                        **情境：** 公司網站為了安全性，要求所有使用者即便輸入 http:// 也要自動跳轉到 https:// 加密連線。<br>
+                        **解決方案：** 使用 aFleX 偵測 Port 80 的請求，並發送 301 Redirect 指令。
+                    </p>
+                    <div class="code-block text-sm">
+<span class="keyword">when</span> <span class="variable">HTTP_REQUEST</span> {
+    <span class="comment"># 將客戶端重導向至相同的 Host 與 URI，但使用 HTTPS</span>
+    HTTP::redirect <span class="string">"https://[HTTP::host][HTTP::uri]"</span>
+}</div>
+                </div>
+
+                <!-- Use Case 2 -->
+                <div class="bg-gray-50 rounded-lg p-6 border-l-4 border-orange-500">
+                    <h4 class="text-xl font-bold text-slate-800 mb-3">案例二：內容過濾與維護頁面 (Content Switching)</h4>
+                    <p class="text-gray-700 mb-4">
+                        **情境：** 應用程式的 `/legacy` 路徑對應到舊版伺服器群組，而其他路徑對應到新版。另外，若偵測到 SQL Injection 特徵，則直接阻斷。
+                    </p>
+                    <div class="code-block text-sm">
+<span class="keyword">when</span> <span class="variable">HTTP_REQUEST</span> {
+    <span class="comment"># 1. 安全檢查：簡單的 SQL Injection 特徵過濾</span>
+    <span class="keyword">if</span> { [HTTP::uri] <span class="keyword">contains</span> <span class="string">"SELECT"</span> || [HTTP::uri] <span class="keyword">contains</span> <span class="string">"UNION"</span> } {
+        HTTP::respond 403 content <span class="string">"Access Denied: Malicious Pattern Detected"</span>
+        <span class="keyword">return</span>
+    }
+
+    <span class="comment"># 2. 內容交換 (Layer 7 Switching)</span>
+    <span class="keyword">if</span> { [HTTP::uri] <span class="keyword">starts_with</span> <span class="string">"/legacy"</span> } {
+        pool old_server_group
+    } <span class="keyword">else</span> {
+        pool new_server_group
+    }
+}</div>
+                    <div class="mt-4 grid grid-cols-2 gap-4 text-sm">
+                        <div class="bg-green-100 p-3 rounded text-green-800">
+                            <strong><i class="fas fa-plus-circle"></i> 優點：</strong>
+                            <ul class="list-disc ml-4 mt-1">
+                                <li>極高的靈活性，可應對非標準需求。</li>
+                                <li>無需修改後端應用程式程式碼。</li>
+                            </ul>
+                        </div>
+                        <div class="bg-red-100 p-3 rounded text-red-800">
+                            <strong><i class="fas fa-minus-circle"></i> 缺點：</strong>
+                            <ul class="list-disc ml-4 mt-1">
+                                <li>複雜的腳本可能增加 CPU 負載。</li>
+                                <li>除錯 (Debug) 較為困難，需依賴 Log。</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: Quiz -->
+        <section class="content-card p-8">
+            <h3 class="text-2xl font-bold text-slate-800 mb-6 flex items-center">
+                <i class="fas fa-clipboard-check section-icon"></i> 五、隨堂測驗 (Quiz)
+            </h3>
+            
+            <div id="quiz-container" class="space-y-6">
+                <!-- Quiz content will be injected by JavaScript -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container mx-auto flex flex-col md:flex-row justify-center items-center">
+            <p class="font-light tracking-wider">
+                Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0
+            </p>
+        </div>
+    </footer>
+
+    <!-- JavaScript for Quiz Logic -->
+    <script>
+        const quizData = [
+            {
+                question: "1. 在 aFleX 中，若要攔截使用者發出的 HTTP 請求封包並進行分析，應該使用哪個事件？",
+                options: ["when SERVER_CONNECTED", "when HTTP_REQUEST", "when CLIENT_ACCEPTED", "when HTTP_RESPONSE"],
+                answer: 1,
+                explanation: "<strong>解析：</strong> `when HTTP_REQUEST` 是當 ACOS 收到客戶端完整的 HTTP Request Header 時觸發的事件，是進行 L7 URL 分析或 Header 改寫最常用的時機點。"
+            },
+            {
+                question: "2. 下列哪一個指令可以用來將使用者的瀏覽器導向到另一個網址 (例如 HTTP 轉 HTTPS)？",
+                options: ["HTTP::redirect", "pool", "reject", "IP::addr"],
+                answer: 0,
+                explanation: "<strong>解析：</strong> `HTTP::redirect` 指令會發送 HTTP 301/302 回應給客戶端，指示瀏覽器前往新的 Location。"
+            },
+            {
+                question: "3. aFleX 腳本語言是基於哪一種程式語言開發的？",
+                options: ["Python", "JavaScript", "Tcl (Tool Command Language)", "C++"],
+                answer: 2,
+                explanation: "<strong>解析：</strong> aFleX 與 F5 iRules 類似，都是基於 Tcl 語言語法進行網路功能的擴充。"
+            },
+            {
+                question: "4. 若要在回應給使用者的封包中插入一個名為 'X-Security' 的 Header，應使用何種語法？",
+                options: ["HTTP::uri insert", "HTTP::header insert", "HTTP::cookie insert", "TCP::payload replace"],
+                answer: 1,
+                explanation: "<strong>解析：</strong> `HTTP::header` 指令專門用於操作 Header，`insert` 參數可用於新增標頭。"
+            },
+            {
+                question: "5. 關於 aFleX 的缺點或限制，下列敘述何者正確？",
+                options: ["完全不會消耗 CPU 資源", "過度複雜的邏輯可能影響設備效能", "只能在 Layer 4 運作", "無法讀取 Cookie 內容"],
+                answer: 1,
+                explanation: "<strong>解析：</strong> aFleX 雖然強大，但因為需要對每個封包進行解封與邏輯運算，過度複雜或寫法不佳的腳本會顯著增加 CPU 使用率 (Latency)。"
+            }
+        ];
+
+        function renderQuiz() {
+            const container = document.getElementById('quiz-container');
+            
+            quizData.forEach((item, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'mb-8 border-b border-gray-100 pb-6';
+                
+                // Question Title
+                const title = document.createElement('h4');
+                title.className = 'font-bold text-lg text-gray-800 mb-4';
+                title.innerText = item.question;
+                questionDiv.appendChild(title);
+
+                // Options Container
+                const optionsDiv = document.createElement('div');
+                optionsDiv.className = 'space-y-2';
+
+                item.options.forEach((opt, optIndex) => {
+                    const btn = document.createElement('div');
+                    btn.className = 'quiz-option p-3 rounded-md bg-white text-gray-700';
+                    btn.innerText = opt;
+                    
+                    btn.onclick = () => checkAnswer(btn, optIndex, item.answer, explanationDiv);
+                    
+                    optionsDiv.appendChild(btn);
+                });
+                questionDiv.appendChild(optionsDiv);
+
+                // Explanation Block (Hidden by default)
+                const explanationDiv = document.createElement('div');
+                explanationDiv.className = 'hidden mt-4 p-4 bg-blue-50 text-blue-900 rounded-lg border border-blue-200 text-sm';
+                explanationDiv.innerHTML = item.explanation;
+                questionDiv.appendChild(explanationDiv);
+
+                container.appendChild(questionDiv);
+            });
+        }
+
+        function checkAnswer(btn, selectedIndex, correctIndex, explanationDiv) {
+            // Disable clicks on siblings
+            const parent = btn.parentNode;
+            const siblings = parent.children;
+            
+            for (let i = 0; i < siblings.length; i++) {
+                siblings[i].style.pointerEvents = 'none'; // Disable further clicks
+                if (i === correctIndex) {
+                    siblings[i].classList.add('quiz-correct');
+                    siblings[i].innerHTML += ' <i class="fas fa-check float-right mt-1"></i>';
+                } else if (i === selectedIndex && selectedIndex !== correctIndex) {
+                    siblings[i].classList.add('quiz-wrong');
+                    siblings[i].innerHTML += ' <i class="fas fa-times float-right mt-1"></i>';
+                }
+            }
+
+            // Show explanation
+            explanationDiv.classList.remove('hidden');
+        }
+
+        // Initialize Quiz on Load
+        document.addEventListener('DOMContentLoaded', renderQuiz);
+    </script>
+</body>
+</html>

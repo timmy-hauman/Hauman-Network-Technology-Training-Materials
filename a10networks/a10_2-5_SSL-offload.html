@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A10 Networks Thunder 實戰課程 - SSL/TLS Offloading</title>
+    <!-- Google Fonts: Rubik -->
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS (via CDN for standalone file) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Mermaid JS (Updated to fixed version 10 for better stability) -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <!-- Custom Config for Tailwind to match A10/Hauman Brand -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'midnight-blue': '#192f6a', // Deep Blue
+                        'congress-blue': '#00529b', // Secondary Blue
+                        'a10-orange': '#f26522',    // A10 Brand Orange
+                        'tech-purple': '#9b4dca',   // Accent Purple/Magenta
+                        'light-grey': '#f4f6f8',
+                    },
+                    fontFamily: {
+                        sans: ['Rubik', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Rubik', sans-serif;
+            background-color: #f4f6f8;
+            color: #333;
+        }
+        .gradient-header {
+            background: linear-gradient(135deg, #192f6a 0%, #00529b 100%);
+        }
+        .concept-card {
+            border-left: 5px solid #f26522;
+        }
+        .mermaid-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            /* 修正：移除 flex 置中，改用 block 顯示，確保內容從左邊開始，解決左側被切掉無法捲動的問題 */
+            display: block; 
+            overflow-x: auto;
+        }
+        /* Quiz Styles */
+        .quiz-option {
+            transition: all 0.3s ease;
+        }
+        .quiz-option:hover {
+            background-color: #e2e8f0;
+        }
+        .quiz-option.correct {
+            background-color: #d1fae5; /* Green-100 */
+            border-color: #10b981; /* Green-500 */
+            color: #065f46;
+        }
+        .quiz-option.wrong {
+            background-color: #fee2e2; /* Red-100 */
+            border-color: #ef4444; /* Red-500 */
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Header -->
+    <header class="gradient-header text-white shadow-lg">
+        <div class="container mx-auto px-6 py-8">
+            <div class="flex items-center justify-between flex-wrap">
+                <div>
+                    <h2 class="text-a10-orange font-bold text-sm tracking-wider uppercase mb-1">Level 2 - Core Skills</h2>
+                    <h1 class="text-3xl md:text-4xl font-bold">SSL/TLS Offloading (SSL Insight 基礎)</h1>
+                    <p class="mt-2 text-gray-200 text-lg">憑證管理與 Template 配置實戰教學</p>
+                </div>
+                <div class="hidden md:block">
+                    <!-- Tech Abstract Icon -->
+                    <svg class="w-16 h-16 text-white opacity-20" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-10 flex-grow max-w-5xl">
+
+        <!-- Intro Section -->
+        <div class="bg-white p-6 rounded-lg shadow-md mb-8 border-t-4 border-tech-purple">
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    <span class="inline-flex items-center justify-center h-10 w-10 rounded-full bg-indigo-100 text-midnight-blue">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </span>
+                </div>
+                <div class="ml-4">
+                    <h3 class="text-xl font-bold text-midnight-blue">講師引言</h3>
+                    <p class="mt-2 text-gray-600 leading-relaxed">
+                        在現代網路中，超過 90% 的流量都是加密的 (HTTPS)。如果每一台網頁伺服器都要自己負責「解密」跟「加密」，這對 CPU 來說是非常繁重的負擔。今天我們要學會如何利用 A10 Thunder 作為「SSL 加速器」來釋放伺服器的效能，這也是構建安全架構的第一步。
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 1: Concept -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold text-midnight-blue mb-6 flex items-center">
+                <span class="w-2 h-8 bg-a10-orange mr-3 rounded-sm"></span>
+                一、核心概念 (Concept)
+            </h2>
+            
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow-md concept-card">
+                    <h3 class="text-lg font-bold text-congress-blue mb-3">一句話定義</h3>
+                    <p class="text-gray-700">
+                        SSL Offloading (卸載) 是指將繁重的 SSL 加密與解密工作，從後端伺服器 (Real Server) 轉移到專用的應用交付控制器 (A10 ADC) 上處理。
+                    </p>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-md concept-card">
+                    <h3 class="text-lg font-bold text-tech-purple mb-3">生活化比喻：總裁的翻譯秘書</h3>
+                    <p class="text-gray-700">
+                        想像這是一場<strong>跨國會議 (HTTPS 連線)</strong>。
+                    </p>
+                    <ul class="list-disc list-inside mt-2 text-gray-600 space-y-2">
+                        <li><strong>客戶 (Client)</strong> 講加密語言。</li>
+                        <li><strong>總裁 (Server)</strong> 日理萬機，只想聽簡單的結論 (HTTP 明文)，不想花時間查字典翻譯。</li>
+                        <li><strong>A10 (ADC)</strong> 就是<strong>專業翻譯秘書</strong>。</li>
+                    </ul>
+                    <p class="mt-2 text-gray-700 bg-gray-50 p-3 rounded">
+                        秘書在門口先聽懂客戶的話 (解密)，整理成簡單報告給總裁 (送往後端)。總裁回覆後，秘書再翻譯成加密語言給客戶。這樣總裁就能專心做決策，不用處理語言隔閡。
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Mechanism -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold text-midnight-blue mb-6 flex items-center">
+                <span class="w-2 h-8 bg-a10-orange mr-3 rounded-sm"></span>
+                二、運作原理 (Mechanism)
+            </h2>
+
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-xl font-semibold text-midnight-blue mb-2">技術細節：雙面代理 (Full Proxy)</h3>
+                        <p class="text-gray-600 leading-relaxed mb-4">
+                            A10 在 SSL Offloading 中扮演「中間人」的角色，這需要兩個關鍵的設定檔 (Templates)：
+                        </p>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div class="border border-gray-200 rounded p-4 bg-gray-50">
+                                <h4 class="font-bold text-congress-blue">1. Client-SSL Template (對外)</h4>
+                                <p class="text-sm text-gray-600 mt-1">
+                                    負責處理 <strong>Client 到 A10</strong> 之間的加密連線。
+                                </p>
+                                <ul class="list-disc list-inside text-sm text-gray-500 mt-2">
+                                    <li>A10 扮演 Server 角色。</li>
+                                    <li><strong>必須</strong>匯入 Server Certificate (憑證) 與 Private Key (私鑰)。</li>
+                                    <li>決定支援的 TLS 版本 (如 TLS 1.2/1.3) 與加密套件 (Cipher Suites)。</li>
+                                </ul>
+                            </div>
+                            <div class="border border-gray-200 rounded p-4 bg-gray-50">
+                                <h4 class="font-bold text-tech-purple">2. Server-SSL Template (對內)</h4>
+                                <p class="text-sm text-gray-600 mt-1">
+                                    負責處理 <strong>A10 到 Real Server</strong> 之間的連線。
+                                </p>
+                                <ul class="list-disc list-inside text-sm text-gray-500 mt-2">
+                                    <li>A10 扮演 Client 角色。</li>
+                                    <li>通常用於「Re-encryption (再加密)」場景，確保內網流量也是加密的 (Zero Trust 架構)。</li>
+                                    <li>如果後端走 HTTP (Port 80)，則不需要此設定。</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="border-gray-200">
+
+                    <div>
+                        <h3 class="text-xl font-semibold text-midnight-blue mb-2">憑證管理關鍵流程 (Certificate Management)</h3>
+                        <p class="text-gray-600 mb-4">要在 A10 上啟用 SSL，必須先處理憑證。常見有兩種方式：</p>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <span class="bg-blue-100 text-blue-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded mt-1">方法 A</span>
+                                <div>
+                                    <strong class="text-gray-800">Import (匯入現有憑證)</strong>
+                                    <p class="text-sm text-gray-600">如果你已經有 PFX (包含私鑰) 或 PEM 檔案，直接透過 GUI 或 CLI (`import ssl-cert`, `import ssl-key`) 匯入 A10。</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="bg-orange-100 text-orange-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded mt-1">方法 B</span>
+                                <div>
+                                    <strong class="text-gray-800">Generate CSR (產生憑證簽署請求)</strong>
+                                    <p class="text-sm text-gray-600">為了安全，私鑰最好直接在 A10 上產生。使用 `pki create csr` 指令生成 CSR，將 CSR 傳給憑證中心 (CA) 簽署，拿到憑證後再匯入。</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Visuals -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold text-midnight-blue mb-6 flex items-center">
+                <span class="w-2 h-8 bg-a10-orange mr-3 rounded-sm"></span>
+                三、架構視覺化 (Visuals)
+            </h2>
+
+            <!-- Diagram 1: Logical Flow -->
+            <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+                <div class="bg-gray-100 px-4 py-2 border-b border-gray-200">
+                    <h3 class="font-bold text-gray-700">圖 1：SSL Offloading 流量拓撲圖</h3>
+                </div>
+                <!-- 修正：移除 flex 置中，確保內容靠左開始，以顯示捲軸左側內容 -->
+                <div class="mermaid-container">
+                    <div class="mermaid" style="min-width: 150%;">
+                    flowchart LR
+                        Client("使用者 Client")
+                        FW["防火牆 Firewall"]
+                        A10["A10 Thunder ADC<br>SSL Termination"]
+
+                        subgraph TrustedZone ["Data Center (Trust Zone)"]
+                            direction LR
+                            RS1["Web Server 1<br>Port 80"]
+                            RS2["Web Server 2<br>Port 80"]
+                        end
+
+                        Client -- "HTTPS Encrypted<br>Port 443" --> FW
+                        FW --> A10
+                        A10 -- "HTTP Clear Text<br>Port 80" --> RS1
+                        A10 -- "HTTP Clear Text<br>Port 80" --> RS2
+
+                        style A10 fill:#192f6a,stroke:#f26522,stroke-width:2px,color:white
+                        style Client fill:#f4f6f8,stroke:#333,stroke-width:2px
+                        style RS1 fill:#e2e8f0,stroke:#333
+                        style RS2 fill:#e2e8f0,stroke:#333
+                    </div>
+                </div>
+                <p class="px-6 pb-4 text-sm text-gray-500 text-center">說明：Client 到 A10 是加密的 (消耗 A10 CPU)，A10 到 Server 是明文的 (減輕 Server 負擔)。</p>
+            </div>
+
+            <!-- Diagram 2: Sequence -->
+            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="bg-gray-100 px-4 py-2 border-b border-gray-200">
+                    <h3 class="font-bold text-gray-700">圖 2：SSL Handshake 處理流程 (Client-SSL)</h3>
+                </div>
+                <div class="mermaid-container overflow-x-auto">
+                    <div class="mermaid">
+                    sequenceDiagram
+                        participant C as Client
+                        participant A as A10 Thunder (VIP)
+                        participant S as Real Server
+
+                        Note over C, A: Phase 1: SSL Handshake (Client-SSL)
+                        C->>A: Client Hello (TLS 1.2/1.3)
+                        A->>C: Server Hello + Certificate (A10's Cert)
+                        C->>A: Key Exchange / Finished
+                        
+                        Note over C, A: Secure Tunnel Established
+                        
+                        C->>A: Encrypted HTTP Request (GET /)
+                        
+                        Note over A: Decryption (利用 Private Key)
+                        
+                        Note over A, S: Phase 2: Backend Connection
+                        A->>S: Plaintext HTTP Request (GET /)
+                        S-->>A: Plaintext HTTP Response
+                        
+                        Note over A: Encryption
+                        A-->>C: Encrypted HTTP Response
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Use Case -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold text-midnight-blue mb-6 flex items-center">
+                <span class="w-2 h-8 bg-a10-orange mr-3 rounded-sm"></span>
+                四、實務應用場景 (Use Case)
+            </h2>
+
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-xl font-bold text-midnight-blue mb-4">案例：大型電商網站的「SSL 集中化管理」</h3>
+                
+                <div class="flex flex-col md:flex-row gap-6">
+                    <div class="flex-1">
+                        <h4 class="font-bold text-congress-blue mb-2">情境描述</h4>
+                        <p class="text-gray-600 text-sm leading-relaxed mb-4">
+                            某知名購物網站擁有 50 台網頁伺服器 (Web Servers)。每當 SSL 憑證過期時，IT 管理員需要登入每一台伺服器更新憑證，且每台伺服器的 OS (Linux, Windows) 可能不同，容易發生漏換導致服務中斷。
+                        </p>
+                        <h4 class="font-bold text-tech-purple mb-2">A10 解決方案</h4>
+                        <p class="text-gray-600 text-sm leading-relaxed mb-3">
+                            在 A10 上配置 <strong>Client-SSL Template</strong> 並綁定 VIP。後端 50 台伺服器僅需開啟 Port 80。
+                        </p>
+                        
+                        <!-- Added CLI Configuration Example -->
+                        <div class="bg-gray-900 text-gray-300 p-4 rounded-lg font-mono text-xs overflow-x-auto shadow-inner border border-gray-700">
+                            <div class="mb-3 border-b border-gray-700 pb-2 font-bold text-gray-400">ACOS CLI 配置範例</div>
+                            
+                            <div class="mb-2"><span class="text-gray-500">! 1. 定義 SSL 模版 (匯入憑證與私鑰)</span></div>
+                            <div>slb template client-ssl <span class="text-yellow-400">High-Security-SSL</span></div>
+                            <div class="pl-4">cert <span class="text-green-400">www.shop.com.cert</span></div>
+                            <div class="pl-4">key <span class="text-green-400">www.shop.com.key</span></div>
+                            
+                            <div class="mb-2 mt-3"><span class="text-gray-500">! 2. 設定 Service Group (後端走 Port 80)</span></div>
+                            <div>slb service-group <span class="text-indigo-400">SG-Web-Servers</span> tcp</div>
+                            <div class="pl-4">member <span class="text-blue-300">RS-01</span> 80</div>
+                            <div class="pl-4">member <span class="text-blue-300">RS-02</span> 80</div>
+
+                            <div class="mb-2 mt-3"><span class="text-gray-500">! 3. 設定 VIP (前端 443 綁定 SSL 模版)</span></div>
+                            <div>slb virtual-server <span class="text-pink-400">VIP-Shop</span> 192.168.1.100</div>
+                            <div class="pl-4">port 443 https</div>
+                            <div class="pl-8">service-group <span class="text-indigo-400">SG-Web-Servers</span></div>
+                            <div class="pl-8">template client-ssl <span class="text-yellow-400">High-Security-SSL</span></div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex-1 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <h4 class="font-bold text-gray-800 mb-3 border-b pb-2">優點與缺點分析</h4>
+                        
+                        <div class="mb-3">
+                            <span class="text-green-600 font-bold">✔ 優點 (Pros)</span>
+                            <ul class="list-disc list-inside text-sm text-gray-600 mt-1">
+                                <li><strong>管理輕鬆</strong>：憑證只需在 A10 上更新一次，所有伺服器立即生效。</li>
+                                <li><strong>效能提升</strong>：A10 內建專屬 SSL 硬體晶片 (ASIC)，處理速度遠快於一般伺服器 CPU。</li>
+                                <li><strong>安全合規</strong>：可強制在 A10 上禁用不安全的加密協定 (如 TLS 1.0, SSLv3)，不需逐台伺服器設定。</li>
+                            </ul>
+                        </div>
+                        
+                        <div>
+                            <span class="text-red-600 font-bold">✘ 缺點 / 風險 (Cons)</span>
+                            <ul class="list-disc list-inside text-sm text-gray-600 mt-1">
+                                <li><strong>單點風險</strong>：所有私鑰 (Private Keys) 都集中在 A10，A10 的帳號權限管理變得極度重要。</li>
+                                <li><strong>內網明文</strong>：A10 到 Server 之間若走 HTTP，需確保內網實體線路安全，否則有被側錄風險 (解法：開啟 Server-SSL 做 Re-encryption)。</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: Quiz -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold text-midnight-blue mb-6 flex items-center">
+                <span class="w-2 h-8 bg-a10-orange mr-3 rounded-sm"></span>
+                五、隨堂測驗 (Quiz)
+            </h2>
+            
+            <div class="bg-white p-8 rounded-lg shadow-md">
+                <div id="quiz-container" class="space-y-8">
+                    <!-- Questions will be injected here via JS -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-midnight-blue text-white py-6 mt-auto">
+        <div class="container mx-auto px-6 text-center text-sm md:text-base opacity-80 font-light">
+            <p>Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0</p>
+        </div>
+    </footer>
+
+    <!-- Scripts for Functionality -->
+    <script>
+        // Initialize Mermaid with custom configuration
+        mermaid.initialize({ 
+            startOnLoad: true, 
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true
+            },
+            sequence: {
+                actorFontSize: 16,     // 放大角色字體
+                messageFontSize: 16,   // 放大訊息字體
+                noteFontSize: 16,      // 放大筆記字體
+                messageMargin: 70,     // 增加垂直間距 (垂直拉長)
+                boxMargin: 20,
+                mirrorActors: false
+            }
+        });
+
+        // Quiz Data
+        const quizData = [
+            {
+                question: "1. 關於 SSL Offloading 的主要目的，下列何者正確？",
+                options: [
+                    "A. 增加後端伺服器的 CPU 負載以測試效能",
+                    "B. 將 SSL 加解密的工作從伺服器轉移到 ADC (A10) 上，釋放伺服器運算資源",
+                    "C. 讓駭客更容易攔截封包",
+                    "D. 僅用於隱藏伺服器的 IP 位址"
+                ],
+                correct: 1, // Index of correct answer
+                explanation: "SSL Offloading 的核心價值就是利用 ADC 的專屬硬體來處理繁重的加解密運算，讓後端伺服器專注於應用程式邏輯。"
+            },
+            {
+                question: "2. 在 A10 設定中，哪個 Template 負責定義「Client 到 A10」之間的加密連線參數？",
+                options: [
+                    "A. Server-SSL Template",
+                    "B. TCP Proxy Template",
+                    "C. Client-SSL Template",
+                    "D. HTTP Template"
+                ],
+                correct: 2,
+                explanation: "Client-SSL Template 應用於 Virtual Port，負責處理前端 Client 的連線，包含憑證與私鑰的綁定。"
+            },
+            {
+                question: "3. 若要在 A10 上產生憑證簽署請求 (CSR) 以申請正式憑證，應使用什麼指令或功能？",
+                options: [
+                    "A. import ssl-cert",
+                    "B. pki create csr",
+                    "C. slb template client-ssl",
+                    "D. export ssl-key"
+                ],
+                correct: 1,
+                explanation: "標準流程是先在設備上執行 `pki create csr` 產生 CSR 檔案，再將其提供給 CA (如 VeriSign) 進行簽署。"
+            },
+            {
+                question: "4. 若希望 A10 解密後，再與後端伺服器建立「加密 (HTTPS)」連線 (即 Re-encryption)，需要額外配置什麼？",
+                options: [
+                    "A. 只需要 Client-SSL Template",
+                    "B. 需要配置 Server-SSL Template 並綁定至 Service Group",
+                    "C. 需要關閉 SLB 功能",
+                    "D. 後端伺服器必須將 Private Key 交給 A10"
+                ],
+                correct: 1,
+                explanation: "Re-encryption 架構下，A10 對後端扮演 Client 角色，因此需要配置 Server-SSL Template 來進行後端的加密交握。"
+            },
+            {
+                question: "5. 在 Client-SSL Template 中，必須匯入哪兩個關鍵檔案才能成功運作？",
+                options: [
+                    "A. Root CA 與 Intermediate CA",
+                    "B. Server Certificate (公鑰憑證) 與 Private Key (私鑰)",
+                    "C. CSR 與 CRL",
+                    "D. License File 與 Backup File"
+                ],
+                correct: 1,
+                explanation: "SSL 運作的基礎是擁有伺服器的身份憑證 (Certificate) 以及配對的私鑰 (Private Key) 來進行解密與簽章。"
+            }
+        ];
+
+        // Render Quiz
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionDiv = document.createElement('div');
+            questionDiv.className = "quiz-item border-b border-gray-200 pb-6 last:border-0";
+            
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <button onclick="checkAnswer(${index}, ${optIndex}, this)" 
+                        class="quiz-option w-full text-left p-3 rounded border border-gray-300 mb-2 hover:shadow-sm focus:outline-none">
+                        ${opt}
+                    </button>
+                `;
+            });
+
+            questionDiv.innerHTML = `
+                <h4 class="font-bold text-lg text-midnight-blue mb-3">${item.question}</h4>
+                <div class="options-container mb-3">
+                    ${optionsHtml}
+                </div>
+                <div id="feedback-${index}" class="hidden p-4 rounded text-sm mt-2"></div>
+            `;
+            quizContainer.appendChild(questionDiv);
+        });
+
+        // Quiz Logic
+        function checkAnswer(questionIndex, selectedOptionIndex, buttonElement) {
+            const question = quizData[questionIndex];
+            const feedbackEl = document.getElementById(`feedback-${questionIndex}`);
+            const parent = buttonElement.parentElement;
+            
+            // Disable all buttons in this question
+            const buttons = parent.querySelectorAll('button');
+            buttons.forEach(btn => btn.disabled = true);
+
+            if (selectedOptionIndex === question.correct) {
+                buttonElement.classList.add('correct');
+                feedbackEl.className = "p-4 rounded text-sm mt-2 bg-green-100 text-green-800 border border-green-200";
+                feedbackEl.innerHTML = `<strong>正確！</strong><br>${question.explanation}`;
+            } else {
+                buttonElement.classList.add('wrong');
+                // Highlight the correct one
+                buttons[question.correct].classList.add('correct');
+                feedbackEl.className = "p-4 rounded text-sm mt-2 bg-red-100 text-red-800 border border-red-200";
+                feedbackEl.innerHTML = `<strong>答錯了。</strong><br>${question.explanation}`;
+            }
+            feedbackEl.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

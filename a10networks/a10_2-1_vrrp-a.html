@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A10 Networks Thunder 實戰課程 - 高可用性架構</title>
+    <!-- Google Fonts: Rubik -->
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Mermaid JS -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        a10blue: '#001f3f', // Congress Blue / Midnight Blue
+                        a10magenta: '#d6006e', // Magenta
+                        a10orange: '#ff6600', // A10 Orange
+                        lightgrey: '#f4f6f8',
+                    },
+                    fontFamily: {
+                        sans: ['Rubik', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Rubik', sans-serif;
+            background-color: #f8fafc;
+            color: #333;
+        }
+        .gradient-header {
+            background: linear-gradient(135deg, #001f3f 0%, #003366 100%);
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            border-top: 4px solid #001f3f;
+        }
+        .highlight-text {
+            color: #d6006e;
+            font-weight: 600;
+        }
+        .diagram-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 20px;
+            overflow-x: auto;
+        }
+        .btn-primary {
+            background-color: #d6006e;
+            color: white;
+            transition: all 0.3s;
+        }
+        .btn-primary:hover {
+            background-color: #b0005a;
+        }
+        .quiz-option {
+            cursor: pointer;
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            transition: all 0.2s;
+        }
+        .quiz-option:hover {
+            background-color: #f0f4f8;
+            border-color: #001f3f;
+            font-weight: 500;
+        }
+        .quiz-option.selected {
+            background-color: #e6f0ff;
+            border-color: #001f3f;
+            font-weight: 500;
+        }
+        .quiz-option.correct {
+            background-color: #d1fae5;
+            border-color: #10b981;
+            color: #065f46;
+        }
+        .quiz-option.wrong {
+            background-color: #fee2e2;
+            border-color: #ef4444;
+            color: #991b1b;
+        }
+        /* Custom Scrollbar for code blocks */
+        .code-block::-webkit-scrollbar {
+            height: 8px;
+        }
+        .code-block::-webkit-scrollbar-track {
+            background: #2d3748; 
+        }
+        .code-block::-webkit-scrollbar-thumb {
+            background: #4a5568; 
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Header -->
+    <header class="gradient-header text-white py-8 shadow-lg">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <h1 class="text-3xl font-bold tracking-wide"><span class="text-a10orange">A10</span> Networks Thunder 實戰課程</h1>
+                    <p class="text-gray-300 mt-2 text-lg">Level 2 - Core Skills: 高可用性架構 (High Availability)</p>
+                </div>
+                <div class="text-right hidden md:block">
+                    <i class="fas fa-network-wired text-4xl text-a10magenta opacity-80"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8 flex-grow max-w-5xl">
+
+        <!-- Section 1: Core Concept -->
+        <section class="card p-8">
+            <div class="flex items-center mb-6">
+                <div class="w-10 h-10 rounded-full bg-a10blue flex items-center justify-center text-white mr-4">
+                    <i class="fas fa-lightbulb"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-a10blue">一、核心概念 (Concept)</h2>
+            </div>
+            
+            <div class="space-y-6">
+                <div class="bg-blue-50 p-6 rounded-lg border-l-4 border-a10orange">
+                    <h3 class="font-bold text-lg mb-2">一句話定義：</h3>
+                    <p class="text-gray-700">
+                        VRRP-A (Virtual Router Redundancy Protocol - A10 Extension) 是一套 A10 專有的高可用性機制，透過將兩台或多台設備組成一個群組，確保當一台設備故障時，另一台能「無縫接軌」所有網路服務與連線。
+                    </p>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6 items-center">
+                    <div>
+                        <h3 class="font-bold text-lg mb-2 text-a10magenta"><i class="fas fa-users-cog mr-2"></i>生活化比喻：餐廳的「雙主廚制」</h3>
+                        <p class="text-gray-600 leading-relaxed">
+                            想像一間高級餐廳有兩位主廚（設備）：
+                            <br><br>
+                            <strong>Active (主廚)：</strong> 負責所有出餐（處理封包），站在出餐口指揮。
+                            <br>
+                            <strong>Standby (副主廚)：</strong> 站在旁邊隨時待命，雖然不炒菜，但他會即時同步主廚的菜單進度（Session Sync）。
+                            <br><br>
+                            一旦主廚突然身體不適（故障），副主廚因為知道所有菜單進度，能立刻站上出餐口繼續做菜，客人完全感覺不到更換了廚師。
+                        </p>
+                    </div>
+                    
+                    <!-- Icon-based Illustration Area -->
+                    <div class="flex justify-center">
+                        <div class="bg-gray-100 rounded-lg p-6 flex items-center justify-around h-48 w-full border border-gray-200 shadow-inner">
+                            <!-- Active Chef -->
+                            <div class="text-center">
+                                <div class="relative inline-block mb-2">
+                                    <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-md border-2 border-a10blue">
+                                        <i class="fas fa-user-tie text-3xl text-a10blue"></i>
+                                    </div>
+                                    <div class="absolute -top-1 -right-1 bg-green-500 rounded-full p-1 border-2 border-white shadow-sm">
+                                        <i class="fas fa-check text-white text-xs"></i>
+                                    </div>
+                                </div>
+                                <p class="font-bold text-a10blue text-sm">Active 主廚</p>
+                                <span class="inline-block mt-1 text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full font-medium">上菜中</span>
+                            </div>
+
+                            <!-- Sync/Handover Animation -->
+                            <div class="flex flex-col items-center text-a10magenta opacity-80 px-2">
+                                <div class="animate-pulse">
+                                    <i class="fas fa-exchange-alt text-xl"></i>
+                                </div>
+                                <span class="text-[10px] mt-1 font-medium tracking-wider">即時同步</span>
+                                <i class="fas fa-receipt text-lg mt-1 text-gray-400"></i>
+                            </div>
+
+                            <!-- Standby Chef -->
+                            <div class="text-center opacity-80">
+                                <div class="relative inline-block mb-2">
+                                    <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm border-2 border-gray-300">
+                                        <i class="fas fa-user-tie text-3xl text-gray-400"></i>
+                                    </div>
+                                    <div class="absolute -top-1 -right-1 bg-yellow-400 rounded-full p-1 border-2 border-white shadow-sm">
+                                        <i class="fas fa-pause text-white text-xs"></i>
+                                    </div>
+                                </div>
+                                <p class="font-bold text-gray-500 text-sm">Standby 副主廚</p>
+                                <span class="inline-block mt-1 text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full font-medium">監控菜單</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- End of Icon Illustration -->
+                    
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Mechanism -->
+        <section class="card p-8">
+            <div class="flex items-center mb-6">
+                <div class="w-10 h-10 rounded-full bg-a10blue flex items-center justify-center text-white mr-4">
+                    <i class="fas fa-cogs"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-a10blue">二、運作原理 (Mechanism)</h2>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4 border-b-2 border-gray-200 pb-2">技術細節</h3>
+                    <ul class="list-disc pl-5 space-y-3 text-gray-700">
+                        <li>
+                            <span class="font-bold text-a10blue">VRID (Virtual Router ID)：</span>
+                            這是 HA 群組的識別證。兩台設備必須設定相同的 VRID 才能成為一組搭檔。每個 VRID 擁有一組虛擬 MAC 位址。
+                        </li>
+                        <li>
+                            <span class="font-bold text-a10blue">Hello Messages (心跳偵測)：</span>
+                            設備間會透過專用的 VLAN 發送 Hello 封包。如果 Standby 收不到 Active 的心跳，就會判定對方「陣亡」，進而接手服務。
+                        </li>
+                        <li>
+                            <span class="font-bold text-a10blue">Conn-Sync (Session Synchronization)：</span>
+                            這是 A10 的強項。Active 設備會將當前的連線表 (Session Table) 即時複製給 Standby。這樣 Failover 發生時，使用者的 TCP 連線不會斷線，不需重新登入。
+                        </li>
+                    </ul>
+                </div>
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <h3 class="text-xl font-bold mb-4 border-b-2 border-gray-200 pb-2">關鍵參數</h3>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center border-b border-gray-200 pb-2">
+                            <span class="font-medium">Device Priority</span>
+                            <span class="text-sm bg-blue-100 text-blue-800 py-1 px-2 rounded">數值越大越優先 (預設 100)</span>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-gray-200 pb-2">
+                            <span class="font-medium">Set-ID</span>
+                            <span class="text-sm bg-blue-100 text-blue-800 py-1 px-2 rounded">HA Set 的唯一識別碼</span>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-gray-200 pb-2">
+                            <span class="font-medium">Preemption (搶佔)</span>
+                            <span class="text-sm bg-blue-100 text-blue-800 py-1 px-2 rounded">Enable/Disable (高權重是否搶回 Active)</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium">Hello Interval</span>
+                            <span class="text-sm bg-blue-100 text-blue-800 py-1 px-2 rounded">預設 200ms (毫秒)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8">
+                <h3 class="text-xl font-bold mb-4 text-a10magenta">模式比較：Active-Standby vs. Active-Active</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-a10blue text-white">
+                                <th class="p-4 rounded-tl-lg">特性</th>
+                                <th class="p-4">Active-Standby (推薦)</th>
+                                <th class="p-4 rounded-tr-lg">Active-Active</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-gray-700">
+                            <tr class="border-b">
+                                <td class="p-4 font-bold bg-gray-50">流量處理</td>
+                                <td class="p-4">100% 由 Active 處理，Standby 閒置待命。</td>
+                                <td class="p-4">兩台同時處理流量 (通常透過多個 VRID 群組實現)。</td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="p-4 font-bold bg-gray-50">除錯難度</td>
+                                <td class="p-4 text-green-600 font-bold">簡單，路徑明確。</td>
+                                <td class="p-4 text-orange-500 font-bold">複雜，需判斷封包走哪台設備 (Asymmetric Routing)。</td>
+                            </tr>
+                            <tr>
+                                <td class="p-4 font-bold bg-gray-50">適用場景</td>
+                                <td class="p-4">大多數企業環境，追求穩定與管理簡便。</td>
+                                <td class="p-4">超大流量環境，不希望有閒置資源。</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Visuals -->
+        <section class="card p-8">
+            <div class="flex items-center mb-6">
+                <div class="w-10 h-10 rounded-full bg-a10blue flex items-center justify-center text-white mr-4">
+                    <i class="fas fa-project-diagram"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-a10blue">三、架構視覺化 (Visuals)</h2>
+            </div>
+
+            <div class="mb-8">
+                <h4 class="font-bold text-lg mb-2 text-gray-700">1. VRRP-A 物理連接拓樸 (Topology)</h4>
+                <div class="diagram-container text-center">
+                    <div class="mermaid">
+                    graph TD
+                        Client((Client User)) -->|VIP: 10.10.10.1| HA_Cluster
+                        
+                        subgraph HA_Cluster [VRRP-A Set: 1, VRID: 0]
+                            direction TB
+                            VIP[VIP: 10.10.10.1] 
+                            A1[Active Thunder]
+                            S1[Standby Thunder]
+                            
+                            VIP -.-> A1
+                            VIP -.-> S1
+
+                            A1 <==>|"Ethernet 1<br/>Heartbeat + Sync"| S1
+                            
+                            style A1 fill:#001f3f,stroke:#333,stroke-width:2px,color:#fff
+                            style S1 fill:#fff,stroke:#001f3f,stroke-width:2px,stroke-dasharray: 5 5
+                        end
+                        
+                        A1 -->|Traffic| Servers[Backend Servers]
+                        
+                        linkStyle 3 stroke:#d6006e,stroke-width:4px
+                    </div>
+                </div>
+                <p class="text-sm text-gray-500 italic text-center">實線代表主要流量路徑，虛線代表待命路徑。中間的洋紅色粗線為 HA 同步線路 (Ethernet 1)。</p>
+            </div>
+
+            <div>
+                <h4 class="font-bold text-lg mb-2 text-gray-700">2. Failover 切換流程 (Sequence)</h4>
+                <div class="diagram-container text-center">
+                    <div class="mermaid">
+                    sequenceDiagram
+                        participant C as Client
+                        participant A as A10-Active
+                        participant S as A10-Standby
+                        participant B as Backend-Server
+
+                        Note over A,S: 正常狀態
+                        A->>S: Hello Packet (Priority 200)
+                        A->>S: Session Sync Data (連線表)
+                        C->>A: Request (TCP SY)
+                        A->>B: Fwd Request
+                        B-->>A: Response
+
+                        Note over A: ⚠️ 發生故障 (Power Loss)
+                        
+                        Note over S: 等待 Hello 超時 (Dead Timer)
+                        S->>S: 昇級為 Active (Priority 150)
+                        S->>C: 發送 Gratuitous ARP (宣告 VIP MAC 在我這)
+                        
+                        Note over S: 接手服務
+                        C->>S: Next Request (已有 Session 紀錄)
+                        S->>B: Fwd Request
+                        B-->>S: Response
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Use Case -->
+        <section class="card p-8">
+            <div class="flex items-center mb-6">
+                <div class="w-10 h-10 rounded-full bg-a10blue flex items-center justify-center text-white mr-4">
+                    <i class="fas fa-briefcase"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-a10blue">四、實務應用場景 (Use Case)</h2>
+            </div>
+
+            <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                <div class="bg-a10blue text-white p-4">
+                    <h3 class="font-bold text-lg">案例：證券交易系統的「零秒」備援</h3>
+                </div>
+                <div class="p-6">
+                    <p class="text-gray-700 mb-4">
+                        <strong class="text-a10magenta">情境：</strong> 
+                        某大型證券商的下單系統，每秒鐘有數千筆交易。如果防火牆或負載平衡器故障導致連線中斷，客戶必須重新登入下單，這幾秒的延遲可能造成巨大的金錢損失。
+                    </p>
+                    <p class="text-gray-700 mb-4">
+                        <strong class="text-a10magenta">解決方案：</strong> 
+                        部署兩台 A10 Thunder 形成 VRRP-A Active-Standby 架構，並開啟 <span class="bg-yellow-100 px-1 rounded">Conn-Sync (Session Synchronization)</span> 功能。
+                    </p>
+                    
+                    <div class="grid md:grid-cols-2 gap-4 mt-6">
+                        <div class="bg-green-50 p-4 rounded border border-green-200">
+                            <h4 class="font-bold text-green-800 mb-2"><i class="fas fa-check-circle mr-2"></i>優點</h4>
+                            <ul class="list-disc pl-5 text-sm text-green-900">
+                                <li><strong>交易不中斷：</strong> 即便 Active 設備斷電，客戶端的 TCP 連線依然存活，不需重連。</li>
+                                <li><strong>維護便利：</strong> 網管人員可以在上班時間手動切換至 Standby 進行韌體更新，完全不影響業務。</li>
+                            </ul>
+                        </div>
+                        <div class="bg-red-50 p-4 rounded border border-red-200">
+                            <h4 class="font-bold text-red-800 mb-2"><i class="fas fa-exclamation-circle mr-2"></i>缺點/挑戰</h4>
+                            <ul class="list-disc pl-5 text-sm text-red-900">
+                                <li><strong>成本較高：</strong> 需購買兩台設備，但平時只有一台在運作 (Active-Standby 模式下)。</li>
+                                <li><strong>同步頻寬：</strong> 若連線量極大 (數百萬 Concurrent)，HA 介面之間的頻寬需足夠大 (建議用 10G/40G 直連)。</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Section 5: Configuration Lab (Active-Active Routed) -->
+        <section class="card p-8">
+            <div class="flex items-center mb-6">
+                <div class="w-10 h-10 rounded-full bg-a10blue flex items-center justify-center text-white mr-4">
+                    <i class="fas fa-terminal"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-a10blue">五、實戰設定範例 (Configuration Lab) - AA 路由模式</h2>
+            </div>
+
+            <div class="mb-6">
+                <h3 class="font-bold text-lg mb-2 text-gray-700">場景描述 (Active-Active / Routed Mode)：</h3>
+                <p class="text-gray-600">
+                    企業實施 <strong>Active-Active (AA)</strong> 架構，且 Client 端與 Server 端位於不同網段 (Routed Mode)。
+                    <br>
+                    <strong>需求：</strong>
+                    <br>• <strong>Client Side (10.10.10.x)</strong>：配置 VIP (10.10.10.1 & .2) 供用戶存取。
+                    <br>• <strong>Server Side (192.168.20.x)</strong>：配置 Gateway IP (192.168.20.1 & .2) 供後端伺服器回程路由使用。
+                    <br>• <strong>Ethernet 1</strong>：Client 側 + HA Sync。 <strong>Ethernet 2</strong>：Server 側。
+                </p>
+            </div>
+
+            <!-- Topology for Lab -->
+             <div class="mb-6">
+                <h4 class="font-bold text-md mb-2 text-a10magenta">實驗拓樸圖 (Routed Mode)</h4>
+                <div class="diagram-container text-center">
+                    <div class="mermaid">
+                    graph TD
+                        Internet((Internet))
+                        
+                        subgraph HA_Cluster [A10 HA Pair]
+                            direction TB
+                            DevA["Device A<br/>Eth1 (Client): 10.10.10.11<br/>Eth2 (Server): 192.168.20.11"]
+                            DevB["Device B<br/>Eth1 (Client): 10.10.10.12<br/>Eth2 (Server): 192.168.20.12"]
+                            DevA <==>|"Eth 1<br/>Heartbeat + Sync"| DevB
+                        end
+
+                        Internet -->|"VIP: 10.10.10.0/24"| DevA
+                        Internet -->|"VIP: 10.10.10.0/24"| DevB
+
+                        L2SW["L2 Switch<br/>(VLAN Trunking)"]
+
+                        DevA -->|"Eth 2"| L2SW
+                        DevB -->|"Eth 2"| L2SW
+
+                        subgraph Servers [Backend Server Groups]
+                            SG1["Server A<br/>IP: 192.168.20.100"]
+                            SG2["Server B<br/>IP: 192.168.20.200"]
+                        end
+
+                        L2SW --> SG1
+                        L2SW --> SG2
+
+                        SG1 -.->|"Default GW: .1 (VRID 1)"| DevA
+                        SG2 -.->|"Default GW: .2 (VRID 2)"| DevB
+
+                        style DevA fill:#e6f0ff,stroke:#001f3f,stroke-width:2px
+                        style DevB fill:#e6f0ff,stroke:#001f3f,stroke-width:2px
+                        style L2SW fill:#fff,stroke:#333,stroke-width:2px
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuration Tabs/Grid -->
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- Device A Config -->
+                <div class="bg-gray-800 text-green-400 p-4 rounded-lg font-mono text-sm code-block overflow-x-auto shadow-md">
+                    <div class="flex justify-between border-b border-gray-600 pb-2 mb-2">
+                        <span class="text-white font-bold"><i class="fas fa-server mr-2"></i>Device A Config</span>
+                        <span class="text-xs bg-gray-700 text-white px-2 py-0.5 rounded">Active for VRID 1</span>
+                    </div>
+<pre>
+! 1. 設定共用參數
+vrrp-a common
+  device-id 1
+  set-id 1
+  enable
+
+! 2. 設定 VRID 1 (我是 Active)
+vrrp-a vrid 1
+  floating-ip 10.10.10.1 (VIP1)
+  floating-ip 192.168.20.1 (GW1)
+  blade-parameters
+    priority 200
+
+! 3. 設定 VRID 2 (我是 Standby)
+vrrp-a vrid 2
+  floating-ip 10.10.10.2 (VIP2)
+  floating-ip 192.168.20.2 (GW2)
+  blade-parameters
+    priority 150
+  
+! 4. 介面設定
+interface ethernet 1 (Client Side)
+  ip address 10.10.10.11 255.255.255.0
+  vrrp-a vrid 1
+  vrrp-a vrid 2
+
+interface ethernet 2 (Server Side)
+  ip address 192.168.20.11 255.255.255.0
+  vrrp-a vrid 1
+  vrrp-a vrid 2
+</pre>
+                </div>
+
+                <!-- Device B Config -->
+                 <div class="bg-gray-800 text-blue-300 p-4 rounded-lg font-mono text-sm code-block overflow-x-auto shadow-md">
+                    <div class="flex justify-between border-b border-gray-600 pb-2 mb-2">
+                        <span class="text-white font-bold"><i class="fas fa-server mr-2"></i>Device B Config</span>
+                        <span class="text-xs bg-gray-700 text-white px-2 py-0.5 rounded">Active for VRID 2</span>
+                    </div>
+<pre>
+! 1. 設定共用參數
+vrrp-a common
+  device-id 2
+  set-id 1
+  enable
+
+! 2. 設定 VRID 1 (我是 Standby)
+vrrp-a vrid 1
+  floating-ip 10.10.10.1 (VIP1)
+  floating-ip 192.168.20.1 (GW1)
+  blade-parameters
+    priority 150
+
+! 3. 設定 VRID 2 (我是 Active)
+vrrp-a vrid 2
+  floating-ip 10.10.10.2 (VIP2)
+  floating-ip 192.168.20.2 (GW2)
+  blade-parameters
+    priority 200
+  
+! 4. 介面設定
+interface ethernet 1 (Client Side)
+  ip address 10.10.10.12 255.255.255.0
+  vrrp-a vrid 1
+  vrrp-a vrid 2
+
+interface ethernet 2 (Server Side)
+  ip address 192.168.20.12 255.255.255.0
+  vrrp-a vrid 1
+  vrrp-a vrid 2
+</pre>
+                </div>
+            </div>
+
+            <!-- Server Gateway Settings -->
+            <div class="mt-6 bg-red-50 border-l-4 border-red-500 p-4 text-sm rounded shadow-sm">
+                <h4 class="font-bold text-red-900 mb-3 text-lg"><i class="fas fa-exclamation-triangle mr-2"></i>關鍵補充：後端伺服器網路設定 (Server Gateway Settings)</h4>
+                <p class="text-gray-800 mb-4">
+                    因為 Server IP (192.168.20.x) 與 VIP (10.10.10.x) 位於不同網段，伺服器的 <strong>Default Gateway</strong> 必須指向 A10 在 Server 網段上的 Floating IP，才能確保封包回程不迷路。
+                </p>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-white p-3 rounded border border-gray-200">
+                        <h5 class="font-bold text-gray-800 mb-1">Server Group A (服務 A)</h5>
+                        <p class="text-gray-600 text-xs mb-2">主機 IP: 192.168.20.100</p>
+                        <div class="bg-gray-100 p-2 rounded font-mono text-xs">
+                            <span class="text-purple-700">Default Gateway:</span> 192.168.20.1<br>
+                            <span class="text-gray-500">(指向 VRID 1 的 Server-Side Floating IP)</span>
+                        </div>
+                    </div>
+                    <div class="bg-white p-3 rounded border border-gray-200">
+                        <h5 class="font-bold text-gray-800 mb-1">Server Group B (服務 B)</h5>
+                        <p class="text-gray-600 text-xs mb-2">主機 IP: 192.168.20.200</p>
+                        <div class="bg-gray-100 p-2 rounded font-mono text-xs">
+                            <span class="text-purple-700">Default Gateway:</span> 192.168.20.2<br>
+                            <span class="text-gray-500">(指向 VRID 2 的 Server-Side Floating IP)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- New Communication Details Block -->
+            <div class="mt-6 bg-indigo-50 border-l-4 border-indigo-400 p-4 text-sm rounded shadow-sm">
+                <h4 class="font-bold text-indigo-900 mb-3 text-lg"><i class="fas fa-network-wired mr-2"></i>進階補充：HA 溝通機制與位址 (Communication & Addresses)</h4>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <h5 class="font-bold text-indigo-800 mb-1">1. Multicast Address (標準 VRRP)</h5>
+                        <p class="text-gray-700 mb-2">
+                            標準 VRRP 協定預設使用 Multicast 位址進行 Hello 封包溝通。
+                        </p>
+                        <ul class="list-disc pl-5 text-gray-700 font-mono text-xs">
+                            <li><span class="font-bold">IPv4 Multicast:</span> 224.0.0.18</li>
+                            <li><span class="font-bold">Protocol:</span> IP Protocol 112</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h5 class="font-bold text-indigo-800 mb-1">2. A10 VRRP-A 專有擴充</h5>
+                        <p class="text-gray-700 mb-2">
+                            A10 的 VRRP-A 為了同步大量的 Session Table，採用了專有的傳輸機制。
+                        </p>
+                        <ul class="list-disc pl-5 text-gray-700 font-mono text-xs">
+                            <li><span class="font-bold">Sync Protocol:</span> UDP Port 3003</li>
+                            <li><span class="font-bold">Default Transport:</span> Layer 2 Broadcast 或 Unicast (若指定 Peer IP)</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="mt-3 text-xs text-gray-500 italic">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    注意：若防火牆位於 HA 介面中間，請務必放行 <strong>224.0.0.18 (VRRP)</strong> 與 <strong>UDP 3003 (A10 Sync)</strong>。
+                </div>
+            </div>
+
+            <div class="mt-6 bg-yellow-50 border-l-4 border-yellow-400 p-4 text-sm">
+                <h4 class="font-bold text-yellow-800 mb-2"><i class="fas fa-search mr-2"></i>關鍵檢查指令 (Verification)</h4>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <code class="bg-gray-800 text-white px-2 py-1 rounded">Show vrrp-a</code>
+                        <p class="text-gray-600 mt-1">查看目前 HA 狀態 (誰是 Active、誰是 Standby)。</p>
+                    </div>
+                    <div>
+                        <code class="bg-gray-800 text-white px-2 py-1 rounded">Show vrrp-a sessions</code>
+                        <p class="text-gray-600 mt-1">確認 Session Table 的同步數量是否一致。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 6: Quiz -->
+        <section class="card p-8">
+            <div class="flex items-center mb-6">
+                <div class="w-10 h-10 rounded-full bg-a10blue flex items-center justify-center text-white mr-4">
+                    <i class="fas fa-clipboard-question"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-a10blue">六、隨堂測驗 (Quiz)</h2>
+            </div>
+
+            <div id="quiz-container" class="space-y-6">
+                <!-- Questions will be injected here by JS -->
+            </div>
+            
+            <div id="quiz-result" class="hidden mt-6 p-4 bg-gray-100 rounded text-center">
+                <p class="font-bold text-xl mb-2">測驗完成！</p>
+                <p>您的得分： <span id="score-display" class="text-2xl text-a10magenta font-bold"></span> / 5</p>
+                <button onclick="resetQuiz()" class="mt-4 px-6 py-2 bg-a10blue text-white rounded hover:bg-blue-800 transition">重新測驗</button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-a10blue text-white py-6 mt-auto">
+        <div class="container mx-auto px-4 text-center">
+            <p class="text-sm opacity-80">
+                Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Initialize Mermaid
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+
+        // Quiz Data
+        const quizData = [
+            {
+                question: "1. 在 VRRP-A 的 Active-Standby 架構中，關於 Priority (優先權) 的敘述何者正確？",
+                options: [
+                    "數值越小，優先權越高，越容易成為 Active",
+                    "數值越大，優先權越高，越容易成為 Active",
+                    "優先權只在 Active-Active 模式下有效",
+                    "A10 設備不使用 Priority，而是使用 IP 大小決定"
+                ],
+                correct: 1,
+                explanation: "VRRP-A 遵循標準 VRRP 規則，Priority 數值越大 (例如 200 > 150)，代表優先權越高，會被選舉為 Active。"
+            },
+            {
+                question: "2. 為了確保 Failover 發生時，使用者的線上交易或登入狀態不會中斷，必須開啟哪項功能？",
+                options: [
+                    "Session Synchronization (Conn-Sync)",
+                    "Graceful Restart",
+                    "LACP (Link Aggregation)",
+                    "Health Monitor"
+                ],
+                correct: 0,
+                explanation: "Conn-Sync 負責在 Active 與 Standby 之間同步 Session Table，這是達成「無縫接軌」的關鍵技術。"
+            },
+            {
+                question: "3. 若兩台 A10 設備要組成一個 HA Pair，下列哪一個參數必須設定相同？",
+                options: [
+                    "Priority",
+                    "Management IP",
+                    "VRID (Virtual Router ID)",
+                    "Host Name"
+                ],
+                correct: 2,
+                explanation: "VRID 是識別 HA 群組的 ID，兩台設備必須擁有相同的 VRID 與 Set-ID 才能互相溝通並組成 HA。"
+            },
+            {
+                question: "4. Active-Active 模式相較於 Active-Standby 模式，主要的缺點是什麼？",
+                options: [
+                    "效能較差",
+                    "無法同步 Session",
+                    "除錯 (Troubleshooting) 較為困難，需考慮非對稱路由",
+                    "硬體成本較低"
+                ],
+                correct: 2,
+                explanation: "Active-Active 雖然能同時利用兩台設備效能，但因流量可能從 A 進 B 出 (Asymmetric Routing)，導致除錯與追蹤連線變得複雜。"
+            },
+            {
+                question: "5. 當 Standby 設備在預定時間內收不到 Active 設備的什麼訊號時，會判斷 Active 已故障並接手服務？",
+                options: [
+                    "Ping Reply",
+                    "SNMP Trap",
+                    "Hello Messages (Heartbeat)",
+                    "HTTP 200 OK"
+                ],
+                correct: 2,
+                explanation: "VRRP-A 透過週期性發送 Hello Messages 來確認夥伴狀態。若超時未收到 (Dead Timer)，則判定對方故障。"
+            }
+        ];
+
+        function renderQuiz() {
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = '';
+            
+            quizData.forEach((q, index) => {
+                const qDiv = document.createElement('div');
+                qDiv.className = 'border border-gray-200 rounded-lg p-4 bg-white shadow-sm';
+                
+                const title = document.createElement('h4');
+                title.className = 'font-bold text-lg mb-3 text-gray-800';
+                title.innerText = q.question;
+                qDiv.appendChild(title);
+                
+                const optionsDiv = document.createElement('div');
+                q.options.forEach((opt, optIndex) => {
+                    const btn = document.createElement('div');
+                    btn.className = 'quiz-option text-gray-700';
+                    btn.innerText = opt;
+                    btn.onclick = () => checkAnswer(index, optIndex, btn, qDiv);
+                    optionsDiv.appendChild(btn);
+                });
+                qDiv.appendChild(optionsDiv);
+                
+                // Explanation Area (Hidden initially)
+                const expDiv = document.createElement('div');
+                expDiv.id = `exp-${index}`;
+                expDiv.className = 'hidden mt-3 p-3 bg-blue-50 text-sm text-blue-900 rounded border-l-4 border-a10blue';
+                qDiv.appendChild(expDiv);
+
+                container.appendChild(qDiv);
+            });
+        }
+
+        let score = 0;
+        let answered = new Array(quizData.length).fill(false);
+
+        function checkAnswer(qIndex, optIndex, btnElement, containerDiv) {
+            if (answered[qIndex]) return; // Prevent multiple clicks
+            
+            answered[qIndex] = true;
+            const q = quizData[qIndex];
+            const options = containerDiv.querySelectorAll('.quiz-option');
+            const expDiv = document.getElementById(`exp-${qIndex}`);
+            
+            // Mark selected
+            if (optIndex === q.correct) {
+                btnElement.classList.add('correct');
+                btnElement.innerHTML += ' <i class="fas fa-check-circle float-right"></i>';
+                score++;
+                expDiv.innerHTML = `<strong><i class="fas fa-thumbs-up"></i> 正確！</strong> ${q.explanation}`;
+            } else {
+                btnElement.classList.add('wrong');
+                btnElement.innerHTML += ' <i class="fas fa-times-circle float-right"></i>';
+                // Highlight correct one
+                options[q.correct].classList.add('correct');
+                expDiv.innerHTML = `<strong><i class="fas fa-lightbulb"></i> 解析：</strong> ${q.explanation}`;
+            }
+            
+            // Show explanation
+            expDiv.classList.remove('hidden');
+            
+            // Check if all answered
+            if (answered.every(a => a)) {
+                document.getElementById('quiz-result').classList.remove('hidden');
+                document.getElementById('score-display').innerText = score;
+            }
+        }
+
+        function resetQuiz() {
+            score = 0;
+            answered.fill(false);
+            document.getElementById('quiz-result').classList.add('hidden');
+            renderQuiz();
+        }
+
+        // Initialize
+        renderQuiz();
+    </script>
+</body>
+</html>
