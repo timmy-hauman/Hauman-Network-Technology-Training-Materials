@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EC-Council CND 網路防禦課程 | Module 03</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #111111;
+            --card-bg: #1a1a1a;
+            --text-main: #e0e0e0;
+            --text-dim: #a0a0a0;
+            --accent-red: #FF0000;
+            --accent-dark-red: #8a0000;
+            --grid-line: #222222;
+            --hud-glow: rgba(255, 0, 0, 0.4);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Rajdhani', sans-serif;
+            background-image: 
+                linear-gradient(var(--grid-line) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+            background-size: 40px 40px;
+            overflow-x: hidden;
+        }
+
+        /* Typography */
+        h1, h2, h3, .brand-font {
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .mono-font {
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        /* Cyberpunk Effects */
+        .hud-border {
+            border: 1px solid #333;
+            position: relative;
+            background: rgba(20, 20, 20, 0.95);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+            clip-path: polygon(
+                0 0, 
+                100% 0, 
+                100% calc(100% - 20px), 
+                calc(100% - 20px) 100%, 
+                0 100%
+            );
+        }
+
+        .hud-border::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent-red), transparent);
+        }
+
+        .hud-border::after {
+            content: '';
+            position: absolute;
+            bottom: 0; right: 0;
+            width: 20px; height: 2px;
+            background: var(--accent-red);
+        }
+
+        .glow-text {
+            text-shadow: 0 0 8px var(--hud-glow);
+        }
+
+        .alert-btn {
+            background: transparent;
+            border: 1px solid var(--accent-red);
+            color: var(--accent-red);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .alert-btn:hover {
+            background: var(--accent-red);
+            color: #000;
+            box-shadow: 0 0 15px var(--accent-red);
+        }
+
+        .scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.3;
+        }
+
+        /* Quiz Styles */
+        .option-btn {
+            background: #222;
+            border: 1px solid #444;
+            transition: all 0.2s;
+        }
+        .option-btn:hover {
+            border-color: var(--accent-red);
+            background: #2a2a2a;
+        }
+        .option-btn.selected {
+            background: #333;
+            border-color: #fff;
+        }
+        .option-btn.correct {
+            background: rgba(0, 255, 0, 0.1);
+            border-color: #00ff00;
+            color: #00ff00;
+        }
+        .option-btn.wrong {
+            background: rgba(255, 0, 0, 0.1);
+            border-color: #ff0000;
+            color: #ff0000;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #000;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-red);
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+    <div class="scanline"></div>
+
+    <!-- Header -->
+    <header class="border-b border-red-900 bg-black/90 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <i class="fas fa-shield-alt text-3xl text-red-600 animate-pulse"></i>
+                <div>
+                    <h1 class="text-2xl font-bold text-white glow-text">EC-Council CND</h1>
+                    <p class="text-xs text-red-500 mono-font tracking-widest">CERTIFIED NETWORK DEFENDER v2 // MODULE 03</p>
+                </div>
+            </div>
+            <div class="hidden md:flex items-center gap-6 mono-font text-sm">
+                <span class="text-gray-400">STATUS: <span class="text-green-500">ONLINE</span></span>
+                <span class="text-gray-400">DEFCON: <span class="text-red-500">3</span></span>
+                <span class="text-gray-400">USER: <span class="text-white">INSTRUCTOR</span></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 py-8 w-full">
+        
+        <!-- Module Title Section -->
+        <div class="mb-12 text-center relative py-10 border-y border-red-900/30 bg-gradient-to-r from-transparent via-red-900/10 to-transparent">
+            <h2 class="text-4xl md:text-5xl font-bold text-white mb-4 glow-text">Technical Network Security</h2>
+            <p class="text-xl text-gray-400 max-w-3xl mx-auto font-light">
+                技術層面的網路安全控制是防禦體系的核心。本模組將深入探討存取控制模型 (Access Control)、身份識別 (IAM)、密碼學 (Cryptography) 以及零信任架構 (Zero Trust)，建立藍隊防禦的堅實基礎。
+            </p>
+            <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 px-4 bg-[#111111] border border-red-900 text-red-500 text-xs mono-font">
+                SYSTEM_READY // INITIATE_PROTOCOL
+            </div>
+        </div>
+
+        <!-- Content Grid -->
+        <div class="grid grid-cols-1 gap-12">
+
+            <!-- Section 1: Access Control Models -->
+            <section class="hud-border p-8">
+                <div class="flex items-center gap-3 mb-6 border-b border-gray-800 pb-2">
+                    <i class="fas fa-lock text-red-600 text-xl"></i>
+                    <h3 class="text-2xl text-white">1. Access Control Models (存取控制模型)</h3>
+                </div>
+                
+                <div class="space-y-6 text-gray-300">
+                    <p>作為網路防禦者，理解不同的存取控制模型對於實施「最小權限原則 (Principle of Least Privilege)」至關重要。</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-black/40 p-5 border-l-2 border-red-600">
+                            <h4 class="text-white font-bold mb-2">DAC (Discretionary Access Control)</h4>
+                            <p class="text-sm mb-2"><span class="text-red-400">自主式存取控制。</span>資源擁有者(Owner)決定誰可以存取。</p>
+                            <ul class="text-xs text-gray-400 list-disc ml-4 space-y-1">
+                                <li><strong>優點：</strong> 靈活，適用於小型或低安全性環境。</li>
+                                <li><strong>缺點：</strong> 安全性較低，容易受到木馬攻擊 (Trojan horses) 竊取權限。</li>
+                                <li><strong>範例：</strong> Windows NTFS 檔案權限 (User 建立檔案後可分享給他人)。</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-black/40 p-5 border-l-2 border-red-600">
+                            <h4 class="text-white font-bold mb-2">MAC (Mandatory Access Control)</h4>
+                            <p class="text-sm mb-2"><span class="text-red-400">強制式存取控制。</span>系統根據安全標籤 (Security Labels) 和使用者等級 (Clearance) 決定存取權。</p>
+                            <ul class="text-xs text-gray-400 list-disc ml-4 space-y-1">
+                                <li><strong>優點：</strong> 極高安全性，嚴格的單向資訊流。</li>
+                                <li><strong>缺點：</strong> 缺乏靈活度，管理成本高。</li>
+                                <li><strong>範例：</strong> SEAndroid, SELinux, 軍方系統 (Top Secret > Secret)。</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-black/40 p-5 border-l-2 border-red-600">
+                            <h4 class="text-white font-bold mb-2">RBAC (Role-Based Access Control)</h4>
+                            <p class="text-sm mb-2"><span class="text-red-400">角色式存取控制。</span>權限綁定「角色」(Role)，而非個人。使用者被分配角色。</p>
+                            <ul class="text-xs text-gray-400 list-disc ml-4 space-y-1">
+                                <li><strong>優點：</strong> 適合大型企業，簡化離職/入職管理。</li>
+                                <li><strong>藍隊觀點：</strong> 這是企業環境中最推薦的模型，能有效減少權限蔓延 (Privilege Creep)。</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-black/40 p-5 border-l-2 border-red-600">
+                            <h4 class="text-white font-bold mb-2">ABAC (Attribute-Based Access Control)</h4>
+                            <p class="text-sm mb-2"><span class="text-red-400">屬性式存取控制。</span>基於多重屬性 (Who, What, Where, When) 動態決定。</p>
+                            <ul class="text-xs text-gray-400 list-disc ml-4 space-y-1">
+                                <li><strong>邏輯：</strong> IF (User=Manager) AND (Location=Office) AND (Time=9am-5pm) THEN Allow。</li>
+                                <li><strong>優點：</strong> 最細緻 (Granular) 的控制，符合 Zero Trust 架構需求。</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 2: IAM & AAA -->
+            <section class="hud-border p-8">
+                <div class="flex items-center gap-3 mb-6 border-b border-gray-800 pb-2">
+                    <i class="fas fa-id-card text-red-600 text-xl"></i>
+                    <h3 class="text-2xl text-white">2. AAA Framework & IAM</h3>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="col-span-1 lg:col-span-2 space-y-4 text-gray-300">
+                        <p>AAA 是網路安全管理的基石，防禦者必須確保這三個環節都有對應的控制措施。</p>
+                        
+                        <div class="space-y-4">
+                            <div class="flex gap-4">
+                                <div class="w-12 h-12 bg-red-900/20 flex items-center justify-center border border-red-900 text-red-500 font-bold mono-font">01</div>
+                                <div>
+                                    <h4 class="text-white font-bold">Authentication (驗證)</h4>
+                                    <p class="text-sm text-gray-400">確認「你是誰」。</p>
+                                    <p class="text-xs text-gray-500 mt-1">Multi-Factor Authentication (MFA) 是防禦釣魚與憑證竊取最有效手段。</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-4">
+                                <div class="w-12 h-12 bg-red-900/20 flex items-center justify-center border border-red-900 text-red-500 font-bold mono-font">02</div>
+                                <div>
+                                    <h4 class="text-white font-bold">Authorization (授權)</h4>
+                                    <p class="text-sm text-gray-400">確認「你能做什麼」。</p>
+                                    <p class="text-xs text-gray-500 mt-1">發生在驗證之後。應遵循 NIST 800-53 的最小權限原則。</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-4">
+                                <div class="w-12 h-12 bg-red-900/20 flex items-center justify-center border border-red-900 text-red-500 font-bold mono-font">03</div>
+                                <div>
+                                    <h4 class="text-white font-bold">Accounting (稽核/計費)</h4>
+                                    <p class="text-sm text-gray-400">記錄「你做了什麼」。</p>
+                                    <p class="text-xs text-gray-500 mt-1">關鍵在於 Log 收集 (SIEM)。這是數位鑑識 (Forensics) 的依據。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Side Card for Auth Factors -->
+                    <div class="bg-gray-900/50 p-6 border border-gray-800">
+                        <h4 class="text-red-500 font-bold mb-4 mono-font text-sm">AUTHENTICATION FACTORS</h4>
+                        <ul class="space-y-3 text-sm text-gray-300">
+                            <li><i class="fas fa-circle text-[8px] text-red-500 mr-2"></i><strong>Type 1: Something you know</strong><br><span class="text-xs text-gray-500">密碼, PIN, 安全問題 (最弱)</span></li>
+                            <li><i class="fas fa-circle text-[8px] text-red-500 mr-2"></i><strong>Type 2: Something you have</strong><br><span class="text-xs text-gray-500">智慧卡, 手機 OTP, 硬體 Token</span></li>
+                            <li><i class="fas fa-circle text-[8px] text-red-500 mr-2"></i><strong>Type 3: Something you are</strong><br><span class="text-xs text-gray-500">指紋, 虹膜, 臉部辨識 (生物特徵)</span></li>
+                            <li class="border-t border-gray-700 pt-2"><i class="fas fa-check text-[8px] text-green-500 mr-2"></i><strong>MFA</strong> = 必須結合上述至少兩種不同類型的因子。</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 3: Cryptography -->
+            <section class="hud-border p-8">
+                <div class="flex items-center gap-3 mb-6 border-b border-gray-800 pb-2">
+                    <i class="fas fa-key text-red-600 text-xl"></i>
+                    <h3 class="text-2xl text-white">3. Cryptography Essentials (密碼學基礎)</h3>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="text-red-500 text-sm font-bold border-b border-red-900/50">
+                                <th class="p-3">類型</th>
+                                <th class="p-3">金鑰特性</th>
+                                <th class="p-3">主要功能</th>
+                                <th class="p-3">常見演算法 (CND 重點)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-gray-300 text-sm">
+                            <tr class="border-b border-gray-800 hover:bg-white/5 transition">
+                                <td class="p-3 font-bold text-white">Symmetric (對稱式)</td>
+                                <td class="p-3">加密與解密使用<span class="text-red-400">同一把</span>金鑰 (Secret Key)。</td>
+                                <td class="p-3">速度快，適合大量資料加密 (Confidentiality)。但有金鑰交換問題。</td>
+                                <td class="p-3 mono-font">AES (WPA2/3 標準), DES/3DES (已淘汰), RC4 (不安全)</td>
+                            </tr>
+                            <tr class="border-b border-gray-800 hover:bg-white/5 transition">
+                                <td class="p-3 font-bold text-white">Asymmetric (非對稱式)</td>
+                                <td class="p-3">使用一對金鑰：<span class="text-green-400">Public Key</span> 加密，<span class="text-red-400">Private Key</span> 解密。</td>
+                                <td class="p-3">解決金鑰交換問題，支援數位簽章 (Non-repudiation)。速度慢。</td>
+                                <td class="p-3 mono-font">RSA, ECC (行動裝置愛用), Diffie-Hellman (僅交換金鑰)</td>
+                            </tr>
+                            <tr class="border-b border-gray-800 hover:bg-white/5 transition">
+                                <td class="p-3 font-bold text-white">Hashing (雜湊)</td>
+                                <td class="p-3">無金鑰，單向函數 (不可逆)。</td>
+                                <td class="p-3">確保資料<span class="text-yellow-400">完整性 (Integrity)</span>。驗證檔案未被竄改。</td>
+                                <td class="p-3 mono-font">SHA-256, SHA-3, MD5 (碰撞風險大，僅用於校驗)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-4 bg-red-900/10 p-4 border border-red-900/30 rounded">
+                    <p class="text-xs text-gray-300">
+                        <strong class="text-red-500">PKI (Public Key Infrastructure) 核心概念：</strong> 
+                        數位憑證 (Digital Certificate) 就像網路身分證，由 CA (Certificate Authority) 發放。
+                        當瀏覽 HTTPS 網站時，瀏覽器會驗證伺服器憑證的「簽發者信任鏈」與「有效期限」。
+                        <br>
+                        <span class="text-gray-500">攻擊場景：MITM 攻擊者試圖偽造憑證，若 CA 根憑證不受信任，瀏覽器會發出警告。</span>
+                    </p>
+                </div>
+            </section>
+
+        </div>
+
+        <!-- Quiz Section -->
+        <div class="mt-16 pt-10 border-t-2 border-red-900 relative">
+            <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[#111111] px-6 py-2 border border-red-900 rounded-full">
+                <span class="text-red-500 font-bold tracking-widest text-lg">TACTICAL SIMULATION</span>
+            </div>
+
+            <div class="max-w-4xl mx-auto" id="quiz-container">
+                <!-- JS will inject questions here -->
+            </div>
+            
+            <div class="text-center mt-8">
+                <button onclick="resetQuiz()" class="alert-btn px-8 py-3 rounded text-sm font-bold">
+                    <i class="fas fa-redo mr-2"></i> Restart Simulation
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-gray-800 bg-black py-6 mt-12">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-gray-500 text-xs md:text-sm tracking-wide mono-font">
+                Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0
+            </p>
+        </div>
+    </footer>
+
+    <!-- JavaScript for Quiz -->
+    <script>
+        const quizData = [
+            {
+                question: "情境：一家大型跨國銀行擁有數萬名員工，人員流動率高。管理層希望實施一種存取控制系統，能夠根據員工的職位（如出納員、經理、審計員）自動分配權限，而不是針對每個人單獨設定。身為 CND，你應建議哪種模型？",
+                options: [
+                    "A. DAC (Discretionary Access Control)",
+                    "B. MAC (Mandatory Access Control)",
+                    "C. RBAC (Role-Based Access Control)",
+                    "D. Rule-Based Access Control"
+                ],
+                correct: 2,
+                explanation: "RBAC (Role-Based Access Control) 是最適合大型組織的模型。它根據使用者的職務（角色）來分配權限，當員工職位變動時，只需調整其角色，無需重新設定每個檔案的權限，大幅降低管理負擔。"
+            },
+            {
+                question: "情境：你正在配置公司的 VPN 安全策略。為了確保傳輸過程中的資料不會被竊聽（保密性），且資料不會被竄改（完整性），你選擇了 IPsec VPN。請問 IPsec 協議套件中，負責提供『加密』與『封包驗證』的主要協定是哪兩個？",
+                options: [
+                    "A. AH (Authentication Header) 與 IKE",
+                    "B. ESP (Encapsulating Security Payload) 與 AH",
+                    "C. SSL 與 TLS",
+                    "D. PPTP 與 L2TP"
+                ],
+                correct: 1,
+                explanation: "IPsec 主要由 AH 和 ESP 組成。AH 提供完整性與來源驗證（但不加密）；ESP 提供加密（保密性）、完整性與來源驗證。IKE 僅負責金鑰交換。"
+            },
+            {
+                question: "情境：公司 CEO 收到一封聲稱來自 IT 部門的郵件，要求重設密碼。這封郵件包含一個數位簽章。作為防禦者，你要驗證這個簽章是否真實，應使用發件人的哪個金鑰進行解密驗證？",
+                options: [
+                    "A. 發件人的私鑰 (Sender's Private Key)",
+                    "B. 發件人的公鑰 (Sender's Public Key)",
+                    "C. 收件人的公鑰 (Receiver's Public Key)",
+                    "D. 收件人的私鑰 (Receiver's Private Key)"
+                ],
+                correct: 1,
+                explanation: "數位簽章的原理是：發送者用自己的『私鑰』簽署（加密雜湊值）。接收者必須使用發送者的『公鑰』來解密驗證。這確保了不可否認性 (Non-repudiation)。"
+            },
+            {
+                question: "情境：為了符合 NIST 800-53 的身份驗證要求，你正在設計 MFA (多因子驗證) 系統。下列哪一種組合符合『真正的』MFA 定義？",
+                options: [
+                    "A. 密碼 + PIN 碼",
+                    "B. 密碼 + 安全問題 (母親的娘家姓氏)",
+                    "C. 密碼 + 指紋辨識",
+                    "D. 指紋辨識 + 臉部辨識"
+                ],
+                correct: 2,
+                explanation: "MFA 必須包含三類因子中的至少兩類：Type 1 (知識: 密碼/PIN)、Type 2 (持有物: 手機/Token)、Type 3 (生物特徵: 指紋/臉)。C 選項結合了 Type 1 和 Type 3，是有效的 MFA。A 和 B 都是 Type 1，D 都是 Type 3，不構成 MFA。"
+            },
+            {
+                question: "情境：在 AAA 架構中，當發生安全事件（例如未經授權的檔案刪除）時，調查人員需要追蹤是『誰』在『什麼時間』執行了該動作。這是 AAA 中的哪一個功能？",
+                options: [
+                    "A. Authentication (驗證)",
+                    "B. Authorization (授權)",
+                    "C. Accounting (稽核/計費)",
+                    "D. Availability (可用性)"
+                ],
+                correct: 2,
+                explanation: "Accounting (稽核) 負責記錄使用者在系統中的活動，包括登入時間、存取的資源、執行的指令等，是日誌分析與數位鑑識的基礎。"
+            },
+            {
+                question: "情境：你發現公司內網的一台伺服器被植入了後門，攻擊者修改了系統核心檔案。為了在未來能快速檢測檔案是否被竄改，你應該在乾淨的系統上對關鍵檔案執行什麼操作？",
+                options: [
+                    "A. 對稱式加密 (Symmetric Encryption)",
+                    "B. 產生雜湊值 (Hashing) 並儲存基準線 (Baseline)",
+                    "C. 資料壓縮 (Compression)",
+                    "D. 權限提升 (Privilege Escalation)"
+                ],
+                correct: 1,
+                explanation: "Hashing (如 SHA-256) 用於驗證完整性。如果檔案內容被修改（即使只是一個 bit），其 Hash 值會完全改變。比對目前的 Hash 與基準線 Hash 即可發現竄改。"
+            },
+            {
+                question: "情境：在 Zero Trust (零信任) 架構中，對於內部網路流量的處理原則是什麼？",
+                options: [
+                    "A. 信任但驗證 (Trust but Verify)",
+                    "B. 內網流量預設是可信的，只有外網流量需要檢查",
+                    "C. 永不信任，始終驗證 (Never Trust, Always Verify)",
+                    "D. 僅驗證 VPN 使用者，區域網路使用者免驗證"
+                ],
+                correct: 2,
+                explanation: "零信任模型的核心原則是「永不信任，始終驗證」。不再區分內外網，假設內部網路已經被入侵，因此每一個存取請求（無論來源）都必須經過嚴格的身份驗證與授權。"
+            },
+            {
+                question: "情境：你正在設定無線網路 (WPA3-Enterprise)。為了確保每個使用者都有獨立的加密通道，且必須使用公司的 AD 帳號登入，你需要部署哪種協定來轉送認證請求到 RADIUS 伺服器？",
+                options: [
+                    "A. WEP",
+                    "B. IEEE 802.1X",
+                    "C. TKIP",
+                    "D. MAC Filtering"
+                ],
+                correct: 1,
+                explanation: "IEEE 802.1X 是基於連接埠的存取控制標準，廣泛用於企業無線與有線網路認證。它使用 EAP 協定將使用者的憑證封裝並傳送給 RADIUS (AAA Server) 進行驗證。"
+            },
+            {
+                question: "情境：公司開發了一個軍用級別的安全系統，要求系統必須強制執行安全策略，使用者（即便是建立者）無權更改檔案的安全標籤或分享給未授權者。這是哪種存取控制？",
+                options: [
+                    "A. DAC",
+                    "B. RBAC",
+                    "C. MAC (Mandatory Access Control)",
+                    "D. ABAC"
+                ],
+                correct: 2,
+                explanation: "MAC (強制式存取控制) 最常用於軍事或高安全環境。系統根據主體 (Subject) 的安全許可 (Clearance) 和客體 (Object) 的安全標籤 (Label) 來決定存取，使用者無權自行更改權限。"
+            },
+            {
+                question: "情境：為了防止中間人攻擊 (MITM) 竊取網頁傳輸的敏感資料，HTTPS 使用 TLS 握手協定。在握手初期，伺服器會發送什麼給客戶端以證明身份？",
+                options: [
+                    "A. 伺服器的私鑰 (Private Key)",
+                    "B. 伺服器的數位憑證 (Digital Certificate)",
+                    "C. 會話金鑰 (Session Key)",
+                    "D. 使用者的密碼雜湊"
+                ],
+                correct: 1,
+                explanation: "在 TLS 握手過程中，伺服器會發送包含其「公鑰」的「數位憑證」給客戶端。客戶端會驗證該憑證是否由受信任的 CA 簽發，且未過期、未被撤銷，以此確認伺服器身份。"
+            }
+        ];
+
+        function renderQuiz() {
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = '';
+
+            quizData.forEach((q, index) => {
+                const qEl = document.createElement('div');
+                qEl.className = 'mb-8 p-6 bg-[#1a1a1a] border border-[#333] rounded-lg shadow-lg relative overflow-hidden';
+                qEl.innerHTML = `
+                    <div class="flex items-start gap-4">
+                        <div class="text-red-500 font-bold text-xl mono-font">Q${index + 1}</div>
+                        <div class="flex-1">
+                            <p class="text-white text-lg font-medium mb-4 leading-relaxed">${q.question}</p>
+                            <div class="grid grid-cols-1 gap-3">
+                                ${q.options.map((opt, i) => `
+                                    <button onclick="checkAnswer(${index}, ${i}, this)" 
+                                            class="option-btn text-left px-4 py-3 text-gray-300 text-sm rounded transition-all">
+                                        ${opt}
+                                    </button>
+                                `).join('')}
+                            </div>
+                            <div id="result-${index}" class="hidden mt-4 p-4 border-l-4 bg-black/50 text-sm"></div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(qEl);
+            });
+        }
+
+        function checkAnswer(qIndex, optIndex, btn) {
+            const q = quizData[qIndex];
+            const resultDiv = document.getElementById(`result-${qIndex}`);
+            const allBtns = btn.parentElement.children;
+
+            // Disable all buttons for this question
+            for(let b of allBtns) {
+                b.disabled = true;
+                b.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+
+            // Remove opacity from selected for clarity
+            btn.classList.remove('opacity-50');
+
+            if (optIndex === q.correct) {
+                btn.classList.add('correct');
+                resultDiv.className = 'block mt-4 p-4 border-l-4 border-green-500 bg-green-900/20 text-gray-300';
+                resultDiv.innerHTML = `<strong class="text-green-400 block mb-1">CORRECT // ACCESS GRANTED</strong> ${q.explanation}`;
+            } else {
+                btn.classList.add('wrong');
+                // Highlight correct answer
+                allBtns[q.correct].classList.remove('opacity-50');
+                allBtns[q.correct].classList.add('correct');
+                
+                resultDiv.className = 'block mt-4 p-4 border-l-4 border-red-500 bg-red-900/20 text-gray-300';
+                resultDiv.innerHTML = `<strong class="text-red-400 block mb-1">INCORRECT // SECURITY ALERT</strong> ${q.explanation}`;
+            }
+        }
+
+        function resetQuiz() {
+            renderQuiz();
+            window.scrollTo({
+                top: document.getElementById('quiz-container').offsetTop - 100,
+                behavior: 'smooth'
+            });
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', renderQuiz);
+    </script>
+</body>
+</html>
