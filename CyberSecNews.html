@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>近期資安情資儀表板 (含CVE追蹤)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #0f172a; /* Slate 900 */
+            color: #e2e8f0; /* Slate 200 */
+        }
+        
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b; 
+        }
+
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+            border-color: #3b82f6;
+        }
+
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-left-color: #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Custom Checkbox Style */
+        .filter-checkbox:checked + div {
+            background-color: #1e40af; /* blue-800 */
+            border-color: #3b82f6; /* blue-500 */
+            color: white;
+        }
+
+        .cve-badge {
+            background-color: #7f1d1d;
+            color: #fca5a5;
+            border: 1px solid #b91c1c;
+            font-family: 'JetBrains Mono', monospace;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-slate-900 border-b border-slate-700 sticky top-0 z-50 shadow-lg">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex flex-col xl:flex-row justify-between items-center gap-4">
+                <div class="flex items-center gap-3 w-full md:w-auto justify-center md:justify-start">
+                    <div class="w-10 h-10 bg-blue-600 rounded flex items-center justify-center text-white font-bold text-xl shadow-[0_0_15px_rgba(37,99,235,0.5)]">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold tracking-wider text-white"><span class="text-blue-500">Cyber</span>Sec<span class="text-red-500">News</span></h1>
+                        <p class="text-xs text-slate-400 font-mono">最近 90 天資安威脅情資聚合</p>
+                    </div>
+                </div>
+
+                <!-- Search & Filters -->
+                <div class="flex flex-col md:flex-row items-center gap-2 w-full xl:w-auto flex-wrap justify-center xl:justify-end">
+                    
+                    <!-- Filters Group -->
+                    <div class="flex gap-2 w-full md:w-auto">
+                        <!-- Vendor/Advisory Filter -->
+                        <label class="cursor-pointer group relative flex-1 md:flex-none">
+                            <input type="checkbox" id="vendorFilter" class="filter-checkbox sr-only" onchange="applyFilters()">
+                            <div class="flex items-center justify-center gap-2 bg-slate-800 border border-slate-600 text-slate-300 px-3 py-2.5 rounded-lg transition-all hover:bg-slate-700 select-none h-full">
+                                <i class="fas fa-exclamation-circle text-red-500"></i>
+                                <span class="text-sm font-medium whitespace-nowrap">原廠公告 & CVE</span>
+                            </div>
+                        </label>
+
+                        <!-- Device Filter Toggle -->
+                        <label class="cursor-pointer group relative flex-1 md:flex-none">
+                            <input type="checkbox" id="deviceFilter" class="filter-checkbox sr-only" onchange="applyFilters()">
+                            <div class="flex items-center justify-center gap-2 bg-slate-800 border border-slate-600 text-slate-300 px-3 py-2.5 rounded-lg transition-all hover:bg-slate-700 select-none h-full">
+                                <i class="fas fa-server"></i>
+                                <span class="text-sm font-medium whitespace-nowrap">網通設備</span>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Search Input -->
+                    <div class="flex w-full md:w-auto gap-2">
+                        <div class="relative w-full md:w-64">
+                            <input type="text" id="searchInput" placeholder="搜尋 CVE-202X, 防火牆..." 
+                                class="w-full bg-slate-800 border border-slate-600 text-slate-200 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block pl-10 p-2.5 transition-colors">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-search text-slate-500"></i>
+                            </div>
+                        </div>
+                        <button onclick="fetchAllNews()" class="p-2.5 bg-slate-800 border border-slate-600 rounded-lg hover:bg-slate-700 text-slate-300 transition-colors flex-shrink-0" title="重新整理">
+                            <i class="fas fa-sync-alt" id="refreshIcon"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto px-4 py-8">
+        
+        <!-- Status Bar -->
+        <div class="flex justify-between items-end mb-6 border-b border-slate-800 pb-2">
+            <div>
+                <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                    <i class="fas fa-rss text-orange-500"></i> 最新情資
+                </h2>
+                <p id="lastUpdated" class="text-xs text-slate-500 mt-1 font-mono">尚未更新</p>
+            </div>
+            <div class="text-right flex flex-col items-end">
+                <span id="articleCount" class="bg-blue-900 text-blue-300 text-xs font-medium px-2.5 py-0.5 rounded border border-blue-800">0 篇文章</span>
+                <span id="filterStatus" class="text-xs text-slate-400 mt-1 hidden">已套用篩選器</span>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="hidden flex flex-col items-center justify-center py-20">
+            <div class="loading-spinner mb-4"></div>
+            <p class="text-slate-400 animate-pulse">正在掃描各大資安來源 (Direct Parsing)...</p>
+            <p class="text-xs text-slate-600 mt-2">Connecting via Proxy...</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" class="hidden bg-red-900/20 border border-red-500/50 text-red-200 p-4 rounded-lg mb-6 flex items-start gap-3">
+            <i class="fas fa-exclamation-triangle mt-1 text-red-500"></i>
+            <div>
+                <h3 class="font-bold">連線異常</h3>
+                <p class="text-sm opacity-80" id="errorMsg">所有來源皆無法存取，顯示備用資料。</p>
+            </div>
+        </div>
+
+        <!-- News Grid -->
+        <div id="newsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- News items will be injected here -->
+        </div>
+
+        <!-- Empty Search Result -->
+        <div id="noResults" class="hidden text-center py-20">
+            <div class="text-6xl text-slate-700 mb-4"><i class="fas fa-search"></i></div>
+            <p class="text-slate-400 text-lg">找不到符合 "<span id="searchTextDisplay" class="text-white"></span>" 的結果</p>
+            <button onclick="resetFilters()" class="mt-4 text-blue-400 hover:text-blue-300 underline">清除所有篩選</button>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 border-t border-slate-800 py-6 mt-auto">
+        <div class="container mx-auto px-4 text-center">
+            <p class="text-slate-500 text-sm">
+                Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0
+            </p>
+            <p class="text-xs text-slate-600 mt-2 font-mono">
+                System Status: Online | Secure Connection
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // 網通設備相關關鍵字庫 (不分大小寫)
+        const DEVICE_KEYWORDS = [
+            "防火牆", "firewall", "路由器", "router", "交換器", "switch", 
+            "vpn", "gateway", "閘道", "fortinet", "fortigate", "fortios",
+            "cisco", "ios xe", "asa", "palo alto", "pan-os", "juniper", "junos",
+            "sonicwall", "check point", "watchguard", "f5", "citrix", "netscaler",
+            "zyxel", "d-link", "asus", "tp-link", "nas", "synology", "qnap", 
+            "ivanti", "connect secure", "edge", "appliance", "設備", "硬體", "韌體", "firmware"
+        ];
+
+        // 資料來源設定：使用原始 XML URL，不使用 API 轉換服務的 URL
+        const RSS_FEEDS = [
+            // --- 官方公告 (Advisories) ---
+            {
+                name: 'CISA Alerts',
+                url: 'https://www.cisa.gov/sites/default/files/feeds/ncas/alerts.xml',
+                lang: 'en',
+                color: 'text-purple-400',
+                type: 'vendor'
+            },
+            {
+                name: 'Cisco Security',
+                url: 'https://sec.cloudapps.cisco.com/security/center/rss/ciscosecurityadvisories.xml',
+                lang: 'en',
+                color: 'text-cyan-400',
+                type: 'vendor'
+            },
+            {
+                name: 'Fortinet PSIRT',
+                url: 'https://www.fortiguard.com/rss/ir.xml',
+                lang: 'en',
+                color: 'text-red-500', 
+                type: 'vendor'
+            },
+            {
+                name: 'Palo Alto',
+                url: 'https://security.paloaltonetworks.com/rss.xml',
+                lang: 'en',
+                color: 'text-orange-500',
+                type: 'vendor'
+            },
+            // --- 新聞媒體 (News) ---
+            {
+                name: 'iThome 資安',
+                url: 'https://www.ithome.com.tw/rss/security',
+                lang: 'zh-TW',
+                color: 'text-green-400',
+                type: 'news'
+            },
+            {
+                name: 'TechNews 資安',
+                url: 'https://technews.tw/category/internet/security/feed/',
+                lang: 'zh-TW',
+                color: 'text-orange-400',
+                type: 'news'
+            },
+            {
+                name: 'The Hacker News',
+                url: 'https://feeds.feedburner.com/TheHackersNews',
+                lang: 'en',
+                color: 'text-red-400',
+                type: 'news'
+            },
+            {
+                name: 'BleepingComputer',
+                url: 'https://www.bleepingcomputer.com/feed/',
+                lang: 'en',
+                color: 'text-blue-400',
+                type: 'news'
+            }
+        ];
+
+        let allNews = [];
+        // 改用 AllOrigins Proxy，這是一個開源且通常沒有嚴格限制的 CORS 代理
+        // 備選：'https://corsproxy.io/?'
+        const PROXY_BASE = 'https://api.allorigins.win/raw?url=';
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchAllNews();
+            
+            // 搜尋監聽
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', applyFilters);
+        });
+
+        async function fetchAllNews() {
+            const loading = document.getElementById('loadingState');
+            const grid = document.getElementById('newsGrid');
+            const errorDiv = document.getElementById('errorState');
+            const refreshIcon = document.getElementById('refreshIcon');
+
+            loading.classList.remove('hidden');
+            grid.innerHTML = '';
+            errorDiv.classList.add('hidden');
+            document.getElementById('noResults').classList.add('hidden');
+            refreshIcon.classList.add('fa-spin');
+
+            allNews = [];
+            
+            // 使用 Promise.allSettled 平行抓取
+            let fetchPromises = RSS_FEEDS.map(feed => fetchAndParseFeed(feed));
+
+            try {
+                const results = await Promise.allSettled(fetchPromises);
+                
+                let successCount = 0;
+                results.forEach(result => {
+                    if (result.status === 'fulfilled' && result.value) {
+                        allNews = [...allNews, ...result.value];
+                        successCount++;
+                    }
+                });
+
+                // 錯誤或空值處理
+                if (successCount === 0 || allNews.length === 0) {
+                    console.warn("All fetches failed, loading mock data.");
+                    loadMockData();
+                    document.getElementById('errorMsg').innerText = "外部來源回應失敗 (可能為網路封鎖或代理異常)，顯示備用資料。";
+                    errorDiv.classList.remove('hidden');
+                } else {
+                    // 排序：新的在前
+                    allNews.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+                }
+
+                // 過濾掉超過 90 天的
+                allNews = filterLast90Days(allNews);
+
+                applyFilters(); 
+                updateStatus();
+
+            } catch (err) {
+                console.error("Critical error:", err);
+                loadMockData();
+                errorDiv.classList.remove('hidden');
+            } finally {
+                loading.classList.add('hidden');
+                refreshIcon.classList.remove('fa-spin');
+            }
+        }
+
+        async function fetchAndParseFeed(feed) {
+            try {
+                // 加上 timestamp 防止 cache
+                const proxyUrl = `${PROXY_BASE}${encodeURIComponent(feed.url)}&t=${new Date().getTime()}`;
+                const response = await fetch(proxyUrl);
+                
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                const textData = await response.text();
+                return parseXML(textData, feed);
+
+            } catch (e) {
+                console.warn(`Failed to fetch ${feed.name}:`, e);
+                return null;
+            }
+        }
+
+        function parseXML(xmlText, feed) {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+            const items = [];
+
+            // 檢查是 RSS 還是 Atom
+            const rssItems = xmlDoc.querySelectorAll("item");
+            const atomEntries = xmlDoc.querySelectorAll("entry");
+
+            if (rssItems.length > 0) {
+                // RSS Parsing
+                rssItems.forEach(node => {
+                    const title = getTagValue(node, "title");
+                    const link = getTagValue(node, "link");
+                    const pubDate = getTagValue(node, "pubDate");
+                    const description = getTagValue(node, "description") || getTagValue(node, "content:encoded");
+                    const thumbnail = getMediaContent(node) || extractImage(description);
+
+                    items.push({
+                        title: title,
+                        link: link,
+                        pubDate: pubDate,
+                        content: description,
+                        source: feed.name,
+                        sourceColor: feed.color,
+                        sourceType: feed.type,
+                        thumbnail: thumbnail,
+                        cves: extractCVEs(title + " " + (description || ""))
+                    });
+                });
+            } else if (atomEntries.length > 0) {
+                // Atom Parsing
+                atomEntries.forEach(node => {
+                    const title = getTagValue(node, "title");
+                    // Atom link is usually an attribute href
+                    const linkNode = node.querySelector("link[rel='alternate']") || node.querySelector("link");
+                    const link = linkNode ? linkNode.getAttribute("href") : "";
+                    const pubDate = getTagValue(node, "updated") || getTagValue(node, "published");
+                    const content = getTagValue(node, "content") || getTagValue(node, "summary");
+                    const thumbnail = extractImage(content);
+
+                    items.push({
+                        title: title,
+                        link: link,
+                        pubDate: pubDate,
+                        content: content,
+                        source: feed.name,
+                        sourceColor: feed.color,
+                        sourceType: feed.type,
+                        thumbnail: thumbnail,
+                        cves: extractCVEs(title + " " + (content || ""))
+                    });
+                });
+            }
+
+            return items;
+        }
+
+        // XML Helper Functions
+        function getTagValue(parent, tagName) {
+            const node = parent.getElementsByTagName(tagName)[0] || parent.getElementsByTagNameNS("*", tagName)[0];
+            return node ? (node.textContent || node.innerText) : "";
+        }
+
+        function getMediaContent(node) {
+            // 嘗試抓取 media:content 或 enclosure
+            const media = node.getElementsByTagName("media:content")[0] || node.getElementsByTagNameNS("*", "content")[0];
+            if (media && media.getAttribute("url")) return media.getAttribute("url");
+            
+            const enclosure = node.getElementsByTagName("enclosure")[0];
+            if (enclosure && enclosure.getAttribute("type")?.startsWith("image")) return enclosure.getAttribute("url");
+            
+            return null;
+        }
+
+        function filterLast90Days(newsList) {
+            const ninetyDaysAgo = new Date();
+            ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+            
+            return newsList.filter(item => {
+                const itemDate = new Date(item.pubDate);
+                // 如果日期解析失敗 (Invalid Date)，暫時保留，因為有些格式可能很怪
+                if (isNaN(itemDate.getTime())) return true;
+                return itemDate >= ninetyDaysAgo;
+            });
+        }
+
+        function extractImage(content) {
+            if(!content) return null;
+            // 簡單正則或 DOM 提取
+            const match = content.match(/<img[^>]+src="([^">]+)"/);
+            return match ? match[1] : null;
+        }
+
+        function extractCVEs(text) {
+            if (!text) return [];
+            const regex = /CVE-\d{4}-\d{4,7}/gi;
+            const matches = text.match(regex);
+            return matches ? [...new Set(matches.map(cve => cve.toUpperCase()))] : [];
+        }
+
+        // 核心過濾功能
+        function applyFilters() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const deviceFilterActive = document.getElementById('deviceFilter').checked;
+            const vendorFilterActive = document.getElementById('vendorFilter').checked;
+            
+            const filtered = allNews.filter(item => {
+                const fullText = (item.title + " " + item.content + " " + item.source).toLowerCase();
+
+                // 1. 搜尋文字過濾
+                const textMatch = !query || fullText.includes(query) || (item.cves && item.cves.some(c => c.toLowerCase().includes(query)));
+
+                // 2. 網通設備關鍵字過濾
+                let deviceMatch = true;
+                if (deviceFilterActive) {
+                    deviceMatch = DEVICE_KEYWORDS.some(keyword => fullText.includes(keyword.toLowerCase()));
+                }
+
+                // 3. 原廠公告/CVE 過濾
+                let vendorMatch = true;
+                if (vendorFilterActive) {
+                    vendorMatch = (item.sourceType === 'vendor') || (item.cves && item.cves.length > 0);
+                }
+
+                return textMatch && deviceMatch && vendorMatch;
+            });
+
+            renderNews(filtered);
+            
+            const filterStatus = document.getElementById('filterStatus');
+            const activeFilters = [];
+            if (deviceFilterActive) activeFilters.push("網通設備");
+            if (vendorFilterActive) activeFilters.push("原廠/CVE");
+            
+            if (activeFilters.length > 0) {
+                filterStatus.classList.remove('hidden');
+                filterStatus.textContent = `已篩選: ${activeFilters.join(" + ")} (${filtered.length})`;
+            } else {
+                filterStatus.classList.add('hidden');
+            }
+        }
+
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('deviceFilter').checked = false;
+            document.getElementById('vendorFilter').checked = false;
+            applyFilters();
+        }
+
+        function renderNews(newsList) {
+            const grid = document.getElementById('newsGrid');
+            const noResults = document.getElementById('noResults');
+            
+            grid.innerHTML = '';
+
+            if (newsList.length === 0) {
+                noResults.classList.remove('hidden');
+                document.getElementById('searchTextDisplay').innerText = "當前篩選條件";
+                return;
+            } else {
+                noResults.classList.add('hidden');
+            }
+
+            newsList.forEach(item => {
+                const dateObj = new Date(item.pubDate);
+                const dateStr = isNaN(dateObj.getTime()) ? "近日" : dateObj.toLocaleDateString('zh-TW', { month: '2-digit', day: '2-digit' });
+                
+                // 去除 HTML 標籤
+                let textContent = item.content.replace(/<[^>]*>?/gm, '');
+                textContent = textContent.substring(0, 100) + '...';
+
+                // 圖片處理
+                let imageHtml = '';
+                if (item.thumbnail) {
+                    const fallbackIcon = `<div class="w-full h-40 bg-slate-800 flex items-center justify-center text-slate-600"><i class="fas fa-newspaper text-4xl"></i></div>`;
+                    imageHtml = `<img src="${item.thumbnail}" class="w-full h-40 object-cover" onerror="this.onerror=null; this.parentElement.innerHTML='${fallbackIcon.replace(/"/g, "&quot;")}'">`;
+                } else {
+                    let iconClass = "fa-newspaper";
+                    if (item.source.includes("Cisco")) iconClass = "fa-network-wired";
+                    else if (item.source.includes("Fortinet")) iconClass = "fa-shield-virus";
+                    else if (item.source.includes("CISA")) iconClass = "fa-flag-usa";
+                    
+                    imageHtml = `<div class="w-full h-40 bg-slate-800 flex items-center justify-center text-slate-600 border-b border-slate-700"><i class="fas ${iconClass} text-4xl opacity-50"></i></div>`;
+                }
+
+                // 標記處理
+                const fullText = (item.title + item.content).toLowerCase();
+                const isDeviceNews = DEVICE_KEYWORDS.some(k => fullText.includes(k.toLowerCase()));
+                const deviceTag = isDeviceNews ? `<span class="text-[10px] bg-indigo-900 text-indigo-200 px-2 py-0.5 rounded border border-indigo-700/50"><i class="fas fa-server mr-1"></i>設備</span>` : '';
+                
+                // CVE 標記
+                let cveTagsHtml = '';
+                if (item.cves && item.cves.length > 0) {
+                    item.cves.slice(0, 2).forEach(cve => {
+                        cveTagsHtml += `<span class="text-[10px] cve-badge px-2 py-0.5 rounded font-bold">${cve}</span> `;
+                    });
+                    if (item.cves.length > 2) cveTagsHtml += `<span class="text-[10px] text-slate-400">+${item.cves.length - 2}</span>`;
+                }
+
+                const card = document.createElement('div');
+                card.className = 'bg-slate-800 border border-slate-700 rounded-lg overflow-hidden card-hover transition-all duration-300 flex flex-col h-full relative';
+                
+                if (item.sourceType === 'vendor' && (item.title.toLowerCase().includes('critical') || item.title.toLowerCase().includes('urgent'))) {
+                    card.classList.add('border-red-500');
+                }
+
+                card.innerHTML = `
+                    <div class="relative">
+                        ${imageHtml}
+                        <div class="absolute top-0 right-0 bg-slate-900/90 backdrop-blur text-xs px-2 py-1 m-2 rounded border border-slate-600 text-white">
+                            ${dateStr}
+                        </div>
+                    </div>
+                    <div class="p-5 flex-grow flex flex-col">
+                        <div class="flex flex-wrap items-center gap-2 mb-2 w-full">
+                            <span class="text-xs font-bold ${item.sourceColor} uppercase tracking-wider border border-current px-1.5 py-0.5 rounded-sm">${item.source}</span>
+                            ${deviceTag}
+                        </div>
+                        
+                        <div class="mb-2 flex flex-wrap gap-1">
+                            ${cveTagsHtml}
+                        </div>
+
+                        <h3 class="text-lg font-bold text-white mb-2 leading-snug hover:text-blue-400 transition-colors break-words">
+                            <a href="${item.link}" target="_blank" rel="noopener noreferrer">${item.title}</a>
+                        </h3>
+                        <p class="text-slate-400 text-sm mb-4 flex-grow text-justify leading-relaxed break-words">
+                            ${textContent}
+                        </p>
+                        <div class="mt-auto pt-4 border-t border-slate-700 flex justify-between items-center">
+                            <span class="text-xs text-slate-500 font-mono"><i class="far fa-clock"></i> ${getTimeAgo(dateObj)}</span>
+                            <a href="${item.link}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300 text-sm font-medium flex items-center gap-1 group">
+                                詳細資訊 <i class="fas fa-arrow-right transform group-hover:translate-x-1 transition-transform"></i>
+                            </a>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function updateStatus() {
+            const now = new Date();
+            document.getElementById('lastUpdated').innerText = `最後更新: ${now.toLocaleString('zh-TW')}`;
+            document.getElementById('articleCount').innerText = `${allNews.length} 篇文章 (近90天)`;
+        }
+
+        function getTimeAgo(date) {
+            if (isNaN(date.getTime())) return "未知時間";
+            const seconds = Math.floor((new Date() - date) / 1000);
+            let interval = seconds / 31536000;
+            if (interval > 1) return Math.floor(interval) + " 年前";
+            interval = seconds / 2592000;
+            if (interval > 1) return Math.floor(interval) + " 個月前";
+            interval = seconds / 86400;
+            if (interval > 1) return Math.floor(interval) + " 天前";
+            interval = seconds / 3600;
+            if (interval > 1) return Math.floor(interval) + " 小時前";
+            interval = seconds / 60;
+            if (interval > 1) return Math.floor(interval) + " 分鐘前";
+            return "剛剛";
+        }
+
+        // --- 備用模擬資料 ---
+        function loadMockData() {
+            const mockData = [
+                {
+                    title: "Cisco IOS XE Web UI Privilege Escalation Vulnerability",
+                    link: "#",
+                    pubDate: new Date().toISOString(),
+                    content: "A vulnerability in the web UI feature of Cisco IOS XE Software could allow an unauthenticated, remote attacker to create an account with privilege level 15 access. Affected CVEs: CVE-2023-20198.",
+                    source: "Cisco Security",
+                    sourceColor: "text-cyan-400",
+                    sourceType: "vendor",
+                    thumbnail: null,
+                    cves: ["CVE-2023-20198"]
+                },
+                {
+                    title: "FortiOS & FortiProxy - Out-of-bounds Write in SSL-VPN",
+                    link: "#",
+                    pubDate: new Date(Date.now() - 86400000 * 1).toISOString(),
+                    content: "A heap-based buffer overflow vulnerability [CWE-122] in FortiOS and FortiProxy may allow a remote unauthenticated attacker to execute arbitrary code or commands via specifically crafted requests. CVE-2024-1234.",
+                    source: "Fortinet PSIRT",
+                    sourceColor: "text-red-500",
+                    sourceType: "vendor",
+                    thumbnail: null,
+                    cves: ["CVE-2024-1234"]
+                },
+                {
+                    title: "CISA Adds One Known Exploited Vulnerability to Catalog",
+                    link: "#",
+                    pubDate: new Date(Date.now() - 86400000 * 2).toISOString(),
+                    content: "CISA has added one new vulnerability to its Known Exploited Vulnerabilities Catalog, based on evidence of active exploitation. CVE-2024-5555.",
+                    source: "CISA Alerts",
+                    sourceColor: "text-purple-400",
+                    sourceType: "vendor",
+                    thumbnail: null,
+                    cves: ["CVE-2024-5555"]
+                }
+            ];
+            allNews = mockData;
+        }
+    </script>
+</body>
+</html>
