@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extreme XOS 網路架構大師：MSTP 深度教學</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Mermaid JS for diagrams -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #6b21a8; /* Extreme Purple vibe */
+        }
+        .danger-card {
+            border-left: 5px solid #ef4444; /* Red for Danger/Warning */
+        }
+        .tech-term {
+            color: #6b21a8;
+            font-weight: 700;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+        .quiz-option {
+            transition: all 0.2s;
+        }
+        .quiz-option:hover {
+            background-color: #f3f4f6;
+        }
+        .correct-answer {
+            background-color: #d1fae5 !important;
+            border-color: #10b981 !important;
+            color: #065f46 !important;
+        }
+        .wrong-answer {
+            background-color: #fee2e2 !important;
+            border-color: #ef4444 !important;
+            color: #991b1b !important;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Header -->
+    <header class="bg-slate-900 text-white py-8 shadow-lg">
+        <div class="container mx-auto px-4 text-center">
+            <h1 class="text-3xl md:text-4xl font-bold mb-2">Spanning Tree - MSTP (802.1s) 深度教學</h1>
+            <p class="text-slate-400">Extreme XOS 網路架構大師系列 | 20 年實戰經驗分享</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8 flex-grow max-w-5xl">
+
+        <!-- 1. 核心概念 (Concept) -->
+        <section class="section-card">
+            <h2 class="text-2xl font-bold mb-4 flex items-center">
+                <span class="bg-purple-700 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 text-sm">1</span>
+                核心概念 (Concept)
+            </h2>
+            
+            <div class="space-y-4">
+                <div class="bg-purple-50 p-4 rounded-lg border border-purple-100">
+                    <h3 class="font-bold text-lg mb-2 text-purple-800">一句話定義</h3>
+                    <p class="text-gray-700">
+                        MSTP (Multiple Spanning Tree Protocol) 是一種將多個 VLAN 映射到特定「實例 (Instance)」的技術，旨在解決傳統 STP 運算過慢與 PVST 運算過於耗費資源的問題，實現網路負載平衡。
+                    </p>
+                </div>
+
+                <div class="mt-6">
+                    <h3 class="font-bold text-lg mb-2 text-gray-800">生活化比喻：公車專用道系統</h3>
+                    <p class="leading-relaxed text-gray-600">
+                        想像這是一座城市的交通系統，VLAN 就是不同的「乘客群體」（如：上班族、學生、觀光客）。
+                    </p>
+                    <ul class="list-disc list-inside mt-3 space-y-2 ml-4 text-gray-600">
+                        <li><strong>CST (傳統 STP)：</strong> 所有乘客（所有 VLAN）只能擠同一輛公車走同一條路。如果這條路封閉，所有人都卡住。且即便有另一條空的路，也不能用（因為怕迴圈）。</li>
+                        <li><strong>PVST+ (Cisco 早期)：</strong> 每個乘客群體（每個 VLAN）都派一輛專屬公車。雖然靈活，但路上車子太多（CPU 負載過高），交通指揮官（Switch CPU）會崩潰。</li>
+                        <li><strong>MSTP (802.1s)：</strong> 這是最聰明的「共乘制度」。我們規定：「去北邊的乘客（VLAN 10, 20）搭 A 號公車，去南邊的乘客（VLAN 30, 40）搭 B 號公車」。這樣既不用太多車，也能充分利用所有道路（負載平衡）。</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. 運作原理 (Mechanism) -->
+        <section class="section-card">
+            <h2 class="text-2xl font-bold mb-4 flex items-center">
+                <span class="bg-purple-700 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 text-sm">2</span>
+                運作原理 (Mechanism)
+            </h2>
+            
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="font-bold text-lg mb-3 text-gray-800 border-b pb-2">技術細節</h3>
+                    <ul class="space-y-3 text-gray-700 text-sm">
+                        <li class="flex items-start">
+                            <span class="text-purple-600 mr-2">➤</span>
+                            <span><strong>MST Region (區域)：</strong> 這是 MSTP 的基本單位。要成為同一個 Region，三要素必須完全一致：
+                                <br><code class="bg-gray-100 px-1 rounded text-red-500">Region Name</code> (區域名稱)
+                                <br><code class="bg-gray-100 px-1 rounded text-red-500">Revision Number</code> (修訂版號)
+                                <br><code class="bg-gray-100 px-1 rounded text-red-500">VLAN-to-Instance Mapping</code> (映射表)
+                            </span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-purple-600 mr-2">➤</span>
+                            <span><strong>IST (Internal Spanning Tree)：</strong> 即 Instance 0。這是預設的實例，負責攜帶所有未明確分組的 VLAN 以及控制封包 (BPDU)。在 Extreme XOS 中，這通常對應到 Default VLAN 或 Mgmt。</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-purple-600 mr-2">➤</span>
+                            <span><strong>MSTI (MST Instance)：</strong> 用戶自定義的實例（如 Instance 1, Instance 2）。每個 MSTI 都有獨立的 Root Bridge 計算與 Blocking Port，這就是實現負載平衡的關鍵。</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="font-bold text-lg mb-3 text-gray-800 border-b pb-2">Extreme XOS 關鍵參數 & 設定</h3>
+                    <div class="bg-gray-800 text-gray-200 p-4 rounded-lg font-mono text-xs overflow-x-auto shadow-inner">
+                        <p class="text-green-400"># 設定 MSTP Region 範例</p>
+                        <p>configure mstp region name "Hauman_HQ"</p>
+                        <p>configure mstp revision 1</p>
+                        <br>
+                        <p class="text-green-400"># 建立 Instance (MSTI)</p>
+                        <p>create stpd s1</p>
+                        <p>configure stpd s1 mode mstp cist</p>
+                        <br>
+                        <p class="text-green-400"># 映射 VLAN 到 Instance</p>
+                        <p>configure stpd s1 add vlan "Finance"</p>
+                        <p>configure stpd s1 add vlan "HR"</p>
+                        <br>
+                        <p class="text-green-400"># 啟用</p>
+                        <p>enable mstp</p>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">* 註：CIST (Common and Internal Spanning Tree) 負責連結不同的 Regions 以及 Region 內部的 IST。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. 架構視覺化 (Visuals) -->
+        <section class="section-card">
+            <h2 class="text-2xl font-bold mb-4 flex items-center">
+                <span class="bg-purple-700 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 text-sm">3</span>
+                架構視覺化 (Visuals)
+            </h2>
+            <p class="mb-4 text-gray-600">以下透過三個圖表層次，展示 MSTP 如何在同一個物理線路上，建立兩個邏輯上不同的轉送路徑（負載平衡）。</p>
+
+            <!-- Diagram 1: Physical Topology -->
+            <div class="mb-8 border border-gray-200 rounded p-4">
+                <h4 class="font-bold text-center text-gray-700 mb-2">圖一：物理連接拓撲 (Physical Topology)</h4>
+                <div class="mermaid">
+                    graph TD
+                    %% 物理層連接
+                    CoreA[("Core Switch A<br>(Root for MSTI 1)")] 
+                    CoreB[("Core Switch B<br>(Root for MSTI 2)")]
+                    Access1["Access Switch"]
+                    
+                    %% 連接線
+                    CoreA ---|Link 1| CoreB
+                    CoreA ---|Link 2| Access1
+                    CoreB ---|Link 3| Access1
+                    
+                    style CoreA fill:#e0e7ff,stroke:#4338ca,stroke-width:2px
+                    style CoreB fill:#e0e7ff,stroke:#4338ca,stroke-width:2px
+                    style Access1 fill:#f3e8ff,stroke:#7e22ce,stroke-width:2px
+                </div>
+                <p class="text-center text-sm text-gray-500 mt-2">實體線路全部接通，若無 STP 會產生迴圈。</p>
+            </div>
+
+            <!-- Diagram 2: MSTI 1 Logic -->
+            <div class="mb-8 border border-gray-200 rounded p-4">
+                <h4 class="font-bold text-center text-purple-700 mb-2">圖二：MSTI 1 邏輯路徑 (VLAN 10, 20)</h4>
+                <div class="mermaid">
+                    graph TD
+                    %% MSTI 1 視角
+                    subgraph MSTI_1 [Instance 1: VLAN 10, 20]
+                        Root1[("Core A<br>(ROOT BRIDGE)")] 
+                        NonRoot1[("Core B")]
+                        Acc1["Access Switch"]
+                        
+                        Root1 == "Forwarding" ==> NonRoot1
+                        Root1 == "Forwarding" ==> Acc1
+                        NonRoot1 -. "BLOCKING (x)" .- Acc1
+                    end
+
+                    style Root1 fill:#dcfce7,stroke:#16a34a,stroke-width:3px
+                    style NonRoot1 fill:#fee2e2,stroke:#dc2626,stroke-width:1px
+                    
+                    linkStyle 0 stroke:#16a34a,stroke-width:2px;
+                    linkStyle 1 stroke:#16a34a,stroke-width:2px;
+                    linkStyle 2 stroke:#dc2626,stroke-width:2px,stroke-dasharray: 5 5;
+                </div>
+                <p class="text-center text-sm text-gray-500 mt-2">在 Instance 1 中，流量主要走左側 (Core A)。右側 Link 3 被阻斷。</p>
+            </div>
+
+            <!-- Diagram 3: MSTI 2 Logic -->
+            <div class="border border-gray-200 rounded p-4">
+                <h4 class="font-bold text-center text-blue-700 mb-2">圖三：MSTI 2 邏輯路徑 (VLAN 30, 40)</h4>
+                <div class="mermaid">
+                    graph TD
+                    %% MSTI 2 視角
+                    subgraph MSTI_2 [Instance 2: VLAN 30, 40]
+                        NonRoot2[("Core A")] 
+                        Root2[("Core B<br>(ROOT BRIDGE)")]
+                        Acc2["Access Switch"]
+                        
+                        NonRoot2 == "Forwarding" ==> Root2
+                        NonRoot2 -. "BLOCKING (x)" .- Acc2
+                        Root2 == "Forwarding" ==> Acc2
+                    end
+
+                    style Root2 fill:#dcfce7,stroke:#16a34a,stroke-width:3px
+                    style NonRoot2 fill:#fee2e2,stroke:#dc2626,stroke-width:1px
+                    
+                    linkStyle 0 stroke:#16a34a,stroke-width:2px;
+                    linkStyle 1 stroke:#dc2626,stroke-width:2px,stroke-dasharray: 5 5;
+                    linkStyle 2 stroke:#16a34a,stroke-width:2px;
+                </div>
+                <p class="text-center text-sm text-gray-500 mt-2">在 Instance 2 中，流量主要走右側 (Core B)。左側 Link 2 被阻斷。</p>
+            </div>
+        </section>
+
+        <!-- 4. 實務應用場景 (Use Case) -->
+        <section class="section-card">
+            <h2 class="text-2xl font-bold mb-4 flex items-center">
+                <span class="bg-purple-700 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 text-sm">4</span>
+                實務應用場景 (Use Case)
+            </h2>
+
+            <div class="mb-4">
+                <h3 class="font-bold text-lg text-gray-800">案例：大型企業園區核心層 (Campus Core)</h3>
+                <p class="text-gray-600 mt-2">
+                    某科技公司有兩台核心交換器 (Core-A, Core-B) 透過 MLAG 或實體線路互連，並下接數十台 Access Switch。公司主要有兩個龐大的業務部門：
+                    <br>1. <strong>研發部 (RD)</strong>：使用 VLAN 100-199，資料量極大。
+                    <br>2. <strong>行政部 (Admin)</strong>：使用 VLAN 200-299，主要是 ERP 流量。
+                </p>
+            </div>
+
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
+                <h4 class="font-bold text-blue-800">部署策略</h4>
+                <ul class="list-disc ml-4 text-blue-700 text-sm mt-1">
+                    <li>設定 <strong>Core-A</strong> 為 MSTI 1 (VLAN 100-199) 的 Root Bridge (Priority 4096)，Core-B 為 Secondary。</li>
+                    <li>設定 <strong>Core-B</strong> 為 MSTI 2 (VLAN 200-299) 的 Root Bridge (Priority 4096)，Core-A 為 Secondary。</li>
+                    <li>Access Switch 設定相同 Region，並根據 Instance 自動計算最短路徑。</li>
+                </ul>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                <div class="bg-green-50 p-3 rounded">
+                    <h4 class="font-bold text-green-700 flex items-center">👍 優點 (Pros)</h4>
+                    <ul class="text-sm text-green-800 ml-4 list-disc mt-1">
+                        <li><strong>頻寬利用最大化：</strong> 上行鏈路不再有一條閒置 (Blocked)，兩條線路分別服務不同部門。</li>
+                        <li><strong>資源節省：</strong> 相比 PVST 為每個 VLAN 跑一個運算程序，MSTP 只需要跑 2 個 Instance，CPU 負擔大幅降低。</li>
+                        <li><strong>相容性：</strong> 802.1s 是國際標準，Extreme 可以跟 Cisco、Juniper 完美介接。</li>
+                    </ul>
+                </div>
+                <div class="bg-red-50 p-3 rounded">
+                    <h4 class="font-bold text-red-700 flex items-center">⚠️ 缺點 (Cons)</h4>
+                    <ul class="text-sm text-red-800 ml-4 list-disc mt-1">
+                        <li><strong>設定複雜：</strong> Region 設定 (Name/Rev/Map) 必須在所有交換器上「完全一致」，錯一個字就會變成不同 Region，導致退化成傳統 STP 行為。</li>
+                        <li><strong>除錯難度：</strong> 需要同時檢查不同 Instance 的拓撲，初學者容易混淆。</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. 進階陷阱 (Advanced Pitfalls) - New Section -->
+        <section class="section-card danger-card">
+            <h2 class="text-2xl font-bold mb-4 flex items-center text-red-700">
+                <span class="bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 text-sm">5</span>
+                進階陷阱：VLAN 拓撲不一致的黑洞
+            </h2>
+            <p class="mb-4 text-gray-700 font-bold">當所有 VLAN 都在同一個 Instance，但每個 VLAN 的實體連接拓撲不同時，會發生什麼事？</p>
+
+            <!-- 5.1 Concept -->
+            <div class="mb-6">
+                <h3 class="font-bold text-lg mb-2 text-gray-800 border-b border-red-200 pb-1">一、核心概念：同命不同運</h3>
+                <p class="text-gray-700">
+                    <strong class="text-red-600">定義：</strong> 當多個 VLAN 綁定在同一個 MSTI (Instance)，但這些 VLAN 在實體鏈路上的允許清單 (Tagged List) 不一致時，MSTP 計算出的「阻斷點 (Blocking Port)」可能會恰好阻斷某個 VLAN 的「唯一路徑」，導致該 VLAN 流量完全中斷 (Blackholed)。
+                </p>
+                <div class="mt-3 bg-red-50 p-3 rounded text-sm text-gray-700 italic">
+                    <strong>生活化比喻：</strong> 
+                    想像 VLAN 10 (紅線) 和 VLAN 20 (藍線) 被捆成一束 (Instance 1) 搭乘火車。火車駕駛 (MSTP) 因為前方鐵軌維修，決定封閉右邊軌道，全車改走左邊。
+                    <br>但不幸的是，<strong>紅線乘客的票 (Tag) 只能走右邊</strong>。結果就是：車子走了左邊，但紅線乘客因為沒票上不了車；右邊軌道雖然有票但被封閉了。紅線乘客因此哪裡都去不了。
+                </div>
+            </div>
+
+            <!-- 5.2 Mechanism -->
+            <div class="mb-6">
+                <h3 class="font-bold text-lg mb-2 text-gray-800 border-b border-red-200 pb-1">二、運作原理：STP 狀態與 VLAN Tag 的脫鉤</h3>
+                <ul class="list-disc list-inside space-y-2 text-gray-700 text-sm">
+                    <li><strong>MSTP 只看 Instance：</strong> 交換器在計算路徑時，只根據 Instance 的參數 (Cost, Priority) 決定哪個 Port 要 Block。它<strong>不會</strong>去檢查裡面的 VLAN 10 是否在那個 Port 上有打 Tag。</li>
+                    <li><strong>State 優先於 VLAN：</strong> 如果 Port 2 被 MSTP 設為 <code class="bg-red-100 text-red-600 px-1">Blocking</code>，那麼屬於該 Instance 的<strong>所有</strong> VLAN 封包都會被丟棄。</li>
+                    <li><strong>沒有自動補救：</strong> 即使 VLAN 20 在 Port 1 (Forwarding 狀態) 沒有被允許 (未 Tagged)，MSTP 也不會因此把 Port 2 打開。Loop-Free 是最高原則。</li>
+                </ul>
+            </div>
+
+            <!-- 5.3 Visuals -->
+            <div class="mb-6">
+                <h3 class="font-bold text-lg mb-2 text-gray-800 border-b border-red-200 pb-1">三、陷阱視覺化流程</h3>
+                
+                <!-- Step 1: Physical Config Mismatch -->
+                <div class="mb-4 border border-gray-200 rounded p-3">
+                    <h4 class="font-bold text-center text-gray-600 text-sm mb-1">圖A：物理配置與 VLAN 錯置 (設定失誤)</h4>
+                    <div class="mermaid">
+                        graph TD
+                        Core[Core Switch]
+                        Edge[Edge Switch]
+                        
+                        Core -- "Link 1<br>(VLAN 10 Only)<br>Cost 10" --- Edge
+                        Core -- "Link 2<br>(VLAN 20 Only)<br>Cost 20" --- Edge
+
+                        style Core fill:#e2e8f0
+                        style Edge fill:#e2e8f0
+                        linkStyle 0 stroke:#3b82f6,stroke-width:2px;
+                        linkStyle 1 stroke:#ef4444,stroke-width:2px;
+                    </div>
+                    <p class="text-center text-xs text-gray-500">注意：VLAN 10 只在左邊，VLAN 20 只在右邊。但兩者都在 Instance 1。</p>
+                </div>
+
+                <!-- Step 2: MSTP Calculation -->
+                <div class="mb-4 border border-gray-200 rounded p-3">
+                    <h4 class="font-bold text-center text-purple-700 text-sm mb-1">圖B：MSTP Instance 1 計算結果</h4>
+                    <div class="mermaid">
+                        graph TD
+                        Core[Core Switch]
+                        Edge[Edge Switch]
+                        
+                        Core == "Link 1<br>FORWARDING<br>(Root Port)" ==> Edge
+                        Core -. "Link 2<br>BLOCKING<br>(Alternate)" .- Edge
+
+                        style Core fill:#e2e8f0
+                        style Edge fill:#e2e8f0
+                        linkStyle 0 stroke:#16a34a,stroke-width:3px;
+                        linkStyle 1 stroke:#dc2626,stroke-width:3px,stroke-dasharray: 5 5;
+                    </div>
+                    <p class="text-center text-xs text-gray-500">MSTP 發現 Link 1 Cost 較低，選為 Forwarding。Link 2 為了防圈被 Block。</p>
+                </div>
+
+                <!-- Step 3: Result -->
+                <div class="border border-red-200 bg-red-50 rounded p-3">
+                    <h4 class="font-bold text-center text-red-700 text-sm mb-1">圖C：最終流量結果 (VLAN 20 斷線)</h4>
+                    <div class="mermaid">
+                        graph TD
+                        subgraph Result [Instance 1 Traffic Flow]
+                            L1["Link 1 (FWD)"]
+                            L2["Link 2 (BLK)"]
+                            
+                            V10(VLAN 10 Traffic) -->|VLAN Allowed| L1
+                            V10 -->|Success| OK[通訊正常]
+
+                            V20(VLAN 20 Traffic) -->|VLAN NOT Allowed| L1
+                            V20 -->|Drop| Fail1[斷線: Link 1 無 Tag]
+
+                            V20_2(VLAN 20 Traffic) -->|STP Blocked| L2
+                            V20_2 -->|Drop| Fail2[斷線: Link 2 被 STP 阻擋]
+                        end
+                        style Fail1 fill:#fee2e2,stroke:#ef4444
+                        style Fail2 fill:#fee2e2,stroke:#ef4444
+                        style OK fill:#dcfce7,stroke:#16a34a
+                    </div>
+                    <p class="text-center text-xs text-red-600 mt-2 font-bold">VLAN 20 兩邊都不通！這就是拓撲不一致造成的黑洞。</p>
+                </div>
+            </div>
+
+            <!-- 5.4 Use Case -->
+            <div>
+                <h3 class="font-bold text-lg mb-2 text-gray-800 border-b border-red-200 pb-1">四、實務應用與教訓</h3>
+                <p class="text-gray-700 text-sm mb-2">這種情況常發生在<strong>「逐步遷移」</strong>或<strong>「備援線路測試」</strong>場景：</p>
+                <div class="bg-white border rounded p-3 text-sm text-gray-600">
+                    <p>工程師在 Core Switch 新增了一個測試用的 VLAN 999 (屬於 Instance 1)，為了測試備援線路，他刻意只在 Backup Link (Link 2) 上放行 VLAN 999。<br>
+                    <strong>結果：</strong> 因為 Instance 1 判定 Link 1 才是主路徑，將 Link 2 Block 掉了。VLAN 999 雖然在 Link 2 上有設定，但路不通；在 Link 1 上路通，但沒設定。導致測試永遠失敗。</p>
+                </div>
+                <p class="mt-3 text-red-600 font-bold text-sm">⚠️ 黃金準則：同一個 MST Instance 內的所有 VLAN，其 L2 實體拓撲 (Member Ports) 必須完全一致。</p>
+            </div>
+        </section>
+
+        <!-- 6. 綜合隨堂測驗 (Quiz) -->
+        <section class="section-card">
+            <h2 class="text-2xl font-bold mb-6 flex items-center">
+                <span class="bg-purple-700 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 text-sm">6</span>
+                綜合隨堂測驗 (Quiz)
+            </h2>
+            <p class="mb-6 text-gray-500 text-sm">包含基礎概念與進階陷阱題。請點擊您認為正確的選項。</p>
+
+            <div id="quiz-container" class="space-y-6">
+                <!-- Questions will be injected here by JS -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-gray-400 py-4 text-xs">
+        <div class="container mx-auto px-4 text-center">
+            <p>Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // Initialize Mermaid
+        mermaid.initialize({ startOnLoad: true });
+
+        // Quiz Data (Updated with Scenario Questions)
+        const quizData = [
+            {
+                question: "1. MSTP 的國際標準協議編號為何？",
+                options: ["IEEE 802.1d", "IEEE 802.1w", "IEEE 802.1s", "IEEE 802.1q"],
+                answer: 2,
+                explanation: "802.1d 是傳統 STP，802.1w 是 RSTP，802.1q 是 VLAN Tagging。MSTP 的標準是 802.1s。"
+            },
+            {
+                question: "2. 要讓兩台交換器屬於同一個 MST Region，下列哪個參數 **不需要** 完全一致？",
+                options: ["Region Name (區域名稱)", "Revision Number (修訂版號)", "VLAN-to-Instance Mapping (VLAN 映射表)", "Switch IP Address (交換器 IP)"],
+                answer: 3,
+                explanation: "MST Region 的三要素是 Name, Revision 和 Mapping Digest。IP 位址每台設備都不同，不影響 Region 判定。"
+            },
+            {
+                question: "3. 關於 MSTI (Multiple Spanning Tree Instance) 的敘述，何者正確？",
+                options: ["每個 VLAN 都必須有一個獨立的 Instance", "所有 Instance 共享同一個 Root Bridge", "不同的 Instance 可以有不同的 Root Bridge 與阻塞端口", "Instance 0 不能用來傳輸資料"],
+                answer: 2,
+                explanation: "MSTP 的精髓就在於不同的 Instance (如 MSTI 1, MSTI 2) 可以選定不同的 Root Bridge，從而讓不同的 VLAN 走不同的物理路徑，實現負載平衡。"
+            },
+            {
+                question: "4. 如果一個網路環境中混合了 MSTP 與傳統 RSTP 交換器，MSTP 區域對外會呈現什麼樣子？",
+                options: ["會導致網路癱瘓", "看起來像是一個巨大的單一虛擬交換器 (Virtual Switch)", "會自動將所有 VLAN 轉為 PVST 模式", "無法互通"],
+                answer: 1,
+                explanation: "MSTP 向下相容 RSTP。對於區域外的 RSTP 交換器來說，整個 MST Region 看起來就像是一台巨大的交換器 (透過 CIST 溝通)。"
+            },
+            {
+                question: "5. 在 Extreme XOS 中，預設的 Instance (IST) 通常是指哪一個？",
+                options: ["s0 (Instance 0)", "s1 (Instance 1)", "Default VLAN", "Mgmt VLAN"],
+                answer: 0,
+                explanation: "在 Extreme XOS 建立 STPD 時，s0 通常被保留作為 CIST/IST (Instance 0) 使用，負責處理未映射的 VLAN 和 BPDU 交換。"
+            },
+            // New Questions for the Scenario
+            {
+                question: "6. [進階題] 若 VLAN 10 和 VLAN 20 屬於同一個 MST Instance，但在物理連接上 VLAN 10 僅存在於 Link A，VLAN 20 僅存在於 Link B。當 MSTP 決定 Block Link B 時，會發生什麼事？",
+                options: ["VLAN 20 會自動改走 Link A", "MSTP 會自動啟用 Link B 給 VLAN 20 使用", "VLAN 20 通訊中斷 (黑洞)", "VLAN 10 和 20 互通"],
+                answer: 2,
+                explanation: "MSTP 是以 Instance 為單位阻擋 Port。如果 Link B 被 Instance Block，則該 Instance 內的所有 VLAN (包含 VLAN 20) 都無法通過 Link B。而 Link A 又沒有設定允許 VLAN 20，因此 VLAN 20 無路可走。"
+            },
+            {
+                question: "7. [進階題] 為什麼 MSTP 不會檢查個別 VLAN 的 Tag 狀態來決定是否阻擋 Port？",
+                options: ["為了節省 CPU 資源並維持 Loop-Free 架構", "因為 VLAN ID 只有 12 bit 不夠用", "硬體限制無法檢查", "為了相容 Cisco 設備"],
+                answer: 0,
+                explanation: "MSTP 的設計初衷就是將大量 VLAN 簡化為少量 Instance 進行運算，以節省 CPU。若要逐一檢查 VLAN 狀態，就變回 PVST+ 了。且為了確保無迴圈，Instance 的拓撲必須嚴格執行。"
+            },
+            {
+                question: "8. [進階題] 為了避免「拓撲不一致」造成的流量黑洞，最佳實踐(Best Practice)是什麼？",
+                options: ["不要使用 MSTP，全部改用 RIP", "確保同一 Instance 內的所有 VLAN 在所有 Trunk Port 上的設定完全一致", "將每個 VLAN 都設定為獨立的 Instance", "關閉 Spanning Tree"],
+                answer: 1,
+                explanation: "要避免此問題，必須確保屬於同一 Instance 的 VLAN 擁有相同的物理拓撲。也就是說，如果 Link 1 允許了 VLAN 10，且 VLAN 10 與 20 同組，那 Link 1 也應該允許 VLAN 20 (或至少保持設定對稱)。"
+            }
+        ];
+
+        // Render Quiz
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((q, index) => {
+            const questionEl = document.createElement('div');
+            questionEl.className = 'bg-white border rounded-lg p-4 shadow-sm';
+            
+            let optionsHtml = '';
+            q.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <button 
+                        class="quiz-option w-full text-left p-3 rounded border mb-2 text-sm text-gray-700 hover:border-purple-400 focus:outline-none"
+                        onclick="checkAnswer(${index}, ${optIndex}, this)"
+                    >
+                        ${String.fromCharCode(65 + optIndex)}. ${opt}
+                    </button>
+                `;
+            });
+
+            questionEl.innerHTML = `
+                <h3 class="font-bold text-gray-800 mb-3">Q${index + 1}: ${q.question}</h3>
+                <div class="space-y-1">${optionsHtml}</div>
+                <div id="feedback-${index}" class="hidden mt-3 p-3 rounded text-sm"></div>
+            `;
+            quizContainer.appendChild(questionEl);
+        });
+
+        // Check Answer Function
+        window.checkAnswer = function(qIndex, selectedOptIndex, btnElement) {
+            const q = quizData[qIndex];
+            const feedbackEl = document.getElementById(`feedback-${qIndex}`);
+            const allBtns = btnElement.parentElement.querySelectorAll('button');
+
+            // Disable all buttons in this question
+            allBtns.forEach(btn => btn.disabled = true);
+
+            if (selectedOptIndex === q.answer) {
+                // Correct
+                btnElement.classList.add('correct-answer');
+                feedbackEl.className = 'mt-3 p-3 rounded text-sm bg-green-100 text-green-800 border border-green-200';
+                feedbackEl.innerHTML = `<strong>✅ 正確！</strong><br>${q.explanation}`;
+            } else {
+                // Wrong
+                btnElement.classList.add('wrong-answer');
+                // Highlight correct answer
+                allBtns[q.answer].classList.add('correct-answer');
+                
+                feedbackEl.className = 'mt-3 p-3 rounded text-sm bg-red-100 text-red-800 border border-red-200';
+                feedbackEl.innerHTML = `<strong>❌ 答錯了。</strong><br>正確答案是 (${String.fromCharCode(65 + q.answer)})。<br>${q.explanation}`;
+            }
+            feedbackEl.classList.remove('hidden');
+        };
+    </script>
+</body>
+</html>
