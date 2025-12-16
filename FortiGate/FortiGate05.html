@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fortinet FortiGate 實戰課程 - 單元 5：使用者認證</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Mermaid.js -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <!-- Google Fonts -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Roboto:wght@400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6; /* Gray-100 */
+            color: #1f2937; /* Gray-800 */
+        }
+        
+        /* 1. 版面配置 - 卡片式設計 */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            border-left: 6px solid #c53030; /* Fortinet Red */
+            position: relative;
+        }
+
+        /* 2. 標題樣式 - 彩色標籤 (Badge) */
+        .section-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-weight: 700;
+            font-size: 0.75rem;
+            margin-bottom: 1rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+        /* Badge Colors */
+        .badge-red { background-color: #fee2e2; color: #991b1b; }
+        .badge-blue { background-color: #dbeafe; color: #1e40af; }
+        .badge-green { background-color: #dcfce7; color: #166534; }
+        .badge-orange { background-color: #ffedd5; color: #9a3412; }
+        .badge-purple { background-color: #f3e8ff; color: #6b21a8; }
+
+        /* 3. 特殊區塊 */
+        /* 生活化比喻 (Green) */
+        .analogy-box {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-left: 4px solid #22c55e;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-top: 1.5rem;
+        }
+        /* 重點/技術 (Red) */
+        .highlight-box {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            border-left: 4px solid #ef4444;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-top: 1.5rem;
+        }
+
+        /* 4. 圖表容器優化 */
+        .mermaid-container {
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-top: 1.5rem;
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: center;
+            overflow-x: auto; /* 避免小螢幕破版 */
+        }
+        .figure-caption {
+            text-align: center;
+            font-weight: 700;
+            color: #4b5563;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        /* 5. 測驗樣式 */
+        .quiz-option {
+            cursor: pointer;
+            padding: 1rem 1.25rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            transition: all 0.2s;
+            background-color: white;
+            display: flex;
+            align-items: center;
+        }
+        .quiz-option:hover {
+            background-color: #f9fafb;
+            border-color: #d1d5db;
+            transform: translateX(4px);
+        }
+        .opt-label {
+            width: 2rem;
+            height: 2rem;
+            background-color: #f3f4f6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            font-weight: bold;
+            color: #6b7280;
+            flex-shrink: 0;
+        }
+
+        /* Footer */
+        footer {
+            background-color: #1f2937; /* Dark Gray */
+            color: #9ca3af;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- 頁首 (Header) - 品牌紅漸層 -->
+    <header class="bg-gradient-to-r from-red-700 to-red-900 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <div class="bg-white/10 p-2 rounded-lg backdrop-blur-sm shadow-inner">
+                    <i class="fa-solid fa-shield-halved text-white text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-xl tracking-wide font-sans">Fortinet FortiGate 實戰課程</h1>
+                    <div class="flex items-center text-xs text-red-100 mt-1 opacity-90">
+                        <span class="bg-red-800/60 px-2 py-0.5 rounded mr-2 border border-red-700">Level 1</span>
+                        <span>Administrator Phase</span>
+                    </div>
+                </div>
+            </div>
+            <div class="hidden md:block text-right">
+                <p class="text-sm font-medium">單元 5：使用者認證</p>
+                <p class="text-xs text-red-200">Authentication & FSSO</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-4 py-10 flex-grow">
+
+        <!-- 1. 核心概念 (Concept) -->
+        <section class="section-card">
+            <span class="section-badge badge-red">
+                <i class="fa-regular fa-lightbulb mr-2"></i>Concept
+            </span>
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">核心概念</h2>
+            
+            <p class="text-lg text-gray-700 leading-relaxed mb-6">
+                使用者認證是將資安策略從傳統的 <strong class="text-red-700">「IP 位址 (Location)」</strong> 轉變為 <strong class="text-red-700">「使用者身分 (Identity)」</strong> 的關鍵機制。透過確認「你是誰」，防火牆能精準控制「你能做什麼」，而非僅依賴你坐在哪裡。
+            </p>
+
+            <div class="analogy-box">
+                <h3 class="font-bold text-green-800 mb-4 text-lg flex items-center">
+                    <i class="fa-solid fa-leaf mr-2"></i>生活化比喻：大樓的門禁管理
+                </h3>
+                <ul class="space-y-4 text-gray-700">
+                    <li class="flex items-start">
+                        <i class="fa-solid fa-clipboard-list text-green-600 mt-1 mr-3"></i>
+                        <div>
+                            <strong>Local User (本機使用者) = 紙本訪客名單</strong><br>
+                            警衛（防火牆）手上有一個小本子，每次進門都要翻名單確認。
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa-solid fa-phone-volume text-green-600 mt-1 mr-3"></i>
+                        <div>
+                            <strong>Remote Server (LDAP) = 打電話問人事部</strong><br>
+                            警衛不再記名單，而是打電話給人事部 (AD Server) 確認身分。
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa-solid fa-id-card-clip text-green-600 mt-1 mr-3"></i>
+                        <div>
+                            <strong>FSSO (Single Sign-On) = 員工識別證感應 (ETC)</strong><br>
+                            登入電腦時已驗證，過防火牆這道門時自動開啟，完全無需再報名字 (透明驗證)。
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 2. 運作原理 (Mechanism) -->
+        <section class="section-card">
+            <span class="section-badge badge-blue">
+                <i class="fa-solid fa-gears mr-2"></i>Mechanism
+            </span>
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">運作原理</h2>
+
+            <div class="highlight-box">
+                <h3 class="font-bold text-red-800 mb-4 text-lg flex items-center">
+                    <i class="fa-solid fa-crosshairs mr-2"></i>技術細節重點
+                </h3>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div>
+                        <h4 class="font-bold text-gray-900 border-b border-red-200 pb-2 mb-3">1. Remote Authentication</h4>
+                        <ul class="space-y-3 text-gray-700 text-sm">
+                            <li class="flex items-start"><i class="fa-solid fa-check text-red-500 mt-1 mr-2"></i><span><strong>主動式 (Active)：</strong> 攔截 HTTP 流量並彈出 Captive Portal 輸入帳密。</span></li>
+                            <li class="flex items-start"><i class="fa-solid fa-check text-red-500 mt-1 mr-2"></i><span><strong>LDAP：</strong> 使用 TCP 389 或 636 (LDAPS) 查詢。</span></li>
+                            <li class="flex items-start"><i class="fa-solid fa-check text-red-500 mt-1 mr-2"></i><span><strong>RADIUS：</strong> 使用 UDP 1812，常見於 VPN 雙因子認證。</span></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-gray-900 border-b border-red-200 pb-2 mb-3">2. FSSO (Single Sign-On)</h4>
+                        <ul class="space-y-3 text-gray-700 text-sm">
+                            <li class="flex items-start"><i class="fa-solid fa-check text-red-500 mt-1 mr-2"></i><span><strong>被動式 (Passive)：</strong> 使用者無感，依賴 AD 登入事件。</span></li>
+                            <li class="flex items-start"><i class="fa-solid fa-check text-red-500 mt-1 mr-2"></i><span><strong>Collector Agent：</strong> 監控 DC 上的 Event ID 4624。</span></li>
+                            <li class="flex items-start"><i class="fa-solid fa-check text-red-500 mt-1 mr-2"></i><span><strong>機制：</strong> 建立 IP 與 User Group 的動態對應表。</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. 架構視覺化 (Visuals) -->
+        <section class="section-card">
+            <span class="section-badge badge-green">
+                <i class="fa-solid fa-diagram-project mr-2"></i>Visuals
+            </span>
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">架構視覺化</h2>
+            
+            <!-- Diagram 1 -->
+            <div class="mb-10">
+                <div class="figure-caption">
+                    <span class="bg-blue-600 text-white text-xs px-2 py-1 rounded">FIG 1</span>
+                    遠端伺服器認證流程 (Active Authentication)
+                </div>
+                <div class="mermaid-container">
+                    <div class="mermaid">
+flowchart TD
+    %% 設定樣式: 藍色調
+    classDef user fill:#eff6ff,stroke:#3b82f6,stroke-width:2px,color:#1e3a8a
+    classDef system fill:#fff1f2,stroke:#ef4444,stroke-width:2px,color:#991b1b
+    classDef db fill:#f8fafc,stroke:#64748b,stroke-width:2px,color:#334155
+
+    User("👤 使用者<br>發起網頁請求"):::user
+    FG_Check{"🛡️ FortiGate<br>檢查 Policy"}:::system
+    Portal["💻 Captive Portal<br>輸入帳號密碼"]:::system
+    Auth{"🛡️ FortiGate<br>執行驗證"}:::system
+    LDAP[("🗄️ LDAP/AD<br>查詢使用者")]:::db
+    Internet(("☁️ Internet")):::db
+
+    User -->|1. 上網流量| FG_Check
+    FG_Check -->|2. 需要認證| Portal
+    Portal -->|3. 輸入憑證| Auth
+    Auth -->|4. 查詢帳號| LDAP
+    LDAP -->|5. 驗證成功| Auth
+    Auth -->|6. 放行流量| Internet
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diagram 2 (FSSO - Simplified & Large) -->
+            <div>
+                <div class="figure-caption">
+                    <span class="bg-green-600 text-white text-xs px-2 py-1 rounded">FIG 2</span>
+                    FSSO 架構流程 (Passive Authentication)
+                </div>
+                <div class="mermaid-container">
+                    <div class="mermaid">
+flowchart TD
+    %% 設定樣式: 大字體、簡潔
+    classDef base font-size:24px,font-weight:bold,fill:white,stroke-width:3px,color:#333,rx:5
+    
+    PC["👤 使用者 PC"]:::base
+    DC["🗄️ AD 網域主機"]:::base
+    Agent["⚙️ Collector Agent"]:::base
+    FG["🔥 FortiGate"]:::base
+    Cloud(("☁️ Internet")):::base
+
+    %% 流程線條
+    PC -- "1. 登入網域" --> DC
+    DC -. "2. 產生 Log" .-> Agent
+    Agent -- "3. 同步身分表" --> FG
+    PC ==>|4. 上網流量| FG
+    FG ==>|5. 自動放行| Cloud
+
+    %% 顏色區分
+    style PC stroke:#2563eb,fill:#eff6ff
+    style DC stroke:#475569,fill:#f1f5f9
+    style Agent stroke:#16a34a,fill:#f0fdf4
+    style FG stroke:#dc2626,fill:#fef2f2
+    style Cloud stroke:#94a3b8,fill:#f8fafc
+
+    %% 連接線樣式
+    linkStyle 0,1,2 stroke:#059669,stroke-width:3px,color:#065f46
+    linkStyle 3,4 stroke:#2563eb,stroke-width:4px,color:#1e40af
+                    </div>
+                </div>
+                <div class="bg-gray-50 border-t border-gray-200 p-4 rounded-b-lg mt-0 text-sm text-gray-600">
+                    <p><strong>說明：</strong> FSSO 為被動式驗證，使用者僅需登入 Windows (步驟 1)，後續的身分同步 (步驟 2-3) 由系統自動完成，過防火牆時 (步驟 4) 完全無感。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. 實務應用場景 (Use Case) -->
+        <section class="section-card">
+            <span class="section-badge badge-orange">
+                <i class="fa-solid fa-briefcase mr-2"></i>Use Case
+            </span>
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">實務應用場景</h2>
+
+            <div class="bg-gray-50 rounded-xl overflow-hidden border border-gray-200">
+                <div class="p-6 border-b border-gray-200 bg-orange-50/50">
+                    <h3 class="font-bold text-xl text-gray-800 mb-2">案例：科技製造業的內網權限分級</h3>
+                    <p class="text-gray-600 mb-3">
+                        <strong>情境：</strong> 研發部 (R&D) 禁止上網，業務部 (Sales) 開放上網。員工座位不固定，使用 DHCP。
+                    </p>
+                    <span class="inline-block bg-white text-orange-700 px-3 py-1 rounded border border-orange-200 text-sm font-bold shadow-sm">
+                        <i class="fa-solid fa-star mr-1"></i> 解決方案：部署 FSSO 並直接在 Policy 引用 AD 群組
+                    </span>
+                </div>
+                
+                <div class="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-200">
+                    <div class="p-6">
+                        <div class="font-bold text-green-700 mb-3 flex items-center"><i class="fa-solid fa-thumbs-up mr-2"></i>優點 (Pros)</div>
+                        <ul class="space-y-2 text-sm text-gray-600 list-disc list-inside">
+                            <li>體驗極佳：無需重複輸入密碼。</li>
+                            <li>管理連動：AD 群組異動，防火牆權限自動更新。</li>
+                            <li>紀錄詳實：Log 顯示「誰」做了什麼，而非 IP。</li>
+                        </ul>
+                    </div>
+                    <div class="p-6">
+                        <div class="font-bold text-red-700 mb-3 flex items-center"><i class="fa-solid fa-circle-exclamation mr-2"></i>限制 (Cons)</div>
+                        <ul class="space-y-2 text-sm text-gray-600 list-disc list-inside">
+                            <li>BYOD 無效：手機無法產生 AD Log，需搭配 Captive Portal。</li>
+                            <li>同步延遲：登入後約有數秒生效延遲。</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. 隨堂測驗 (Quiz) -->
+        <section class="section-card">
+            <span class="section-badge badge-purple">
+                <i class="fa-solid fa-clipboard-question mr-2"></i>Quiz
+            </span>
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">隨堂測驗</h2>
+            <p class="mb-8 text-gray-500 pl-1">請點選正確答案，系統將即時顯示解析。</p>
+
+            <div class="space-y-8">
+                <!-- Q1 -->
+                <div class="quiz-item group" data-correct="1">
+                    <p class="font-bold text-lg mb-4 text-gray-800"><span class="text-red-600 mr-2">Q1.</span> 關於 FSSO 的敘述，下列何者正確？</p>
+                    <div class="space-y-3">
+                        <div class="quiz-option" onclick="checkAnswer(this, 1, 0)"><div class="opt-label">A</div><div>FSSO 強制每次輸入密碼。</div></div>
+                        <div class="quiz-option" onclick="checkAnswer(this, 1, 1)"><div class="opt-label">B</div><div>FSSO 是一種被動式認證 (Passive)，使用者通常無感。</div></div>
+                        <div class="quiz-option" onclick="checkAnswer(this, 1, 2)"><div class="opt-label">C</div><div>FSSO 只能用於 Local User。</div></div>
+                        <div class="quiz-option" onclick="checkAnswer(this, 1, 3)"><div class="opt-label">D</div><div>FSSO 不需要任何 Agent。</div></div>
+                    </div>
+                    <div id="result-1" class="hidden mt-4 p-4 rounded-lg border bg-gray-50 text-sm"></div>
+                </div>
+
+                <!-- Q2 -->
+                <div class="quiz-item group" data-correct="1">
+                    <p class="font-bold text-lg mb-4 text-gray-800"><span class="text-red-600 mr-2">Q2.</span> LDAP 伺服器通常使用哪個 TCP Port？</p>
+                    <div class="space-y-3">
+                        <div class="quiz-option" onclick="checkAnswer(this, 2, 0)"><div class="opt-label">A</div><div>TCP 80</div></div>
+                        <div class="quiz-option" onclick="checkAnswer(this, 2, 1)"><div class="opt-label">B</div><div>TCP 389 或 636 (LDAPS)</div></div>
+                        <div class="quiz-option" onclick="checkAnswer(this, 2, 2)"><div class="opt-label">C</div><div>UDP 1812</div></div>
+                        <div class="quiz-option" onclick="checkAnswer(this, 2, 3)"><div class="opt-label">D</div><div>TCP 443</div></div>
+                    </div>
+                    <div id="result-2" class="hidden mt-4 p-4 rounded-lg border bg-gray-50 text-sm"></div>
+                </div>
+
+                <!-- Q3 -->
+                <div class="quiz-item group" data-correct="3">
+                    <p class="font-bold text-lg mb-4 text-gray-800"><span class="text-red-600 mr-2">Q3.</span> 在 Policy 中使用 FSSO 群組時，Source Address 應如何設定？</p>
+                    <div class="space-y-3">
+                        <div class="quiz-option" onclick="checkAnswer(this, 3, 0)"><div class="opt-label">A</div><div>設定 "all" 即可，不需其他設定。</div></div>
+                        <div class="quiz-option" onclick="checkAnswer(this, 3, 1)"><div class="opt-label">B</div><div>必須輸入 MAC Address。</div></div>
+                        <div class="quiz-option" onclick="checkAnswer(this, 3, 2)"><div class="opt-label">C</div><div>留空。</div></div>
+                        <div class="quiz-option" onclick="checkAnswer(this, 3, 3)"><div class="opt-label">D</div><div>設定網段 (如 all)，並在 User 欄位選取 FSSO Group。</div></div>
+                    </div>
+                    <div id="result-3" class="hidden mt-4 p-4 rounded-lg border bg-gray-50 text-sm"></div>
+                </div>
+
+                <!-- Q4 -->
+                <div class="quiz-item group" data-correct="0">
+                    <p class="font-bold text-lg mb-4 text-gray-800"><span class="text-red-600 mr-2">Q4.</span> 哪種 FSSO 模式不需要在 DC 上安裝軟體？</p>
+                    <div class="space-y-3">
+                        <div class="quiz-option" onclick="checkAnswer(this, 4, 0)"><div class="opt-label">A</div><div>Polling Mode (Agentless)</div></div>
+                        <div class="quiz-option" onclick="checkAnswer(this, 4, 1)"><div class="opt-label">B</div><div>DC Agent Mode</div></div>
+                        <div class="quiz-option" onclick="checkAnswer(this, 4, 2)"><div class="opt-label">C</div><div>TS Agent Mode</div></div>
+                        <div class="quiz-option" onclick="checkAnswer(this, 4, 3)"><div class="opt-label">D</div><div>Local User Mode</div></div>
+                    </div>
+                    <div id="result-4" class="hidden mt-4 p-4 rounded-lg border bg-gray-50 text-sm"></div>
+                </div>
+
+                <!-- Q5 -->
+                <div class="quiz-item group" data-correct="2">
+                    <p class="font-bold text-lg mb-4 text-gray-800"><span class="text-red-600 mr-2">Q5.</span> 企業希望 VPN 使用雙因子認證 (2FA)，最常搭配？</p>
+                    <div class="space-y-3">
+                        <div class="quiz-option" onclick="checkAnswer(this, 5, 0)"><div class="opt-label">A</div><div>FSSO</div></div>
+                        <div class="quiz-option" onclick="checkAnswer(this, 5, 1)"><div class="opt-label">B</div><div>Captive Portal</div></div>
+                        <div class="quiz-option" onclick="checkAnswer(this, 5, 2)"><div class="opt-label">C</div><div>FortiToken</div></div>
+                        <div class="quiz-option" onclick="checkAnswer(this, 5, 3)"><div class="opt-label">D</div><div>Guest Management</div></div>
+                    </div>
+                    <div id="result-5" class="hidden mt-4 p-4 rounded-lg border bg-gray-50 text-sm"></div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 頁尾 (Footer) -->
+    <footer class="py-8 text-center bg-gray-800 text-gray-400">
+        <p class="font-bold text-gray-300 mb-2 tracking-wide">Planning & Design by Timmy</p>
+        <p class="text-xs text-gray-500 mb-4">timmyc@hauman.com.tw | 豪勉科技 Hauman Technologies Corporation</p>
+        <div class="w-12 h-1 bg-red-800 mx-auto rounded"></div>
+        <p class="text-xs text-gray-600 mt-4">Ver 1.0 | FortiGate Practical Training Series</p>
+    </footer>
+
+    <script>
+        // 初始化 Mermaid
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                fontFamily: '"Noto Sans TC", sans-serif',
+                primaryColor: '#e0f2fe',
+                secondaryColor: '#fef2f2',
+                tertiaryColor: '#f0fdf4',
+                mainBkg: '#ffffff',
+                nodeBorder: '#64748b'
+            },
+            flowchart: {
+                htmlLabels: true,
+                curve: 'basis'
+            }
+        });
+
+        // 測驗邏輯
+        function checkAnswer(element, qIndex, optIndex) {
+            const quizItem = element.closest('.quiz-item');
+            const correctIndex = parseInt(quizItem.dataset.correct);
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const allOptions = quizItem.querySelectorAll('.quiz-option');
+
+            // 鎖定該題不可再選
+            if (quizItem.dataset.answered) return;
+            quizItem.dataset.answered = "true";
+
+            // 清除樣式
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-50', 'bg-red-50', 'border-green-500', 'border-red-500');
+                opt.querySelector('.opt-label').classList.remove('bg-green-200', 'bg-red-200', 'text-green-800', 'text-red-800');
+            });
+
+            // 準備解析文字
+            const explanations = {
+                1: "<strong>解析：</strong> FSSO 透過收集 DC 登入日誌來對應身分，使用者登入 Windows 即完成驗證，故稱為被動式 (Transparent)。",
+                2: "<strong>解析：</strong> LDAP 標準埠為 389，加密 (LDAPS) 為 636。UDP 1812 為 RADIUS。",
+                3: "<strong>解析：</strong> Source Address 仍需定義網路範圍 (如 all 或 internal)，再透過 User 欄位進行身分過濾。",
+                4: "<strong>解析：</strong> Agentless 模式透過 WMI/RPC 遠端輪詢 DC 事件，無需在 DC 安裝 Agent。",
+                5: "<strong>解析：</strong> FortiToken 是 Fortinet 的 OTP 解決方案，完美整合於 FortiGate 實現 2FA。"
+            };
+
+            // 判斷對錯
+            if (optIndex === correctIndex) {
+                // 答對
+                element.classList.add('bg-green-50', 'border-green-500');
+                element.querySelector('.opt-label').classList.add('bg-green-200', 'text-green-800');
+                
+                resultBox.classList.remove('hidden', 'border-red-500', 'text-red-800');
+                resultBox.classList.add('border-green-500', 'text-green-800');
+                resultBox.innerHTML = '<i class="fa-solid fa-circle-check mr-2"></i> <strong>答對了！</strong><br>' + explanations[qIndex];
+            } else {
+                // 答錯
+                element.classList.add('bg-red-50', 'border-red-500');
+                element.querySelector('.opt-label').classList.add('bg-red-200', 'text-red-800');
+                
+                // 標示正確答案
+                const correctOpt = allOptions[correctIndex];
+                correctOpt.classList.add('bg-green-50', 'border-green-500');
+                correctOpt.querySelector('.opt-label').classList.add('bg-green-200', 'text-green-800');
+
+                resultBox.classList.remove('hidden', 'border-green-500', 'text-green-800');
+                resultBox.classList.add('border-red-500', 'text-red-800');
+                resultBox.innerHTML = '<i class="fa-solid fa-circle-xmark mr-2"></i> <strong>答錯了！</strong><br>' + explanations[qIndex];
+            }
+        }
+    </script>
+</body>
+</html>

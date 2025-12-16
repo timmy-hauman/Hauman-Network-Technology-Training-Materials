@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fortinet FortiGate 實戰課程 - 防火牆策略與物件</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+        
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #c53030; /* Fortinet Red-ish */
+        }
+
+        .highlight-box {
+            background-color: #fff5f5;
+            border-left: 4px solid #c53030;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .tech-term {
+            color: #c53030;
+            font-weight: 700;
+            background-color: #fef2f2;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
+        }
+
+        .analogy-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .mermaid-container {
+            display: flex;
+            justify-content: center;
+            background-color: #ffffff;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-top: 1rem;
+            overflow-x: auto;
+        }
+
+        .mermaid {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .quiz-option:hover {
+            background-color: #f3f4f6;
+        }
+
+        .footer-signature {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+            margin-top: 4rem;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-red-700 to-red-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-shield-alt text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold">Fortinet FortiGate 實戰課程</h1>
+                    <p class="text-red-100 mt-1">階段一：基礎地基 (Level 1) - 單元 3：防火牆策略與物件 (Policy & Objects)</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <!-- Introduction -->
+        <div class="mb-8">
+            <p class="text-lg text-gray-700 leading-relaxed">
+                這是防火牆運作的核心靈魂。在 FortiGate 中，<span class="font-bold text-red-700">物件 (Objects)</span> 是可重複使用的積木，而 <span class="font-bold text-red-700">策略 (Policy)</span> 則是決定誰能通過大門的規則書。本單元將帶您掌握如何構建高效、易管理的防火牆規則。
+            </p>
+        </div>
+
+        <!-- 一、核心概念 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-red-100 text-red-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Concept</span>
+                一、核心概念
+            </h2>
+            
+            <div class="grid md:grid-cols-1 gap-6">
+                <!-- 定義與比喻 -->
+                <div>
+                    <h3 class="text-xl font-semibold mb-2">1. 策略與物件 (Policy & Objects)</h3>
+                    <p class="mb-2"><strong>定義：</strong> 防火牆策略是控制流量通過的「規則清單」；而物件則是將重複使用的資訊（如 IP、服務埠號）打包成的「群組標籤」。</p>
+                    
+                    <div class="analogy-box">
+                        <p class="font-bold text-green-800 mb-2">🏢 生活化比喻：大樓保全與訪客名單</p>
+                        <p class="mb-2">想像 FortiGate 是一棟高級商業大樓的<strong>大廳保全 (Firewall)</strong>。</p>
+                        <ul class="list-disc list-inside space-y-1 ml-2">
+                            <li><strong>物件 (Objects)：</strong>就像是我們給人貼的標籤。不用記住每個人的身分證字號 (IP)，只要給他們一個代號叫「會計部人員」(Address Object)。</li>
+                            <li><strong>策略 (Policy)：</strong>就是保全手上的那一張「放行清單」。規則寫著：「如果是『會計部人員』要去『財務金庫』，則『允許進入』」。</li>
+                            <li><strong>順序 (Priority)：</strong>清單從第一行開始讀。如果第一行寫「今日閉館」，就算你是老闆也會被擋在門口，因為保全看到第一行就執行了 (Top-Down)。</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 二、運作原理 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-blue-100 text-blue-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Mechanism</span>
+                二、運作原理
+            </h2>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- 物件化管理 -->
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800 border-b pb-2 mb-3">1. 物件化管理 (Object-Based)</h3>
+                    <p class="text-gray-700 mb-2">FortiGate 強烈建議使用物件，而非直接在規則中輸入 IP。</p>
+                    <ul class="list-disc list-inside space-y-2 text-gray-700 ml-4">
+                        <li><strong>Address Object：</strong>定義 IP、子網段 (Subnet)、FQDN (如 www.google.com) 或地理位置 (GeoIP)。</li>
+                        <li><strong>Service Object：</strong>定義通訊協定與埠號 (如 TCP/443, UDP/53)。</li>
+                        <li><strong>優勢：</strong>當伺服器 IP 變更時，只需修改 Object 內容，所有引用該 Object 的 50 條 Policy 會自動更新。</li>
+                    </ul>
+                </div>
+
+                <!-- 匹配邏輯 -->
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800 border-b pb-2 mb-3">2. 策略匹配邏輯 (Matching Logic)</h3>
+                    <p class="text-gray-700 mb-2">核心行為模式：<span class="tech-term">Top-Down First Match</span></p>
+                    <ul class="list-disc list-inside space-y-2 text-gray-700 ml-4">
+                        <li><strong>由上而下掃描：</strong> 封包進入後，依序比對 ID 1, ID 2, ID 3...</li>
+                        <li><strong>擇一匹配 (First Match)：</strong> 一旦符合某一條規則的「所有條件」(來源、目的、服務、時間)，立即執行動作 (Allow/Deny)，並<span class="font-bold text-red-600">停止</span>往下搜尋。</li>
+                        <li><strong>隱式拒絕 (Implicit Deny)：</strong> 若完全沒配對到任何規則，則觸發最底層的 Default Deny，預設丟棄封包。</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="highlight-box mt-6">
+                <h4 class="font-bold text-red-800 mb-1">🔑 關鍵五要素 (5-Tuple Match)</h4>
+                <p class="text-sm">要讓一條策略生效，封包必須同時符合：<strong>Source Interface/Address</strong> + <strong>Destination Interface/Address</strong> + <strong>Service</strong> + <strong>Schedule</strong>。若動作為 ACCEPT，則封包通過。</p>
+            </div>
+        </div>
+
+        <!-- 三、架構視覺化 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-green-100 text-green-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Visuals</span>
+                三、架構視覺化
+            </h2>
+            <p class="mb-4 text-gray-600">使用 Mermaid 語法展示物件組成與封包決策流程。</p>
+
+            <div class="space-y-8">
+                <!-- 圖表 1: 物件與策略關係 -->
+                <div>
+                    <h3 class="text-lg font-bold text-gray-700 mb-2">1. 物件與策略的關係 (Object Composition)</h3>
+                    <p class="text-sm text-gray-500 mb-2">展示 Address/Service 物件如何被 Policy 引用。</p>
+                    <div class="mermaid-container">
+                        <div class="mermaid">
+graph TD
+    classDef obj fill:#f3f4f6,stroke:#4b5563,stroke-width:1px;
+    classDef policy fill:#fee2e2,stroke:#b91c1c,stroke-width:2px;
+
+    subgraph Address_Objects [位址物件庫]
+        direction TB
+        A1[HR_PC: 192.168.1.10]:::obj
+        A2[IT_Admin: 10.0.0.5]:::obj
+        A3[Server_Farm: 172.16.1.0/24]:::obj
+    end
+    
+    subgraph Service_Objects [服務物件庫]
+        direction TB
+        S1[Web: TCP 80/443]:::obj
+        S2[SSH: TCP 22]:::obj
+    end
+
+    subgraph Firewall_Policy [防火牆策略規則]
+        direction TB
+        P1[Policy 1: IT to Server<br/>Action: Allow]:::policy
+        P2[Policy 2: HR to Web<br/>Action: Allow]:::policy
+    end
+
+    A2 --> P1
+    A3 --> P1
+    S2 --> P1
+    
+    A1 --> P2
+    S1 --> P2
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 圖表 2: 匹配流程 -->
+                <div>
+                    <h3 class="text-lg font-bold text-gray-700 mb-2">2. 封包匹配流程 (Matching Logic)</h3>
+                    <p class="text-sm text-gray-500 mb-2">由上而下的決策過程。</p>
+                    <div class="mermaid-container">
+                        <div class="mermaid">
+sequenceDiagram
+    participant Packet as 封包 (Packet)
+    participant Policy1 as Policy 1 (Specific)
+    participant Policy2 as Policy 2 (General)
+    participant Implicit as Implicit Deny
+
+    Packet->>Policy1: 檢查條件 (Src, Dst, Svc)
+    alt 符合 Policy 1 ?
+        Policy1-->>Packet: 符合! 執行動作 (Allow/Deny)
+        Note right of Policy1: 停止搜尋 (Stop)
+    else 不符合
+        Packet->>Policy2: 繼續檢查下一條
+        alt 符合 Policy 2 ?
+            Policy2-->>Packet: 符合! 執行動作
+        else 不符合
+            Packet->>Implicit: 落入最後一條
+            Implicit-->>Packet: DROP (丟棄)
+        end
+    end
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 四、實務應用場景 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-purple-100 text-purple-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Use Case</span>
+                四、實務應用場景
+            </h2>
+
+            <h3 class="text-xl font-bold mb-3">場景：企業分層上網權限管理</h3>
+            
+            <div class="mb-4">
+                <p class="text-gray-700 mb-2"><strong>情境描述：</strong> 行銷部需開放 Facebook/YouTube 進行推廣，但一般員工僅能瀏覽普通網頁，並嚴格禁止高風險網站。</p>
+                <p class="text-gray-700"><strong>解決方案 (注意順序)：</strong></p>
+                <div class="space-y-2 mt-2">
+                    <div class="border-l-4 border-yellow-400 pl-4 py-2 bg-yellow-50 rounded-r">
+                        <span class="text-xs font-bold text-gray-500 uppercase block">Rule 1 (特權)</span>
+                        <p class="text-gray-800 text-sm"><strong>來源：</strong>行銷部 | <strong>服務：</strong>HTTP/S | <strong>動作：</strong><span class="text-green-600 font-bold">ALLOW</span> (Web Filter: 放行 Social)</p>
+                    </div>
+                    <div class="border-l-4 border-gray-400 pl-4 py-2 bg-gray-50 rounded-r">
+                        <span class="text-xs font-bold text-gray-500 uppercase block">Rule 2 (一般)</span>
+                        <p class="text-gray-800 text-sm"><strong>來源：</strong>全體員工 | <strong>服務：</strong>HTTP/S | <strong>動作：</strong><span class="text-green-600 font-bold">ALLOW</span> (Web Filter: 阻擋 Social)</p>
+                    </div>
+                    <div class="border-t border-dashed border-gray-300 pt-2 text-center text-xs text-red-500 font-bold uppercase">
+                        Implicit Deny (Drop All Others)
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-4 mt-4">
+                <div class="border p-4 rounded bg-green-50">
+                    <h4 class="font-bold text-green-800 mb-2">👍 優點 (Pros)</h4>
+                    <ul class="list-disc list-inside text-sm text-gray-700">
+                        <li><strong>精確控制：</strong> 滿足業務需求同時保障頻寬，避免非相關人員濫用。</li>
+                        <li><strong>安全性：</strong> 預設阻擋 (Default Deny) 原則確保未被允許的流量無法通過。</li>
+                    </ul>
+                </div>
+                <div class="border p-4 rounded bg-red-50">
+                    <h4 class="font-bold text-red-800 mb-2">👎 常見錯誤 (Risk)</h4>
+                    <ul class="list-disc list-inside text-sm text-gray-700">
+                        <li><strong>順序錯誤：</strong> 若將「一般規則」放在「特權規則」上面，行銷部會先匹配到一般規則，導致無法使用社群媒體 (因為一般規則擋掉了)。</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 五、隨堂測驗 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
+                五、隨堂測驗
+            </h2>
+            <p class="mb-6 text-gray-600">請點擊您認為正確的選項，系統將會顯示解析。</p>
+
+            <div class="space-y-6" id="quiz-container">
+                <!-- 題目將由 JS 生成 -->
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="footer-signature">
+        Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0
+    </footer>
+
+    <!-- 使用 module type 載入 mermaid -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'neutral', 
+            securityLevel: 'loose',
+            themeVariables: {
+                fontSize: '16px',
+                fontFamily: '"Noto Sans TC", sans-serif'
+            },
+            flowchart: {
+                htmlLabels: true,
+                useMaxWidth: false
+            }
+        });
+    </script>
+
+    <script>
+        // 測驗資料
+        const quizData = [
+            {
+                question: "1. 關於 FortiGate 防火牆策略的匹配邏輯 (Matching Logic)，下列何者正確？",
+                options: [
+                    "A. 系統會比對所有規則，並選擇最嚴格的一條執行",
+                    "B. Top-Down First Match：由上而下比對，一旦符合即執行動作並停止搜尋",
+                    "C. 由下而上比對 (Bottom-Up)，最後一條規則優先權最高",
+                    "D. 系統隨機比對，並依據 AI 判斷最佳路徑"
+                ],
+                correct: 1,
+                explanation: "正確答案是 B。防火牆採取 'First Match' 原則，由上而下掃描。這意味著特定的小範圍規則 (Specific Rules) 必須放在寬鬆的大範圍規則 (General Rules) 之上。"
+            },
+            {
+                question: "2. 若封包不符合 Policy 列表中的任何規則，最終會發生什麼事？",
+                options: [
+                    "A. 封包會被放行 (Default Allow)",
+                    "B. 防火牆會暫存封包並詢問管理員",
+                    "C. 觸發 Implicit Deny (隱式拒絕)，封包被丟棄",
+                    "D. 封包會被退回來源端並重試"
+                ],
+                correct: 2,
+                explanation: "正確答案是 C。FortiGate 策略列表的最底部有一條預設不可見的 'Implicit Deny'，任何未被明確放行的流量都會被它阻擋。"
+            },
+            {
+                question: "3. 為什麼建議在 Policy 中使用 Address Object 而非直接輸入 IP？",
+                options: [
+                    "A. 為了讓防火牆效能更好",
+                    "B. 管理效率：當 IP 變更時只需修改 Object，所有引用的 Policy 自動更新",
+                    "C. FortiGate 強制規定不能直接輸入 IP",
+                    "D. 為了增加駭客入侵的難度"
+                ],
+                correct: 1,
+                explanation: "正確答案是 B。物件化管理的核心價值在於可維護性 (Maintainability)。修改一次 Object，所有關聯策略同步生效。"
+            },
+            {
+                question: "4. 在設定 Firewall Policy 時，哪個參數定義了「應用層服務」(如 TCP/80, UDP/53)？",
+                options: [
+                    "A. Source Address",
+                    "B. Destination Interface",
+                    "C. Service",
+                    "D. Schedule"
+                ],
+                correct: 2,
+                explanation: "正確答案是 C。Service Object 用於定義 L4 傳輸協定 (TCP/UDP/ICMP/SCTP) 與對應的埠號 (Ports)。"
+            },
+            {
+                question: "5. 若要將「財務部」與「訪客」完全隔離，最簡單的作法是？",
+                options: [
+                    "A. 建立一條 Deny 策略",
+                    "B. 建立一條 Allow 策略",
+                    "C. 只要不建立任何允許兩者互通的策略，Implicit Deny 自然會阻擋",
+                    "D. 拔掉網路線"
+                ],
+                correct: 2,
+                explanation: "正確答案是 C。基於 'Default Deny' 原則，跨介面/跨區域的流量若無 Policy 明確放行，預設皆為阻擋。"
+            }
+        ];
+
+        // 渲染測驗
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionBox = document.createElement('div');
+            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
+            
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border mb-2" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            questionBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
+                <div class="space-y-2 mb-4">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
+                    <p class="font-bold result-title"></p>
+                    <p class="text-sm text-gray-600 mt-1">${item.explanation}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionBox);
+        });
+
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            // 鎖定該題不可再選
+            if (element.parentElement.dataset.answered) return;
+            element.parentElement.dataset.answered = "true";
+
+            // 清除並重設樣式
+            allOptions.forEach(opt => opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500'));
+
+            if (optIndex === data.correct) {
+                // 答對
+                element.classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了！";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                // 答錯
+                element.classList.add('bg-red-100', 'border-red-500');
+                // 標示正確答案
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
+                
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了，請看解析：";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+    </script>
+</body>
+</html>

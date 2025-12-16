@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fortinet FortiGate 實戰課程 - 網路介面與區域</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+        
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #c53030; /* Fortinet Red-ish */
+        }
+
+        .highlight-box {
+            background-color: #fff5f5;
+            border-left: 4px solid #c53030;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .tech-term {
+            color: #c53030;
+            font-weight: 700;
+            background-color: #fef2f2;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
+        }
+
+        .analogy-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .mermaid-container {
+            display: flex;
+            justify-content: center;
+            background-color: #ffffff;
+            padding: 2rem; /* 增加內距讓圖表不要太貼邊 */
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-top: 1rem;
+            overflow-x: auto;
+        }
+
+        /* 強制讓 Mermaid 文字在手機上也保持一定大小 */
+        .mermaid {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .quiz-option:hover {
+            background-color: #f3f4f6;
+        }
+
+        .footer-signature {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+            margin-top: 4rem;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-red-700 to-red-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-shield-alt text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold">Fortinet FortiGate 實戰課程</h1>
+                    <p class="text-red-100 mt-1">階段一：基礎地基 (Level 1) - 單元 2：網路介面與區域 (Network & Zones)</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <!-- Introduction -->
+        <div class="mb-8">
+            <p class="text-lg text-gray-700 leading-relaxed">
+                歡迎來到網路架構的第一課。在防火牆的世界裡，<span class="font-bold text-red-700">介面 (Interfaces)</span> 是數據進出的大門，而 <span class="font-bold text-red-700">區域 (Zones)</span> 則是我們管理這些大門的智慧方式。本單元將深入解析 Physical Interface、VLAN、Loopback 以及 Zone 的架構設計。
+            </p>
+        </div>
+
+        <!-- 一、核心概念 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-red-100 text-red-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Concept</span>
+                一、核心概念
+            </h2>
+            
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- Physical Interface -->
+                <div>
+                    <h3 class="text-xl font-semibold mb-2">1. 實體介面 (Physical Interface)</h3>
+                    <p class="mb-2"><strong>定義：</strong> 設備上真實存在的 RJ45 或光纖插孔，是數據流動的物理通道。</p>
+                    <div class="analogy-box">
+                        <p><strong>🏠 生活化比喻：</strong> 就像房子的「大門」。不管你是誰，要進入房子，一定要先通過這個實體的門。</p>
+                    </div>
+                </div>
+
+                <!-- VLAN Interface -->
+                <div>
+                    <h3 class="text-xl font-semibold mb-2">2. 虛擬區域網路 (VLAN Interface)</h3>
+                    <p class="mb-2"><strong>定義：</strong> 在同一個實體介面上，透過標籤 (Tag) 切分出多個邏輯網路。</p>
+                    <div class="analogy-box">
+                        <p><strong>🏷️ 生活化比喻：</strong> 就像一條高速公路（實體線路）上，我們用「顏色標籤」把車子分流。貼紅色貼紙的車（VLAN 10）只能去財務部，貼藍色貼紙的車（VLAN 20）只能去工程部。雖然都在同一條路上跑，但互相看不見。</p>
+                    </div>
+                </div>
+
+                <!-- Loopback Interface -->
+                <div>
+                    <h3 class="text-xl font-semibold mb-2">3. 迴環介面 (Loopback Interface)</h3>
+                    <p class="mb-2"><strong>定義：</strong> 一個永遠不會 Down 的虛擬介面，通常用於管理 IP 或動態路由 Router ID。</p>
+                    <div class="analogy-box">
+                        <p><strong>📱 生活化比喻：</strong> 就像總經理的「手機號碼」。不管他今天在哪個辦公室（哪個實體 Port 斷了），只要手機有電（設備開機），打這個號碼一定找得到人。</p>
+                    </div>
+                </div>
+
+                <!-- Zone -->
+                <div>
+                    <h3 class="text-xl font-semibold mb-2">4. 區域 (Zone)</h3>
+                    <p class="mb-2"><strong>定義：</strong> 將多個介面捆綁成一個邏輯群組，簡化防火牆策略 (Policy) 的設定。</p>
+                    <div class="analogy-box">
+                        <p><strong>📂 生活化比喻：</strong> 就像電腦裡的「資料夾」。你不需要對每一張照片（介面）單獨設定權限，只要把照片丟進「機密資料夾（Zone）」，然後對資料夾設定「禁止存取」，所有裡面的照片都會自動繼承這個規則。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 二、運作原理 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-blue-100 text-blue-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Mechanism</span>
+                二、運作原理
+            </h2>
+
+            <div class="space-y-6">
+                <!-- VLAN 運作 -->
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800 border-b pb-2 mb-3">VLAN Tagging (802.1Q) 技術細節</h3>
+                    <ul class="list-disc list-inside space-y-2 text-gray-700 ml-4">
+                        <li><strong>封包結構變化：</strong> 當封包離開 FortiGate 的 VLAN Interface 時，會在 Ethernet Header 中插入 4 Bytes 的 <span class="tech-term">802.1Q Tag</span>。</li>
+                        <li><strong>關鍵參數 - VLAN ID：</strong> 範圍從 1 到 4094。交換器端 (Switch) 必須設定為 Trunk Mode (Cisco) 或 Tagged Port (HP/Aruba) 才能識別。</li>
+                        <li><strong>Native VLAN：</strong> 在 Trunk Link 上唯一「不貼標籤」的封包。通常用於管理流量，FortiGate 實體介面本身的 IP 設定即對應 Native VLAN。</li>
+                    </ul>
+                    <div class="highlight-box">
+                        <h4 class="font-bold text-red-800 mb-1">💡 多廠商視角 (Vendor Specific)</h4>
+                        <p class="text-sm">在 <strong>Cisco</strong> 世界中，這叫做 "Router on a Stick" (單臂路由)；在 <strong>Fortinet</strong>，我們簡單稱之為建立一個 "VLAN Interface"。概念完全相同，都是 Layer 3 的虛擬介面。</p>
+                    </div>
+                </div>
+
+                <!-- Zone 運作 -->
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800 border-b pb-2 mb-3">Zone (區域) 控制層面行為</h3>
+                    <ul class="list-disc list-inside space-y-2 text-gray-700 ml-4">
+                        <li><strong>物件化管理：</strong> Zone 在防火牆策略中被視為單一物件。若你有 50 個外點的 VPN 介面，可以全部加入一個 "VPN_Zone"，這樣只需寫一條 Policy 即可放行所有外點。</li>
+                        <li><strong>Intra-Zone Traffic (區域內流量)：</strong> 預設情況下，同一 Zone 內的不同介面之間流量是 <span class="font-bold text-red-600">阻擋 (Block)</span> 的。若要允許互通，必須開啟 <code class="bg-gray-200 px-1 rounded">Block intra-zone traffic</code> (這是雙重否定，選取=阻擋) 或建立一條 Source/Dest 都是該 Zone 的 Policy。</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 三、架構視覺化 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-green-100 text-green-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Visuals</span>
+                三、架構視覺化
+            </h2>
+            <p class="mb-4 text-gray-600">所有的架構圖皆使用 Mermaid 語法繪製，已調整顯示比例以增加可讀性。</p>
+
+            <div class="space-y-8">
+                <!-- 圖表 1: 物理與邏輯連接 -->
+                <div>
+                    <h3 class="text-lg font-bold text-gray-700 mb-2">1. 實體介面 vs. VLAN 介面拓撲</h3>
+                    <p class="text-sm text-gray-500 mb-2">展示一條實體線路如何承載多個 VLAN 網段。</p>
+                    <div class="mermaid-container">
+                        <div class="mermaid">
+graph TD
+    %% 套用大字體樣式
+    classDef bigText font-size:18px,font-weight:bold,padding:10px;
+    classDef normalText font-size:16px,padding:8px;
+
+    subgraph FortiGate [FortiGate 防火牆]
+        direction TB
+        P1[Physical Port 1<br/>Native VLAN / Mgmt]:::bigText
+        subgraph Logical_Interfaces [邏輯層: VLAN Interfaces]
+            V10[VLAN 10 Interface<br/>192.168.10.254/24]:::normalText
+            V20[VLAN 20 Interface<br/>192.168.20.254/24]:::normalText
+        end
+        P1 --- V10
+        P1 --- V20
+    end
+
+    subgraph Switch [L2 交換器]
+        Trunk[Trunk Port<br/>Allow VLAN 10,20]:::bigText
+    end
+
+    subgraph EndDevices [終端設備]
+        PC_HR[HR 電腦<br/>VLAN 10]:::normalText
+        PC_Fin[財務電腦<br/>VLAN 20]:::normalText
+    end
+
+    P1 ===|802.1Q Tagged Trunk| Trunk
+    Trunk ---|Access VLAN 10| PC_HR
+    Trunk ---|Access VLAN 20| PC_Fin
+
+    style FortiGate fill:#fef2f2,stroke:#c53030,stroke-width:2px
+    style Switch fill:#e0f2fe,stroke:#0369a1,stroke-width:2px
+    style V10 fill:#fde68a,stroke:#d97706
+    style V20 fill:#bbf7d0,stroke:#16a34a
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 圖表 2: Zone 的邏輯分組 -->
+                <div>
+                    <h3 class="text-lg font-bold text-gray-700 mb-2">2. Zone (區域) 的邏輯分組概念</h3>
+                    <p class="text-sm text-gray-500 mb-2">展示如何將多個分散的介面歸納為單一邏輯區域，簡化 Policy。</p>
+                    <div class="mermaid-container">
+                        <div class="mermaid">
+graph TD
+    %% 套用大字體樣式
+    classDef bigText font-size:18px,font-weight:bold,padding:10px;
+    classDef normalText font-size:16px,padding:8px;
+
+    subgraph Interfaces [個別介面成員]
+        Int1[Port 2<br/>Wi-Fi AP1]:::normalText
+        Int2[Port 3<br/>Wi-Fi AP2]:::normalText
+        Int3[VLAN 50<br/>Guest Network]:::normalText
+    end
+
+    subgraph Zone [Zone: Guest_Zone]
+        Logic[邏輯集合<br/>Guest_Zone]:::bigText
+    end
+
+    subgraph Policy [Firewall Policy]
+        Rule[Policy ID: 1<br/>Src: Guest_Zone<br/>Dst: WAN<br/>Action: Allow]:::bigText
+    end
+
+    Int1 --> Zone
+    Int2 --> Zone
+    Int3 --> Zone
+    Zone ==>|做為單一物件被引用| Rule
+
+    style Zone fill:#fff7ed,stroke:#ea580c,stroke-width:4px,stroke-dasharray: 5 5
+    style Policy fill:#f0fdf4,stroke:#16a34a,stroke-width:2px
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 四、實務應用場景 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-purple-100 text-purple-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Use Case</span>
+                四、實務應用場景
+            </h2>
+
+            <h3 class="text-xl font-bold mb-3">場景：企業部門隔離與訪客網路 (Segmentation)</h3>
+            
+            <div class="mb-4">
+                <p class="text-gray-700 mb-2"><strong>情境描述：</strong> 一間公司希望將「財務部」、「研發部」與「訪客 Wi-Fi」完全隔離，但只有一台防火牆與一台核心交換器。</p>
+                <p class="text-gray-700"><strong>解決方案：</strong></p>
+                <ol class="list-decimal list-inside ml-4 space-y-1 text-gray-700">
+                    <li>在 FortiGate Port2 建立 <strong>VLAN 10 (Finance)</strong> 與 <strong>VLAN 20 (R&D)</strong>。</li>
+                    <li>在 FortiGate Port3 連接 Guest AP，設定為實體介面。</li>
+                    <li>建立 <strong>Zone: "Trusted_LAN"</strong>，將 VLAN 10 與 VLAN 20 加入。</li>
+                    <li>建立 <strong>Zone: "Guest_Zone"</strong>，將 Port3 加入。</li>
+                </ol>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-4 mt-4">
+                <div class="border p-4 rounded bg-green-50">
+                    <h4 class="font-bold text-green-800 mb-2">👍 優點 (Pros)</h4>
+                    <ul class="list-disc list-inside text-sm text-gray-700">
+                        <li><strong>安全性高：</strong> 財務部與訪客在 L2 層級就已經隔離。</li>
+                        <li><strong>管理簡便：</strong> 未來若新增「人資部 VLAN 30」，只需將其加入 "Trusted_LAN" Zone，該部門會自動繼承所有上網權限，無需重寫 Policy。</li>
+                        <li><strong>節省成本：</strong> 不需要為每個部門買實體防火牆。</li>
+                    </ul>
+                </div>
+                <div class="border p-4 rounded bg-red-50">
+                    <h4 class="font-bold text-red-800 mb-2">👎 缺點與風險 (Cons)</h4>
+                    <ul class="list-disc list-inside text-sm text-gray-700">
+                        <li><strong>頻寬競爭：</strong> 所有 VLAN 共享 Port2 的實體頻寬 (例如 1Gbps)。若研發部傳大檔，財務部可能會變慢。</li>
+                        <li><strong>單點故障：</strong> 若 Port2 線路故障，所有部門網路同時中斷 (建議使用 Aggregate Interface / LACP 解決)。</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 五、隨堂測驗 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
+                五、隨堂測驗
+            </h2>
+            <p class="mb-6 text-gray-600">請點擊您認為正確的選項，系統將會顯示解析。</p>
+
+            <div class="space-y-6" id="quiz-container">
+                <!-- 題目將由 JS 生成 -->
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="footer-signature">
+        Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0
+    </footer>
+
+    <!-- 使用 module type 載入 mermaid -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'neutral', // 使用 neutral 主題，通常對比度較好
+            securityLevel: 'loose',
+            themeVariables: {
+                fontSize: '20px', // 全域設定字體大小
+                fontFamily: '"Noto Sans TC", sans-serif'
+            },
+            flowchart: {
+                htmlLabels: true,
+                useMaxWidth: false // 避免圖表在寬螢幕下被過度縮小
+            }
+        });
+    </script>
+
+    <script>
+        // 測驗資料
+        const quizData = [
+            {
+                question: "1. 關於 VLAN Interface 的描述，下列何者正確？",
+                options: [
+                    "A. 每個 VLAN 都需要一個獨立的實體介面插孔",
+                    "B. 是基於 802.1Q 標準，在同一個實體介面上透過 Tag 區分不同網段",
+                    "C. VLAN Interface 只能用於 Layer 2 交換，無法設定 IP 位址",
+                    "D. VLAN ID 的範圍只有 1-100"
+                ],
+                correct: 1,
+                explanation: "正確答案是 B。VLAN (Virtual LAN) 使用 802.1Q 標準，在封包 Header 加入 Tag，讓單一實體線路能承載多個邏輯網段。FortiGate 的 VLAN Interface 是 Layer 3 介面，必須設定 IP。"
+            },
+            {
+                question: "2. 在 FortiGate 中使用 Zone (區域) 的主要好處是什麼？",
+                options: [
+                    "A. 可以增加網路頻寬",
+                    "B. 可以自動解密 SSL 流量",
+                    "C. 簡化防火牆策略 (Policy) 的管理，將多個介面視為單一物件",
+                    "D. Zone 可以讓物理介面變成無線基地台"
+                ],
+                correct: 2,
+                explanation: "正確答案是 C。Zone 的核心目的是簡化管理。透過將多個介面分組（例如 LAN1, LAN2, WiFi 都歸類為 Trusted），管理者只需撰寫針對 'Trusted' 的策略，而無需為每個介面重複寫規則。"
+            },
+            {
+                question: "3. 為什麼我們常使用 Loopback Interface 作為管理 IP 或 Router ID？",
+                options: [
+                    "A. 因為它的傳輸速度最快",
+                    "B. 因為它永遠處於 Up 狀態，不會因為實體線路斷線而消失",
+                    "C. 因為它不需要設定 IP 位址",
+                    "D. 因為它比較省電"
+                ],
+                correct: 1,
+                explanation: "正確答案是 B。Loopback 是一個虛擬介面，只要設備開機它就存在。相比實體介面可能因為線路鬆脫或交換器故障而 Down，Loopback 提供了極高的穩定性，適合做為管理與路由識別用途。"
+            },
+            {
+                question: "4. 預設情況下，同一個 Zone 裡面的兩個介面 (例如 Port1 和 Port2 都在 LAN_Zone)，彼此之間的流量行為為何？",
+                options: [
+                    "A. 預設允許 (Allow)",
+                    "B. 預設阻擋 (Block)，除非啟用 'Block intra-zone traffic' 的相反設定或建立 Policy",
+                    "C. 只有 ping 會通，其他不通",
+                    "D. 只有 HTTP 會通"
+                ],
+                correct: 1,
+                explanation: "正確答案是 B。這題有點陷阱。FortiGate 預設視 Zone 為一個安全邊界。但在舊版或特定設定下，同一 Zone 成員互通受 'Block intra-zone traffic' 開關控制。嚴謹來說，預設同 Zone 成員互通通常是被視為信任的，但為了安全最佳實踐，通常建議視為阻擋並明確開放。但在介面設定頁面中，'Block intra-zone traffic' 預設通常是開啟(即阻擋)或需要明確 Policy。*修正與補充：FortiGate 預設 Intra-zone traffic 是 Block 的 (依版本不同 GUI 選項可能預設勾選 Block)，必須建立 Policy 或取消 Block 設定才通。*"
+            },
+            {
+                question: "5. 在連接 FortiGate 與 Switch 的 VLAN 線路時，Switch 端應該如何設定？",
+                options: [
+                    "A. 設定為 Access Mode",
+                    "B. 設定為 Trunk Mode (或 Tagged Port) 並允許相關 VLAN 通過",
+                    "C. 關閉所有 Spanning Tree",
+                    "D. 設定為 Mirror Port"
+                ],
+                correct: 1,
+                explanation: "正確答案是 B。因為 FortiGate 會送出帶有 VLAN Tag 的封包，Switch 端必須設定為 Trunk (Cisco 術語) 或 Tagged (HP/Aruba 術語) 模式，才能正確讀取標籤並將封包送往正確的 VLAN。"
+            }
+        ];
+
+        // 渲染測驗
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionBox = document.createElement('div');
+            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
+            
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border mb-2" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            questionBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
+                <div class="space-y-2 mb-4">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
+                    <p class="font-bold result-title"></p>
+                    <p class="text-sm text-gray-600 mt-1">${item.explanation}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionBox);
+        });
+
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            // 鎖定該題不可再選
+            if (element.parentElement.dataset.answered) return;
+            element.parentElement.dataset.answered = "true";
+
+            // 清除並重設樣式
+            allOptions.forEach(opt => opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500'));
+
+            if (optIndex === data.correct) {
+                // 答對
+                element.classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了！";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                // 答錯
+                element.classList.add('bg-red-100', 'border-red-500');
+                // 標示正確答案
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
+                
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了，請看解析：";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+    </script>
+</body>
+</html>
