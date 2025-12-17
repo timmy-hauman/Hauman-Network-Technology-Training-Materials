@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fortinet FortiGate 實戰課程 - 安全織網 (Security Fabric)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+        
+        /* 卡片主體樣式 */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 6px solid #C53030; /* Fortinet Red Accent */
+        }
+
+        /* 生活化比喻區塊 (綠色系) */
+        .analogy-box {
+            background-color: #F0FDF4; /* green-50 */
+            border-left: 4px solid #22C55E; /* green-500 */
+            padding: 1.5rem;
+            border-radius: 0 0.5rem 0.5rem 0;
+            margin-top: 1rem;
+        }
+
+        /* 重點強調區塊 (紅色系) */
+        .highlight-box {
+            background-color: #FEF2F2; /* red-50 */
+            border-left: 4px solid #EF4444; /* red-500 */
+            padding: 1.5rem;
+            border-radius: 0 0.5rem 0.5rem 0;
+            margin-top: 1rem;
+        }
+
+        /* Mermaid 圖表容器 - 修正版 */
+        .mermaid-container {
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: flex-start; /* 靠左對齊 */
+            overflow-x: auto; /* 允許水平捲動 */
+        }
+
+        /* 強制 Mermaid 圖表保持最小寬度，避免縮放過小 */
+        .mermaid {
+            min-width: 900px; 
+            width: 100%;
+        }
+
+        /* 標題標籤樣式 */
+        .badge-title {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            color: white;
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .bg-concept { background-color: #C53030; } /* Red */
+        .bg-mech { background-color: #2563EB; }    /* Blue */
+        .bg-visual { background-color: #059669; }  /* Green */
+        .bg-usecase { background-color: #7C3AED; } /* Purple */
+        .bg-quiz { background-color: #D97706; }    /* Amber */
+
+        /* 測驗選項互動 */
+        .quiz-option {
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .quiz-option:hover {
+            background-color: #f3f4f6;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- 頁首 Header -->
+    <header class="bg-gradient-to-r from-red-700 to-red-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-shield-alt text-4xl"></i>
+                <div>
+                    <h1 class="text-2xl font-bold tracking-wide">Fortinet FortiGate 實戰課程</h1>
+                    <p class="text-red-100 text-sm mt-1">階段二：安全防護與連接 - 6. 安全織網 (Security Fabric)</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主要內容 Main Content -->
+    <main class="container mx-auto px-4 py-8 flex-grow max-w-5xl">
+
+        <!-- 1. 核心概念 -->
+        <div class="section-card">
+            <span class="badge-title bg-concept">一、核心概念 (Concept)</span>
+            <h2 class="text-xl font-bold mb-4 text-gray-800">什麼是 Security Fabric？</h2>
+            
+            <p class="text-gray-700 leading-relaxed mb-4">
+                Security Fabric (安全織網) 是 Fortinet 的核心防禦架構，它不是單一設備的功能，而是一個<strong>「聯防生態系統」</strong>。它讓網路中所有的節點（防火牆、交換器、AP、終端防毒軟體）能夠互相「看見」彼此，並即時交換威脅情資，實現自動化聯防。
+            </p>
+
+            <div class="analogy-box">
+                <div class="flex items-start">
+                    <i class="fas fa-lightbulb text-green-600 text-xl mt-1 mr-3"></i>
+                    <div>
+                        <h3 class="font-bold text-green-800 mb-2">生活化比喻：大樓保全聯防系統</h3>
+                        <p class="text-gray-700">
+                            想像傳統網路就像是「各自為政」的保全。大門口的警衛（防火牆）看到小偷，但他無法通知電梯（Switch）鎖住樓層，也無法叫住戶的門鎖（Endpoint）自動上鎖。<br><br>
+                            <strong>Security Fabric 就像是「整合型智慧保全系統」：</strong><br>
+                            當大門口的監視器發現通緝犯（偵測到威脅），系統會立刻通知電梯「停用該人門禁卡」（Switch 封鎖 Port），並同時廣播給所有住戶「鎖好門窗」（更新病毒碼）。所有設備共享情報，牽一髮而動全身。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. 運作原理 -->
+        <div class="section-card">
+            <span class="badge-title bg-mech">二、運作原理 (Mechanism)</span>
+            <h2 class="text-xl font-bold mb-4 text-gray-800">技術架構與關鍵協定</h2>
+
+            <div class="space-y-6 text-gray-700">
+                <div>
+                    <h3 class="font-bold text-blue-700 flex items-center">
+                        <i class="fas fa-network-wired mr-2"></i> 1. 角色階層 (Hierarchy)
+                    </h3>
+                    <ul class="list-disc list-inside ml-4 mt-2 space-y-1">
+                        <li><strong>Root FortiGate (根防火牆)：</strong> Fabric 的大腦，通常是網路出口最強大的那台 FortiGate。它負責收集所有資訊、計算拓撲圖，並與 FortiGuard 雲端同步。</li>
+                        <li><strong>Downstream FortiGate (下游防火牆)：</strong> 內網或分支機構的防火牆，會向 Root 回報資訊。</li>
+                        <li><strong>Fabric Agent (延伸設備)：</strong> 透過專有協定連接的設備，如 FortiSwitch、FortiAP、FortiClient EMS。</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="font-bold text-blue-700 flex items-center">
+                        <i class="fas fa-exchange-alt mr-2"></i> 2. 通訊協定 (Protocols)
+                    </h3>
+                    <p class="mt-2 ml-4">
+                        Fabric 成員之間主要透過 <strong>FortiTelemetry</strong> 進行溝通。
+                    </p>
+                    <div class="highlight-box">
+                        <h4 class="font-bold text-red-700 mb-1">關鍵參數與設定：</h4>
+                        <ul class="list-disc list-inside text-sm">
+                            <li><strong>FortiTelemetry Port：</strong> 預設使用 TCP/8013 進行情資交換。</li>
+                            <li><strong>CAPWAP：</strong> 用於管理 FortiAP (UDP/5246, 5247)。</li>
+                            <li><strong>FortiLink：</strong> 專用介面，用於管理 FortiSwitch (基於 CAPWAP 擴充)。</li>
+                            <li><strong>授權同步：</strong> Root FG 可以協助將特定授權下發給下游設備。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="font-bold text-blue-700 flex items-center">
+                        <i class="fas fa-robot mr-2"></i> 3. 自動化回應 (Automation Stitches)
+                    </h3>
+                    <p class="mt-2 ml-4">
+                        這是 Fabric 的「肌肉」。邏輯為：<strong>Trigger (觸發條件) + Action (執行動作)</strong>。
+                        <br>例如：「當 IPS 偵測到高風險攻擊 (Trigger)」➜「將來源 IP 加入黑名單 (Action)」。
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. 架構視覺化 -->
+        <div class="section-card">
+            <span class="badge-title bg-visual">三、架構視覺化 (Visuals)</span>
+            
+            <h3 class="text-lg font-bold text-gray-800 mb-2">1. Security Fabric 拓撲視圖</h3>
+            <p class="text-sm text-gray-600 mb-2">展示 Root FG 如何統一管理下游設備與存取層。(請水平滑動查看完整細節)</p>
+            <div class="mermaid-container">
+                <div class="mermaid">
+                    %%{init: {'theme': 'base', 'themeVariables': { 'fontSize': '18px', 'fontFamily': 'Noto Sans TC'}}}%%
+                    flowchart TD
+                        Cloud["FortiGuard Cloud <br/> Threat Intel"] --- RootFG
+                        
+                        subgraph HQ ["Headquarters (總部)"]
+                            direction TB
+                            RootFG["Root FortiGate <br/> (The Brain)"]
+                            CoreSW["FortiSwitch Core"]
+                            AccessSW["FortiSwitch Access"]
+                            FAP["FortiAP"]
+                            PC1["User PC <br/> (FortiClient)"]
+
+                            RootFG -- "FortiLink" --> CoreSW
+                            CoreSW -- "FortiLink" --> AccessSW
+                            AccessSW -- "CAPWAP" --> FAP
+                            AccessSW --> PC1
+                        end
+
+                        subgraph Branch ["Branch (分公司)"]
+                            direction TB
+                            BranchFG["Downstream FortiGate"]
+                            BranchPC["Branch User"]
+
+                            BranchFG --> BranchPC
+                        end
+
+                        RootFG -- "IPsec VPN <br/> (FGFM Protocol)" --> BranchFG
+
+                        style RootFG fill:#f56565,stroke:#742a2a,color:white,stroke-width:4px
+                        style BranchFG fill:#4299e1,stroke:#2b6cb0,color:white,stroke-width:2px
+                        style Cloud fill:#e2e8f0,stroke:#333,stroke-dasharray: 5 5,stroke-width:2px
+                </div>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2 mt-8">2. Automation Stitch 自動化封鎖流程</h3>
+            <p class="text-sm text-gray-600 mb-2">模擬情境：內網電腦中毒，Fabric 自動隔離該電腦。(請水平滑動查看完整細節)</p>
+            <div class="mermaid-container">
+                <div class="mermaid">
+                    %%{init: {'theme': 'base', 'themeVariables': { 'fontSize': '22px', 'fontFamily': 'Noto Sans TC', 'actorFontSize': '24px', 'noteFontSize': '22px', 'messageFontSize': '22px'}}}%%
+                    sequenceDiagram
+                        participant Attacker as 外部攻擊者
+                        participant PC as 受駭電腦 (PC)
+                        participant FGT as Root FortiGate
+                        participant FSW as FortiSwitch
+                        
+                        Note over PC: 使用者不慎點擊釣魚信件
+                        Attacker->>PC: 嘗試建立 C&C 連線
+                        
+                        Note over FGT: 防火牆 IPS/Botnet <br/>引擎偵測到異常流量
+                        PC->>FGT: 異常連線請求 (Malicious Traffic)
+                        
+                        FGT->>FGT: 觸發 Automation Stitch <br/>(Compromised Host)
+                        
+                        par 同步阻擋
+                            FGT-->>Attacker: Drop 連線
+                            FGT->>FSW: 下達指令: <br/>Quarantine Port (隔離)
+                        end
+                        
+                        FSW->>PC: 切斷網路存取 <br/>(VLAN 切換至隔離區)
+                        
+                        Note over PC: PC 無法存取內網，<br/>僅能連線至修復伺服器
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. 實務應用場景 -->
+        <div class="section-card">
+            <span class="badge-title bg-usecase">四、實務應用場景 (Use Case)</span>
+            
+            <h2 class="text-xl font-bold mb-4 text-gray-800">案例：企業內網勒索病毒擴散防護</h2>
+            
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="font-bold text-purple-700 mb-2">部署情境</h3>
+                    <p class="text-gray-700 text-sm leading-relaxed">
+                        一家製造業客戶，產線電腦經常因為 USB 隨身碟感染勒索病毒。傳統架構下，防火牆只能擋住「進出 Internet」的流量，無法阻止同一顆 Switch 下的電腦互相傳染（東西向流量）。
+                        <br><br>
+                        <strong>解決方案：</strong> 部署 FortiGate + FortiSwitch 啟用 Security Fabric。設定 Automation Stitch，一旦 FortiClient 偵測到病毒，立即通知 FortiGate，聯動 FortiSwitch 將該電腦的實體 Port 隔離。
+                    </p>
+                </div>
+                
+                <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                    <h3 class="font-bold text-gray-800 mb-2">優缺點分析</h3>
+                    <div class="mb-2">
+                        <span class="font-bold text-green-600">優點 (Pros)：</span>
+                        <ul class="list-disc list-inside text-sm text-gray-600 ml-2">
+                            <li><strong>可視性全開：</strong> 從單一介面 (Root FG) 就能看見所有拓撲與設備狀態。</li>
+                            <li><strong>縮短反應時間：</strong> 機器速度 (毫秒級) 隔離威脅，不需要管理員半夜爬起來拔線。</li>
+                            <li><strong>統一管理：</strong> 韌體升級、設定變更都可由 Fabric 統一派發。</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <span class="font-bold text-red-600">缺點 (Cons)：</span>
+                        <ul class="list-disc list-inside text-sm text-gray-600 ml-2">
+                            <li><strong>廠商綁定 (Vendor Lock-in)：</strong> 必須全套使用 Fortinet 設備 (Switch, AP) 才能發揮最大效益。</li>
+                            <li><strong>單點依賴：</strong> 若 Root FortiGate 掛掉且無 HA，管理視圖會受影響。</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 新增：Switch 連線設定範例 -->
+            <div class="mt-8 pt-6 border-t border-gray-200">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">
+                    <i class="fas fa-plug text-gray-600 mr-2"></i>實戰設定範例：FortiSwitch 納管連線 (FortiLink)
+                </h3>
+                
+                <div class="bg-gray-900 rounded-lg p-4 font-mono text-sm text-gray-300 overflow-x-auto shadow-inner">
+                    <div class="flex items-center mb-2 border-b border-gray-700 pb-2">
+                        <div class="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
+                        <div class="w-3 h-3 rounded-full bg-yellow-500 mr-2"></div>
+                        <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                        <span class="ml-4 text-gray-500">Root_FortiGate #</span>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <p class="text-green-400 mb-1"># 1. 設定實體介面為 FortiLink 模式</p>
+                            <p>config system interface</p>
+                            <p class="pl-4">edit "port1" <span class="text-gray-500">// 連接 Switch 的實體介面</span></p>
+                            <p class="pl-8">set fortilink enable</p>
+                            <p class="pl-8">set allowaccess ping fabric</p>
+                            <p class="pl-4">next</p>
+                            <p>end</p>
+                        </div>
+
+                        <div>
+                            <p class="text-green-400 mb-1"># 2. 授權新發現的 FortiSwitch (也可由 GUI 操作)</p>
+                            <p>execute switch-controller get-conn-status <span class="text-gray-500">// 查看連線狀態</span></p>
+                            <p class="text-yellow-400 mb-1"># 假設發現 Switch 序號為 S124D...</p>
+                            <p>config switch-controller managed-switch</p>
+                            <p class="pl-4">edit "S124DPO12345678"</p>
+                            <p class="pl-8">set admin-status up</p>
+                            <p class="pl-8">set fsw-wan1-admin enable</p>
+                            <p class="pl-4">next</p>
+                            <p>end</p>
+                        </div>
+
+                        <div>
+                            <p class="text-green-400 mb-1"># 3. 配置 Switch Port VLAN (由 Gate 統一控管)</p>
+                            <p>config switch-controller managed-switch</p>
+                            <p class="pl-4">edit "S124DPO12345678"</p>
+                            <p class="pl-8">config ports</p>
+                            <p class="pl-12">edit "port1"</p>
+                            <p class="pl-16">set vlan "Employee_VLAN"</p>
+                            <p class="pl-12">next</p>
+                            <p class="pl-8">end</p>
+                            <p class="pl-4">next</p>
+                            <p>end</p>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-sm text-gray-500 mt-2">
+                    <i class="fas fa-info-circle mr-1"></i> 說明：FortiLink 協議允許 FortiGate 直接接管 Switch，將其視為邏輯介面的延伸，所有 VLAN 與 Port 設定皆在防火牆上完成。
+                </p>
+            </div>
+
+            <!-- 原有：自動化隔離設定範例 -->
+            <div class="mt-8 pt-6 border-t border-gray-200">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">
+                    <i class="fas fa-terminal text-gray-600 mr-2"></i>實戰設定範例：自動化隔離 (Automation Stitch)
+                </h3>
+                
+                <div class="bg-gray-900 rounded-lg p-4 font-mono text-sm text-gray-300 overflow-x-auto shadow-inner">
+                    <div class="flex items-center mb-2 border-b border-gray-700 pb-2">
+                        <div class="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
+                        <div class="w-3 h-3 rounded-full bg-yellow-500 mr-2"></div>
+                        <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                        <span class="ml-4 text-gray-500">Root_FortiGate #</span>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <p class="text-green-400 mb-1"># 1. 定義自動化觸發條件 (Trigger)：偵測到受駭主機</p>
+                            <p>config system automation-trigger</p>
+                            <p class="pl-4">edit "Detect-Compromised-Host"</p>
+                            <p class="pl-8">set event-type <span class="text-yellow-400 font-bold">compromised-host</span></p>
+                            <p class="pl-4">next</p>
+                            <p>end</p>
+                        </div>
+
+                        <div>
+                            <p class="text-green-400 mb-1"># 2. 定義執行動作 (Action)：在 Switch Port 進行隔離</p>
+                            <p>config system automation-action</p>
+                            <p class="pl-4">edit "Quarantine-Port"</p>
+                            <p class="pl-8">set action-type <span class="text-yellow-400 font-bold">fli-c-quarantine</span></p>
+                            <p class="pl-4">next</p>
+                            <p>end</p>
+                        </div>
+
+                        <div>
+                            <p class="text-green-400 mb-1"># 3. 縫合 (Stitch)：將事件與動作綁定</p>
+                            <p>config system automation-stitch</p>
+                            <p class="pl-4">edit "Auto-Block-Infected-PC"</p>
+                            <p class="pl-8">set trigger "Detect-Compromised-Host"</p>
+                            <p class="pl-8">config actions</p>
+                            <p class="pl-12">edit 1</p>
+                            <p class="pl-16">set action "Quarantine-Port"</p>
+                            <p class="pl-16">set required enable</p>
+                            <p class="pl-12">next</p>
+                            <p class="pl-8">end</p>
+                            <p class="pl-4">next</p>
+                            <p>end</p>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-sm text-gray-500 mt-2">
+                    <i class="fas fa-info-circle mr-1"></i> 註：上述設定會連動 FortiSwitch，將偵測到威脅的 MAC Address 對應的實體 Port 自動切換至隔離 VLAN。
+                </p>
+            </div>
+        </div>
+
+        <!-- 5. 隨堂測驗 -->
+        <div class="section-card">
+            <span class="badge-title bg-quiz">五、隨堂測驗 (Quiz)</span>
+            <div id="quiz-container" class="space-y-6">
+                <!-- 題目將由 JavaScript 動態生成 -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- 頁尾 Footer -->
+    <footer class="bg-gray-800 text-gray-400 py-6 mt-auto">
+        <div class="container mx-auto px-4 text-center text-sm">
+            <p class="font-mono">Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript 邏輯 -->
+    <script>
+        // 初始化 Mermaid (啟用 loose 安全性以支援 HTML 標籤)
+        mermaid.initialize({ 
+            startOnLoad: true, 
+            theme: 'default',
+            securityLevel: 'loose'
+        });
+
+        // 測驗資料
+        const quizData = [
+            {
+                question: "在 Security Fabric 架構中，負責收集資訊並建立網路拓撲圖的核心設備稱為什麼？",
+                options: ["FortiManager", "Root FortiGate", "FortiSwitch", "Downstream FortiGate"],
+                correct: 1,
+                explanation: "Root FortiGate 是 Fabric 的大腦，負責協調成員並計算拓撲。雖然 FortiManager 可管理多台設備，但在 Fabric 協定層級中，是由 Root FG 擔任核心。"
+            },
+            {
+                question: "Security Fabric 成員之間主要使用哪種協定來交換情資 (Telemetry)？",
+                options: ["OSPF", "FGFM (FortiGate to FortiGate/Manager)", "SNMP", "BGP"],
+                correct: 1,
+                explanation: "FGFM (FortiGate Firmware Manager protocol) 是 Fortinet 的專有協定，用於 Fabric 成員間的通訊與管理。"
+            },
+            {
+                question: "若要將 FortiSwitch 納入 Security Fabric 並由防火牆直接管理，需要連接到哪個介面？",
+                options: ["DMZ Port", "MGMT Port", "FortiLink Interface", "Console Port"],
+                correct: 2,
+                explanation: "FortiLink 是專門設計用來管理 FortiSwitch 的聚合介面，基於 CAPWAP 協定運作。"
+            },
+            {
+                question: "關於 Automation Stitch 的運作邏輯，下列何者正確？",
+                options: ["Action -> Trigger", "Trigger -> Action", "只有 Root FG 能執行 Action", "需要人工審核才能執行"],
+                correct: 1,
+                explanation: "Automation Stitch 遵循 'If this (Trigger), then that (Action)' 的邏輯，且大多可自動執行，無需人工介入。"
+            },
+            {
+                question: "哪一項是採用 Security Fabric 架構的主要缺點？",
+                options: ["安全性較低", "無法顯示網路拓撲", "通常會有 Vendor Lock-in (廠商綁定) 問題", "無法與雲端同步"],
+                correct: 2,
+                explanation: "要實現完整的 Fabric 連動（如 Switch Port 控制、AP 廣播），通常需要全線採用 Fortinet 產品，這會導致對單一廠商的依賴度極高。"
+            }
+        ];
+
+        // 渲染測驗
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((data, index) => {
+            const questionEl = document.createElement('div');
+            questionEl.className = 'border-b border-gray-200 pb-6 last:border-0';
+            
+            let optionsHtml = '';
+            data.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border border-gray-200 mb-2 flex items-center" 
+                         onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        <div class="w-6 h-6 rounded-full border-2 border-gray-300 mr-3 flex items-center justify-center option-circle">
+                            <span class="text-xs font-bold text-gray-500">${String.fromCharCode(65 + optIndex)}</span>
+                        </div>
+                        <span>${opt}</span>
+                    </div>
+                `;
+            });
+
+            questionEl.innerHTML = `
+                <h3 class="font-bold text-lg mb-3 text-gray-800">Q${index + 1}. ${data.question}</h3>
+                <div class="space-y-2" data-answered="false">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-3 p-3 rounded text-sm">
+                    <p class="font-bold result-title mb-1"></p>
+                    <p class="text-gray-700">解析：${data.explanation}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionEl);
+        });
+
+        // 檢查答案邏輯
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            // 鎖定該題不可再選
+            if (element.parentElement.dataset.answered === "true") return;
+            element.parentElement.dataset.answered = "true";
+
+            // 清除並重設樣式
+            allOptions.forEach(opt => {
+                opt.classList.remove('hover:bg-gray-100');
+                opt.classList.add('cursor-default');
+            });
+
+            if (optIndex === data.correct) {
+                // 答對
+                element.classList.add('bg-green-100', 'border-green-500');
+                element.querySelector('.option-circle').classList.add('border-green-600', 'bg-green-600', 'text-white');
+                resultBox.classList.remove('hidden');
+                resultBox.classList.add('bg-green-50', 'border', 'border-green-200');
+                resultTitle.innerHTML = '<i class="fas fa-check-circle text-green-600 mr-2"></i>答對了！';
+                resultTitle.classList.add('text-green-800');
+            } else {
+                // 答錯
+                element.classList.add('bg-red-100', 'border-red-500');
+                element.querySelector('.option-circle').classList.add('border-red-600', 'bg-red-600', 'text-white');
+                
+                // 標示正確答案
+                const correctOption = allOptions[data.correct];
+                correctOption.classList.add('bg-green-100', 'border-green-500');
+                correctOption.querySelector('.option-circle').classList.add('border-green-600', 'bg-green-600', 'text-white');
+
+                resultBox.classList.remove('hidden');
+                resultBox.classList.add('bg-red-50', 'border', 'border-red-200');
+                resultTitle.innerHTML = '<i class="fas fa-times-circle text-red-600 mr-2"></i>答錯了，正確答案是 ' + data.options[data.correct];
+                resultTitle.classList.add('text-red-800');
+            }
+        }
+    </script>
+</body>
+</html>
