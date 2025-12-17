@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extreme & Cisco MLAG/STP 整合分析報告 (修復版)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.0/mermaid.min.js"></script>
+    <style>
+        :root {
+            --primary: #6200ea;
+            --bg: #f4f6f8;
+            --card-bg: #ffffff;
+            --text: #333333;
+            --code-bg: #2d2d2d;
+            --code-text: #e0e0e0;
+            --danger: #d32f2f;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        h1 { color: var(--primary); text-align: center; }
+        h2 { border-left: 5px solid var(--primary); padding-left: 15px; color: #444; margin-top: 30px;}
+        
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .diagram-container {
+            display: flex;
+            justify-content: center;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            margin: 20px 0;
+        }
+
+        .alert {
+            background-color: #ffebee;
+            border-left: 5px solid var(--danger);
+            color: var(--danger);
+            padding: 15px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        pre {
+            background-color: var(--code-bg);
+            color: var(--code-text);
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+
+        .tab-buttons { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .tab-btn {
+            padding: 10px 20px; border: none; background: #e0e0e0;
+            cursor: pointer; border-radius: 20px; font-weight: bold; transition: 0.3s;
+        }
+        .tab-btn.active { background: var(--primary); color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Extreme & Cisco 混合網路架構分析</h1>
+
+    <div class="card">
+        <h2>1. 網路拓撲與現況</h2>
+        <p>故障點視覺化：Cisco 收到自己發出的 BPDU (紅線路徑)。</p>
+        <div class="diagram-container">
+            <div class="mermaid">
+            %%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#6200ea', 'edgeLabelBackground':'#fff'}}}%%
+            graph TD
+                %% 定義樣式
+                classDef extreme fill:#6200ea,stroke:#333,stroke-width:2px,color:white
+                classDef cisco fill:#00bceb,stroke:#333,stroke-width:2px,color:white
+                classDef isc fill:#ff9800,stroke:#e65100,stroke-width:2px,color:white,stroke-dasharray: 5 5
+
+                subgraph Extreme_Core [Extreme MLAG Core]
+                    direction LR
+                    ExtA["Extreme A<br/>(STP OFF)"]:::extreme
+                    ExtB["Extreme B<br/>(STP OFF)"]:::extreme
+                    ISC(("ISC Link<br/>Tag 10,20")):::isc
+                    
+                    %% 修正連接線語法，避免特殊箭頭
+                    ExtA === ExtB
+                end
+
+                subgraph Cisco_Access [Cisco Access]
+                    C9200["Cisco 9200<br/>(PVST+)"]:::cisco
+                    C9500["Cisco 9500<br/>(PVST+)"]:::cisco
+                end
+
+                %% 連接線
+                ExtA -- "Port 1 (LACP)" --- C9200
+                ExtB -- "Port 1 (LACP)" --- C9200
+                
+                ExtA -- "Port 2 (LACP)" --- C9500
+                ExtB -- "Port 2 (LACP)" --- C9500
+
+                %% 標示 Blocking 問題
+                linkStyle 3 stroke:#d32f2f,stroke-width:4px;
+            </div>
+        </div>
+        <ul>
+            <li><strong>紫色節點：</strong> Extreme Switch (無 STP，透傳封包)。</li>
+            <li><strong>藍色節點：</strong> Cisco Switch (PVST+，偵測到環路)。</li>
+            <li><strong>紅色連線：</strong> 示意發生 Blocking 的介面路徑。</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h2>2. 故障原因分析</h2>
+        <div class="alert">
+            核心問題：Extreme 關閉 STP = BPDU 透傳 (Hub 行為)
+        </div>
+        <p>當 Extreme 關閉 STP 時，它不會攔截 BPDU，而是將其視為廣播封包轉發。Cisco 發出的 BPDU 經由 Extreme A -> ISC -> Extreme B -> 轉回 Cisco。Cisco 收到自己的 Bridge ID，判定為環路並阻斷 Port。</p>
+    </div>
+
+    <div class="card">
+        <h2>3. 解決方案指令產生器</h2>
+        <div class="tab-buttons">
+            <button class="tab-btn active" onclick="openTab('mstp')">方案 A: MSTP (推薦)</button>
+            <button class="tab-btn" onclick="openTab('rstp')">方案 B: RSTP</button>
+            <button class="tab-btn" onclick="openTab('pervlan')">方案 C: Per-VLAN</button>
+        </div>
+
+        <div id="mstp" class="tab-content active">
+            <h3>方案 A：啟用 MSTP (最佳實踐)</h3>
+            <p>Extreme A (Root):</p>
+            <pre>
+configure stpd s0 mode mstp
+configure stpd s0 priority 4096
+configure stpd s0 add vlan vlan10
+configure stpd s0 add vlan vlan20
+configure stpd s0 add vlan isc_vlan
+enable stpd s0 ports 1, 2, 20
+enable stpd s0</pre>
+            <p>Extreme B (Backup):</p>
+            <pre>
+configure stpd s0 mode mstp
+configure stpd s0 priority 8192
+configure stpd s0 add vlan vlan10
+configure stpd s0 add vlan vlan20
+configure stpd s0 add vlan isc_vlan
+enable stpd s0 ports 1, 2, 20
+enable stpd s0</pre>
+        </div>
+
+        <div id="rstp" class="tab-content">
+            <h3>方案 B：啟用 RSTP (簡單架構)</h3>
+            <p>Extreme A (Root):</p>
+            <pre>
+configure stpd s0 mode rstp
+configure stpd s0 priority 4096
+configure stpd s0 add vlan vlan10
+configure stpd s0 add vlan vlan20
+configure stpd s0 add vlan isc_vlan
+enable stpd s0 ports 1, 2, 20
+enable stpd s0</pre>
+        </div>
+
+        <div id="pervlan" class="tab-content">
+            <h3>方案 C：Per-VLAN (多重 STPD)</h3>
+            <p>Extreme A (建立 s10 與 s20):</p>
+            <pre>
+create stpd s10
+configure stpd s10 mode rstp
+configure stpd s10 priority 4096
+configure stpd s10 add vlan vlan10
+enable stpd s10
+
+create stpd s20
+configure stpd s20 mode rstp
+configure stpd s20 priority 4096
+configure stpd s20 add vlan vlan20
+enable stpd s20</pre>
+        </div>
+    </div>
+</div>
+
+<script>
+    mermaid.initialize({ startOnLoad: true });
+
+    function openTab(tabName) {
+        var x = document.getElementsByClassName("tab-content");
+        var btns = document.getElementsByClassName("tab-btn");
+        for (var i = 0; i < x.length; i++) x[i].style.display = "none";
+        for (var i = 0; i < btns.length; i++) btns[i].classList.remove("active");
+        
+        document.getElementById(tabName).style.display = "block";
+        // 簡單匹配按鈕
+        var clickedBtn = Array.from(btns).find(b => b.onclick.toString().includes(tabName));
+        if(clickedBtn) clickedBtn.classList.add("active");
+    }
+</script>
+
+</body>
+</html>
