@@ -83,6 +83,22 @@
             font-size: 0.875rem;
             margin-top: 4rem;
         }
+
+        /* 程式碼區塊樣式 */
+        .code-block {
+            background-color: #1e293b;
+            color: #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 0.875rem;
+            overflow-x: auto;
+            line-height: 1.5;
+        }
+        .code-comment { color: #94a3b8; font-style: italic; }
+        .code-command { color: #38bdf8; font-weight: bold; }
+        .code-param { color: #facc15; }
+        .code-value { color: #a5f3fc; }
     </style>
 </head>
 <body class="antialiased">
@@ -182,7 +198,7 @@
                     <h3 class="text-xl font-bold text-gray-800 border-b pb-2 mb-3">Zone (區域) 控制層面行為</h3>
                     <ul class="list-disc list-inside space-y-2 text-gray-700 ml-4">
                         <li><strong>物件化管理：</strong> Zone 在防火牆策略中被視為單一物件。若你有 50 個外點的 VPN 介面，可以全部加入一個 "VPN_Zone"，這樣只需寫一條 Policy 即可放行所有外點。</li>
-                        <li><strong>Intra-Zone Traffic (區域內流量)：</strong> 預設情況下，同一 Zone 內的不同介面之間流量是 <span class="font-bold text-red-600">阻擋 (Block)</span> 的。若要允許互通，必須開啟 <code class="bg-gray-200 px-1 rounded">Block intra-zone traffic</code> (這是雙重否定，選取=阻擋) 或建立一條 Source/Dest 都是該 Zone 的 Policy。</li>
+                        <li><strong>Intra-Zone Traffic (區域內流量)：</strong> 預設情況下，同一 Zone 內的不同介面之間流量是 <span class="font-bold text-red-600">阻擋 (Block)</span> 的。若要允許互通，必須關閉 <code class="bg-gray-200 px-1 rounded">Block intra-zone traffic</code> (這是雙重否定，選取=阻擋) 或建立一條 Source/Dest 都是該 Zone 的 Policy。</li>
                     </ul>
                 </div>
             </div>
@@ -298,7 +314,7 @@ graph TD
                 </ol>
             </div>
 
-            <div class="grid md:grid-cols-2 gap-4 mt-4">
+            <div class="grid md:grid-cols-2 gap-4 mt-4 mb-8">
                 <div class="border p-4 rounded bg-green-50">
                     <h4 class="font-bold text-green-800 mb-2">👍 優點 (Pros)</h4>
                     <ul class="list-disc list-inside text-sm text-gray-700">
@@ -312,6 +328,78 @@ graph TD
                     <ul class="list-disc list-inside text-sm text-gray-700">
                         <li><strong>頻寬競爭：</strong> 所有 VLAN 共享 Port2 的實體頻寬 (例如 1Gbps)。若研發部傳大檔，財務部可能會變慢。</li>
                         <li><strong>單點故障：</strong> 若 Port2 線路故障，所有部門網路同時中斷 (建議使用 Aggregate Interface / LACP 解決)。</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 新增：實戰設定範例 -->
+            <div class="mt-8 border-t border-gray-200 pt-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">🛠️ 實戰設定範例 (Configuration Example)</h3>
+                <p class="text-gray-600 mb-4">以下是實現上述場景的具體配置，包含 CLI 指令與 GUI 操作重點。</p>
+                
+                <div class="code-block shadow-inner">
+                    <div class="flex justify-between items-center mb-2 border-b border-gray-600 pb-2">
+                        <span class="font-bold text-green-400">CLI Command Line (Terminal)</span>
+                        <span class="text-xs text-gray-400">FortiOS 7.x</span>
+                    </div>
+                    <div>
+<span class="code-comment"># 步驟 1: 設定 VLAN 介面 (綁定在實體 Port2 下)</span><br>
+<span class="code-command">config system interface</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">edit</span> <span class="code-value">"Finance_VLAN10"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">set</span> <span class="code-param">vdom</span> <span class="code-value">"root"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">set</span> <span class="code-param">ip</span> <span class="code-value">192.168.10.254 255.255.255.0</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">set</span> <span class="code-param">interface</span> <span class="code-value">"port2"</span> <span class="code-comment"># 綁定實體介面</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">set</span> <span class="code-param">vlanid</span> <span class="code-value">10</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">set</span> <span class="code-param">role</span> <span class="code-value">lan</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">next</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">edit</span> <span class="code-value">"RD_VLAN20"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">set</span> <span class="code-param">vdom</span> <span class="code-value">"root"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">set</span> <span class="code-param">ip</span> <span class="code-value">192.168.20.254 255.255.255.0</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">set</span> <span class="code-param">interface</span> <span class="code-value">"port2"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">set</span> <span class="code-param">vlanid</span> <span class="code-value">20</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">set</span> <span class="code-param">role</span> <span class="code-value">lan</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">next</span><br>
+<span class="code-command">end</span><br>
+<br>
+<span class="code-comment"># 步驟 2: 建立 Zone 並加入成員</span><br>
+<span class="code-command">config system zone</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">edit</span> <span class="code-value">"Trusted_LAN"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">set</span> <span class="code-param">interface</span> <span class="code-value">"Finance_VLAN10" "RD_VLAN20"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-comment"># 重要：deny 表示啟用 Block，若要成員互通需設為 allow (GUI: 取消勾選 Block intra-zone)</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">set</span> <span class="code-param">intrazone</span> <span class="code-value">deny</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">next</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">edit</span> <span class="code-value">"Guest_Zone"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">set</span> <span class="code-param">interface</span> <span class="code-value">"port3"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">next</span><br>
+<span class="code-command">end</span><br>
+<br>
+<span class="code-comment"># 步驟 3: 設定防火牆策略 (使用 Zone 物件)</span><br>
+<span class="code-command">config firewall policy</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">edit</span> <span class="code-value">1</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">set</span> <span class="code-param">name</span> <span class="code-value">"Allow_Trusted_to_WAN"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">set</span> <span class="code-param">srcintf</span> <span class="code-value">"Trusted_LAN"</span> <span class="code-comment"># 直接選用 Zone</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">set</span> <span class="code-param">dstintf</span> <span class="code-value">"wan1"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">set</span> <span class="code-param">srcaddr</span> <span class="code-value">"all"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">set</span> <span class="code-param">dstaddr</span> <span class="code-value">"all"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">set</span> <span class="code-param">action</span> <span class="code-value">accept</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">set</span> <span class="code-param">schedule</span> <span class="code-value">"always"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">set</span> <span class="code-param">service</span> <span class="code-value">"ALL"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">set</span> <span class="code-param">nat</span> <span class="code-value">enable</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">next</span><br>
+<span class="code-command">end</span>
+                    </div>
+                </div>
+                
+                <div class="mt-4 bg-blue-50 p-4 rounded border-l-4 border-blue-500">
+                    <h4 class="font-bold text-blue-800 mb-2">🖥️ GUI 設定重點提示</h4>
+                    <ul class="list-disc list-inside text-sm text-gray-700 space-y-2">
+                        <li><strong>建立 VLAN 介面：</strong>前往 <code>Network > Interfaces</code>，點選 "Create New > Interface"，Type 必須選擇 <strong>VLAN</strong>，並正確指定 "Interface" 為實體 Port (如 port2)。</li>
+                        <li><strong>建立 Zone：</strong>前往 <code>Network > Interfaces</code>，點選 "Create New > Zone"。
+                            <ul class="list-none ml-6 mt-1 text-xs text-gray-600">
+                                <li>⚠️ 若要阻擋財務部 (VLAN10) 與研發部 (VLAN20) 互通，請務必<strong>勾選</strong> <code>Block intra-zone traffic</code>。</li>
+                                <li>✅ 若要允許互通，請<strong>取消勾選</strong> 該選項。</li>
+                            </ul>
+                        </li>
                     </ul>
                 </div>
             </div>
