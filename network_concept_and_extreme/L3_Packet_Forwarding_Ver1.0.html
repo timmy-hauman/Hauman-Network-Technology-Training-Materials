@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>L3 Switch 路由完整雙向教學 (寬螢幕優化版)</title>
+    <title>L3 Switch 路由完整雙向教學 (MAC 修正版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -145,7 +145,7 @@
     <!-- Header -->
     <header class="bg-slate-800 text-white p-3 shadow-md flex justify-between items-center z-10 shrink-0">
         <div>
-            <h1 class="text-lg font-bold">L3 Switch 路由完整雙向教學 (寬螢幕優化版)</h1>
+            <h1 class="text-lg font-bold">L3 Switch 路由完整雙向教學 (MAC 修正版)</h1>
             <p class="text-xs text-slate-300">架構: Host A &harr; L3 Switch 1 &harr; L3 Switch 2 &harr; Host B</p>
         </div>
         <div class="flex gap-2">
@@ -190,19 +190,19 @@
                 </table>
             </div>
 
-            <!-- L3 Switch 1 (Center: 30%) - WIDENED to w-80 (320px) -->
+            <!-- L3 Switch 1 (Center: 30%) - MACs Fixed -->
             <div class="device-box absolute top-[15%] left-[30%] w-80 border-2 border-purple-600 rounded bg-purple-50 p-2">
                 <div class="font-bold text-purple-800 text-sm mb-1">L3 Switch 1</div>
                 <div class="flex justify-between w-full text-[9px] mt-1">
                     <div class="text-left w-1/2 border-r border-purple-200 pr-2">
                         <b class="text-purple-700">Port 1 (Left)</b><br>
                         <span class="font-mono text-gray-700">192.168.1.254/24</span><br>
-                        <span class="font-mono text-gray-500">00:00:00:00:00:P1</span>
+                        <span class="font-mono text-gray-500">00:00:00:00:01:01</span>
                     </div>
                     <div class="text-right w-1/2 pl-2">
                         <b class="text-purple-700">Port 2 (Right)</b><br>
                         <span class="font-mono text-gray-700">10.0.0.1/30</span><br>
-                        <span class="font-mono text-gray-500">00:00:00:00:00:P2</span>
+                        <span class="font-mono text-gray-500">00:00:00:00:01:02</span>
                     </div>
                 </div>
             </div>
@@ -232,19 +232,19 @@
                 </div>
             </div>
 
-            <!-- L3 Switch 2 (Center: 70%) - WIDENED to w-80 (320px) -->
+            <!-- L3 Switch 2 (Center: 70%) - MACs Fixed -->
             <div class="device-box absolute top-[15%] left-[70%] w-80 border-2 border-orange-600 rounded bg-orange-50 p-2">
                 <div class="font-bold text-orange-800 text-sm mb-1">L3 Switch 2</div>
                 <div class="flex justify-between w-full text-[9px] mt-1">
                     <div class="text-left w-1/2 border-r border-orange-200 pr-2">
                         <b class="text-orange-700">Port 1 (Left)</b><br>
                         <span class="font-mono text-gray-700">10.0.0.2/30</span><br>
-                        <span class="font-mono text-gray-500">00:00:00:00:00:P1</span>
+                        <span class="font-mono text-gray-500">00:00:00:00:02:01</span>
                     </div>
                     <div class="text-right w-1/2 pl-2">
                         <b class="text-orange-700">Port 2 (Right)</b><br>
                         <span class="font-mono text-gray-700">192.168.2.254/24</span><br>
-                        <span class="font-mono text-gray-500">00:00:00:00:00:P2</span>
+                        <span class="font-mono text-gray-500">00:00:00:00:02:02</span>
                     </div>
                 </div>
             </div>
@@ -316,13 +316,13 @@
     <script>
         let currentStep = 0;
         
-        // Data Models
+        // Data Models - Fixed MACs
         const data = {
             hostA: { ip: "192.168.1.10", mac: "00:00:00:00:00:AA", arp: [] },
             hostB: { ip: "192.168.2.10", mac: "00:00:00:00:00:BB", arp: [] }, 
             l3sw1: { 
-                int1: { ip: "192.168.1.254", mac: "00:00:00:00:00:P1" },
-                int2: { ip: "10.0.0.1", mac: "00:00:00:00:00:P2" },
+                int1: { ip: "192.168.1.254", mac: "00:00:00:00:01:01" }, // Fixed MAC
+                int2: { ip: "10.0.0.1", mac: "00:00:00:00:01:02" },      // Fixed MAC
                 macTable: [],
                 arp: [],
                 routes: [
@@ -332,8 +332,8 @@
                 ]
             },
             l3sw2: {
-                int1: { ip: "10.0.0.2", mac: "00:00:00:00:00:P1" },
-                int2: { ip: "192.168.2.254", mac: "00:00:00:00:00:P2" },
+                int1: { ip: "10.0.0.2", mac: "00:00:00:00:02:01" },      // Fixed MAC
+                int2: { ip: "192.168.2.254", mac: "00:00:00:00:02:02" }, // Fixed MAC
                 macTable: [],
                 arp: [],
                 routes: [
@@ -513,7 +513,7 @@
                     data.l3sw1.arp.push({ ip: data.hostA.ip, mac: data.hostA.mac });
                     renderTables(); highlightTable('box-arp-sw1', 'arp');
                     showPacket(true);
-                    logPacket("4. ARP Reply", "ARP Reply", data.l3sw1.int1.mac, data.hostA.mac, data.l3sw1.int1.ip, data.hostA.ip, "SW1 回覆：我是 192.168.1.254，MAC 是 ...:00:P1");
+                    logPacket("4. ARP Reply", "ARP Reply", data.l3sw1.int1.mac, data.hostA.mac, data.l3sw1.int1.ip, data.hostA.ip, "SW1 回覆：我是 192.168.1.254，MAC 是 ...:01:01");
                 }
             },
             { title: "回覆傳輸至 A", desc: "ARP Reply 傳回 Host A。", action: () => { movePacket(Y_LINE, '18.5%'); } },
