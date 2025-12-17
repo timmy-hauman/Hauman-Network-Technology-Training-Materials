@@ -418,11 +418,84 @@
             </div>
         </div>
 
+        <!-- Topic 2: Configuration Examples (New Section) -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-indigo-100 text-indigo-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Configuration</span>
+                六、實戰設定範例：管理 IP 與存取控制
+            </h2>
+
+            <p class="mb-4 text-gray-600">
+                完成硬體連接後，第一步是將 FortiGate 設定為符合企業網路環境的 IP，並透過 <strong>Trusted Host</strong> 鎖定來源，確保管理介面安全。
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                
+                <!-- 1. 修改介面 IP 與存取權限 -->
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800 border-b pb-2 mb-3">1. 修改介面 IP & 開放存取</h3>
+                    <div class="mb-3">
+                        <span class="font-bold text-gray-700">GUI 路徑：</span>
+                        <span class="text-sm bg-gray-100 px-2 py-1 rounded">Network > Interfaces > 編輯介面 (如 port1)</span>
+                    </div>
+                    <ul class="list-disc list-inside text-sm text-gray-700 mb-4 space-y-1">
+                        <li><strong>IP/Netmask：</strong> 設定介面 IP (例如 192.168.100.254/24)。</li>
+                        <li><strong>Administrative Access：</strong> 勾選允許的管理方式。
+                            <ul class="pl-6 mt-1 text-gray-500 text-xs">
+                                <li><i class="fas fa-check text-green-500 mr-1"></i>HTTPS: 網頁管理 (加密)</li>
+                                <li><i class="fas fa-check text-green-500 mr-1"></i>SSH: 指令管理 (加密)</li>
+                                <li><i class="fas fa-check text-green-500 mr-1"></i>PING: 測試連通性</li>
+                                <li><i class="fas fa-times text-red-500 mr-1"></i>HTTP/TELNET: 不建議開啟 (明文)</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <div class="bg-gray-800 text-gray-200 p-3 rounded text-xs font-mono">
+                        <p class="text-gray-500 mb-1"># CLI 設定範例</p>
+                        <p>config system interface</p>
+                        <p class="pl-4">edit "port1"</p>
+                        <p class="pl-8">set mode static</p>
+                        <p class="pl-8">set ip 192.168.100.254 255.255.255.0</p>
+                        <p class="pl-8">set allowaccess ping https ssh</p>
+                        <p class="pl-4">next</p>
+                        <p>end</p>
+                    </div>
+                </div>
+
+                <!-- 2. 設定信任主機 (Trusted Hosts) -->
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800 border-b pb-2 mb-3">2. 限制來源 IP (Trusted Host)</h3>
+                    <div class="mb-3">
+                        <span class="font-bold text-gray-700">GUI 路徑：</span>
+                        <span class="text-sm bg-gray-100 px-2 py-1 rounded">System > Administrators > 編輯 admin</span>
+                    </div>
+                    <p class="text-sm text-gray-700 mb-2">
+                        <strong>Trusted Host</strong> 是 FortiGate 最重要的基礎防護。設定後，<strong>只有列表中的 IP</strong> 能看到登入頁面，其他來源會直接連線逾時 (Drop)。
+                    </p>
+                    <div class="highlight-box my-2">
+                        <p class="text-xs text-red-800 font-bold">
+                            <i class="fas fa-exclamation-circle mr-1"></i>注意：若設定錯誤，所有人都會被阻擋在外 (包含你自己)！
+                        </p>
+                    </div>
+                    <div class="bg-gray-800 text-gray-200 p-3 rounded text-xs font-mono mt-3">
+                        <p class="text-gray-500 mb-1"># CLI 設定範例 (限制 admin 帳號)</p>
+                        <p>config system admin</p>
+                        <p class="pl-4">edit "admin"</p>
+                        <p class="pl-8"># 允許內網網管網段</p>
+                        <p class="pl-8">set trustedhost1 192.168.100.0 255.255.255.0</p>
+                        <p class="pl-8"># 允許特定公網 IP</p>
+                        <p class="pl-8">set trustedhost2 203.0.113.10 255.255.255.255</p>
+                        <p class="pl-4">next</p>
+                        <p>end</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Quiz Section -->
         <div class="section-card">
             <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
                 <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
-                六、隨堂測驗
+                七、隨堂測驗
             </h2>
             <p class="mb-6 text-gray-600">請點擊您認為正確的選項，系統將會顯示解析。</p>
 
