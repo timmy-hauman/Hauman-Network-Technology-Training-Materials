@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FortiGate 實戰課程 | L2-09 IPsec VPN 實戰</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Mermaid JS -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* 全域字體設定 */
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+            /* 防止水平捲軸在非必要時出現，但允許強制寬度 */
+            overflow-x: auto;
+        }
+
+        /* 強制最小寬度容器 - 避免圖表擠壓 */
+        .force-width-container {
+            min-width: 1024px;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding-bottom: 60px; /* 預留 Footer 空間 */
+        }
+
+        /* 卡片式設計標準化 */
+        .section-card {
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            margin-bottom: 2rem;
+            padding: 2rem;
+            border-left: 6px solid #dc2626; /* Fortinet Red */
+            transition: all 0.3s ease;
+        }
+        
+        .section-card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* 標題標籤 (Badges) */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-weight: 700;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+        }
+        .badge-concept { background-color: #fee2e2; color: #991b1b; } /* 紅 */
+        .badge-mechanism { background-color: #dbeafe; color: #1e40af; } /* 藍 */
+        .badge-visuals { background-color: #d1fae5; color: #065f46; } /* 綠 */
+        .badge-usecase { background-color: #f3e8ff; color: #6b21a8; } /* 紫 */
+        .badge-quiz { background-color: #ffedd5; color: #9a3412; } /* 橘 */
+
+        /* 特殊區塊：生活化比喻 (Analogy) */
+        .analogy-box {
+            border: 2px solid #10b981;
+            background-color: #ecfdf5;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            position: relative;
+        }
+        .analogy-box::before {
+            content: '\f0eb'; /* Lightbulb icon */
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            top: -15px;
+            left: 20px;
+            background: #10b981;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 特殊區塊：重點強調 (Highlight) */
+        .highlight-box {
+            border: 2px solid #ef4444;
+            background-color: #fef2f2;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+        .highlight-title {
+            color: #dc2626;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        /* 程式碼區塊 */
+        .code-block {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-family: 'Courier New', Courier, monospace;
+            overflow-x: auto;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            border-left: 4px solid #ef4444;
+        }
+        .comment { color: #6a9955; }
+        .keyword { color: #569cd6; }
+        .string { color: #ce9178; }
+
+        /* Mermaid 容器優化 */
+        .mermaid-container {
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            /* 允許圖表在容器內捲動，確保大字體圖表不被切掉 */
+            overflow-x: auto; 
+            display: block; /* 改為 block 讓內部寬度生效 */
+        }
+
+        /* 測驗樣式 */
+        .quiz-option {
+            cursor: pointer;
+            padding: 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s;
+        }
+        .quiz-option:hover { background-color: #f9fafb; }
+        .quiz-option.correct { background-color: #d1fae5; border-color: #10b981; color: #065f46; }
+        .quiz-option.wrong { background-color: #fee2e2; border-color: #ef4444; color: #991b1b; }
+        .explanation { display: none; margin-top: 0.5rem; font-size: 0.9rem; color: #4b5563; padding: 0.5rem; background: #f3f4f6; border-radius: 0.25rem; }
+
+        /* Footer 樣式 */
+        footer {
+            background-color: #1f2937;
+            color: #9ca3af;
+            padding: 1.5rem 0;
+            text-align: center;
+            font-size: 0.9rem;
+            width: 100%;
+        }
+
+        /* =========================================
+           CSS 暴力覆寫區 (Mermaid Override)
+           ========================================= */
+        
+        /* 1. 強制撐開 SVG 寬度，確保瀏覽器不縮放 */
+        .mermaid {
+            min-width: 1100px !important; 
+            display: flex;
+            justify-content: center;
+        }
+        .mermaid svg {
+            max-width: none !important; /* 禁止 SVG 自適應縮小 */
+        }
+
+        /* 2. 流程圖 (Graph/Flowchart) 文字強制放大 - 維持原樣 (20px) */
+        /* 節點文字 */
+        .mermaid .node text, 
+        .mermaid .node foreignObject div {
+            font-size: 20px !important;
+            font-weight: 700 !important;
+            font-family: 'Noto Sans TC', sans-serif !important;
+            line-height: 1.4 !important;
+        }
+        /* 連線文字 */
+        .mermaid .edgeLabel text,
+        .mermaid .edgeLabel foreignObject div {
+            font-size: 18px !important;
+            font-weight: 600 !important;
+            background-color: white !important; /* 確保背景遮擋線條，增加可讀性 */
+            color: #b91c1c !important; /* 紅色字體突顯 */
+            font-family: 'Noto Sans TC', sans-serif !important;
+        }
+
+        /* 3. 時序圖 (Sequence Diagram) 文字調整 - 縮小至約 40% (約 9-10px) */
+        /* 角色 (Actor) */
+        .mermaid .actor {
+            font-size: 10px !important; /* 大幅縮小 */
+            font-weight: 800 !important;
+            font-family: 'Noto Sans TC', sans-serif !important;
+        }
+        /* 訊息文字 (箭頭上的字) */
+        .mermaid .messageText {
+            font-size: 9px !important; /* 大幅縮小 */
+            font-weight: 600 !important;
+            stroke: none !important;
+            fill: #111 !important;
+            font-family: 'Noto Sans TC', sans-serif !important;
+        }
+        /* 註解文字 (Note) */
+        .mermaid .noteText {
+            font-size: 9px !important; /* 大幅縮小 */
+            font-family: 'Noto Sans TC', sans-serif !important;
+        }
+
+        /* =========================================
+           Hub-and-Spoke 專屬縮小區 (Override Specific) - 50% Scale
+           ========================================= */
+        /* 目標寬度：1100px * 0.5 = 550px */
+        .hub-spoke-wrapper .mermaid {
+            min-width: 550px !important; 
+            width: 550px !important;     
+            margin: 0 auto;              /* 置中 */
+        }
+        
+        /* 針對 Hub-and-Spoke 覆寫為小字體 (約 10px) */
+        .hub-spoke-wrapper .mermaid .node text, 
+        .hub-spoke-wrapper .mermaid .node foreignObject div {
+            font-size: 10px !important; 
+            line-height: 1.2 !important;
+            font-weight: normal !important;
+        }
+        .hub-spoke-wrapper .mermaid .edgeLabel text,
+        .hub-spoke-wrapper .mermaid .edgeLabel foreignObject div {
+            font-size: 9px !important; 
+            padding: 1px !important;
+        }
+        /* 線條變細 */
+        .hub-spoke-wrapper .mermaid .edgePath .path {
+            stroke-width: 1.5px !important;
+        }
+        
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-red-700 to-red-900 text-white shadow-lg mb-8">
+        <div class="force-width-container px-6 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fa-solid fa-shield-halved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold tracking-tight">Fortinet FortiGate 實戰課程</h1>
+                    <p class="text-red-100 mt-1">階段二：安全防護與連接 (Level 2) - 單元 09：IPsec VPN 實戰</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="force-width-container px-6">
+
+        <!-- 01. 核心概念 Concept -->
+        <div class="section-card">
+            <span class="badge badge-concept">一、核心概念 (Concept)</span>
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">IPsec VPN：虛擬私人網路</h2>
+            
+            <p class="text-lg mb-4">
+                IPsec VPN (Internet Protocol Security Virtual Private Network) 是一種在公共網路（如 Internet）上建立加密通道的技術，用於連接兩個不同的網路端點（Site-to-Site）或使用者與網路（Remote Access）。
+            </p>
+
+            <div class="analogy-box">
+                <h3 class="font-bold text-green-800 mb-2">生活化比喻：運鈔車與專用車道</h3>
+                <p>
+                    想像網際網路 (Internet) 是一條充滿各種車輛（好人、壞人）的公共高速公路。
+                </p>
+                <ul class="list-disc list-inside mt-2 space-y-1">
+                    <li><strong>IPsec VPN 隧道</strong>：就像是一輛防彈的「運鈔車」。</li>
+                    <li><strong>加密 (Encryption)</strong>：運鈔車是完全封閉且上鎖的，外面的人看不到裡面載的是現金還是黃金（資料內容）。</li>
+                    <li><strong>認證 (Authentication)</strong>：司機出發和到達時，都要核對身分證與密碼，確保不是假冒的站點。</li>
+                    <li><strong>Site-to-Site</strong>：總公司與分公司之間建立了一條固定的運鈔路線，每天定時運送物資。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 02. 運作原理 Mechanism -->
+        <div class="section-card">
+            <span class="badge badge-mechanism">二、運作原理 (Mechanism)</span>
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">IKEv1 vs IKEv2 與協商流程</h2>
+
+            <div class="grid grid-cols-2 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold text-gray-700 mb-3">1. IPsec 的兩個階段 (Phases)</h3>
+                    <ul class="space-y-3 text-gray-600">
+                        <li>
+                            <strong class="text-red-700">Phase 1 (IKE Phase):</strong>
+                            <br>雙方建立一條「管理通道」。驗證彼此身分 (Pre-shared Key 或 憑證)，並協商加密演算法。
+                            <br><span class="text-sm bg-gray-100 px-2 py-1 rounded">關鍵參數: Encryption, Hash, DH Group, Lifetime</span>
+                        </li>
+                        <li>
+                            <strong class="text-red-700">Phase 2 (IPsec Phase):</strong>
+                            <br>在管理通道內，建立實際傳輸資料的「資料通道」。定義哪些流量 (Selectors) 可以通過。
+                            <br><span class="text-sm bg-gray-100 px-2 py-1 rounded">關鍵參數: Local/Remote Subnet, PFS</span>
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-gray-700 mb-3">2. IKEv1 與 IKEv2 的差異</h3>
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="p-2 border">特性</th>
+                                <th class="p-2 border">IKEv1</th>
+                                <th class="p-2 border text-red-700">IKEv2 (推薦)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="p-2 border">交換封包數</td>
+                                <td class="p-2 border">Main Mode (6-9 packets)<br>Aggressive Mode (3 packets)</td>
+                                <td class="p-2 border">僅需 4 個封包即可建立</td>
+                            </tr>
+                            <tr>
+                                <td class="p-2 border">穩定性</td>
+                                <td class="p-2 border">斷線需重新完整協商</td>
+                                <td class="p-2 border">支援 MOBIKE，網路切換時可快速恢復</td>
+                            </tr>
+                            <tr>
+                                <td class="p-2 border">NAT 穿越</td>
+                                <td class="p-2 border">需額外設定 (NAT-T)</td>
+                                <td class="p-2 border">內建支援 NAT-T</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="highlight-box mt-6">
+                <div class="highlight-title"><i class="fas fa-exclamation-triangle mr-2"></i> 架構師觀點</div>
+                <p>
+                    在 FortiGate 實務中，除非對方設備老舊僅支援 IKEv1，否則**一律建議使用 IKEv2**。它更快速、更簡單，且在除錯時封包量較少，更容易分析。另外，請務必確認兩端的 Phase 1 與 Phase 2 參數完全一致 (Mirror Image)。
+                </p>
+            </div>
+        </div>
+
+        <!-- 03. 架構視覺化 Visuals -->
+        <div class="section-card">
+            <span class="badge badge-visuals">三、架構視覺化 (Visuals)</span>
+            
+            <!-- 圖表 1: Site-to-Site 拓撲 -->
+            <h3 class="text-xl font-bold mb-2 border-l-4 border-green-500 pl-3">1. Site-to-Site VPN 拓撲圖</h3>
+            <p class="text-sm text-gray-500 mb-2">※ 已經強制放大字體，請使用下方卷軸左右滑動檢視完整架構。</p>
+            <div class="mermaid-container">
+                <div class="mermaid">
+                    %%{init: {'theme': 'base', 'themeVariables': { 'fontSize': '20px', 'fontFamily': 'Noto Sans TC' }}}%%
+                    graph LR
+                        subgraph "HQ (總部)"
+                            HQ_LAN[HQ LAN<br>192.168.10.0/24] --- HQ_FGT[FortiGate HQ<br>WAN: 1.1.1.1]
+                        end
+
+                        subgraph "Internet"
+                            Cloud((Internet))
+                        end
+
+                        subgraph "Branch (分公司)"
+                            BR_FGT[FortiGate Branch<br>WAN: 2.2.2.2] --- BR_LAN[Branch LAN<br>192.168.20.0/24]
+                        end
+
+                        HQ_FGT -- "IPsec Tunnel<br>(Encrypted)" --> Cloud
+                        Cloud -- "ESP Packets" --> BR_FGT
+
+                        classDef fw fill:#fca5a5,stroke:#b91c1c,stroke-width:2px;
+                        classDef net fill:#e5e7eb,stroke:#374151;
+                        class HQ_FGT,BR_FGT fw;
+                        class HQ_LAN,BR_LAN,Cloud net;
+                </div>
+            </div>
+
+            <!-- 圖表 2: IKEv2 協商流程 -->
+            <h3 class="text-xl font-bold mb-2 border-l-4 border-blue-500 pl-3">2. IKEv2 協商流程 (Sequence Diagram)</h3>
+            <div class="mermaid-container">
+                <div class="mermaid">
+                    %%{init: {'theme': 'base', 'themeVariables': { 'fontSize': '9px', 'actorFontSize': '10px', 'noteFontSize': '9px', 'messageFontSize': '9px', 'fontFamily': 'Noto Sans TC' }}}%%
+                    sequenceDiagram
+                        participant Initiator as HQ FortiGate
+                        participant Responder as Branch FortiGate
+                        
+                        Note over Initiator, Responder: IKE_SA_INIT<br>(協商加密演算法, Nonces, DH Key)
+                        Initiator->>Responder: HDR, SAi1, KEi, Ni
+                        Responder->>Initiator: HDR, SAr1, KEr, Nr
+                        
+                        Note over Initiator, Responder: IKE_AUTH<br>(驗證身分, 建立第一條 Child SA)
+                        Initiator->>Responder: HDR, SK {IDi, AUTH, SAi2, TSi, TSr}
+                        Responder->>Initiator: HDR, SK {IDr, AUTH, SAr2, TSi, TSr}
+                        
+                        Note over Initiator, Responder: 隧道建立完成，開始傳送加密資料 (ESP)
+                        Initiator->>Responder: ESP Encrypted Data
+                </div>
+            </div>
+
+            <!-- 圖表 3: Hub-and-Spoke 邏輯 -->
+            <h3 class="text-xl font-bold mb-2 border-l-4 border-purple-500 pl-3">3. Hub-and-Spoke 架構</h3>
+            <!-- 加上 hub-spoke-wrapper 以區隔樣式 -->
+            <div class="mermaid-container hub-spoke-wrapper">
+                <div class="mermaid">
+                    %%{init: {'theme': 'base', 'themeVariables': { 'fontSize': '10px', 'fontFamily': 'Noto Sans TC' }}}%%
+                    graph TD
+                        Hub[HQ Hub<br>Concentrator]
+                        Spoke1[Store A]
+                        Spoke2[Store B]
+                        Spoke3[Store C]
+
+                        Hub <==> Spoke1
+                        Hub <==> Spoke2
+                        Hub <==> Spoke3
+
+                        Spoke1 -.->|Traffic via Hub| Spoke2
+
+                        style Hub fill:#f87171,stroke:#991b1b,stroke-width:4px
+                        style Spoke1 fill:#93c5fd
+                        style Spoke2 fill:#93c5fd
+                        style Spoke3 fill:#93c5fd
+                </div>
+            </div>
+        </div>
+
+        <!-- 04. 實務應用場景 Use Case & Config -->
+        <div class="section-card">
+            <span class="badge badge-usecase">四、實務應用與設定 (Use Case)</span>
+            
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">案例 A：總部與分公司連線 (Site-to-Site)</h2>
+            <p class="mb-4">
+                <strong>情境：</strong> 台北總部 (HQ) 需與高雄分公司 (Branch) 連線，存取內部的 ERP 系統。<br>
+                <strong>HQ WAN IP:</strong> 1.1.1.1, <strong>LAN:</strong> 192.168.10.0/24<br>
+                <strong>Branch WAN IP:</strong> 2.2.2.2, <strong>LAN:</strong> 192.168.20.0/24<br>
+                <strong>Preshared Key:</strong> Fortinet123!
+            </p>
+
+            <h3 class="font-bold text-lg mb-2">HQ 端 FortiGate 設定範例 (CLI)</h3>
+            <div class="code-block">
+                <pre>
+<span class="comment"># 1. 設定 Phase 1 (定義鄰居與驗證)</span>
+config vpn ipsec phase1-interface
+    edit "To-Branch"
+        set interface "wan1"          <span class="comment"># 出口介面</span>
+        set ike-version 2             <span class="comment"># 使用 IKEv2</span>
+        set peertype any
+        set net-device disable        <span class="comment"># 建立虛擬介面而非綁定硬體</span>
+        set proposal aes256-sha256    <span class="comment"># 加密演算法</span>
+        set remote-gw 2.2.2.2         <span class="comment"># 對端公網 IP</span>
+        set psksecret Fortinet123!    <span class="comment"># 預先共用金鑰</span>
+    next
+end
+
+<span class="comment"># 2. 設定 Phase 2 (定義加密流量選取器)</span>
+config vpn ipsec phase2-interface
+    edit "To-Branch"
+        set phase1name "To-Branch"
+        set proposal aes256-sha256
+        set auto-negotiate enable     <span class="comment"># 自動發起連線</span>
+        <span class="comment"># src-subnet 與 dst-subnet 預設為 0.0.0.0/0 (由路由控制)</span>
+        <span class="comment"># 若需嚴格限制，可在此設定</span>
+    next
+end
+
+<span class="comment"># 3. 設定路由 (讓流量知道往 VPN 介面送)</span>
+config router static
+    edit 1
+        set dst 192.168.20.0 255.255.255.0  <span class="comment"># 目的：分公司網段</span>
+        set device "To-Branch"              <span class="comment"># 介面：VPN 通道</span>
+    next
+end
+
+<span class="comment"># 4. 防火牆策略 (允許流量通過)</span>
+config firewall policy
+    edit 1
+        set name "HQ_to_Branch"
+        set srcintf "lan"
+        set dstintf "To-Branch"
+        set srcaddr "192.168.10.0/24"
+        set dstaddr "192.168.20.0/24"
+        set action accept
+        set schedule "always"
+        set service "ALL"
+        set logtraffic all
+    next
+    edit 2
+        set name "Branch_to_HQ"
+        set srcintf "To-Branch"
+        set dstintf "lan"
+        set srcaddr "192.168.20.0/24"
+        set dstaddr "192.168.10.0/24"
+        set action accept
+        set schedule "always"
+        set service "ALL"
+        set logtraffic all
+    next
+end</pre>
+            </div>
+
+            <hr class="my-6 border-gray-300">
+
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">案例 B：Hub-and-Spoke 架構</h2>
+            <p class="mb-4">
+                <strong>情境：</strong> 連鎖店模式。分店 A 與分店 B 之間沒有直接連線，若要通訊必須經過 HQ 轉送。
+                <br>這需要在 HQ 設定防火牆策略允許 VPN 進到 VPN 出 (Hairpinning)。
+            </p>
+            
+            <div class="analogy-box">
+                <h3 class="font-bold text-green-800 mb-2">優缺點分析</h3>
+                <ul class="list-disc list-inside">
+                    <li><strong>優點：</strong> 設定集中化，分店只需連回總部。節省分店間建立 Mesh VPN 的複雜度。</li>
+                    <li><strong>缺點：</strong> 所有流量經過 HQ，增加 HQ 頻寬負擔與延遲 (Latency)。單點故障風險 (HQ 掛了，分店間也斷了)。</li>
+                </ul>
+            </div>
+
+            <h3 class="font-bold text-lg mb-2">HQ 端關鍵設定 (允許 VPN 間互通)</h3>
+            <div class="code-block">
+                <pre>
+<span class="comment"># 允許 Spoke A (VPN) 到 Spoke B (VPN) 的流量</span>
+config firewall policy
+    edit 3
+        set name "Spoke_to_Spoke"
+        set srcintf "VPN_Hub_Interface"   <span class="comment"># 來源：VPN</span>
+        set dstintf "VPN_Hub_Interface"   <span class="comment"># 目的：同一個 VPN</span>
+        set srcaddr "All_Spokes_Subnets"
+        set dstaddr "All_Spokes_Subnets"
+        set action accept
+        set service "ALL"
+    next
+end</pre>
+            </div>
+        </div>
+
+        <!-- 05. 隨堂測驗 Quiz -->
+        <div class="section-card">
+            <span class="badge badge-quiz">五、隨堂測驗 (Quiz)</span>
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">挑戰你的理解</h2>
+            
+            <div id="quiz-container">
+                <!-- 題目將由 JS 生成 -->
+            </div>
+            <div id="score-display" class="hidden mt-6 text-center text-2xl font-bold text-red-700"></div>
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="force-width-container">
+            <p>Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0</p>
+        </div>
+    </footer>
+
+    <script>
+        // 初始化 Mermaid
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+
+        // 測驗資料
+        const quizData = [
+            {
+                question: "1. 關於 IKEv1 與 IKEv2 的比較，下列何者正確？",
+                options: [
+                    "A. IKEv1 支援 NAT-T 內建功能，不需要額外封裝",
+                    "B. IKEv2 使用 6-9 個封包進行協商，比 IKEv1 慢",
+                    "C. IKEv2 標準化了 NAT-T 支援，且連線建立更快速",
+                    "D. IKEv1 支援 MOBIKE，適合行動裝置切換網路"
+                ],
+                answer: 2, // C
+                explanation: "解析：IKEv2 內建支援 NAT-T，且僅需 4 個封包即可完成協商。MOBIKE 也是 IKEv2 的特性。"
+            },
+            {
+                question: "2. 在 IPsec VPN 設定中，Phase 2 Selectors (Traffic Selectors) 的作用是什麼？",
+                options: [
+                    "A. 協商加密金鑰與演算法",
+                    "B. 定義哪些來源與目的網段的流量需要被加密傳送",
+                    "C. 設定 Peer 的公網 IP 位址",
+                    "D. 進行使用者帳號密碼驗證"
+                ],
+                answer: 1, // B
+                explanation: "解析：Phase 1 負責建立安全通道與身分驗證，Phase 2 負責定義實際要傳輸的流量範圍 (Subnets)。"
+            },
+            {
+                question: "3. 若要在 Hub-and-Spoke 架構下，讓兩個 Spoke 分店透過 Hub 互通，HQ 防火牆必須設定什麼？",
+                options: [
+                    "A. 只需要設定靜態路由",
+                    "B. 需要設定一條由 VPN Interface 到 VPN Interface 的 Firewall Policy",
+                    "C. 必須啟用 split-tunneling",
+                    "D. 分店之間必須拉一條專線"
+                ],
+                answer: 1, // B
+                explanation: "解析：流量由 VPN 進、再由 VPN 出 (Hairpinning)，防火牆預設會阻擋，必須明確設定 Policy 放行 srcintf=VPN dstintf=VPN。"
+            },
+            {
+                question: "4. FortiGate 預設使用哪種 UDP Port 進行 IKE 協商？",
+                options: [
+                    "A. TCP 443",
+                    "B. UDP 500 (若遇 NAT 則切換至 UDP 4500)",
+                    "C. TCP 80",
+                    "D. UDP 1701"
+                ],
+                answer: 1, // B
+                explanation: "解析：標準 IKE 使用 UDP 500。若偵測到中間有 NAT 設備，會自動切換至 UDP 4500 (NAT-T)。"
+            },
+            {
+                question: "5. 若 VPN 通道狀態顯示 Phase 1 up, Phase 2 down，最可能的原因是什麼？",
+                options: [
+                    "A. Pre-shared Key 錯誤",
+                    "B. 對方公網 IP 設定錯誤",
+                    "C. 兩端的 Phase 2 Proposal 或 Selectors (網段) 不匹配",
+                    "D. ISP 網路斷線"
+                ],
+                answer: 2, // C
+                explanation: "解析：Phase 1 up 代表身分驗證與基礎加密通道已建立 (排除 Key 與 IP 問題)。Phase 2 down 通常是加密演算法或網段設定兩端不一致。"
+            }
+        ];
+
+        // 渲染測驗
+        const quizContainer = document.getElementById('quiz-container');
+        
+        quizData.forEach((q, index) => {
+            const questionDiv = document.createElement('div');
+            questionDiv.className = 'mb-6 p-4 bg-white rounded shadow-sm border border-gray-200';
+            
+            const questionTitle = document.createElement('h3');
+            questionTitle.className = 'font-bold text-lg mb-3';
+            questionTitle.innerText = q.question;
+            questionDiv.appendChild(questionTitle);
+
+            const optionsDiv = document.createElement('div');
+            q.options.forEach((opt, optIndex) => {
+                const optionBtn = document.createElement('div');
+                optionBtn.className = 'quiz-option';
+                optionBtn.innerText = opt;
+                optionBtn.onclick = () => checkAnswer(optionBtn, optIndex, q.answer, explanationDiv);
+                optionsDiv.appendChild(optionBtn);
+            });
+            questionDiv.appendChild(optionsDiv);
+
+            const explanationDiv = document.createElement('div');
+            explanationDiv.className = 'explanation';
+            explanationDiv.innerText = q.explanation;
+            questionDiv.appendChild(explanationDiv);
+
+            quizContainer.appendChild(questionDiv);
+        });
+
+        function checkAnswer(btn, selectedIndex, correctIndex, explanationDiv) {
+            // 避免重複點擊
+            const parent = btn.parentElement;
+            if (parent.getAttribute('data-answered') === 'true') return;
+            parent.setAttribute('data-answered', 'true');
+
+            // 顯示解析
+            explanationDiv.style.display = 'block';
+
+            if (selectedIndex === correctIndex) {
+                btn.classList.add('correct');
+                btn.innerHTML += ' <i class="fas fa-check-circle float-right"></i>';
+            } else {
+                btn.classList.add('wrong');
+                btn.innerHTML += ' <i class="fas fa-times-circle float-right"></i>';
+                // 標記正確答案
+                parent.children[correctIndex].classList.add('correct');
+                parent.children[correctIndex].innerHTML += ' <i class="fas fa-check-circle float-right"></i>';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fortinet FortiGate 實戰課程 - SSL/TLS 檢測</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+        
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #c53030; /* Fortinet Red */
+        }
+
+        .analogy-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #22c55e;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .highlight-box {
+            background-color: #fef2f2;
+            border-left: 4px solid #ef4444;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* Mermaid Container Styles - Optimized for Readability */
+        .mermaid-container {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            overflow-x: auto; /* Allow horizontal scrolling */
+            display: block;   /* Changed from flex to block to allow child to overflow */
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* --- CSS Brute Force Strategy for Mermaid --- */
+        
+        /* 1. Force the mermaid div to be wide enough so it doesn't shrink */
+        .mermaid {
+            min-width: 900px !important; /* Force minimum width to prevent squishing */
+            display: flex;
+            justify-content: center;
+        }
+
+        /* 2. Override SVG behavior to stop it from scaling down */
+        .mermaid svg {
+            max-width: none !important; 
+            width: 100% !important;
+            height: auto !important;
+        }
+
+        /* 3. Brute force font size increase for specific Mermaid elements */
+        /* Note: Mermaid generates inline styles, so !important is often needed */
+        .mermaid g.actor text, 
+        .mermaid text.actor {
+            font-size: 18px !important;
+            font-weight: bold !important;
+            font-family: 'Noto Sans TC', sans-serif !important;
+        }
+
+        .mermaid text.messageText {
+            font-size: 16px !important;
+            font-family: 'Noto Sans TC', sans-serif !important;
+            stroke-width: 0 !important; /* Make text sharper */
+        }
+
+        .mermaid text.noteText {
+            font-size: 14px !important;
+            font-family: 'Noto Sans TC', sans-serif !important;
+            line-height: 1.5 !important;
+        }
+
+        /* Increase label box padding visuals if possible via CSS */
+        .mermaid rect.actor {
+            fill: #eef2ff !important;
+            stroke: #4f46e5 !important;
+        }
+
+        /* --- End of Brute Force Strategy --- */
+
+        .quiz-option {
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .quiz-option:hover {
+            background-color: #f3f4f6;
+        }
+
+        /* Badge Styles */
+        .badge {
+            display: inline-block;
+            padding: 0.25em 0.6em;
+            font-size: 0.85em;
+            font-weight: 700;
+            line-height: 1;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: baseline;
+            border-radius: 0.25rem;
+            margin-right: 0.5rem;
+        }
+        .badge-red { background-color: #fee2e2; color: #991b1b; }
+        .badge-blue { background-color: #dbeafe; color: #1e40af; }
+        .badge-green { background-color: #dcfce7; color: #166534; }
+        .badge-purple { background-color: #f3e8ff; color: #6b21a8; }
+        
+        pre {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+        }
+    </style>
+</head>
+<body class="pb-16">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-red-700 to-red-900 text-white p-6 shadow-lg mb-8">
+        <div class="container mx-auto flex items-center">
+            <i class="fas fa-shield-alt text-4xl mr-4"></i>
+            <div>
+                <h1 class="text-3xl font-bold">Fortinet FortiGate 實戰課程</h1>
+                <p class="text-red-100 mt-2">Level 2: Security & Connectivity - SSL/TLS 檢測 (SSL Inspection)</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 max-w-5xl">
+
+        <!-- 1. Concept -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold mb-4 flex items-center">
+                <span class="badge badge-red">Concept</span>
+                一、核心概念
+            </h2>
+            
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">一句話定義</h3>
+                <p class="text-gray-700 leading-relaxed">
+                    SSL/TLS 檢測是防火牆解開加密流量（HTTPS）的封包，查看內容是否有病毒或敏感資料，然後再重新加密傳送的技術。
+                </p>
+            </div>
+
+            <div class="analogy-box">
+                <h4 class="font-bold text-green-800 mb-2"><i class="fas fa-lightbulb mr-2"></i>生活化比喻：機場安檢與鎖上的行李箱</h4>
+                <p class="text-gray-700">
+                    想像網路流量是通過機場安檢的<strong>行李箱</strong>。
+                    <br><br>
+                    <strong>1. 一般防火牆 (無 SSL Inspection)：</strong> 就像安檢人員只看行李箱外面的標籤（IP 標頭）。如果標籤寫著「去銀行」，他就放行。但他無法知道鎖上的行李箱裡面是否藏了違禁品（病毒）。
+                    <br><br>
+                    <strong>2. Certificate Inspection (憑證檢測)：</strong> 安檢人員檢查行李箱的主人身分證（網站憑證），確認是不是假冒的，但還是不打開箱子。
+                    <br><br>
+                    <strong>3. Deep Inspection (深度檢測)：</strong> 安檢人員擁有<strong>萬能鑰匙</strong>。他打開你的鎖上的行李箱，把每件衣服都翻開檢查有沒有藏炸彈（IPS/防毒掃描），檢查完後，再用海關專用的鎖把箱子鎖回去，才讓你通過。
+                </p>
+            </div>
+        </div>
+
+        <!-- 2. Mechanism -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold mb-4 flex items-center">
+                <span class="badge badge-blue">Mechanism</span>
+                二、運作原理
+            </h2>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-3 border-b-2 border-blue-500 inline-block">1. Certificate Inspection (憑證檢測)</h3>
+                    <ul class="list-disc list-inside text-gray-700 space-y-2">
+                        <li><strong>檢查對象：</strong> 僅檢查 SSL 握手過程中的 <code>Client Hello</code> (SNI) 與 <code>Server Certificate</code> (CN/SAN)。</li>
+                        <li><strong>優點：</strong> 效能極快，不需要在客戶端安裝憑證，不會跳出瀏覽器警告。</li>
+                        <li><strong>缺點：</strong> <strong>完全無法</strong>看到內容。如果病毒透過 HTTPS 下載，防火牆會「瞎掉」。</li>
+                        <li><strong>主要用途：</strong> 網頁過濾 (Web Filtering) 類別阻擋 (例如：阻擋賭博網站)。</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-3 border-b-2 border-red-500 inline-block">2. Deep Inspection (深度檢測)</h3>
+                    <ul class="list-disc list-inside text-gray-700 space-y-2">
+                        <li><strong>運作核心：</strong> <strong>MITM (Man-In-The-Middle，中間人攻擊模式)</strong>。</li>
+                        <li><strong>流程：</strong> FortiGate 假裝是 Server (偽造憑證) 跟 Client 連線；同時假裝是 Client 跟真正的 Server 連線。</li>
+                        <li><strong>關鍵挑戰：</strong> 瀏覽器會因為憑證是由 FortiGate 簽發而非權威機構 (如 DigiCert) 簽發而報錯。</li>
+                        <li><strong>解決方案：</strong> 必須將 FortiGate 的 <strong>CA 憑證</strong> 安裝到所有端點電腦的「受信任的根憑證授權單位」。</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="highlight-box mt-6">
+                <h4 class="font-bold text-red-800 mb-2"><i class="fas fa-exclamation-triangle mr-2"></i>隱私權與法律議題 (Privacy)</h4>
+                <p class="text-gray-700">
+                    進行深度檢測等於公司可以看到使用者的所有加密內容（包括網銀帳號密碼）。因此，實務上我們必須設定 <strong>Exempt (排除)</strong> 清單，針對 Finance & Banking (金融)、Health (醫療) 等類別，只做 Certificate Inspection，不做解密，以符合法規與隱私要求。
+                </p>
+            </div>
+        </div>
+
+        <!-- 3. Visuals -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold mb-4 flex items-center">
+                <span class="badge badge-green">Visuals</span>
+                三、架構視覺化
+            </h2>
+
+            <p class="text-sm text-gray-500 mb-4"><i class="fas fa-info-circle"></i> 提示：手機版請左右滑動檢視完整架構圖。</p>
+
+            <h3 class="text-lg font-semibold text-gray-800 mt-4">圖一：Certificate Inspection (僅檢查表頭)</h3>
+            <div class="mermaid-container">
+                <div class="mermaid">
+                    sequenceDiagram
+                    participant PC as 使用者電腦 (Client)
+                    participant FG as FortiGate
+                    participant Web as 網站伺服器 (Server)
+
+                    Note over PC, Web: TCP 三向交握完成
+                    PC->>FG: SSL Client Hello (SNI: www.gambling.com)
+                    Note right of FG: 1. 檢查 SNI 網域名稱<br/>2. 判斷類別：賭博網站<br/>3. 動作：Block
+                    FG-->>PC: Reset / Drop Connection
+                    Note over PC, FG: 連線中斷，不需解密
+                </div>
+            </div>
+
+            <h3 class="text-lg font-semibold text-gray-800 mt-8">圖二：Deep Inspection (MITM 中間人解密)</h3>
+            <div class="mermaid-container">
+                <div class="mermaid">
+                    sequenceDiagram
+                    participant PC as 使用者電腦
+                    participant FG as FortiGate (Proxy)
+                    participant Web as Google (真實伺服器)
+
+                    PC->>FG: Client Hello
+                    FG->>Web: Client Hello (FortiGate 代發)
+                    Web-->>FG: Server Hello + 真實憑證 (Google CA)
+                    
+                    Note right of FG: 1. 驗證真實憑證有效性<br/>2. 產生偽造憑證 (Issuer: Fortinet CA)<br/>3. 建立兩段加密通道
+
+                    FG-->>PC: Server Hello + 偽造憑證 (Fortinet CA)
+                    
+                    Note left of PC: 若 PC 信任 Fortinet CA<br/>則連線建立成功
+
+                    par 加密通道 1 (PC-FG)
+                        PC->>FG: 加密資料 (Request)
+                    and 加密通道 2 (FG-Web)
+                        FG->>Web: 重新加密資料 (Request)
+                    end
+
+                    Note right of FG: **解密檢測區**<br/>Antivirus 掃描<br/>IPS 特徵比對<br/>Data Leak Prevention
+
+                    Web-->>FG: 加密回應 (Response)
+                    FG-->>PC: 重新加密回應 (Response)
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Use Case -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold mb-4 flex items-center">
+                <span class="badge badge-purple">Use Case</span>
+                四、實務應用場景與設定
+            </h2>
+            
+            <div class="mb-6">
+                <h3 class="text-lg font-bold text-gray-800">案例背景</h3>
+                <p class="text-gray-700">
+                    企業內網需要開放員工上網，但必須防止員工透過 HTTPS 下載病毒或勒索軟體。同時，財務部門需要訪問銀行網站，基於隱私與相容性，銀行網站不能被解密。
+                </p>
+                <div class="flex gap-4 mt-2">
+                    <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">目標 1：全面掃毒 (Deep Inspection)</span>
+                    <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm">目標 2：排除網銀 (Exempt Banking)</span>
+                </div>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">實作步驟 (Configuration Guide)</h3>
+
+            <!-- Step 1 -->
+            <div class="mb-6 border-l-4 border-gray-300 pl-4">
+                <h4 class="font-bold text-gray-700">Step 1: 匯出 CA 憑證並部署到用戶端</h4>
+                <p class="text-sm text-gray-600 mb-2">為了避免瀏覽器跳出 "不安全" 的警告，需將 FortiGate 的 CA 憑證安裝到電腦。</p>
+                <ul class="list-decimal list-inside text-sm text-gray-700 bg-gray-50 p-3 rounded">
+                    <li>前往 <strong>System > Certificates</strong>。</li>
+                    <li>選擇 <code>Fortinet_CA_SSL</code> (或自建的 CA)，點擊 <strong>Download</strong>。</li>
+                    <li>(IT 管理員操作) 透過 AD Group Policy (GPO) 將此憑證派送至所有網域電腦的 <strong>"受信任的根憑證授權單位"</strong>。</li>
+                </ul>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="mb-6 border-l-4 border-gray-300 pl-4">
+                <h4 class="font-bold text-gray-700">Step 2: 設定 SSL/SSH Profile (GUI & CLI)</h4>
+                <p class="text-sm text-gray-600 mb-2">建立一個新的 Profile，啟用深度檢測，並將金融類別排除。</p>
+                
+                <div class="bg-gray-800 text-gray-200 p-4 rounded-md text-sm font-mono overflow-x-auto">
+                    <p class="text-green-400"># CLI Configuration Example</p>
+                    <p>config firewall ssl-ssh-profile</p>
+                    <p>&nbsp;&nbsp;edit "Deep-Inspect-Office"</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;set comment "Deep inspection for office, exempt banking"</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;config ssl</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set inspect-all deep-inspection  <span class="text-gray-500">// 啟用深度檢測</span></p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;end</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;config https</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set ports 443</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set status deep-inspection</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;end</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-yellow-400">config ssl-exempt</span>  <span class="text-gray-500">// 設定排除清單</span></p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;edit 1</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set type fortiguard-category</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set fortiguard-category 31  <span class="text-gray-500">// Category 31 is Finance/Banking</span></p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;next</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;edit 2</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set type fortiguard-category</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set fortiguard-category 34  <span class="text-gray-500">// Category 34 is Health</span></p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;next</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;end</p>
+                    <p>&nbsp;&nbsp;next</p>
+                    <p>end</p>
+                </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="mb-6 border-l-4 border-gray-300 pl-4">
+                <h4 class="font-bold text-gray-700">Step 3: 套用至 Firewall Policy</h4>
+                <p class="text-sm text-gray-600 mb-2">將剛剛建立的 Profile 套用到上網的策略中。</p>
+                
+                <div class="bg-gray-800 text-gray-200 p-4 rounded-md text-sm font-mono overflow-x-auto">
+                    <p class="text-green-400"># CLI Configuration Example</p>
+                    <p>config firewall policy</p>
+                    <p>&nbsp;&nbsp;edit 10</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;set name "LAN_to_WAN_General"</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;set srcintf "lan"</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;set dstintf "wan1"</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;set srcaddr "all"</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;set dstaddr "all"</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;set action accept</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;set service "ALL"</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;set utm-status enable</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-yellow-400">set ssl-ssh-profile "Deep-Inspect-Office"</span></p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;set av-profile "default"  <span class="text-gray-500">// 必須搭配 AV/IPS 才有意義</span></p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;set ips-sensor "default"</p>
+                    <p>&nbsp;&nbsp;&nbsp;&nbsp;set nat enable</p>
+                    <p>&nbsp;&nbsp;next</p>
+                    <p>end</p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 5. Quiz -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold mb-4 flex items-center">
+                <span class="badge badge-red">Quiz</span>
+                五、隨堂測驗
+            </h2>
+            <div id="quiz-container" class="space-y-6">
+                <!-- Questions will be injected here by JS -->
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="bg-gray-800 text-gray-400 text-center py-4 text-sm mt-8">
+        <p>Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0</p>
+    </footer>
+
+    <!-- Scripts -->
+    <!-- Mermaid JS -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        
+        // Forced Configuration to disable max-width scaling
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: { useMaxWidth: false, htmlLabels: true },
+            sequence: { 
+                useMaxWidth: false, // Critical: Stop it from scaling down to fit container
+                actorMargin: 50, 
+                messageMargin: 40, 
+                boxMargin: 10 
+            },
+            securityLevel: 'loose'
+        });
+    </script>
+
+    <!-- Quiz Logic -->
+    <script>
+        const quizData = [
+            {
+                question: "1. 關於 Certificate Inspection 與 Deep Inspection 的敘述，下列何者正確？",
+                options: [
+                    "Certificate Inspection 可以掃描加密封包內的病毒",
+                    "Deep Inspection 不需要解密即可檢查內容",
+                    "Deep Inspection 採用 MITM 架構，可以解開內容進行 IPS 與防毒掃描",
+                    "兩者都需要在 Client 端安裝 CA 憑證"
+                ],
+                correct: 2,
+                explanation: "Deep Inspection 透過中間人攻擊原理 (MITM) 解密流量，才能看到封包內容並進行掃描。Certificate Inspection 僅檢查憑證表頭。"
+            },
+            {
+                question: "2. 在啟用 Deep Inspection 後，為什麼使用者的瀏覽器會出現「連線不安全」的警告？",
+                options: [
+                    "因為網路斷線了",
+                    "因為防火牆中毒了",
+                    "因為瀏覽器不信任 FortiGate 簽發的偽造憑證",
+                    "因為 DNS 解析失敗"
+                ],
+                correct: 2,
+                explanation: "FortiGate 會即時簽發一個偽造的網站憑證給 Client，因為這個憑證是由 FortiGate 的 CA 簽發，而非公網權威 CA，所以瀏覽器預設不信任。"
+            },
+            {
+                question: "3. 若希望在做 Deep Inspection 的同時，保護使用者的網銀隱私，應如何設定？",
+                options: [
+                    "關閉整台防火牆的 SSL Inspection",
+                    "在 SSL/SSH Profile 中設定 Exempt (排除) Finance/Banking 類別",
+                    "告訴使用者不要在公司上網銀",
+                    "將網銀流量導向 DMZ"
+                ],
+                correct: 1,
+                explanation: "最佳實踐是使用 SSL Exempt 功能，針對敏感類別 (Finance, Health) 繞過深度檢測，僅做 Certificate Inspection。"
+            },
+            {
+                question: "4. 下列哪一種檢測模式對防火牆的效能 (CPU/Memory) 消耗最大？",
+                options: [
+                    "No Inspection (不檢測)",
+                    "Certificate Inspection",
+                    "Deep Inspection",
+                    "消耗都一樣"
+                ],
+                correct: 2,
+                explanation: "Deep Inspection 需要進行兩次加解密運算 (Client-FG, FG-Server) 以及內容掃描，對硬體效能消耗最大。"
+            },
+            {
+                question: "5. Certificate Inspection 主要依賴封包中的哪個欄位來判斷網站類別？",
+                options: [
+                    "HTTP Body",
+                    "TCP Sequence Number",
+                    "SNI (Server Name Indication) 與 CN (Common Name)",
+                    "Source IP Address"
+                ],
+                correct: 2,
+                explanation: "在 TLS 握手初期，Client Hello 封包會帶有 SNI 欄位，告知要存取的網域名稱，Certificate Inspection 藉此判斷網站類別。"
+            }
+        ];
+
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((data, qIndex) => {
+            const questionEl = document.createElement('div');
+            questionEl.className = 'border-b border-gray-200 pb-6 last:border-0';
+            
+            let optionsHtml = '';
+            data.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border border-gray-200 mb-2 flex items-center group" 
+                         onclick="checkAnswer(this, ${qIndex}, ${optIndex})">
+                        <div class="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center mr-3 group-hover:border-blue-500">
+                            <div class="w-3 h-3 rounded-full bg-blue-500 opacity-0 transition-opacity"></div>
+                        </div>
+                        <span>${opt}</span>
+                    </div>
+                `;
+            });
+
+            questionEl.innerHTML = `
+                <h3 class="font-bold text-lg mb-3 text-gray-800">${data.question}</h3>
+                <div class="mb-4" data-answered="false">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${qIndex}" class="hidden p-4 rounded bg-gray-50 border border-gray-200">
+                    <p class="result-title font-bold mb-1"></p>
+                    <p class="text-gray-600 text-sm">${data.explanation}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionEl);
+        });
+
+        function checkAnswer(element, qIndex, optIndex) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            // 鎖定該題不可再選
+            if (element.parentElement.dataset.answered === "true") return;
+            element.parentElement.dataset.answered = "true";
+
+            // 清除並重設樣式
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+                opt.classList.add('opacity-50', 'cursor-not-allowed');
+            });
+            element.classList.remove('opacity-50');
+
+            if (optIndex === data.correct) {
+                // 答對
+                element.classList.add('bg-green-100', 'border-green-500');
+                element.querySelector('.w-3').classList.remove('opacity-0');
+                
+                resultBox.classList.remove('hidden');
+                resultBox.classList.add('bg-green-50', 'border-green-500');
+                resultTitle.textContent = "✅ 答對了！";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                // 答錯
+                element.classList.add('bg-red-100', 'border-red-500');
+                
+                // 標示正確答案
+                const correctOpt = allOptions[data.correct];
+                correctOpt.classList.remove('opacity-50');
+                correctOpt.classList.add('bg-green-100', 'border-green-500');
+                
+                resultBox.classList.remove('hidden');
+                resultBox.classList.add('bg-red-50', 'border-red-500');
+                resultTitle.textContent = "❌ 答錯了！";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+    </script>
+</body>
+</html>
