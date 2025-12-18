@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fortinet FortiGate 實戰課程 - 路由控制 (Advanced Routing)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.0/mermaid.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+            /* 強制最小寬度與字體調整，確保手機版圖表可讀 */
+            min-width: 375px; 
+        }
+
+        /* 頁首漸層 */
+        .header-bg {
+            background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%);
+        }
+
+        /* 卡片樣式 */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 6px solid #c53030; /* Fortinet Red accent */
+            transition: transform 0.2s;
+        }
+
+        .section-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 標題標籤 */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        .badge-concept { background-color: #fee2e2; color: #991b1b; }
+        .badge-mechanism { background-color: #dbeafe; color: #1e40af; }
+        .badge-visual { background-color: #d1fae5; color: #065f46; }
+        .badge-usecase { background-color: #fef3c7; color: #92400e; }
+
+        /* 特殊區塊 */
+        .analogy-box {
+            background-color: #f0fdf4; /* Green-50 */
+            border: 2px solid #22c55e; /* Green-500 */
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            position: relative;
+        }
+        .analogy-box::before {
+            content: '\f0eb'; /* Lightbulb icon */
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            top: -15px;
+            left: 20px;
+            background: white;
+            padding: 0 10px;
+            color: #22c55e;
+            font-size: 1.25rem;
+        }
+
+        .highlight-box {
+            background-color: #fff1f2; /* Red-50 */
+            border: 2px solid #f43f5e; /* Red-500 */
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        /* CLI 代碼區塊 */
+        .cli-block {
+            background-color: #1e293b;
+            color: #a5f3fc;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            white-space: pre; /* 關鍵修正：保留原始排版與換行 */
+        }
+        .cli-comment {
+            color: #94a3b8;
+            font-style: italic;
+        }
+
+        /* Mermaid 容器 */
+        .mermaid-container {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            display: flex;
+            flex-direction: column; /* 垂直排列 */
+            align-items: center;
+            overflow-x: auto;
+        }
+        
+        /* 測驗樣式 */
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .quiz-option:hover {
+            background-color: #f3f4f6;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="header-bg text-white py-12 shadow-lg">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center gap-4 mb-4">
+                <i class="fa-solid fa-shield-halved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold tracking-tight">Fortinet FortiGate 實戰課程</h1>
+                    <p class="text-red-100 mt-1 text-lg">階段三：架構設計與維運 (Level 3)</p>
+                </div>
+            </div>
+            <h2 class="text-2xl font-semibold border-l-4 border-white pl-4 mt-6">
+                單元 11. 路由控制 (Advanced Routing)
+            </h2>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <!-- Topic 1: Static Route & ECMP -->
+        <article class="section-card">
+            <h3 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                <span class="bg-red-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm mr-3">1</span>
+                靜態路由與 ECMP (Static Route & Load Balancing)
+            </h3>
+
+            <!-- 1. 核心概念 -->
+            <div class="mb-8">
+                <span class="badge badge-concept">核心概念 (Concept)</span>
+                <p class="text-lg font-medium text-gray-700 mb-2">一句話定義：</p>
+                <p class="text-gray-600 mb-4">管理者手動告訴防火牆「去哪裡該走哪條路」，若有多條路則可同時使用。</p>
+                
+                <div class="analogy-box">
+                    <h4 class="font-bold text-green-700 mb-2">生活化比喻：指路牌與多線道</h4>
+                    <p class="text-gray-700">
+                        <strong>靜態路由 (Static Route)</strong> 就像路邊的「指路牌」，上面寫著「往台北車站請直走」。如果不設路牌，車子（封包）就不知道怎麼去，只能被丟棄。
+                        <br><br>
+                        <strong>ECMP (Equal Cost Multi-Path)</strong> 就像一條馬路有「多個車道」。當前往同一目的地的兩條路距離相等（Cost 相同）時，車流可以分散在兩個車道上行駛，避免單一車道塞車。
+                    </p>
+                </div>
+            </div>
+
+            <!-- 2. 運作原理 -->
+            <div class="mb-8">
+                <span class="badge badge-mechanism">運作原理 (Mechanism)</span>
+                <ul class="list-disc pl-5 space-y-2 text-gray-700">
+                    <li><strong>Administrative Distance (AD)</strong>：路徑的可信度。數值越小越優先 (Connected=0, Static=10, OSPF=110, BGP=20)。</li>
+                    <li><strong>Priority</strong>：當 AD 值相同時，比較 Priority (數值越小越優先)。</li>
+                    <li><strong>ECMP 觸發條件</strong>：當多條路由的 Destination、AD 值、Priority 皆相同時，FortiGate 會將這些路由同時放入 Routing Table 進行負載平衡。</li>
+                </ul>
+                <div class="highlight-box">
+                    <strong class="text-red-600">ECMP 演算法 (v4.0+)：</strong>
+                    <ul class="list-disc pl-5 mt-2 text-sm text-gray-700">
+                        <li><strong>Source IP (預設)</strong>：相同來源 IP 的封包走同一條線路 (除錯容易，常用)。</li>
+                        <li><strong>Source-Destination IP</strong>：來源+目的地的雜湊值決定路徑。</li>
+                        <li><strong>Weighted</strong>：依照權重比例分配 (如 WAN1=60%, WAN2=40%)。</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 3. 架構視覺化 -->
+            <div class="mb-8">
+                <span class="badge badge-visual">架構視覺化 (Visuals)</span>
+                <div class="mermaid-container">
+                    <div class="text-center font-bold mb-2 text-gray-500">雙 ISP 負載平衡架構圖</div>
+                    <div class="mermaid">
+%%{init: {'themeVariables': {'fontSize': '21px'}}}%%
+flowchart TD
+    LAN_User["內網使用者<br>192.168.1.0/24"] -->|Traffic| FG["FortiGate Firewall"]
+    
+    subgraph ECMP_Group ["ECMP Load Balancing"]
+        direction TB
+        FG -->|"Route 1 (AD=10)"| WAN1["ISP 1 - 中華電信<br>GW: 1.1.1.1"]
+        FG -->|"Route 2 (AD=10)"| WAN2["ISP 2 - 遠傳電信<br>GW: 2.2.2.2"]
+    end
+    
+    WAN1 --> Internet(("Internet"))
+    WAN2 --> Internet
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. 實務應用場景 -->
+            <div class="mb-8">
+                <span class="badge badge-usecase">實務應用場景 (Use Case)</span>
+                <h4 class="font-bold text-gray-800 mb-2">情境：企業雙線路備援與分流</h4>
+                <p class="text-gray-600 mb-4">公司申請了兩條 1G 光纖，希望平時兩條線路一起用 (Active-Active)，任一條斷線時自動切換到另一條。</p>
+                
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <h5 class="font-bold text-sm text-gray-500 uppercase mb-2">設定範例 (Configuration Example)</h5>
+                    <div class="cli-block">
+<span class="cli-comment"># 設定第一條靜態路由 (WAN1)</span>
+config router static
+    edit 1
+        set dst 0.0.0.0 0.0.0.0              <span class="cli-comment">// 預設路由</span>
+        set gateway 1.1.1.1                  <span class="cli-comment">// ISP 1 Gateway</span>
+        set device "wan1"
+        set distance 10
+        set comment "ISP1-Primary"
+    next
+
+    <span class="cli-comment"># 設定第二條靜態路由 (WAN2) - 關鍵：Distance 相同</span>
+    edit 2
+        set dst 0.0.0.0 0.0.0.0
+        set gateway 2.2.2.2                  <span class="cli-comment">// ISP 2 Gateway</span>
+        set device "wan2"
+        set distance 10                      <span class="cli-comment">// 與 WAN1 相同，觸發 ECMP</span>
+        set comment "ISP2-Primary"
+    next
+end
+
+<span class="cli-comment"># 調整 ECMP 演算法 (依需求)</span>
+config system settings
+    set v4-ecmp-mode source-ip-based
+end
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <!-- Topic 2: Policy Based Routing (PBR) -->
+        <article class="section-card">
+            <h3 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                <span class="bg-red-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm mr-3">2</span>
+                策略路由 (Policy Based Routing, PBR)
+            </h3>
+
+            <!-- 1. 核心概念 -->
+            <div class="mb-8">
+                <span class="badge badge-concept">核心概念 (Concept)</span>
+                <p class="text-lg font-medium text-gray-700 mb-2">一句話定義：</p>
+                <p class="text-gray-600 mb-4">打破「只看目的地」的傳統導航，根據「你是誰 (來源 IP)」或「做什麼 (Service/Port)」來決定走哪條路。</p>
+                
+                <div class="analogy-box">
+                    <h4 class="font-bold text-green-700 mb-2">生活化比喻：VIP 專用道</h4>
+                    <p class="text-gray-700">
+                        一般的路由表像「公車」，不管乘客是誰，只要去台北車站都走同一條路線。
+                        <br>
+                        <strong>策略路由 (PBR)</strong> 就像「機場 VIP 通關」，雖然目的地也是出國，但如果你是 VIP (特定來源 IP) 或者你是機組人員 (特定 Protocol)，警衛就會引導你走專屬通道，不跟一般人擠。
+                    </p>
+                </div>
+            </div>
+
+            <!-- 2. 運作原理 -->
+            <div class="mb-8">
+                <span class="badge badge-mechanism">運作原理 (Mechanism)</span>
+                <p class="text-gray-700 mb-4">
+                    PBR 的優先權高於一般路由表 (Static/Dynamic)。當封包進入 FortiGate 時，會先檢查是否匹配 PBR 規則，若匹配則強制導向指定介面或 Gateway；若不匹配，才去查 Routing Table。
+                </p>
+                <ul class="list-disc pl-5 space-y-2 text-gray-700">
+                    <li><strong>匹配條件</strong>：Source IP, Destination IP, Protocol (TCP/UDP), Port, Application (ISDB)。</li>
+                    <li><strong>動作</strong>：Forward Traffic (強制走某介面), Stop Policy Routing (回歸一般路由表)。</li>
+                </ul>
+            </div>
+
+            <!-- 3. 架構視覺化 -->
+            <div class="mb-8">
+                <span class="badge badge-visual">架構視覺化 (Visuals)</span>
+                <div class="mermaid-container">
+                    <div class="text-center font-bold mb-2 text-gray-500">封包路由決策流程 (Life of a Packet - Routing Decision)</div>
+                    <!-- CSS 暴力覆寫：設定最小寬度，強制圖表撐開，並利用容器的 scroll 避免破版 -->
+                    <div class="mermaid" style="min-width: 900px !important;">
+%%{init: {'themeVariables': {'fontSize': '20px'}}}%%
+flowchart TD
+    Start["封包進入 Ingress Interface"] --> CheckPBR{"是否匹配<br>Policy Route?"}
+    
+    CheckPBR -- Yes --> PBR_Action["執行 PBR 動作<br>強制指定 Outgoing Interface/Gateway"]
+    PBR_Action --> PolicyCheck["Firewall Policy 檢查"]
+    
+    CheckPBR -- No --> LookRT{"查詢 Routing Table<br>FIB Lookup"}
+    LookRT -- "有路由" --> PolicyCheck
+    LookRT -- "無路由" --> Drop["丟棄封包 Drop"]
+    
+    PolicyCheck -- Accept --> Egress["轉發至 Egress Interface"]
+    PolicyCheck -- Deny --> Drop
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. 實務應用場景 -->
+            <div class="mb-8">
+                <span class="badge badge-usecase">實務應用場景 (Use Case)</span>
+                <h4 class="font-bold text-gray-800 mb-2">情境：部門分流 (財務部走專線，訪客走廉價線路)</h4>
+                <p class="text-gray-600 mb-4">
+                    財務部 (10.0.1.0/24) 需要高穩定性，必須走 WAN1 (MPLS/專線)；<br>
+                    訪客 Wi-Fi (192.168.99.0/24) 只需要能上網，強制走 WAN2 (一般 ADSL) 以節省成本。
+                </p>
+                
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <h5 class="font-bold text-sm text-gray-500 uppercase mb-2">設定範例 (Configuration Example)</h5>
+                    <div class="cli-block">
+config router policy
+    <span class="cli-comment"># 規則 1: 財務部走 WAN1</span>
+    edit 1
+        set input-device "port1-LAN"  <span class="cli-comment">// 入口介面</span>
+        set src "10.0.1.0/255.255.255.0"
+        set dst "0.0.0.0/0.0.0.0"     <span class="cli-comment">// 任何目的地</span>
+        set output-device "wan1"      <span class="cli-comment">// 強制出口</span>
+        set gateway 1.1.1.1           <span class="cli-comment">// 強制 Gateway</span>
+    next
+    
+    <span class="cli-comment"># 規則 2: 訪客走 WAN2</span>
+    edit 2
+        set input-device "port1-LAN"
+        set src "192.168.99.0/255.255.255.0"
+        set dst "0.0.0.0/0.0.0.0"
+        set output-device "wan2"
+        set gateway 2.2.2.2
+    next
+end
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <!-- Topic 3: Dynamic Routing (OSPF) -->
+        <article class="section-card">
+            <h3 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                <span class="bg-red-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm mr-3">3</span>
+                動態路由基礎 (Dynamic Routing - OSPF)
+            </h3>
+
+            <!-- 1. 核心概念 -->
+            <div class="mb-8">
+                <span class="badge badge-concept">核心概念 (Concept)</span>
+                <p class="text-lg font-medium text-gray-700 mb-2">一句話定義：</p>
+                <p class="text-gray-600 mb-4">路由器之間互相「八卦 (Gossip)」，自動交換彼此知道的路徑資訊，即時應對網路變化。</p>
+                
+                <div class="analogy-box">
+                    <h4 class="font-bold text-green-700 mb-2">生活化比喻：Google Maps 導航</h4>
+                    <p class="text-gray-700">
+                        靜態路由像「紙本地圖」，路斷了你也不會知道，還是會開過去然後卡住。
+                        <br>
+                        <strong>動態路由 (如 OSPF)</strong> 就像 <strong>Google Maps</strong>。當前方發生事故 (線路中斷)，所有車輛 (路由器) 會互相通報，導航會自動幫你計算出一條新的最快路徑，完全不需要人工介入。
+                    </p>
+                </div>
+            </div>
+
+            <!-- 2. 運作原理 -->
+            <div class="mb-8">
+                <span class="badge badge-mechanism">運作原理 (Mechanism)</span>
+                <ul class="list-disc pl-5 space-y-2 text-gray-700">
+                    <li><strong>Hello Packet</strong>：用來發現並維持鄰居關係 (Neighbor)。</li>
+                    <li><strong>LSA (Link State Advertisement)</strong>：交換路徑資訊的封包。</li>
+                    <li><strong>Area 0 (Backbone)</strong>：OSPF 的核心區域，所有其他區域必須連接到 Area 0 以防止路由迴圈。</li>
+                    <li><strong>Cost</strong>：路徑成本，通常基於頻寬計算 (100Mbps Cost > 1Gbps Cost)。</li>
+                </ul>
+            </div>
+
+            <!-- 3. 架構視覺化 -->
+            <div class="mb-8">
+                <span class="badge badge-visual">架構視覺化 (Visuals)</span>
+                <div class="mermaid-container">
+                    <div class="text-center font-bold mb-2 text-gray-500">Hub-and-Spoke VPN OSPF 架構</div>
+                    <!-- CSS 暴力覆寫：設定最小寬度，強制圖表撐開，並利用容器的 scroll 避免破版 -->
+                    <div class="mermaid" style="min-width: 900px !important;">
+%%{init: {'themeVariables': {'fontSize': '18px'}}}%%
+flowchart TD
+    HO["總公司 HQ - Hub<br>Area 0"] ---|IPsec VPN| B1["分公司 Branch 1<br>Area 1"]
+    HO ---|IPsec VPN| B2["分公司 Branch 2<br>Area 1"]
+    
+    subgraph "Routing Updates"
+    direction TB
+    B1 -.->|"LSA Updates"| HO
+    B2 -.->|"LSA Updates"| HO
+    HO -.->|"Redistribute"| B1
+    end
+    
+    style HO fill:#fca5a5,stroke:#991b1b
+    style B1 fill:#bfdbfe,stroke:#1e40af
+    style B2 fill:#bfdbfe,stroke:#1e40af
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. 實務應用場景 -->
+            <div class="mb-8">
+                <span class="badge badge-usecase">實務應用場景 (Use Case)</span>
+                <h4 class="font-bold text-gray-800 mb-2">情境：多站點 VPN 自動路由學習</h4>
+                <p class="text-gray-600 mb-4">
+                    企業有 50 個外點透過 VPN 連回總部。若用靜態路由，每新增一個分公司，總部就要加一條路由，維護困難。使用 OSPF，分公司上線後自動將自己的網段宣告給總部。
+                </p>
+                
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <h5 class="font-bold text-sm text-gray-500 uppercase mb-2">設定範例 (Configuration Example - Head Office)</h5>
+                    <div class="cli-block">
+config router ospf
+    set router-id 1.1.1.1        <span class="cli-comment">// 設定獨一無二的 ID</span>
+    config area
+        edit 0.0.0.0             <span class="cli-comment">// 定義 Backbone Area</span>
+    next
+    config network
+        edit 1
+            set prefix 192.168.10.0/24  <span class="cli-comment">// 宣告總公司內網</span>
+            set area 0.0.0.0
+        next
+        edit 2
+            set prefix 10.10.10.0/24    <span class="cli-comment">// 宣告 VPN Tunnel 網段</span>
+            set area 0.0.0.0
+        next
+    end
+    <span class="cli-comment"># 將連接的靜態路由重分配給 OSPF (選用)</span>
+    config redistribute "static"
+        set status enable
+    end
+end
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <!-- Quiz Section -->
+        <div class="section-card border-l-orange-500">
+            <h3 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fa-solid fa-pen-to-square mr-3 text-orange-500"></i>
+                隨堂測驗 (Quiz)
+            </h3>
+            
+            <div class="space-y-6" id="quiz-container">
+                <!-- Questions will be inserted here by JavaScript -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-gray-400 py-6 text-center text-sm">
+        <div class="container mx-auto">
+            <p>Fortinet FortiGate 實戰課程 | Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0</p>
+        </div>
+    </footer>
+
+    <!-- Quiz Logic -->
+    <script>
+        const quizData = [
+            {
+                question: "1. 關於 ECMP (Equal Cost Multi-Path)，下列敘述何者正確？",
+                options: [
+                    "必須是不同 AD 值的路由才能觸發 ECMP",
+                    "只有動態路由支援 ECMP，靜態路由不支援",
+                    "當多條路由的 Destination, AD 值與 Priority 皆相同時會觸發",
+                    "ECMP 主要用途是為了做 HA 的 Active-Passive 備援"
+                ],
+                correct: 2,
+                explanation: "ECMP 的觸發條件是多條路徑具有相同的 Destination subnet, Administrative Distance (AD) 以及 Priority。"
+            },
+            {
+                question: "2. 在 FortiGate 的路由決策流程中，優先順序最高的是？",
+                options: [
+                    "Static Route (靜態路由)",
+                    "Policy Route (策略路由 PBR)",
+                    "OSPF Dynamic Route",
+                    "Directly Connected Interface"
+                ],
+                correct: 1,
+                explanation: "Policy Route (PBR) 會在查詢 Routing Table 之前先被檢查，因此具有最高優先權。"
+            },
+            {
+                question: "3. 若希望「所有來自 192.168.10.0/24 的封包都強制走 WAN2」，最適合使用哪種技術？",
+                options: [
+                    "Static Route 設定較低的 AD 值",
+                    "OSPF 路由宣告",
+                    "Policy Based Routing (PBR)",
+                    "BGP AS-Path Prepend"
+                ],
+                correct: 2,
+                explanation: "標準路由 (Static/OSPF) 是基於目的地 (Destination) 轉發。要基於來源 (Source) 轉發，必須使用 PBR。"
+            },
+            {
+                question: "4. OSPF 運作時，所有區域 (Area) 必須直接連接到哪個區域？",
+                options: [
+                    "Area 1",
+                    "Area 255",
+                    "Area 0 (Backbone Area)",
+                    "任意區域皆可"
+                ],
+                correct: 2,
+                explanation: "OSPF 採用雙層階層架構，所有非骨幹區域 (Non-backbone Areas) 必須在邏輯上連接到 Area 0 (Backbone Area) 以傳遞路由。"
+            },
+            {
+                question: "5. 若兩條 Static Route 的 Destination 相同，但 AD 值分別為 10 與 20，請問流量會如何走？",
+                options: [
+                    "負載平衡 (Load Balancing)",
+                    "只走 AD=10 的路徑，AD=20 為備援",
+                    "只走 AD=20 的路徑，AD=10 為備援",
+                    "隨機選擇路徑"
+                ],
+                correct: 1,
+                explanation: "AD 值越小越優先。FortiGate 只會將 AD=10 的路由放入 Routing Table，AD=20 的路由會隱藏起來做為浮動靜態路由 (Floating Static Route) 備援。"
+            }
+        ];
+
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((data, qIndex) => {
+            const questionEl = document.createElement('div');
+            questionEl.className = 'bg-white p-6 rounded-lg shadow-sm border border-gray-100';
+            questionEl.innerHTML = `
+                <h4 class="font-bold text-lg mb-4 text-gray-800">${data.question}</h4>
+                <div class="space-y-3">
+                    ${data.options.map((opt, optIndex) => `
+                        <div class="quiz-option p-3 border rounded border-gray-200 hover:border-blue-500" 
+                             onclick="checkAnswer(this, ${qIndex}, ${optIndex})">
+                            <span class="inline-block w-6 h-6 bg-gray-100 text-gray-500 rounded-full text-center text-sm leading-6 mr-2 font-bold">${String.fromCharCode(65 + optIndex)}</span>
+                            ${opt}
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="result-box hidden mt-4 p-4 rounded-lg text-sm border-l-4">
+                    <p class="result-title font-bold text-lg mb-1"></p>
+                    <p class="explanation text-gray-700"></p>
+                </div>
+            `;
+            quizContainer.appendChild(questionEl);
+        });
+
+        function checkAnswer(element, qIndex, optIndex) {
+            const data = quizData[qIndex];
+            const resultBox = element.parentElement.nextElementSibling;
+            const resultTitle = resultBox.querySelector('.result-title');
+            const explanation = resultBox.querySelector('.explanation');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            // Prevent multiple clicks
+            if (element.parentElement.dataset.answered) return;
+            element.parentElement.dataset.answered = "true";
+
+            // Remove default styles
+            allOptions.forEach(opt => opt.classList.remove('bg-green-50', 'bg-red-50', 'border-green-500', 'border-red-500'));
+
+            if (optIndex === data.correct) {
+                // Correct
+                element.classList.add('bg-green-50', 'border-green-500');
+                resultBox.classList.remove('hidden');
+                resultBox.classList.add('bg-green-50', 'border-green-500');
+                resultTitle.textContent = "✅ 答對了！";
+                resultTitle.classList.add('text-green-800');
+            } else {
+                // Incorrect
+                element.classList.add('bg-red-50', 'border-red-500');
+                // Highlight correct answer
+                allOptions[data.correct].classList.add('bg-green-50', 'border-green-500');
+                
+                resultBox.classList.remove('hidden');
+                resultBox.classList.add('bg-red-50', 'border-red-500');
+                resultTitle.textContent = "❌ 答錯了！";
+                resultTitle.classList.add('text-red-800');
+            }
+            
+            explanation.textContent = "解析：" + data.explanation;
+        }
+
+        // Initialize Mermaid
+        mermaid.initialize({ startOnLoad: true });
+    </script>
+</body>
+</html>
