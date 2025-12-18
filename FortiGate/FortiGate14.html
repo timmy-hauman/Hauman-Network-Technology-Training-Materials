@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fortinet FortiGate 實戰課程 - 高可用性 (HA) 架構設計</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6; /* Gray-100 */
+            color: #1f2937; /* Gray-800 */
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* 頁首漸層 - Fortinet Red */
+        .header-gradient {
+            background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%);
+        }
+
+        /* 卡片樣式 */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #b91c1c; /* Fortinet Red */
+            transition: transform 0.2s ease-in-out;
+        }
+        
+        .section-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 標籤 Badge 樣式 */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        .badge-concept { background-color: #fee2e2; color: #991b1b; } /* Red */
+        .badge-mechanism { background-color: #dbeafe; color: #1e40af; } /* Blue */
+        .badge-visual { background-color: #d1fae5; color: #065f46; } /* Green */
+        .badge-usecase { background-color: #f3e8ff; color: #6b21a8; } /* Purple */
+        .badge-quiz { background-color: #ffedd5; color: #9a3412; } /* Orange */
+
+        /* 特殊區塊：生活化比喻 */
+        .analogy-box {
+            border: 2px solid #10b981; /* Green-500 */
+            background-color: #ecfdf5; /* Green-50 */
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            position: relative;
+        }
+        .analogy-box::before {
+            content: '\f0eb'; /* FontAwesome Lightbulb */
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            top: -1rem;
+            left: 1rem;
+            background-color: #10b981;
+            color: white;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 特殊區塊：重點強調 */
+        .highlight-box {
+            border-left: 4px solid #ef4444; /* Red-500 */
+            background-color: #fef2f2; /* Red-50 */
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        /* Mermaid 優化：強制最小寬度 + 滾動條 */
+        .mermaid-container {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+            text-align: center;
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+        }
+        
+        /* CSS 暴力覆寫：確保圖表文字清晰可讀，不被擠壓 */
+        .mermaid svg {
+            min-width: 800px; /* 強制最小寬度，避免手機版太小 */
+            max-width: none !important;
+        }
+
+        /* 新增：針對特定拓撲圖縮小的容器樣式 */
+        .topology-container {
+            max-width: 500px; /* 限制最大寬度為約一半 */
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        /* 覆寫：針對縮小的拓撲圖，移除強制最小寬度，讓它適應容器 */
+        .topology-container .mermaid svg {
+            min-width: unset !important;
+            width: 100% !important;
+        }
+
+        /* 程式碼區塊 */
+        .code-block {
+            background-color: #1f2937;
+            color: #e5e7eb;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-family: 'Consolas', 'Monaco', monospace;
+            overflow-x: auto;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            white-space: pre-wrap; /* 修正：保留換行與空白 */
+        }
+
+        /* Quiz 選項樣式 */
+        .quiz-option {
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .quiz-option:hover {
+            background-color: #f3f4f6;
+        }
+        
+        /* Footer 樣式 */
+        .custom-footer {
+            background-color: #111827; /* Gray-900 */
+            color: #9ca3af; /* Gray-400 */
+            padding: 1.5rem;
+            text-align: center;
+            margin-top: auto;
+            border-top: 4px solid #b91c1c;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="header-gradient text-white p-6 shadow-lg">
+        <div class="max-w-5xl mx-auto flex items-center gap-4">
+            <div class="bg-white/20 p-3 rounded-full">
+                <i class="fas fa-shield-alt text-3xl"></i>
+            </div>
+            <div>
+                <h1 class="text-3xl font-bold tracking-wide">Fortinet FortiGate 實戰課程</h1>
+                <p class="text-red-100 mt-1 font-medium">Level 3: Architect - 高可用性 (High Availability)</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-5xl mx-auto p-6 w-full">
+
+        <!-- Intro Section -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">單元介紹</h2>
+            <p class="text-gray-600 leading-relaxed">
+                在企業級網路架構中，單點故障 (Single Point of Failure) 是最大的風險。本單元將深入探討 FortiGate 的高可用性 (HA) 機制，學習如何透過多台設備組成叢集 (Cluster)，實現 99.999% 的服務不中斷。
+            </p>
+        </div>
+
+        <!-- 1. Concept -->
+        <div class="section-card">
+            <span class="badge badge-concept">一、核心概念 (Concept)</span>
+            <h3 class="text-xl font-bold mb-4">HA 的模式：A-P 與 A-A</h3>
+            
+            <div class="mb-4">
+                <h4 class="font-bold text-lg text-gray-800"><i class="fas fa-check-circle text-red-600 mr-2"></i>Active-Passive (A-P) 主備模式</h4>
+                <p class="text-gray-600 mb-2">最常見的部署方式。一台設備負責處理所有流量，另一台待命，僅同步設定與連線狀態 (Session)。</p>
+            </div>
+
+            <div class="analogy-box">
+                <h5 class="font-bold text-green-800 mb-1">生活化比喻：飛機駕駛</h5>
+                <p class="text-green-700">
+                    就像飛機上的「正駕駛 (Active)」與「副駕駛 (Passive)」。平常由正駕駛全權操控飛機，副駕駛只負責監控儀表並保持同步。只有當正駕駛突然暈倒 (設備故障) 時，副駕駛才會接手控制權。這確保了航程 (網路連線) 不會中斷。
+                </p>
+            </div>
+
+            <div class="mb-4 mt-6">
+                <h4 class="font-bold text-lg text-gray-800"><i class="fas fa-check-circle text-red-600 mr-2"></i>Active-Active (A-A) 雙活模式</h4>
+                <p class="text-gray-600 mb-2">兩台設備同時運作。Primary 負責流量分配與控制，Secondary 協助處理 UTM 安全掃描 (如 AV, IPS)。</p>
+            </div>
+
+            <div class="analogy-box">
+                <h5 class="font-bold text-green-800 mb-1">生活化比喻：超市收銀台</h5>
+                <p class="text-green-700">
+                    就像超市開了兩個收銀櫃檯。雖然有一個資深店長 (Primary) 負責引導排隊隊伍，但他會把部分只需掃描條碼的顧客 (UTM 流量) 分流給另一個店員 (Secondary) 處理，兩人一起工作來加快結帳速度。
+                </p>
+            </div>
+        </div>
+
+        <!-- 2. Mechanism -->
+        <div class="section-card">
+            <span class="badge badge-mechanism">二、運作原理 (Mechanism)</span>
+            <h3 class="text-xl font-bold mb-4">FGCP (FortiGate Clustering Protocol)</h3>
+            
+            <p class="text-gray-700 mb-4">
+                FortiGate 使用專有的 FGCP 協定來溝通。透過專屬的 Heartbeat Link (心跳線)，設備之間會不斷交換 Hello 封包以確認彼此存活。
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h4 class="font-bold text-gray-800 mb-2">1. Master 選舉邏輯 (Election)</h4>
+                    <p class="text-gray-600 text-sm mb-2">當兩台設備連接時，誰當老大 (Primary)？系統會依照以下順序比較，由高到低：</p>
+                    <ol class="list-decimal list-inside text-gray-700 space-y-1 bg-gray-50 p-3 rounded">
+                        <li><strong>Monitored Ports：</strong> 有效連接埠數量越多越好 (例如 WAN 線路斷了，該台即降級)。</li>
+                        <li><strong>HA Uptime：</strong> 運行時間越長越好 (穩定性優先)。<br><span class="text-xs text-red-500">*註：若開啟 Override，此項會被忽略。</span></li>
+                        <li><strong>Priority：</strong> 人為設定的優先權數值 (大於小，預設 128)。</li>
+                        <li><strong>Serial Number：</strong> 序號越大者優先 (最後手段)。</li>
+                    </ol>
+                </div>
+                <div>
+                    <h4 class="font-bold text-gray-800 mb-2">2. 同步內容 (Synchronization)</h4>
+                    <ul class="list-disc list-inside text-gray-700 space-y-1">
+                        <li><strong>Configuration：</strong> 除了 Hostname、HA 設定、特定介面 IP 外，幾乎所有設定全同步。</li>
+                        <li><strong>Session Table：</strong> 只有 TCP/IP 連線狀態會被同步 (ICMP/UDP 通常不預設同步)，確保切換時使用者不需重新登入。</li>
+                    </ul>
+                    <div class="highlight-box mt-3 text-sm">
+                        <strong><i class="fas fa-exclamation-triangle"></i> 關鍵技術：Virtual MAC (vMAC)</strong><br>
+                        Cluster 會產生虛擬 MAC 位址。當切換發生時，新 Primary 會發送 Gratuitous ARP (GARP) 告訴交換器：「嘿！這個 IP 現在對應到我的 Port 了」，從而將流量引導過來。
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Visuals -->
+        <div class="section-card">
+            <span class="badge badge-visual">三、架構視覺化 (Visuals)</span>
+            <h3 class="text-xl font-bold mb-4">HA 拓撲與切換流程</h3>
+
+            <h4 class="font-bold text-gray-700 mt-2">1. 實體連接拓撲圖 (Physical Topology)</h4>
+            <!-- 新增 topology-container 類別來縮小此圖表 -->
+            <div class="mermaid-container topology-container">
+                <div class="mermaid">
+graph TD
+    %% 定義樣式
+    classDef firewall fill:#e11d48,stroke:#881337,stroke-width:2px,color:white;
+    classDef switch fill:#3b82f6,stroke:#1d4ed8,stroke-width:2px,color:white;
+    classDef internet fill:#fbbf24,stroke:#d97706,stroke-width:2px;
+
+    Internet(("Internet")):::internet
+    
+    subgraph "High Availability Cluster"
+        FGT_A["FortiGate A&lt;br/&gt;(Primary)"]:::firewall
+        FGT_B["FortiGate B&lt;br/&gt;(Secondary)"]:::firewall
+    end
+
+    SW_WAN["WAN Switch"]:::switch
+    SW_LAN["Core Switch"]:::switch
+    Users(("Internal Users"))
+
+    %% 連線關係
+    Internet --- SW_WAN
+    SW_WAN -- "Port1 (WAN)" --> FGT_A
+    SW_WAN -- "Port1 (WAN)" --> FGT_B
+    
+    FGT_A -- "HA1 + HA2&lt;br/&gt;(Heartbeat Sync)" --- FGT_B
+    
+    FGT_A -- "Port2 (LAN)" --> SW_LAN
+    FGT_B -- "Port2 (LAN)" --> SW_LAN
+    SW_LAN --- Users
+
+    %% 註解
+    %% Index 3 is the HA link (4th link defined)
+    linkStyle 3 stroke:#e11d48,stroke-width:3px;
+                </div>
+            </div>
+
+            <h4 class="font-bold text-gray-700 mt-6">2. 故障切換流程 (Failover Sequence)</h4>
+            <div class="mermaid-container">
+                <div class="mermaid">
+sequenceDiagram
+    participant User as 使用者 PC
+    participant SW as Core Switch
+    participant Pri as FGT-Primary
+    participant Sec as FGT-Secondary
+
+    Note over Pri, Sec: 正常狀態：A-P 模式
+    Pri->>Sec: Heartbeat (Hello + Session Sync)
+    User->>SW: 傳送 HTTP Request
+    SW->>Pri: 轉送流量 (Target: vMAC_A)
+    Pri-->>SW: 回傳 HTTP Response
+
+    Note over Pri: ⚠️ 發生故障 (斷電/當機)
+
+    Note over Sec: 連續 3 個 Heartbeat 未收到回應
+    Note over Sec: 選舉機制啟動 -> 升級為 Primary
+
+    Sec->>SW: 發送 Gratuitous ARP (GARP)&lt;br/&gt;"IP x.x.x.x 現在在我的 Port 上!"
+    SW->>SW: 更新 MAC Address Table
+
+    User->>SW: 傳送下一個 HTTP Request
+    SW->>Sec: 轉送流量 (Target: vMAC_A)
+    Note right of SW: 因為 Session 已同步，&lt;br/&gt;連線不中斷
+    Sec-->>SW: 回傳 HTTP Response
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Use Case -->
+        <div class="section-card">
+            <span class="badge badge-usecase">四、實務應用場景 (Use Case)</span>
+            <h3 class="text-xl font-bold mb-4">企業總部 HA 部署實戰</h3>
+
+            <div class="mb-6">
+                <p class="text-gray-700"><strong>情境：</strong> 一間擁有 500 人的企業總部，要求網路不能因為單一設備故障而中斷。我們將部署兩台 FortiGate 100F 建立 A-P Cluster。</p>
+                <ul class="list-disc list-inside text-gray-600 mt-2 ml-4">
+                    <li><strong>目標：</strong> 建立 Active-Passive HA。</li>
+                    <li><strong>要求：</strong> FGT-A 必須優先成為 Master (透過 Priority 設定)。開啟 Session Pickup (連線同步)。</li>
+                </ul>
+            </div>
+
+            <h4 class="font-bold text-gray-800 border-b pb-2 mb-4">設定範例 (Configuration Example)</h4>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- FGT-A Config -->
+                <div>
+                    <h5 class="font-bold text-red-700 mb-2">FortiGate-A (Primary)</h5>
+                    <div class="code-block">
+config system ha
+    set group-name "HQ-Cluster"
+    set mode a-p
+    set password Fortinet123!
+    set hbdev "ha1" 50 "ha2" 50
+    set session-pickup enable
+    set override disable
+    set priority 200
+    set monitor "wan1" "internal"
+end</div>
+                    <p class="text-sm text-gray-500 mt-1">說明：Priority 設為 200 (預設 128)，確保它在正常情況下勝出。</p>
+                </div>
+
+                <!-- FGT-B Config -->
+                <div>
+                    <h5 class="font-bold text-gray-700 mb-2">FortiGate-B (Secondary)</h5>
+                    <div class="code-block">
+config system ha
+    set group-name "HQ-Cluster"
+    set mode a-p
+    set password Fortinet123!
+    set hbdev "ha1" 50 "ha2" 50
+    set session-pickup enable
+    set override disable
+    set priority 100
+    set monitor "wan1" "internal"
+end</div>
+                    <p class="text-sm text-gray-500 mt-1">說明：Group Name 與 Password 必須完全一致才能形成 Cluster。</p>
+                </div>
+            </div>
+
+            <div class="mt-6 bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <h5 class="font-bold text-blue-800 mb-2">大師觀點：Override (搶佔模式) 要開嗎？</h5>
+                <p class="text-blue-700 text-sm">
+                    許多新手會開啟 <code>set override enable</code>，希望 Primary 復電後自動搶回主控權。但在實務上，<strong>建議設為 disable (預設值)</strong>。
+                    <br><br>
+                    <strong>原因：</strong> 如果原本的 Primary 剛修好，系統可能還不穩定 (Flapping)。若立刻搶回主控權，可能導致網路再次中斷。保持 disable，讓它先以 Secondary 身份同步資料並待命，直到下一次維護視窗再手動切換，是比較穩健 (Stable) 的做法。
+                </p>
+            </div>
+        </div>
+
+        <!-- 5. Quiz -->
+        <div class="section-card">
+            <span class="badge badge-quiz">五、隨堂測驗 (Quiz)</span>
+            <h3 class="text-xl font-bold mb-6">FortiGate HA 架構師挑戰</h3>
+            
+            <div id="quiz-container" class="space-y-6">
+                <!-- 題目將由 JS 生成 -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="custom-footer">
+        <p>Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // 初始化 Mermaid
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            securityLevel: 'loose',
+            flowchart: {
+                curve: 'basis'
+            }
+        });
+
+        // Quiz Data
+        const quizData = [
+            {
+                question: "1. 在 FGCP 的 Master 選舉過程中，如果兩台設備的 Monitored Ports 數量相同，Override 為 disable，且 HA Uptime 差異很大，系統會優先比較哪一個參數？",
+                options: [
+                    "Serial Number (序號)",
+                    "Priority (優先權)",
+                    "HA Uptime (運行時間)",
+                    "Hostname (主機名稱)"
+                ],
+                correct: 2,
+                explanation: "選舉順序為：1. Monitored Ports -> 2. HA Uptime (若差異 > 5分鐘且 override disable) -> 3. Priority -> 4. Serial Number。因此在這種情況下，運行時間較長者優先。"
+            },
+            {
+                question: "2. Active-Active 模式的主要優勢是什麼？",
+                options: [
+                    "兩台設備都有獨立的 WAN IP 可以同時上網",
+                    "Secondary 設備可以分擔 UTM (如 AV, IPS) 的掃描負載",
+                    "設定比 Active-Passive 簡單",
+                    "不需要 Heartbeat 連線"
+                ],
+                correct: 1,
+                explanation: "A-A 模式允許 Primary 將部分 UTM 流量 (Proxy-based) 分派給 Secondary 處理，達到資源分流的效果。"
+            },
+            {
+                question: "3. 關於 HA Cluster 中的 'Session Pickup' 功能，下列敘述何者正確？",
+                options: [
+                    "預設是開啟的",
+                    "開啟後，所有連線 (包含 UDP/ICMP) 都會無條件同步",
+                    "開啟後，Primary 故障切換時，使用者既有的 TCP 連線不會中斷",
+                    "會降低 CPU 與記憶體的使用率"
+                ],
+                correct: 2,
+                explanation: "Session Pickup 允許同步 TCP 連線表。當發生 Failover 時，新 Primary 已經知道這些連線狀態，因此使用者不需重新連線。缺點是會增加設備資源消耗。"
+            },
+            {
+                question: "4. 當 HA 發生切換 (Failover) 時，新的 Primary 如何讓交換器 (Switch) 知道將流量送往新的實體介面？",
+                options: [
+                    "發送 BGP Update 封包",
+                    "發送 Gratuitous ARP (GARP) 更新 MAC 表",
+                    "手動重啟交換器",
+                    "透過 DHCP 要求新 IP"
+                ],
+                correct: 1,
+                explanation: "新 Primary 會發送 GARP (Gratuitous ARP)，廣播告訴區網內的交換器與設備：「這個虛擬 MAC 現在對應到我的實體連接埠」，交換器隨即更新 MAC Table。"
+            },
+            {
+                question: "5. 若要建立 HA Cluster，下列哪一項設定 **不需要** 在兩台設備上完全一致？",
+                options: [
+                    "Firmware Version (韌體版本)",
+                    "Group Name (群組名稱)",
+                    "Password (HA 密碼)",
+                    "Hostname (主機名稱)"
+                ],
+                correct: 3,
+                explanation: "Hostname 是用來識別設備的，兩台設備通常會有不同的名稱 (如 FGT-A 與 FGT-B)。其他如韌體、群組名、密碼、硬體型號都必須一致。"
+            }
+        ];
+
+        // Render Quiz
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((data, index) => {
+            const questionEl = document.createElement('div');
+            questionEl.className = 'bg-white border border-gray-200 rounded-lg p-6 shadow-sm';
+            
+            let optionsHtml = '';
+            data.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border border-gray-300 mb-2 flex items-center" 
+                         onclick="checkAnswer(this, ${index}, ${optIndex})">
+                        <div class="w-6 h-6 rounded-full border-2 border-gray-400 mr-3 flex items-center justify-content-center option-circle"></div>
+                        <span>${opt}</span>
+                    </div>
+                `;
+            });
+
+            questionEl.innerHTML = `
+                <h4 class="font-bold text-lg mb-4 text-gray-800">${data.question}</h4>
+                <div class="options-list" data-answered="false">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border">
+                    <p class="font-bold result-title mb-1"></p>
+                    <p class="text-sm text-gray-600">${data.explanation}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionEl);
+        });
+
+        // Check Answer Function
+        function checkAnswer(element, qIndex, optIndex) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+            const parent = element.parentElement;
+
+            // Prevent re-answering
+            if (parent.dataset.answered === "true") return;
+            parent.dataset.answered = "true";
+
+            // Reset styles
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+                opt.querySelector('.option-circle').innerHTML = '';
+            });
+
+            if (optIndex === data.correct) {
+                // Correct
+                element.classList.add('bg-green-100', 'border-green-500');
+                element.querySelector('.option-circle').classList.add('border-green-600', 'text-green-600');
+                element.querySelector('.option-circle').innerHTML = '<i class="fas fa-check text-xs"></i>';
+                
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了！";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                // Incorrect
+                element.classList.add('bg-red-100', 'border-red-500');
+                element.querySelector('.option-circle').classList.add('border-red-600', 'text-red-600');
+                element.querySelector('.option-circle').innerHTML = '<i class="fas fa-times text-xs"></i>';
+
+                // Highlight Correct
+                const correctOpt = allOptions[data.correct];
+                correctOpt.classList.add('bg-green-100', 'border-green-500');
+                correctOpt.querySelector('.option-circle').classList.add('border-green-600', 'text-green-600');
+                correctOpt.querySelector('.option-circle').innerHTML = '<i class="fas fa-check text-xs"></i>';
+
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了，再接再厲！";
+                resultTitle.classList.add('text-red-700');
+            }
+            resultBox.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
