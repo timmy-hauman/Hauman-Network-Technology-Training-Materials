@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FortiGate SD-WAN 架構與實戰 | Fortinet FortiGate 實戰課程</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Mermaid JS -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    
+    <style>
+        /* * CSS 暴力覆寫與最小寬度策略 
+         * 確保內容在各種裝置上保持易讀性，不會因縮放而變形
+         */
+        body {
+            font-family: "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+            background-color: #f3f4f6;
+            color: #333;
+            min-width: 375px; /* 防止在極小螢幕崩潰 */
+        }
+
+        /* 標題徽章樣式 */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-weight: 700;
+            font-size: 0.875rem;
+            margin-right: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .badge-concept { background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+        .badge-mechanism { background-color: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+        .badge-visual { background-color: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+        .badge-usecase { background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+        .badge-quiz { background-color: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; }
+
+        /* 卡片式區塊設計 */
+        .section-card {
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #c53030; /* Fortinet Red Accent */
+            transition: transform 0.2s;
+        }
+        .section-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* 重點與比喻區塊 */
+        .analogy-box {
+            background-color: #f0fdf4;
+            border: 2px solid #22c55e;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            position: relative;
+        }
+        .analogy-box::before {
+            content: '\f1bb'; /* FontAwesome lightbulb */
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            position: absolute;
+            top: -15px;
+            left: 20px;
+            background: #22c55e;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+        }
+
+        .highlight-box {
+            background-color: #fff5f5;
+            border: 2px dashed #f56565;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        /* 程式碼區塊 */
+        .code-block {
+            background-color: #1a202c;
+            color: #a0aec0;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            border-left: 4px solid #f56565;
+        }
+        .code-comment { color: #68d391; }
+        .code-command { color: #63b3ed; font-weight: bold; }
+        .code-param { color: #f6ad55; }
+
+        /* Mermaid 圖表容器 */
+        .mermaid-container {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto; /* 允許橫向捲動 */
+            display: flex;
+            justify-content: center; /* 注意：若圖表過大，此屬性不影響捲動，但可讓小圖置中 */
+        }
+        
+        /* 強制修正 Mermaid SVG 內的文字大小與間距，確保不擁擠 */
+        .mermaid svg {
+            max-width: none !important; /* 禁止縮小 */
+            min-width: 600px; /* 給予基本寬度 */
+        }
+
+        /* 測驗樣式 */
+        .quiz-option {
+            cursor: pointer;
+            padding: 10px 15px;
+            margin: 5px 0;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+        }
+        .quiz-option:hover {
+            background-color: #edf2f7;
+        }
+        .quiz-option.selected {
+            border-color: #3182ce;
+            background-color: #ebf8ff;
+        }
+        .quiz-feedback {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 0.5rem;
+            display: none;
+        }
+        .quiz-feedback.correct {
+            background-color: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+        .quiz-feedback.incorrect {
+            background-color: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #feb2b2;
+        }
+
+        /* Header Gradient */
+        .header-bg {
+            background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%);
+        }
+
+        /* Footer Style */
+        .footer-signature {
+            background-color: #1f2937;
+            color: #9ca3af;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.85rem;
+            margin-top: 3rem;
+            border-top: 4px solid #b91c1c;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="header-bg text-white py-8 shadow-lg">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-shield-halved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold tracking-tight">Fortinet FortiGate 實戰課程</h1>
+                    <p class="text-red-100 mt-1 text-lg">Level 3: Architect & Troubleshooting - SD-WAN 深度解析</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <!-- 1. Core Concept -->
+        <section class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">
+                <span class="badge badge-concept">CONCEPT</span>
+                一、核心概念 (Core Concept)
+            </h2>
+            
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold text-gray-700 mb-2">一句話定義</h3>
+                <p class="text-gray-600 leading-relaxed">
+                    SD-WAN (軟體定義廣域網路) 是一種將網路硬體線路 (Underlay) 與控制邏輯 (Overlay) 分離的技術，它能根據應用程式的即時需求，自動選擇最佳的路徑進行傳輸。
+                </p>
+            </div>
+
+            <div class="analogy-box">
+                <h3 class="text-lg font-bold text-green-800 mb-2">生活化比喻：智慧導航系統 (Google Maps)</h3>
+                <p class="text-green-900">
+                    想像您要從台北開車到高雄：
+                </p>
+                <ul class="list-disc list-inside mt-2 text-green-900 space-y-1">
+                    <li><strong>傳統 WAN (ECMP)：</strong> 就像只看「距離」開車。只要距離一樣，不管塞不塞車，系統就會隨機叫你走國道一號或國道三號。</li>
+                    <li><strong>SD-WAN：</strong> 就像開啟了 Google Maps 導航。它會即時偵測路況 (Latency/Jitter)。</li>
+                    <li>如果國道一號塞車 (線路品質差)，導航會自動引導你走國道三號 (切換線路)。</li>
+                    <li>如果你開的是救護車 (關鍵語音流量 VOIP)，它絕對優先幫你找最快、最不顛簸的路；如果你只是運送垃圾 (一般上網流量)，走慢一點的省道 (ADSL) 也沒關係。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 2. Mechanism -->
+        <section class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">
+                <span class="badge badge-mechanism">MECHANISM</span>
+                二、運作原理 (Mechanism)
+            </h2>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-700 mb-3"><i class="fas fa-cogs text-blue-600 mr-2"></i>技術組成元件</h3>
+                    <ul class="space-y-3 text-gray-600">
+                        <li>
+                            <strong>SD-WAN Members (成員)：</strong>
+                            <p class="text-sm mt-1">實際的物理介面 (如 port1, port2) 或 VPN 通道 (Tunnel Interface)。它們是封包實際行走的「道路」。</p>
+                        </li>
+                        <li>
+                            <strong>SD-WAN Zones (區域)：</strong>
+                            <p class="text-sm mt-1">邏輯上的群組容器。例如將所有聯網線路歸類為 "Internet-Zone"，將 MPLS 線路歸類為 "Private-Zone"。這簡化了防火牆策略 (Firewall Policy) 的設定。</p>
+                        </li>
+                        <li>
+                            <strong>Performance SLA (健康檢查)：</strong>
+                            <p class="text-sm mt-1">這是 SD-WAN 的「眼睛」。透過發送 Ping, HTTP, DNS 封包到特定目標 (如 8.8.8.8 或 總公司伺服器)，即時監控線路的延遲 (Latency)、抖動 (Jitter) 和掉包率 (Packet Loss)。</p>
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-700 mb-3"><i class="fas fa-random text-blue-600 mr-2"></i>路徑選擇策略 (Rules)</h3>
+                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                        <ul class="space-y-3 text-sm text-gray-700">
+                            <li><strong>Best Quality (最佳品質)：</strong> 比較所有線路，選出「當下」數值最好的一條。適合 VOIP、視訊會議。</li>
+                            <li><strong>Lowest Cost (SLA Strategy)：</strong> 設定一個門檻 (例如延遲 < 50ms)。只要線路達標，就依據介面成本 (Cost) 或優先序使用；如果不達標，才切換到備援線路。適合一般 ERP 流量。</li>
+                            <li><strong>Maximize Bandwidth (最大頻寬)：</strong> 類似負載平衡 (Load Balance)，將流量分散到多條線路。</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="highlight-box">
+                <h4 class="font-bold text-red-700 mb-2">大師觀點：隱式路由 (Implicit Routing)</h4>
+                <p class="text-gray-700 text-sm">
+                    當您啟用 SD-WAN 時，FortiGate 會自動產生多條預設路由 (Default Route) 指向各個 Member。SD-WAN Rule 的優先權 <strong class="text-red-600">高於</strong> 一般路由表。這意味著：SD-WAN 是 Policy Route (PBR) 的進階版。
+                </p>
+            </div>
+        </section>
+
+        <!-- 3. Visuals -->
+        <section class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">
+                <span class="badge badge-visual">VISUALS</span>
+                三、架構視覺化 (Visuals)
+            </h2>
+            
+            <p class="mb-2 font-semibold text-gray-700">圖一：SD-WAN 邏輯架構與封包流向</p>
+            <div class="mermaid-container">
+                <div class="mermaid">
+                    graph TD
+                        subgraph LAN_Side [內部網路]
+                            PC[使用者 PC] -->|發送流量| FGT_LAN[FortiGate LAN Port]
+                        end
+
+                        subgraph FortiGate_SDWAN [FortiGate SD-WAN 引擎]
+                            FGT_LAN --> Rules{SD-WAN Rules 規則判斷}
+                            
+                            Rules --"規則 1: 關鍵應用 (ERP/Voice)"--> SLA_Check{SLA 檢查<br/>延遲 < 50ms?}
+                            Rules --"規則 2: 一般上網"--> LB[負載平衡/成本優先]
+                            
+                            SLA_Check --"品質良好"--> Member1[Member 1: MPLS]
+                            SLA_Check --"品質低落 (Failover)"--> Member2[Member 2: Internet VPN]
+                            
+                            LB --> Member3[Member 3: Broadband]
+                        end
+
+                        subgraph WAN_Side [外部網路]
+                            Member1 --> HQ_Server[總公司伺服器]
+                            Member2 --> HQ_Server
+                            Member3 --> Google[Internet/SaaS]
+                        end
+
+                        style Rules fill:#f9f,stroke:#333,stroke-width:2px
+                        style SLA_Check fill:#bbf,stroke:#333,stroke-width:2px
+                        style FortiGate_SDWAN fill:#fff9c4,stroke:#e2e8f0,stroke-width:2px
+                </div>
+            </div>
+
+            <p class="mb-2 mt-6 font-semibold text-gray-700">圖二：SLA 探測與狀態切換流程 (Sequence Diagram)</p>
+            <div class="mermaid-container">
+                <div class="mermaid">
+                    sequenceDiagram
+                        participant User as 使用者流量
+                        participant Rule as SD-WAN Rule
+                        participant WAN1 as WAN1 (MPLS)
+                        participant WAN2 as WAN2 (Internet)
+                        participant Probe as SLA Probe (探測器)
+
+                        Note over WAN1,WAN2: 初始狀態：WAN1 為主要路徑
+
+                        loop 持續背景偵測 (每 500ms)
+                            Probe->>WAN1: Ping Check
+                            WAN1-->>Probe: Reply (20ms) - 健康
+                            Probe->>WAN2: Ping Check
+                            WAN2-->>Probe: Reply (80ms)
+                        end
+
+                        User->>Rule: 發送 VOIP 封包
+                        Rule->>WAN1: 轉發流量 (因為 WAN1 優於 WAN2)
+
+                        Note over WAN1: 發生線路擁塞!
+
+                        Probe->>WAN1: Ping Check
+                        WAN1-->>Probe: Reply (250ms) - 違反 SLA 門檻!
+                        
+                        Note right of Rule: 偵測到品質下降，觸發切換機制
+
+                        User->>Rule: 發送下一個 VOIP 封包
+                        Rule->>WAN2: 切換路由至 WAN2 (雖然 80ms 但優於 250ms)
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. Use Case -->
+        <section class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">
+                <span class="badge badge-usecase">USE CASE</span>
+                四、實務應用場景 (Use Case)
+            </h2>
+
+            <h3 class="text-xl font-bold text-gray-800 mb-2">場景：跨國零售分店 Hybrid WAN</h3>
+            <p class="text-gray-600 mb-4">
+                某零售分店擁有兩條線路：WAN1 (昂貴穩定的 MPLS, 10Mbps) 與 WAN2 (便宜的 Internet, 100Mbps)。
+                <br><strong>需求：</strong>
+                1. POS 系統與 VoIP 電話必須走 MPLS，如果 MPLS 斷線或延遲過高，自動切換到 Internet VPN。
+                2. 店內訪客 Wi-Fi 與員工上網全部走 Internet，不佔用 MPLS 頻寬。
+            </p>
+
+            <h4 class="font-bold text-blue-800 mt-4 mb-2">設定範例 (CLI & Logic)</h4>
+
+            <!-- Step 1 -->
+            <div class="mb-4">
+                <p class="font-semibold text-gray-700">步驟 1: 設定 SD-WAN Zone 與 Members</p>
+                <div class="code-block">
+                    <span class="code-command">config system sdwan</span><br>
+                    &nbsp;&nbsp;<span class="code-command">set status enable</span><br>
+                    &nbsp;&nbsp;<span class="code-command">config zone</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">edit "virtual-wan-link"</span> <span class="code-comment">/* 預設 Zone */</span><br>
+                    &nbsp;&nbsp;<span class="code-command">end</span><br>
+                    &nbsp;&nbsp;<span class="code-command">config members</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">edit 1</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-param">set interface "wan1"</span> <span class="code-comment">/* MPLS */</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-param">set gateway 10.1.1.254</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">next</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">edit 2</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-param">set interface "wan2"</span> <span class="code-comment">/* Internet */</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-param">set gateway 192.168.1.254</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">next</span><br>
+                    &nbsp;&nbsp;<span class="code-command">end</span><br>
+                    <span class="code-command">end</span>
+                </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="mb-4">
+                <p class="font-semibold text-gray-700">步驟 2: 設定 Performance SLA (健康檢查)</p>
+                <div class="code-block">
+                    <span class="code-command">config system sdwan</span><br>
+                    &nbsp;&nbsp;<span class="code-command">config health-check</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">edit "HQ_Server_Check"</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-param">set server "10.200.1.1"</span> <span class="code-comment">/* 總公司伺服器 IP */</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-param">set members 1 2</span> <span class="code-comment">/* 檢查兩條線路 */</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-comment">/* 定義 SLA 門檻：延遲需低於 50ms */</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">config sla</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">edit 1</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-param">set latency-threshold 50</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">next</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">end</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">next</span><br>
+                    &nbsp;&nbsp;<span class="code-command">end</span><br>
+                    <span class="code-command">end</span>
+                </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="mb-4">
+                <p class="font-semibold text-gray-700">步驟 3: 設定 SD-WAN Rules (流量導向)</p>
+                <div class="code-block">
+                    <span class="code-command">config system sdwan</span><br>
+                    &nbsp;&nbsp;<span class="code-command">config service</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-comment">/* 規則 1: POS/VoIP 優先走品質好的線路 */</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">edit 1</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-param">set name "Critical_Traffic"</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-param">set mode sla</span> <span class="code-comment">/* 使用 SLA 模式 */</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-param">set src "All_LAN_Subnets"</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-param">set dst "HQ_Subnets"</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-param">config sla</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">edit "HQ_Server_Check"</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-param">set id 1</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">next</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">end</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-param">set priority-members 1 2</span> <span class="code-comment">/* 優先 1(MPLS), 失敗才走 2 */</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-command">next</span><br>
+                    &nbsp;&nbsp;<span class="code-command">end</span><br>
+                    <span class="code-command">end</span>
+                </div>
+            </div>
+
+            <div class="flex items-start space-x-2 mt-4 text-sm text-gray-600 bg-gray-100 p-3 rounded">
+                <i class="fas fa-info-circle mt-1 text-blue-500"></i>
+                <p>優點：自動化故障轉移，保障關鍵業務。缺點：若 Internet 線路也擁塞，VoIP 品質仍會受影響 (需配合 QoS 設定)。</p>
+            </div>
+        </section>
+
+        <!-- 5. Quiz -->
+        <section class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">
+                <span class="badge badge-quiz">QUIZ</span>
+                五、隨堂測驗 (Quiz)
+            </h2>
+
+            <!-- Question 1 -->
+            <div class="mb-6">
+                <p class="font-bold text-gray-800 mb-2">1. 在 FortiGate SD-WAN 中，用來即時監控線路品質 (Latency/Jitter/Packet Loss) 的機制稱為什麼？</p>
+                <div class="quiz-option" onclick="checkAnswer(this, false)">A. Static Route</div>
+                <div class="quiz-option" onclick="checkAnswer(this, true, '正確！Performance SLA 負責發送探測封包並計算品質數據。')">B. Performance SLA (Health Check)</div>
+                <div class="quiz-option" onclick="checkAnswer(this, false)">C. Security Fabric</div>
+                <div class="quiz-option" onclick="checkAnswer(this, false)">D. OSPF</div>
+                <div class="quiz-feedback"></div>
+            </div>
+
+            <!-- Question 2 -->
+            <div class="mb-6">
+                <p class="font-bold text-gray-800 mb-2">2. 如果您希望 VOIP 流量總是走「當下品質最好」的線路，應該選擇哪種 SD-WAN 策略？</p>
+                <div class="quiz-option" onclick="checkAnswer(this, false)">A. Manual (手動指定)</div>
+                <div class="quiz-option" onclick="checkAnswer(this, true, '正確！Best Quality 會比較所有 Member 的數據，動態選擇最佳者。')">B. Best Quality</div>
+                <div class="quiz-option" onclick="checkAnswer(this, false)">C. Lowest Cost (最低成本)</div>
+                <div class="quiz-option" onclick="checkAnswer(this, false)">D. Maximize Bandwidth</div>
+                <div class="quiz-feedback"></div>
+            </div>
+
+            <!-- Question 3 -->
+            <div class="mb-6">
+                <p class="font-bold text-gray-800 mb-2">3. 關於 SD-WAN Zone 的敘述，下列何者正確？</p>
+                <div class="quiz-option" onclick="checkAnswer(this, false)">A. 一個介面可以同時屬於多個 Zone</div>
+                <div class="quiz-option" onclick="checkAnswer(this, true, '正確！將多個介面加入 Zone 之後，Firewall Policy 只需要針對 Zone 放行即可，大幅簡化管理。')">B. Zone 可以簡化 Firewall Policy 的設定，將多個 Member 視為一個邏輯介面</div>
+                <div class="quiz-option" onclick="checkAnswer(this, false)">C. Zone 只能包含實體介面，不能包含 VPN Tunnel</div>
+                <div class="quiz-option" onclick="checkAnswer(this, false)">D. Zone 設定後就無法修改 Member</div>
+                <div class="quiz-feedback"></div>
+            </div>
+
+            <!-- Question 4 -->
+            <div class="mb-6">
+                <p class="font-bold text-gray-800 mb-2">4. SD-WAN Rule 的匹配順序與路由表 (Routing Table) 的關係為何？</p>
+                <div class="quiz-option" onclick="checkAnswer(this, true, '正確！SD-WAN Rule 類似 PBR (Policy Based Routing)，其優先權高於一般的路由表查詢。')">A. SD-WAN Rule 優先權高於路由表 (類似 Policy Route)</div>
+                <div class="quiz-option" onclick="checkAnswer(this, false)">B. 路由表優先權高於 SD-WAN Rule</div>
+                <div class="quiz-option" onclick="checkAnswer(this, false)">C. 兩者隨機執行</div>
+                <div class="quiz-option" onclick="checkAnswer(this, false)">D. 必須手動設定優先權重</div>
+                <div class="quiz-feedback"></div>
+            </div>
+
+            <!-- Question 5 -->
+            <div class="mb-6">
+                <p class="font-bold text-gray-800 mb-2">5. 若設定 "Lowest Cost (SLA Strategy)" 且兩條線路都符合 SLA 標準 (例如延遲 < 50ms)，FortiGate 如何選擇路徑？</p>
+                <div class="quiz-option" onclick="checkAnswer(this, false)">A. 隨機選擇</div>
+                <div class="quiz-option" onclick="checkAnswer(this, false)">B. 同時使用兩條線路 (Load Balance)</div>
+                <div class="quiz-option" onclick="checkAnswer(this, true, '正確！當多條線路都符合 SLA 時，會依據介面設定的 Cost (或順序) 選擇成本最低者。')">C. 選擇 Interface Priority/Cost 設定值較優先的線路</div>
+                <div class="quiz-option" onclick="checkAnswer(this, false)">D. 選擇延遲最低的那條 (即使它 Cost 較高)</div>
+                <div class="quiz-feedback"></div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer-signature">
+        <div class="container mx-auto">
+            Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0
+        </div>
+    </footer>
+
+    <!-- Quiz Script -->
+    <script>
+        function checkAnswer(element, isCorrect, explanation = "") {
+            const parent = element.parentElement;
+            const feedback = parent.querySelector('.quiz-feedback');
+            const options = parent.querySelectorAll('.quiz-option');
+
+            // Reset visual state
+            options.forEach(opt => {
+                opt.classList.remove('selected');
+                opt.style.opacity = '0.5';
+                opt.style.pointerEvents = 'none'; // Disable further clicks
+            });
+
+            element.classList.add('selected');
+            element.style.opacity = '1';
+
+            feedback.style.display = 'block';
+            if (isCorrect) {
+                feedback.className = 'quiz-feedback correct';
+                feedback.innerHTML = `<i class="fas fa-check-circle"></i> ${explanation}`;
+            } else {
+                feedback.className = 'quiz-feedback incorrect';
+                feedback.innerHTML = `<i class="fas fa-times-circle"></i> 答案不正確，請再思考一下 SD-WAN 的運作原理。`;
+            }
+        }
+
+        // Initialize Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: false,
+                htmlLabels: true
+            },
+            sequence: {
+                useMaxWidth: false // 關鍵修正：防止 Sequence Diagram 自動縮小
+            }
+        });
+    </script>
+</body>
+</html>
