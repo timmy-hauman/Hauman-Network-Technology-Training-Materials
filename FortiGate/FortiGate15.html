@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FortiGate 實戰課程 - 系統診斷與除錯</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6; /* Gray-100 */
+            color: #1f2937; /* Gray-800 */
+        }
+        
+        /* 標題漸層背景 - Fortinet Red Style */
+        .header-bg {
+            background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%);
+        }
+
+        /* 卡片樣式 */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 6px solid #b91c1c; /* Fortinet Red Accent */
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .section-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* 標籤 Badge 樣式 */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        .badge-red { background-color: #fee2e2; color: #991b1b; } /* Concept */
+        .badge-blue { background-color: #dbeafe; color: #1e40af; } /* Mechanism */
+        .badge-green { background-color: #dcfce7; color: #166534; } /* Visuals */
+        .badge-purple { background-color: #f3e8ff; color: #6b21a8; } /* Use Case */
+
+        /* 生活化比喻框 */
+        .analogy-box {
+            background-color: #f0fdf4; /* Green-50 */
+            border: 2px solid #86efac; /* Green-300 */
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            position: relative;
+        }
+        .analogy-box::before {
+            content: '\f1bb'; /* FontAwesome Tree/Life icon */
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: #f0fdf4;
+            padding: 0 10px;
+            color: #166534;
+            font-size: 1.2rem;
+        }
+
+        /* 重點提示框 */
+        .highlight-box {
+            background-color: #fef2f2; /* Red-50 */
+            border: 2px solid #fca5a5; /* Red-300 */
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        /* Mermaid 容器優化 */
+        .mermaid-container {
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            overflow-x: auto; /* 允許水平捲動 */
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: center;
+        }
+        /* 強制 Mermaid 最小寬度，避免手機版字太小 */
+        .mermaid {
+            min-width: 800px; 
+        }
+
+        /* CLI 代碼區塊 */
+        .cli-block {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            font-family: 'Consolas', 'Monaco', monospace;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            border-left: 4px solid #b91c1c;
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        .cli-prompt { color: #4ec9b0; }
+        .cli-cmd { color: #ce9178; }
+        .cli-comment { color: #6a9955; font-style: italic; }
+
+        /* 隨堂測驗樣式 */
+        .quiz-option {
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .quiz-option:hover {
+            background-color: #f3f4f6;
+        }
+
+        /* Footer 簽名檔 */
+        .signature-footer {
+            background-color: #1f2937;
+            color: #9ca3af;
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.85rem;
+            border-top: 4px solid #b91c1c;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="header-bg text-white p-6 shadow-lg mb-8">
+        <div class="container mx-auto max-w-5xl flex items-center gap-4">
+            <div class="text-4xl"><i class="fas fa-shield-alt"></i></div>
+            <div>
+                <h1 class="text-3xl font-bold tracking-tight">Fortinet FortiGate 實戰課程</h1>
+                <p class="text-red-200 mt-1 font-medium">Level 3: Architect & Troubleshooting - Section 15</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto max-w-5xl px-4">
+
+        <!-- Topic 1: Life of a Packet -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <i class="fas fa-microchip text-red-700 mr-3"></i> 1. 封包流向生命週期 (Life of a Packet)
+            </h2>
+
+            <span class="badge badge-red">核心概念 (Concept)</span>
+            <p class="mb-4 text-lg">了解一個封包進入 FortiGate 後，究竟經歷了哪些處理步驟，是除錯的基礎。</p>
+
+            <div class="analogy-box">
+                <h3 class="font-bold text-green-800 mb-2">生活化比喻：國際機場的通關流程</h3>
+                <p>想像 <strong>FortiGate 就是一座國際機場</strong>，封包是旅客：</p>
+                <ul class="list-disc list-inside mt-2 space-y-1 text-gray-700">
+                    <li><strong>Ingress (介面進入)</strong>：旅客抵達機場大門。</li>
+                    <li><strong>Stateful Inspection (狀態檢測)</strong>：查驗護照，確認是否為已知旅客 (Session Table)。</li>
+                    <li><strong>DNAT (目的轉址)</strong>：如果要去特定目的地 (如 VIP 貴賓室)，在此更換登機證。</li>
+                    <li><strong>Routing (路由查詢)</strong>：查看航班資訊看板，確認要從哪個登機門 (Egress Interface) 出去。</li>
+                    <li><strong>Security Policy (防火牆策略)</strong>：安檢人員 (海關)，檢查是否有違禁品，決定是否放行。</li>
+                    <li><strong>UTM Scanning (防毒/IPS)</strong>：X 光機深度掃描行李。</li>
+                    <li><strong>SNAT (來源轉址)</strong>：出發前換上當地旅行團的制服 (公網 IP)。</li>
+                </ul>
+            </div>
+
+            <span class="badge badge-blue mt-4">運作原理 (Mechanism)</span>
+            <div class="space-y-4">
+                <p>FortiGate 的處理流程大致可分為兩個主要路徑：</p>
+                <ol class="list-decimal list-inside space-y-2 ml-2">
+                    <li><strong>Slow Path (First Packet)</strong>：首個封包建立連線時，需經過 CPU 完整的檢查 (路由、Policy、NAT)，並建立 Session。</li>
+                    <li><strong>Fast Path (Subsequent Packets)</strong>：後續封包直接比對 Session Table，若由 NPU (SPU) 硬體加速處理，則會直接轉發 (Offload)，不再經過 CPU。</li>
+                </ol>
+                <div class="highlight-box">
+                    <strong class="text-red-700"><i class="fas fa-exclamation-triangle"></i> 大師觀點：</strong>
+                    <p class="mt-1">當您使用 Sniffer 抓不到封包時，很有可能是因為流量已經被 <strong>NPU Offload</strong> 了！這時需要暫時關閉硬體加速才能進行完整的除錯。</p>
+                </div>
+            </div>
+
+            <span class="badge badge-green mt-6">架構視覺化 (Visuals)</span>
+            <div class="mermaid-container">
+                <div class="mermaid">
+flowchart TD
+    subgraph Ingress_Process [進入處理]
+    A[封包進入 Ingress Interface] --> B{是否已存在 Session?}
+    B -- Yes (Fast Path) --> C[NPU/SPU 加速轉發]
+    B -- No (First Packet) --> D[DOS Policy 檢查]
+    end
+
+    subgraph Core_Process [核心決策]
+    D --> E[IP Integrity 完整性檢查]
+    E --> F{DNAT / VIP?}
+    F -- Yes --> G[修改 Destination IP]
+    F -- No --> H[路由表查詢 Routing Lookup]
+    G --> H
+    H --> I{是否有匹配的防火牆策略?}
+    I -- No (Deny) --> Drop((丟棄封包 Drop))
+    I -- Yes (Accept) --> J[建立 Session]
+    end
+
+    subgraph Security_UTM [安全檢測]
+    J --> K{啟用 UTM?}
+    K -- Yes --> L[Flow-based / Proxy-based 檢測<br/>AV, IPS, Web Filter]
+    L -- 威脅偵測 --> Drop
+    L -- 安全 --> M[SNAT 處理]
+    K -- No --> M
+    end
+
+    subgraph Egress_Process [輸出處理]
+    M --> N[傳送至 Egress Interface]
+    C --> N
+    end
+    
+    style A fill:#fca5a5,stroke:#b91c1c,stroke-width:2px
+    style Drop fill:#ef4444,stroke:#7f1d1d,color:white
+    style N fill:#86efac,stroke:#15803d,stroke-width:2px
+    style C fill:#fde047,stroke:#ca8a04,stroke-dasharray: 5 5
+                </div>
+            </div>
+        </div>
+
+        <!-- Topic 2: Basic Network Verification -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <i class="fas fa-network-wired text-red-700 mr-3"></i> 2. 基礎網路資訊確認 (Ping, ARP, Route, IP)
+            </h2>
+
+            <span class="badge badge-red">核心概念 (Concept)</span>
+            <p class="mb-4">在進行複雜的 Debug Flow 之前，必須先確認基本的網路連通性與轉發路徑是否正常。</p>
+
+            <div class="analogy-box">
+                <h3 class="font-bold text-green-800 mb-2">生活化比喻：行前車況檢查</h3>
+                <p>在拆解引擎 (Debug Flow) 修車之前，先檢查基本指標：</p>
+                <ul class="list-disc list-inside mt-2 space-y-1 text-gray-700">
+                    <li><strong>IP (Interface)</strong>：車子輪胎還在嗎？(介面是否有 IP 且 Up)</li>
+                    <li><strong>ARP</strong>：知道鄰居家怎麼走嗎？(MAC 位址解析是否正確)</li>
+                    <li><strong>Route</strong>：導航地圖上有這條路嗎？(路由表是否有路徑)</li>
+                    <li><strong>Ping</strong>：按喇叭對方聽得到嗎？(端對端連通測試)</li>
+                </ul>
+            </div>
+
+            <span class="badge badge-blue mt-4">常用指令集 (Commands)</span>
+            
+            <h4 class="font-bold text-lg mt-4 mb-2 text-gray-700">1. Ping (連通性測試)</h4>
+            <p class="text-sm text-gray-600 mb-2">除了單純 Ping，<strong>指定來源 IP (Source IP)</strong> 是防火牆除錯最關鍵的技巧。</p>
+            <div class="cli-block">
+                <span class="cli-comment">// 設定 Ping 的來源介面 IP (模擬內網 Server 出網)</span><br>
+                <span class="cli-prompt">#</span> <span class="cli-cmd">execute ping-options source 192.168.1.254</span><br>
+                <span class="cli-prompt">#</span> <span class="cli-cmd">execute ping 8.8.8.8</span><br>
+                <br>
+                <span class="cli-comment">// 恢復預設值</span><br>
+                <span class="cli-prompt">#</span> <span class="cli-cmd">execute ping-options reset</span>
+            </div>
+
+            <h4 class="font-bold text-lg mt-6 mb-2 text-gray-700">2. ARP (鄰居位址解析)</h4>
+            <div class="cli-block">
+                <span class="cli-comment">// 顯示 ARP 表 (確認 Next Hop 的 MAC 是否正確)</span><br>
+                <span class="cli-prompt">#</span> <span class="cli-cmd">get system arp</span><br>
+                <br>
+                <span class="cli-comment">// 清除特定 IP 的 ARP 紀錄 (解決更換設備後的 MAC 衝突)</span><br>
+                <span class="cli-prompt">#</span> <span class="cli-cmd">execute clear system arp table</span>
+            </div>
+
+            <h4 class="font-bold text-lg mt-6 mb-2 text-gray-700">3. Route (路由表查詢)</h4>
+            <div class="cli-block">
+                <span class="cli-comment">// 顯示所有路由 (包含 Static, OSPF, BGP, Connected)</span><br>
+                <span class="cli-prompt">#</span> <span class="cli-cmd">get router info routing-table all</span><br>
+                <br>
+                <span class="cli-comment">// 查詢特定目的地的路由 (除錯神器：系統會告訴你它會走哪條路)</span><br>
+                <span class="cli-prompt">#</span> <span class="cli-cmd">get router info routing-table details 1.1.1.1</span>
+            </div>
+
+            <h4 class="font-bold text-lg mt-6 mb-2 text-gray-700">4. IP & Interface (介面狀態)</h4>
+            <div class="cli-block">
+                <span class="cli-comment">// 顯示實體介面狀態 (IP, Link Status, Speed)</span><br>
+                <span class="cli-prompt">#</span> <span class="cli-cmd">get system interface physical</span><br>
+                <br>
+                <span class="cli-comment">// 顯示所有 IP (包含 Loopback, Tunnel, VLAN)</span><br>
+                <span class="cli-prompt">#</span> <span class="cli-cmd">diagnose ip address list</span>
+            </div>
+        </div>
+
+        <!-- Topic 3: CLI Diagnostics -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <i class="fas fa-terminal text-red-700 mr-3"></i> 3. CLI 進階指令 (Sniffer & Debug Flow)
+            </h2>
+
+            <span class="badge badge-red">核心概念 (Concept)</span>
+            <p class="mb-4">GUI 介面的 Log 只能告訴你「結果」，而 CLI 指令能告訴你「過程」與「原因」。</p>
+
+            <div class="analogy-box">
+                <h3 class="font-bold text-green-800 mb-2">生活化比喻：聽診器 vs. 手術紀錄</h3>
+                <ul class="list-none space-y-3">
+                    <li><i class="fas fa-stethoscope text-green-600 mr-2"></i><strong>Diagnose Sniffer Packet (聽診器)</strong>：
+                        <br>不干涉身體運作，只是單純「聽」血管裡的血流聲。確認封包<strong>有沒有到達</strong>、<strong>有沒有離開</strong>。
+                    </li>
+                    <li><i class="fas fa-file-medical-alt text-green-600 mr-2"></i><strong>Diagnose Debug Flow (手術紀錄/日記)</strong>：
+                        <br>記錄醫生的每一個判斷。「因為血壓太高，所以我阻斷了...」。解釋封包<strong>為什麼被丟棄</strong> (例如：Policy Deny, Route Fail)。
+                    </li>
+                </ul>
+            </div>
+
+            <span class="badge badge-blue mt-4">運作原理與指令 (Mechanism)</span>
+            
+            <h4 class="font-bold text-lg mt-4 mb-2 text-gray-700">1. Sniffer Packet (抓包)</h4>
+            <div class="cli-block">
+                <span class="cli-prompt">#</span> <span class="cli-cmd">diagnose sniffer packet &lt;interface&gt; '&lt;filter&gt;' &lt;verbose&gt; &lt;count&gt;</span><br>
+                <br>
+                <span class="cli-comment">// 範例：抓取與 8.8.8.8 有關的 ICMP 封包，顯示詳細標頭 (4)，抓 10 個</span><br>
+                <span class="cli-prompt">#</span> <span class="cli-cmd">diagnose sniffer packet any 'host 8.8.8.8 and icmp' 4 10</span>
+            </div>
+            <p class="text-sm text-gray-600 mt-2">
+                <strong>Verbose Level 關鍵參數：</strong><br>
+                - <strong>1</strong>: 僅顯示 Header (IP, Port, Protocol)。<br>
+                - <strong>4</strong>: 顯示 Header + Interface 名稱 (最常用，因為能看出封包進出的介面)。<br>
+                - <strong>6</strong>: 顯示 Hex 與 ASCII 內容 (類似 Wireshark Payload)。
+            </p>
+
+            <h4 class="font-bold text-lg mt-6 mb-2 text-gray-700">2. Debug Flow (追蹤流程)</h4>
+            <div class="cli-block">
+                <span class="cli-comment">// 步驟 1: 清除舊的過濾器</span><br>
+                <span class="cli-prompt">#</span> <span class="cli-cmd">diagnose debug disable</span><br>
+                <span class="cli-prompt">#</span> <span class="cli-cmd">diagnose debug flow filter clear</span><br>
+                <br>
+                <span class="cli-comment">// 步驟 2: 設定過濾條件 (誰出了問題？)</span><br>
+                <span class="cli-prompt">#</span> <span class="cli-cmd">diagnose debug flow filter addr 192.168.1.100</span><br>
+                <span class="cli-prompt">#</span> <span class="cli-cmd">diagnose debug flow filter port 80</span><br>
+                <br>
+                <span class="cli-comment">// 步驟 3: 啟用追蹤顯示 (Function Name 與 Trace)</span><br>
+                <span class="cli-prompt">#</span> <span class="cli-cmd">diagnose debug flow show function-name enable</span><br>
+                <span class="cli-prompt">#</span> <span class="cli-cmd">diagnose debug flow trace start 10</span><br>
+                <br>
+                <span class="cli-comment">// 步驟 4: 開啟全域 Debug 開關</span><br>
+                <span class="cli-prompt">#</span> <span class="cli-cmd">diagnose debug enable</span>
+            </div>
+
+            <span class="badge badge-purple mt-6">實務應用場景 (Use Case)</span>
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <h4 class="font-bold text-gray-800">案例：財務部無法連線到 ERP 伺服器</h4>
+                <p class="text-gray-600 mt-2"><strong>情境：</strong> 財務部 User (10.0.1.50) 抱怨連不到 ERP (172.16.20.5)。Ping 有通，但網頁打不開。</p>
+                <p class="text-gray-600 mt-2"><strong>除錯步驟：</strong></p>
+                <ol class="list-decimal list-inside mt-2 text-gray-700 space-y-1">
+                    <li>使用 <code>sniffer</code> 確認封包有到達 FortiGate 且有送出。</li>
+                    <li>使用 <code>debug flow</code> 發現錯誤訊息：<code>denied by forward policy check (policy 0)</code>。</li>
+                    <li><strong>解析：</strong> Policy 0 代表「隱含拒絕 (Implicit Deny)」。這表示沒有任何一條 Policy 允許這個流量。檢查 Policy 設定，發現只開了 Ping (ICMP) 沒開 Web (TCP 80/443)。</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- Topic 4: Quiz -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <i class="fas fa-question-circle text-red-700 mr-3"></i> 4. 隨堂測驗 (Quiz)
+            </h2>
+            
+            <div class="space-y-6" id="quiz-container">
+                <!-- 題目將由 JavaScript 生成 -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="signature-footer">
+        <p>Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0</p>
+    </footer>
+
+    <!-- JavaScript for Quiz -->
+    <script>
+        const quizData = [
+            {
+                question: "1. 在 FortiGate 的封包處理流程中，哪一個步驟通常發生在「路由查詢 (Routing Lookup)」之前？",
+                options: ["SNAT (來源轉址)", "Security Policy (防火牆策略)", "DNAT (目的轉址/VIP)", "Traffic Shaping (流量整形)"],
+                correct: 2,
+                explanation: "正確答案是 DNAT。FortiGate 必須先知道封包最終要去哪裡 (DNAT/VIP 解析後)，才能去查詢路由表決定從哪個介面送出。"
+            },
+            {
+                question: "2. 當你使用 diagnose sniffer packet 時，想要同時看到 IP Header 資訊以及封包是從哪個 Interface 進出的，應該使用哪個 Verbose Level？",
+                options: ["1", "3", "4", "6"],
+                correct: 2,
+                explanation: "正確答案是 Level 4。Verbose 4 是除錯最常用的層級，它會顯示簡要的標頭資訊以及封包進出的介面名稱 (如 port1 in, port2 out)。"
+            },
+            {
+                question: "3. 如果 debug flow 顯示 'denied by forward policy check (policy 0)'，這代表什麼意思？",
+                options: ["封包被 IPS 阻擋", "找不到路由", "被隱含拒絕 (Implicit Deny) 阻擋", "Session Table 已滿"],
+                correct: 2,
+                explanation: "Policy 0 是 FortiGate 的預設隱含拒絕規則。這代表封包沒有匹配到任何一條允許放行 (Accept) 的防火牆策略。"
+            },
+            {
+                question: "4. 如果要模擬內部 Server (IP: 192.168.1.254) 去 Ping 外部 DNS，應該使用什麼指令？",
+                options: ["execute ping 8.8.8.8", "execute ping-options source 192.168.1.254", "execute ping-options interface wan1", "diagnose ip ping 8.8.8.8"],
+                correct: 1,
+                explanation: "正確答案是先下 `execute ping-options source 192.168.1.254`。這樣才能確保 Ping 封包的來源 IP 是內部 Server 的 IP，而非 FortiGate 出口介面的 IP，這對測試 Routing 和 Policy 至關重要。"
+            },
+            {
+                question: "5. 在使用 debug flow 進行除錯前，為了避免看到不相關的海量 Log，最重要的步驟是什麼？",
+                options: ["重開機", "設定 Filter (過濾器)", "升級 Firmware", "備份設定檔"],
+                correct: 1,
+                explanation: "設定 Filter (如 `diagnose debug flow filter addr ...`) 是最重要的，否則開啟 debug enable 後，主控台會被成千上萬條無關的系統處理訊息淹沒。"
+            }
+        ];
+
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((data, qIndex) => {
+            const questionEl = document.createElement('div');
+            questionEl.className = 'bg-white p-4 rounded-lg border border-gray-200 shadow-sm';
+            
+            let optionsHtml = '';
+            data.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border border-gray-300 mb-2" 
+                         onclick="checkAnswer(this, ${qIndex}, ${optIndex})">
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            questionEl.innerHTML = `
+                <h3 class="font-bold text-lg mb-3 text-gray-800">${data.question}</h3>
+                <div class="space-y-2 mb-4" data-answered="false">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${qIndex}" class="hidden p-3 rounded bg-gray-100 text-sm">
+                    <p class="font-bold result-title mb-1"></p>
+                    <p class="text-gray-700">${data.explanation}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionEl);
+        });
+
+        function checkAnswer(element, qIndex, optIndex) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            // 鎖定該題不可再選
+            if (element.parentElement.dataset.answered === "true") return;
+            element.parentElement.dataset.answered = "true";
+
+            // 清除並重設樣式
+            allOptions.forEach(opt => opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500'));
+
+            if (optIndex === data.correct) {
+                // 答對
+                element.classList.add('bg-green-100', 'border-green-500', 'border');
+                resultBox.classList.remove('hidden');
+                resultBox.classList.add('bg-green-50', 'border', 'border-green-200');
+                resultTitle.textContent = "✅ 答對了！";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                // 答錯
+                element.classList.add('bg-red-100', 'border-red-500', 'border');
+                // 標示正確答案
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500', 'border');
+                
+                resultBox.classList.remove('hidden');
+                resultBox.classList.add('bg-red-50', 'border', 'border-red-200');
+                resultTitle.textContent = "❌ 答錯了！";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+    </script>
+
+    <!-- Initialize Mermaid -->
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true, 
+            theme: 'neutral',
+            securityLevel: 'loose',
+        });
+    </script>
+</body>
+</html>
