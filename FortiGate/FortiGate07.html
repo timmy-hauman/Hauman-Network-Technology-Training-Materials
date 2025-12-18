@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fortinet FortiGate 實戰課程 - 安全性設定檔</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        /* Fortinet 品牌風格標頭 */
+        .brand-header {
+            background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%);
+            color: white;
+        }
+
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 6px solid #b91c1c; /* Fortinet Red */
+        }
+
+        .topic-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .badge-concept { background-color: #fee2e2; color: #991b1b; }
+        .badge-mechanism { background-color: #dbeafe; color: #1e40af; }
+        .badge-visual { background-color: #d1fae5; color: #065f46; }
+        .badge-usecase { background-color: #ffedd5; color: #9a3412; }
+
+        .analogy-box {
+            border: 2px solid #10b981;
+            background-color: #ecfdf5;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            position: relative;
+        }
+
+        .analogy-box::before {
+            content: '\f0eb'; /* FontAwesome Lightbulb */
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            top: -15px;
+            left: 20px;
+            background: #10b981;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .highlight-box {
+            border-left: 4px solid #ef4444;
+            background-color: #fef2f2;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .config-block {
+            background-color: #1f2937;
+            color: #e5e7eb;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
+
+        /* ---------------------------------------------------- */
+        /* Mermaid 圖表顯示優化 - 雙重策略 (強制寬度 + CSS 覆寫) */
+        /* ---------------------------------------------------- */
+        .mermaid-container {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            margin: 1.5rem 0;
+            /* 策略 1: 容器改為可捲動，避免內容被壓縮 */
+            overflow-x: auto; 
+            display: block; 
+            text-align: center;
+        }
+
+        /* 策略 1: 強制 SVG 最小寬度，防止自動縮放導致字體過小 */
+        .mermaid svg {
+            min-width: 850px !important; 
+            max-width: none !important; 
+            height: auto !important;
+        }
+
+        /* 策略 2: CSS 暴力覆寫字體大小 */
+        /* 針對節點文字 (Nodes) */
+        .mermaid .node foreignObject,
+        .mermaid .node text,
+        .mermaid .nodeLabel {
+            font-size: 18px !important;
+            font-weight: bold !important;
+            line-height: 1.5 !important;
+            font-family: 'Noto Sans TC', sans-serif !important;
+        }
+
+        /* 針對連線文字 (Edge Labels) */
+        .mermaid .edgeLabel, 
+        .mermaid .edgeLabel div,
+        .mermaid .edgeLabel span {
+            font-size: 16px !important;
+            background-color: #ffffff !important; /* 增加背景色確保文字清晰 */
+            padding: 2px 4px !important;
+            color: #b91c1c !important; /* 使用深紅色強調路徑條件 */
+        }
+
+        /* 針對群組標題 (Subgraphs) */
+        .mermaid .cluster-label, 
+        .mermaid .cluster-label text {
+            font-size: 20px !important;
+            font-weight: 900 !important;
+            fill: #111827 !important;
+        }
+        /* ---------------------------------------------------- */
+
+        .quiz-option {
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .quiz-option:hover {
+            background-color: #f3f4f6;
+        }
+
+        /* 頁尾樣式 */
+        .custom-footer {
+            background-color: #1f2937;
+            color: #9ca3af;
+            padding: 1.5rem;
+            text-align: center;
+            font-size: 0.875rem;
+            border-top: 4px solid #b91c1c;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="brand-header py-8 px-4 shadow-lg">
+        <div class="max-w-5xl mx-auto flex items-center gap-4">
+            <div class="bg-white p-3 rounded-full text-red-700">
+                <i class="fa-solid fa-shield-halved text-3xl"></i>
+            </div>
+            <div>
+                <h1 class="text-3xl font-bold">Fortinet FortiGate 實戰課程</h1>
+                <p class="mt-2 text-red-100 font-medium">階段二：安全防護與連接 (Level 2) - 第 7 章：安全性設定檔</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-4 py-8">
+
+        <!-- Intro -->
+        <div class="mb-8 p-6 bg-white rounded-xl shadow-sm border border-gray-100">
+            <h2 class="text-xl font-bold text-gray-800 mb-2">本章學習重點</h2>
+            <p class="text-gray-600">
+                FortiGate 的強大之處不僅在於阻擋連接埠 (Port)，更在於能夠深入檢測封包內容。本章將帶領您深入了解三大核心防禦機制：
+                <span class="font-bold text-red-600">防毒與入侵防禦 (AV & IPS)</span>、
+                <span class="font-bold text-red-600">網頁與 DNS 過濾 (Web & DNS Filter)</span> 以及
+                <span class="font-bold text-red-600">應用程式控制 (App Control)</span>。
+            </p>
+        </div>
+
+        <!-- Section 1: Antivirus & IPS -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                <span class="bg-red-600 w-2 h-8 mr-3 rounded"></span>
+                1. 防毒 (Antivirus) 與 入侵防禦 (IPS)
+            </h2>
+
+            <!-- Concept -->
+            <div class="mb-8">
+                <span class="topic-badge badge-concept">一、核心概念 (Concept)</span>
+                <p class="text-lg font-medium text-gray-800 mb-2">一句話定義：</p>
+                <p class="text-gray-600 mb-4">
+                    <span class="font-bold text-gray-800">Antivirus (AV)</span> 負責檢查檔案是否含有已知的惡意程式碼；<span class="font-bold text-gray-800">IPS</span> 則負責監控網路流量中是否有攻擊行為或漏洞利用的特徵。
+                </p>
+
+                <div class="analogy-box">
+                    <h3 class="font-bold text-green-800 mb-2">生活化比喻：機場安檢</h3>
+                    <ul class="list-disc pl-5 text-green-900 space-y-2">
+                        <li><strong>Antivirus (AV)：就像「行李X光機」</strong>。它對照違禁品資料庫（病毒碼），掃描你的行李（檔案）裡有沒有槍枝或毒品（病毒）。它是針對「靜態」的物件進行檢查。</li>
+                        <li><strong>IPS：就像「航警與行為分析師」</strong>。即使你身上沒帶違禁品，但如果你試圖撬開管制區的門鎖（漏洞攻擊），或者在人群中異常奔跑尖叫（異常流量行為），航警會立刻將你制伏。它是針對「動態」的行為進行防禦。</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Mechanism -->
+            <div class="mb-8">
+                <span class="topic-badge badge-mechanism">二、運作原理 (Mechanism)</span>
+                
+                <div class="grid md:grid-cols-2 gap-6 mt-4">
+                    <div>
+                        <h4 class="font-bold text-gray-700 mb-2">Antivirus 檢測模式</h4>
+                        <ul class="list-disc pl-5 text-gray-600 space-y-2">
+                            <li><strong>Flow-based (串流模式)</strong>：效能高。封包一邊通過一邊掃描，不會完整重組檔案。適合大部分高速網路環境。</li>
+                            <li><strong>Proxy-based (代理模式)</strong>：安全性最高。防火牆會先完整接收檔案，重組後進行詳細掃描，確認安全才放行給使用者。支援更多功能（如 CDR 檔案清洗）。</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-gray-700 mb-2">IPS 關鍵技術</h4>
+                        <ul class="list-disc pl-5 text-gray-600 space-y-2">
+                            <li><strong>Signatures (特徵碼)</strong>：比對已知的攻擊模式 (如 SQL Injection 字串)。</li>
+                            <li><strong>Anomalies (異常檢測)</strong>：偵測不符合協定標準的流量 (如 Malformed Packets)。</li>
+                            <li><strong>Rate Based (速率控制)</strong>：防止 DoS 攻擊。</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visuals -->
+            <div class="mb-8">
+                <span class="topic-badge badge-visual">三、架構視覺化 (Visuals)</span>
+                <p class="text-sm text-gray-500 mb-2">圖表說明：封包進入 FortiGate 後的內容檢測流程 (可左右捲動查看完整流程)</p>
+                <div class="mermaid-container">
+                    <div class="mermaid">
+                    graph TD
+                        P_IN([封包進入 Ingress]) --> L3_Lookup[路由查表]
+                        L3_Lookup --> Policy[防火牆策略 Policy Check]
+                        Policy -- "Action: Deny" --> Drop([丟棄封包 Drop])
+                        Policy -- "Action: Allow" --> SP_Check{是否啟用 Security Profiles?}
+                        
+                        SP_Check -- No --> Forward([轉發封包])
+                        SP_Check -- Yes --> IPS_Engine[IPS 引擎分析]
+                        
+                        subgraph "Content Inspection (UTM)"
+                            IPS_Engine -- "發現攻擊特徵" --> Block_IPS([IPS 阻擋並紀錄])
+                            IPS_Engine -- "流量正常" --> AV_Scan[Antivirus 掃描]
+                            AV_Scan -- "發現病毒" --> Block_AV([AV 阻擋並隔離])
+                            AV_Scan -- "檔案安全" --> App_Ctrl[應用程式控制]
+                        end
+
+                        App_Ctrl --> Forward
+                    </div>
+                </div>
+            </div>
+
+            <!-- Use Case -->
+            <div class="mb-8">
+                <span class="topic-badge badge-usecase">四、實務應用場景 (Use Case)</span>
+                
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <h4 class="font-bold text-gray-800 mb-2">情境：保護內部 Windows Server 伺服器區</h4>
+                    <p class="text-gray-600 mb-4">
+                        <strong>需求</strong>：企業內部有一台網頁伺服器 (IIS) 開放給外部存取，為了防止駭客利用 OS 漏洞 (如 SMB 漏洞) 或上傳木馬檔案，需在 WAN 到 DMZ 的策略上啟用 IPS 與 AV。
+                    </p>
+
+                    <h5 class="font-bold text-sm text-gray-700 uppercase">GUI 設定重點：</h5>
+                    <ol class="list-decimal pl-5 text-gray-600 text-sm mb-4">
+                        <li>前往 <strong>Security Profiles > Intrusion Prevention</strong>，建立 "Protect-Server-IPS"。</li>
+                        <li>勾選 "Block Malicious URLs"。在 Signatures 篩選 Target 為 "Server" 且 OS 為 "Windows"。</li>
+                        <li>前往 <strong>Security Profiles > Antivirus</strong>，建立 "Server-AV"，啟用 HTTP/FTP/SMTP 掃描。</li>
+                        <li>前往 <strong>Policy & Objects > Firewall Policy</strong>，編輯 WAN to DMZ 策略，啟用上述 Profile。</li>
+                    </ol>
+
+                    <h5 class="font-bold text-sm text-gray-700 uppercase">CLI 設定範例：</h5>
+                    <div class="config-block">
+                        <pre>
+# 1. 設定 IPS Sensor
+config ips sensor
+    edit "Protect-Server-IPS"
+        config entries
+            edit 1
+                set location server
+                set os windows
+                set action block
+            next
+        end
+    next
+end
+
+# 2. 設定 AV Profile
+config antivirus profile
+    edit "Server-AV"
+        set mode flow-based
+        config http
+            set options scan
+        end
+    next
+end
+
+# 3. 套用到 Firewall Policy
+config firewall policy
+    edit 1
+        set name "WAN-to-DMZ-Web"
+        set srcintf "wan1"
+        set dstintf "dmz"
+        set srcaddr "all"
+        set dstaddr "Web-Server-VIP"
+        set action accept
+        set schedule "always"
+        set service "HTTP" "HTTPS"
+        set utm-status enable       <-- 啟用 UTM
+        set av-profile "Server-AV"  <-- 套用 AV
+        set ips-sensor "Protect-Server-IPS" <-- 套用 IPS
+        set ssl-ssh-profile "certificate-inspection"
+    next
+end</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Web Filtering & DNS Filter -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                <span class="bg-red-600 w-2 h-8 mr-3 rounded"></span>
+                2. 網頁過濾 (Web Filter) 與 DNS 過濾
+            </h2>
+
+            <!-- Concept -->
+            <div class="mb-8">
+                <span class="topic-badge badge-concept">一、核心概念 (Concept)</span>
+                <p class="text-lg font-medium text-gray-800 mb-2">一句話定義：</p>
+                <p class="text-gray-600 mb-4">
+                    管理使用者可以存取哪些網站。DNS Filter 在「查號台」階段阻擋；Web Filter 在「瀏覽內容」階段阻擋。
+                </p>
+
+                <div class="analogy-box">
+                    <h3 class="font-bold text-green-800 mb-2">生活化比喻：電話簿與圖書館</h3>
+                    <ul class="list-disc pl-5 text-green-900 space-y-2">
+                        <li><strong>DNS Filter：就像「撕掉電話簿的一頁」</strong>。你想打電話給賭場（惡意網站），但查號台（DNS Server）直接告訴你「查無此號」或給你警察局的電話（Redirect）。你連電話都撥不出去。</li>
+                        <li><strong>Web Filter：就像「圖書館管理員」</strong>。你已經到了圖書館（網站），但管理員看到你想拿《如何製造炸彈》（違規內容）這本書，立刻把書沒收並把你趕出去。這可以根據書名（URL）或內容分類（Category）來執行。</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Mechanism -->
+            <div class="mb-8">
+                <span class="topic-badge badge-mechanism">二、運作原理 (Mechanism)</span>
+                <div class="highlight-box">
+                    <p class="font-bold text-red-700">關鍵差異：</p>
+                    <p class="text-gray-700 text-sm">DNS Filter 發生在 TCP 連線建立<b>之前</b> (解析 IP 時)；Web Filter 發生在 TCP 連線建立<b>之後</b> (HTTP GET 時)。DNS Filter 更輕量、更隱密，但 Web Filter 能做到更精細的 URL 路徑控制。</p>
+                </div>
+            </div>
+
+            <!-- Visuals -->
+            <div class="mb-8">
+                <span class="topic-badge badge-visual">三、架構視覺化 (Visuals)</span>
+                <p class="text-sm text-gray-500 mb-2">圖表說明：使用者瀏覽網站時的兩道防線</p>
+                <div class="mermaid-container">
+                    <div class="mermaid">
+                    sequenceDiagram
+                        participant User as 使用者電腦
+                        participant FGT as FortiGate
+                        participant DNS as DNS Server
+                        participant Web as 網站伺服器 (Web Server)
+                        participant FG_Cloud as FortiGuard Cloud
+
+                        Note over User, FGT: 第一階段：DNS 查詢
+                        User->>FGT: 查詢 www.gambling.com IP? (UDP/53)
+                        FGT->>FGT: 檢查 DNS Filter Profile
+                        alt 網站類別被阻擋 (Blocked)
+                            FGT-->>User: 回傳 Redirect IP (Block Page)
+                            User->>FGT: 顯示「禁止存取」頁面
+                        else 網站類別允許 (Allowed)
+                            FGT->>DNS: 轉發 DNS 查詢
+                            DNS-->>FGT: 回傳真實 IP (1.2.3.4)
+                            FGT-->>User: 回傳真實 IP
+                        end
+
+                        Note over User, Web: 第二階段：HTTP/HTTPS 連線
+                        User->>FGT: 發送 HTTP GET 請求 (TCP/80 or 443)
+                        FGT->>FG_Cloud: 查詢 URL 分類 (即時查詢/快取)
+                        FG_Cloud-->>FGT: 回傳類別: Gambling
+                        FGT->>FGT: 檢查 Web Filter Profile
+                        alt Web Filter 設定為 Block
+                            FGT-->>User: 回傳 HTTP 403 / 取代頁面
+                        else Web Filter 設定為 Allow
+                            FGT->>Web: 轉發請求
+                            Web-->>User: 顯示網頁內容
+                        end
+                    </div>
+                </div>
+            </div>
+
+            <!-- Use Case -->
+            <div class="mb-8">
+                <span class="topic-badge badge-usecase">四、實務應用場景 (Use Case)</span>
+                
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <h4 class="font-bold text-gray-800 mb-2">情境：限制員工上班時間瀏覽社群網站與賭博網</h4>
+                    <p class="text-gray-600 mb-4">
+                        <strong>需求</strong>：在 LAN to WAN 的策略中，完全阻擋「賭博 (Gambling)」類別，並針對「社群網路 (Social Networking)」類別設定在上班時間警告或阻擋。
+                    </p>
+
+                    <h5 class="font-bold text-sm text-gray-700 uppercase">GUI 設定重點：</h5>
+                    <ol class="list-decimal pl-5 text-gray-600 text-sm mb-4">
+                        <li>前往 <strong>Security Profiles > Web Filter</strong>，建立 "Employee-Web-Policy"。</li>
+                        <li>啟用 <strong>FortiGuard Category Based Filter</strong>。</li>
+                        <li>找到 "Gambling"，動作設為 <strong>Block</strong>。</li>
+                        <li>找到 "Social Networking"，動作設為 <strong>Monitor</strong> (僅紀錄) 或 <strong>Warning</strong> (跳出警告須點擊才可繼續)。</li>
+                        <li>記得啟用 "Allow users to override blocked categories" (若需要主管授權)。</li>
+                    </ol>
+
+                    <h5 class="font-bold text-sm text-gray-700 uppercase">CLI 設定範例：</h5>
+                    <div class="config-block">
+                        <pre>
+# 1. 設定 Web Filter Profile
+config webfilter profile
+    edit "Employee-Web-Policy"
+        config ftgd-wf
+            config filters
+                edit 1
+                    set category 2  <-- 假設 2 是 Gambling (ID依版本不同)
+                    set action block
+                next
+                edit 2
+                    set category 37 <-- 假設 37 是 Social Networking
+                    set action warning
+                next
+            end
+        end
+        set log-all-url enable  <-- 紀錄所有瀏覽網址
+    next
+end
+
+# 2. 設定 DNS Filter Profile (雙重保障)
+config dnsfilter profile
+    edit "Employee-DNS-Policy"
+        config ftgd-dns
+            config filters
+                edit 1
+                    set category 2
+                    set action block
+                next
+            end
+        end
+    next
+end
+
+# 3. 套用到 Firewall Policy
+config firewall policy
+    edit 2
+        set name "LAN-to-WAN-General"
+        set srcintf "lan"
+        set dstintf "wan1"
+        set srcaddr "Internal_Subnet"
+        set dstaddr "all"
+        set action accept
+        set schedule "work-hours"
+        set service "ALL"
+        set utm-status enable
+        set webfilter-profile "Employee-Web-Policy"
+        set dnsfilter-profile "Employee-DNS-Policy"
+        set ssl-ssh-profile "certificate-inspection" <--- 必須啟用 SSL 檢測才能解析 HTTPS URL
+        set nat enable
+    next
+end</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 3: Application Control -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                <span class="bg-red-600 w-2 h-8 mr-3 rounded"></span>
+                3. 應用程式控制 (Application Control)
+            </h2>
+
+            <!-- Concept -->
+            <div class="mb-8">
+                <span class="topic-badge badge-concept">一、核心概念 (Concept)</span>
+                <p class="text-lg font-medium text-gray-800 mb-2">一句話定義：</p>
+                <p class="text-gray-600 mb-4">
+                    不只看 Port 號 (L4)，而是識別封包內的實際應用程式 (L7)，例如分辨出這是 Facebook 的「聊天」流量還是「影片」流量。
+                </p>
+
+                <div class="analogy-box">
+                    <h3 class="font-bold text-green-800 mb-2">生活化比喻：透明包裹與貨車</h3>
+                    <ul class="list-disc pl-5 text-green-900 space-y-2">
+                        <li><strong>傳統防火牆 (L4)：只看貨車大小 (Port)</strong>。只要是從「80號倉庫」出來的車，或是貼著「HTTP」標籤的箱子，全部放行。它不知道箱子裡裝的是炸彈還是糖果。</li>
+                        <li><strong>Application Control (L7)：像是透視眼</strong>。它不管箱子外面貼什麼標籤，直接看內容物。它能發現這個標示為 HTTPS (Port 443) 的箱子，裡面其實裝的是 "BitTorrent" (P2P下載) 或者是 "Line Messenger"。它甚至能區分：「允許瀏覽 Facebook (看信件)」但「禁止 Facebook Game (玩玩具)」。</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Mechanism -->
+            <div class="mb-8">
+                <span class="topic-badge badge-mechanism">二、運作原理 (Mechanism)</span>
+                <p class="text-gray-600 mb-4">
+                    FortiGate 使用 **IPS 引擎** 進行應用程式識別。它不依賴 Port 號，而是分析流量特徵 (Signatures)。
+                </p>
+                
+                <h4 class="font-bold text-gray-700 mb-2">識別層級：</h4>
+                <div class="mermaid-container">
+                    <div class="mermaid">
+                    graph LR
+                        Raw_Traffic[原始流量 Port 443] --> Protocol_Decoder[協定解碼 HTTPS]
+                        Protocol_Decoder --> App_Signature[應用程式特徵比對]
+                        App_Signature --> Parent_App[應用程式: Facebook]
+                        Parent_App --> Child_Function[子功能: Facebook_Video]
+                        Child_Function --> Action[動作: Block]
+                    </div>
+                </div>
+            </div>
+
+            <!-- Use Case -->
+            <div class="mb-8">
+                <span class="topic-badge badge-usecase">四、實務應用場景 (Use Case)</span>
+                
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <h4 class="font-bold text-gray-800 mb-2">情境：頻寬管理與生產力提升</h4>
+                    <p class="text-gray-600 mb-4">
+                        <strong>需求</strong>：公司允許員工使用 YouTube 查找資料，但禁止使用 P2P 軟體 (BitTorrent) 佔用頻寬，並封鎖遠端控制軟體 (TeamViewer, AnyDesk) 以免資料外洩。
+                    </p>
+
+                    <h5 class="font-bold text-sm text-gray-700 uppercase">GUI 設定重點：</h5>
+                    <ol class="list-decimal pl-5 text-gray-600 text-sm mb-4">
+                        <li>前往 <strong>Security Profiles > Application Control</strong>，建立 "Office-App-Control"。</li>
+                        <li>在 <strong>Categories</strong> 中，將 "P2P" 設為 Block。</li>
+                        <li>在 <strong>Application Overrides</strong> (例外清單) 中：
+                            <ul class="list-disc pl-5">
+                                <li>搜尋 "TeamViewer"，動作設為 Block。</li>
+                                <li>搜尋 "AnyDesk"，動作設為 Block。</li>
+                                <li>搜尋 "YouTube"，動作設為 Monitor (監控流量但不阻擋)。</li>
+                            </ul>
+                        </li>
+                    </ol>
+
+                    <h5 class="font-bold text-sm text-gray-700 uppercase">CLI 設定範例：</h5>
+                    <div class="config-block">
+                        <pre>
+# 1. 設定 Application Control List
+config application list
+    edit "Office-App-Control"
+        set other-application-log enable
+        config entries
+            edit 1
+                set category 8  <-- P2P Category ID
+                set action block
+            next
+        end
+        config entries
+            edit 2
+                set application 15832 <-- TeamViewer App ID (範例)
+                set action block
+            next
+            edit 3
+                set application 31256 <-- AnyDesk App ID (範例)
+                set action block
+            next
+        end
+    next
+end
+
+# 2. 套用到 Firewall Policy
+config firewall policy
+    edit 2
+        # ... (前略: 來源/目的設定) ...
+        set utm-status enable
+        set application-list "Office-App-Control"
+        set ssl-ssh-profile "deep-inspection" <-- 強烈建議：App Control 搭配 Deep Inspection 效果最佳
+    next
+end</pre>
+                    </div>
+                    <div class="highlight-box mt-4">
+                        <p class="font-bold text-red-700">大師提醒：</p>
+                        <p class="text-gray-700 text-sm">
+                            現代應用程式幾乎都走 HTTPS 加密。若只使用 "Certificate Inspection" (憑證檢測)，FortiGate 只能看到這是 "Google" 的憑證，可能無法精準分辨是 Google Drive 上傳還是 Google Search。若要精準控制應用程式細部功能 (如阻擋 Facebook 上傳但允許瀏覽)，必須啟用 **Deep Inspection (深度檢測)** 並在電腦端安裝 Fortinet CA 憑證。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quiz Section -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                <span class="bg-blue-600 w-2 h-8 mr-3 rounded"></span>
+                五、隨堂測驗 (Quiz)
+            </h2>
+            <div id="quiz-container" class="space-y-6">
+                <!-- 題目將由 JS 生成 -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="custom-footer">
+        <p>Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0</p>
+    </footer>
+
+    <script>
+        // 初始化 Mermaid
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+
+        // 測驗資料
+        const quizData = [
+            {
+                question: "1. 關於 Antivirus 的掃描模式，下列敘述何者正確？",
+                options: [
+                    "Flow-based 模式需要完整重組檔案，安全性最高但效能較差。",
+                    "Proxy-based 模式可以支援 CDR (Content Disarm and Reconstruction) 等進階功能。",
+                    "Flow-based 模式只能掃描 HTTP 流量，不支援 SMTP。",
+                    "Proxy-based 模式無法處理壓縮檔內的病毒。"
+                ],
+                correct: 1,
+                explanation: "Flow-based 是串流掃描，效能好但功能較少；Proxy-based 會完整重組檔案，支援 CDR 與更多檔案類型的深度掃描，安全性最高。"
+            },
+            {
+                question: "2. 如果企業希望在員工輸入網址 www.badsite.com 的當下（尚未建立 TCP 連線前）就進行阻擋，應該使用哪種功能？",
+                options: [
+                    "Web Filter",
+                    "DNS Filter",
+                    "Application Control",
+                    "Antivirus"
+                ],
+                correct: 1,
+                explanation: "DNS Filter 運作在解析 Domain Name 轉 IP 的階段，是連線建立前的第一道防線。"
+            },
+            {
+                question: "3. 為什麼在設定 Application Control 時，通常建議搭配 Deep Inspection (SSL深度檢測)？",
+                options: [
+                    "因為沒有 Deep Inspection 就無法阻擋 Port 80 的流量。",
+                    "因為現代應用程式多使用 HTTPS 加密，不解密無法看到封包內的實際特徵(Signature)。",
+                    "因為 Deep Inspection 可以加速網路傳輸速度。",
+                    "因為 Application Control 必須依賴防毒引擎運作。"
+                ],
+                correct: 1,
+                explanation: "大多數 App (如 Facebook, YouTube) 都走 HTTPS。若無深度檢測，防火牆只能看到加密亂碼，難以精準識別應用程式的細部行為。"
+            },
+            {
+                question: "4. 在 Firewall Policy 中，要啟用 Web Filter 或 Application Control，必須先設定什麼？",
+                options: [
+                    "set nat disable",
+                    "set utm-status enable (在 GUI 中即為啟用 Security Profiles 開關)",
+                    "set status disable",
+                    "set action deny"
+                ],
+                correct: 1,
+                explanation: "必須啟用 UTM 功能 (GUI 中將各個 Profile 開關打開，CLI 中對應 set utm-status enable)，才能掛載 Security Profiles。"
+            },
+            {
+                question: "5. 若要阻擋「SQL Injection」這類針對網頁伺服器的攻擊，應該主要依賴哪一個模組？",
+                options: [
+                    "Web Filter",
+                    "IPS (Intrusion Prevention System)",
+                    "File Filter",
+                    "DNS Filter"
+                ],
+                correct: 1,
+                explanation: "SQL Injection 是利用應用層漏洞的攻擊行為，IPS 的特徵碼 (Signatures) 正是專門用來比對並阻擋這類攻擊模式的。"
+            }
+        ];
+
+        // 生成測驗 HTML
+        const quizContainer = document.getElementById('quiz-container');
+        
+        quizData.forEach((data, index) => {
+            const questionDiv = document.createElement('div');
+            questionDiv.className = 'bg-white p-4 rounded-lg border border-gray-200 shadow-sm';
+            questionDiv.dataset.answered = "false"; // 標記是否已作答
+
+            let optionsHtml = '';
+            data.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border border-gray-300 mb-2 flex items-center" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        <div class="w-6 h-6 rounded-full border-2 border-gray-400 mr-3 flex items-center justify-content-center text-xs text-white option-circle"></div>
+                        <span>${opt}</span>
+                    </div>
+                `;
+            });
+
+            questionDiv.innerHTML = `
+                <h3 class="font-bold text-lg text-gray-800 mb-3">${data.question}</h3>
+                <div class="options-container">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-3 p-3 rounded bg-gray-100 text-sm">
+                    <p class="font-bold result-title mb-1"></p>
+                    <p class="text-gray-700">解析：${data.explanation}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionDiv);
+        });
+
+        // 檢查答案邏輯
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const parent = element.parentElement.parentElement;
+            const allOptions = parent.querySelectorAll('.quiz-option');
+
+            // 鎖定該題不可再選
+            if (parent.dataset.answered === "true") return;
+            parent.dataset.answered = "true";
+
+            // 清除樣式
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+                opt.querySelector('.option-circle').classList.remove('bg-green-500', 'bg-red-500', 'border-transparent');
+            });
+
+            if (optIndex === data.correct) {
+                // 答對
+                element.classList.add('bg-green-100', 'border-green-500');
+                element.querySelector('.option-circle').classList.add('bg-green-500', 'border-transparent');
+                element.querySelector('.option-circle').innerHTML = '<i class="fa-solid fa-check"></i>';
+                
+                resultBox.classList.remove('hidden');
+                resultBox.classList.add('bg-green-50', 'border', 'border-green-200');
+                resultTitle.textContent = "✅ 答對了！";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                // 答錯
+                element.classList.add('bg-red-100', 'border-red-500');
+                element.querySelector('.option-circle').classList.add('bg-red-500', 'border-transparent');
+                element.querySelector('.option-circle').innerHTML = '<i class="fa-solid fa-times"></i>';
+
+                // 顯示正確答案
+                const correctOpt = allOptions[data.correct];
+                correctOpt.classList.add('bg-green-100', 'border-green-500');
+                correctOpt.querySelector('.option-circle').classList.add('bg-green-500', 'border-transparent');
+                correctOpt.querySelector('.option-circle').innerHTML = '<i class="fa-solid fa-check"></i>';
+                
+                resultBox.classList.remove('hidden');
+                resultBox.classList.add('bg-red-50', 'border', 'border-red-200');
+                resultTitle.textContent = "❌ 答錯了！";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+    </script>
+</body>
+</html>
