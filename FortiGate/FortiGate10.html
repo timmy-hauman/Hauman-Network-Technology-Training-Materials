@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fortinet FortiGate 實戰課程 - SSL VPN 深度解析</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.0/mermaid.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+        }
+
+        /* 自定義樣式 - 強制覆寫與特殊區塊 */
+        .section-card {
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            margin-bottom: 2rem;
+            padding: 2rem;
+            border-left: 6px solid #b91c1c; /* Fortinet Red-700 */
+        }
+
+        .analogy-box {
+            border: 2px solid #10b981; /* Emerald-500 */
+            background-color: #ecfdf5; /* Emerald-50 */
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .analogy-box::before {
+            content: '\f0eb'; /* FontAwesome Lightbulb */
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background-color: #10b981;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+        }
+
+        .highlight-box {
+            border: 2px solid #ef4444; /* Red-500 */
+            background-color: #fef2f2; /* Red-50 */
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .code-block {
+            background-color: #1f2937;
+            color: #e5e7eb;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 1rem;
+            border-radius: 0.375rem;
+            overflow-x: auto;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        /* Badge 樣式 */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-weight: 700;
+            font-size: 0.875rem;
+            margin-right: 0.5rem;
+        }
+        .badge-concept { background-color: #fee2e2; color: #991b1b; }
+        .badge-mech { background-color: #dbeafe; color: #1e40af; }
+        .badge-visual { background-color: #dcfce7; color: #166534; }
+        .badge-case { background-color: #f3e8ff; color: #6b21a8; }
+        .badge-quiz { background-color: #ffedd5; color: #9a3412; }
+
+        /* Mermaid 容器 - 強制最小寬度確保圖表清晰 */
+        .mermaid-container {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            overflow-x: auto; /* 允許水平捲動 */
+            display: flex;
+            justify-content: center;
+        }
+        
+        /* 針對 Mermaid 內部 SVG 的強制覆寫 */
+        .mermaid svg {
+            min-width: 800px !important; /* 強制最小寬度，避免手機版擠壓 */
+            max-width: 100% !important;
+            height: auto !important;
+        }
+
+        /* 互動測驗樣式 */
+        .quiz-option {
+            cursor: pointer;
+            padding: 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s;
+        }
+        .quiz-option:hover {
+            background-color: #f3f4f6;
+        }
+        .quiz-option.correct {
+            background-color: #dcfce7;
+            border-color: #10b981;
+            color: #064e3b;
+        }
+        .quiz-option.wrong {
+            background-color: #fee2e2;
+            border-color: #ef4444;
+            color: #7f1d1d;
+        }
+        .explanation {
+            display: none;
+            margin-top: 0.5rem;
+            padding: 1rem;
+            background-color: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            color: #1e3a8a;
+        }
+
+        /* Footer */
+        .custom-footer {
+            background-color: #1f2937;
+            color: #9ca3af;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+            border-top: 4px solid #b91c1c;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-red-700 to-red-900 text-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-shield-alt text-3xl"></i>
+                <div>
+                    <h1 class="text-2xl font-bold tracking-wide">Fortinet FortiGate 實戰課程</h1>
+                    <p class="text-red-200 text-sm mt-1">
+                        Level 2: Security & Connectivity 
+                        <span class="mx-2 text-red-400">|</span> 
+                        <span class="text-red-100 font-medium">10. SSL VPN 遠端存取 Tunnel Mode vs. Web Mode 與雙因子認證 (2FA) 整合</span>
+                    </p>
+                </div>
+            </div>
+            <!-- 版本標籤已移除 -->
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <!-- Intro Section 已移動至 Header -->
+
+        <!-- 一、核心概念 (Concept) -->
+        <div class="section-card">
+            <h3 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">
+                <span class="badge badge-concept">Concept</span>一、核心概念
+            </h3>
+
+            <div class="mb-4">
+                <h4 class="font-bold text-gray-700">一句話定義：</h4>
+                <p class="text-gray-600 leading-relaxed">
+                    SSL VPN 是一種利用瀏覽器標準加密協定 (TLS)，讓外部使用者能安全地「穿越」網際網路，存取企業內部資源的技術，無需預先鋪設專線。
+                </p>
+            </div>
+
+            <div class="analogy-box">
+                <h4 class="font-bold text-emerald-800 mb-2">生活化比喻：任意門與傳送窗</h4>
+                <ul class="list-disc pl-5 space-y-2 text-emerald-900">
+                    <li>
+                        <strong>Tunnel Mode (隧道模式) 就像「任意門」：</strong>
+                        <br>你在家裡安裝了一個「任意門框」(FortiClient 軟體)。當你打開門走過去，你的人(封包)就完整地出現在公司辦公室裡。你可以走去印表機旁、走去伺服器旁，就像你真的在公司一樣 (獲得一個公司內部 IP)。
+                    </li>
+                    <li>
+                        <strong>Web Mode (網頁模式) 就像「遙控無人機視窗」：</strong>
+                        <br>你沒有任意門，但你透過家裡的窗戶 (瀏覽器) 操作一台位於公司的無人機 (Reverse Proxy)。你想看內部網站，無人機飛去幫你看，然後把畫面傳回來給你。你的人其實還在家裡，沒有真正進入公司 (沒有獲得虛擬網卡)。
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 二、運作原理 (Mechanism) -->
+        <div class="section-card">
+            <h3 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">
+                <span class="badge badge-mech">Mechanism</span>二、運作原理
+            </h3>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <h4 class="font-bold text-blue-700 mb-2"><i class="fas fa-cogs mr-2"></i>Tunnel Mode 技術細節</h4>
+                    <ul class="list-disc pl-5 text-gray-600 space-y-2 text-sm">
+                        <li><strong>封裝 (Encapsulation)：</strong> FortiClient 會建立一張虛擬網卡 (Virtual Adapter)。原始 IP 封包 (Payload) 會被加密並封裝在 SSL/TLS 標頭內。</li>
+                        <li><strong>Split Tunneling (分割通道)：</strong> 這是關鍵參數。
+                            <br>- 啟用：只有去公司的流量走 VPN，去 YouTube 的流量走本地網路 (節省頻寬)。
+                            <br>- 停用：所有流量強制走回公司 (安全性高，但耗頻寬)。
+                        </li>
+                        <li><strong>IP Address：</strong> Client 會從防火牆定義的 IP Pool 取得一個內部 IP。</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-blue-700 mb-2"><i class="fas fa-globe mr-2"></i>Web Mode 技術細節</h4>
+                    <ul class="list-disc pl-5 text-gray-600 space-y-2 text-sm">
+                        <li><strong>反向代理 (Reverse Proxy)：</strong> FortiGate 作為代理人。使用者只與 FortiGate 的 HTTPS Port 建立連線。</li>
+                        <li><strong>URL Rewriting：</strong> 這是最消耗資源的部分。FortiGate 必須解析內部網頁的 HTML，將所有內部連結 (如 `<a href="internal">`) 改寫為代理路徑，確保後續點擊仍透過 VPN。</li>
+                        <li><strong>限制：</strong> 只能存取特定協定 (HTTP/HTTPS, RDP, SSH, SMB 等)，無法支援像 VoIP 或複雜的 C/S 架構軟體。</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="highlight-box">
+                <h4 class="font-bold text-red-800 mb-2">關鍵參數與注意事項</h4>
+                <ul class="list-disc pl-5 text-red-900 text-sm">
+                    <li><strong>Listening Port：</strong> 預設是 443，但強烈建議修改 (如 10443)，避免與管理介面或 Virtual IP 的 HTTPS 服務衝突。</li>
+                    <li><strong>DTLS (Datagram TLS)：</strong> 建議啟用。這是使用 UDP 來封裝 TLS。對於語音或視訊等即時流量，TCP over TCP (TCP Meltdown) 會導致效能低落，DTLS 使用 UDP 封裝可大幅改善。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 三、架構視覺化 (Visuals) -->
+        <div class="section-card">
+            <h3 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">
+                <span class="badge badge-visual">Visuals</span>三、架構視覺化
+            </h3>
+
+            <div class="mb-6">
+                <h4 class="font-bold text-gray-700 mb-2">圖一：SSL VPN 連線建立流程 (Sequence Diagram)</h4>
+                <p class="text-sm text-gray-500 mb-2">展示使用者如何通過認證並建立隧道的過程。</p>
+                <div class="mermaid-container">
+                    <div class="mermaid">
+sequenceDiagram
+    participant User as 使用者 (FortiClient)
+    participant Internet as 網際網路
+    participant FG as FortiGate (VPN GW)
+    participant Auth as 認證伺服器 (LDAP/Radius)
+    participant Internal as 內部伺服器
+
+    Note over User, FG: 階段 1: 建立 TLS 連線
+    User->>FG: 1. TCP Handshake (Syn/Ack)
+    User->>FG: 2. Client Hello (TLS Setup)
+    FG-->>User: 3. Server Hello + Certificate
+    User->>User: 驗證憑證信任鏈
+    User->>FG: 4. Key Exchange complete
+
+    Note over User, FG: 階段 2: 使用者認證
+    FG->>User: 5. 請求使用者帳密
+    User->>FG: 6. 傳送帳密 (Encrypted)
+    FG->>Auth: 7. 驗證帳密
+    Auth-->>FG: 8. 驗證成功 (Access Accept)
+    
+    alt 啟用 2FA
+        FG->>User: 9. 請求 FortiToken 驗證碼
+        User->>FG: 10. 輸入 Token Code
+    end
+
+    Note over User, FG: 階段 3: 隧道建立
+    FG->>User: 11. 分配內部 IP (IP Pool) & 路由表
+    User->>User: 12. 建立虛擬網卡 (Virtual NIC)
+
+    Note over User, Internal: 階段 4: 資料傳輸
+    User->>FG: 13. [IP Header: Int-IP -> Svr-IP] [TCP Data] (Encrypted)
+    FG->>FG: 14. 解密並檢查 Firewall Policy
+    FG->>Internal: 15. 轉送封包
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <h4 class="font-bold text-gray-700 mb-2">圖二：Tunnel Mode vs Web Mode 拓撲邏輯比較</h4>
+                <div class="mermaid-container">
+                    <div class="mermaid">
+flowchart TB
+    subgraph Remote_User ["遠端使用者"]
+        direction TB
+        PC1[("筆電 A <br>(Tunnel Mode)")]
+        PC2[("筆電 B <br>(Web Mode)")]
+    end
+
+    subgraph Internet_Cloud ["網際網路"]
+        T_Tunnel[("==== 加密隧道 ====<br>(虛擬網卡, 全流量)")]
+        W_Session[(".... HTTPS Session ....<br>(瀏覽器, 僅網頁)")]
+    end
+
+    subgraph HQ ["企業總部 (FortiGate)"]
+        FW_Ext["WAN 介面 <br> (Listen: 10443)"]
+        
+        subgraph Logic ["處理邏輯"]
+            Virtual_IP["分配虛擬 IP Pool<br>(10.212.134.0/24)"]
+            Proxy_Engine["Reverse Proxy 引擎<br>(URL 改寫)"]
+        end
+        
+        FW_Int["LAN 介面"]
+    end
+
+    subgraph Internal_Servers ["內部資源"]
+        ERP["ERP 系統<br>(TCP 8080)"]
+        File["檔案伺服器<br>(SMB 445)"]
+    end
+
+    %% 連線關係
+    PC1 --> T_Tunnel --> FW_Ext
+    PC2 --> W_Session --> FW_Ext
+
+    FW_Ext --> Logic
+    
+    Virtual_IP -->|"路由/Policy檢查"| FW_Int
+    Proxy_Engine -->|"代理請求"| FW_Int
+
+    FW_Int --> ERP
+    FW_Int --> File
+
+    %% 樣式設定
+    classDef device fill:#f9f,stroke:#333,stroke-width:2px;
+    classDef logic fill:#e0f2f1,stroke:#004d40,stroke-dasharray: 5 5;
+    
+    class PC1,PC2,FW_Ext,FW_Int device;
+    class Logic,Virtual_IP,Proxy_Engine logic;
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 四、實務應用場景 (Use Case) -->
+        <div class="section-card">
+            <h3 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">
+                <span class="badge badge-case">Use Case</span>四、實務應用場景
+            </h3>
+
+            <div class="mb-4">
+                <h4 class="font-bold text-gray-700">場景描述：混合型遠端存取策略</h4>
+                <p class="text-gray-600">
+                    某製造業公司需要滿足兩類使用者的需求：
+                    <br>1. <strong>業務人員 (Sales)</strong>：只需存取內網的 ERP 網頁下單，使用公用電腦或手機，不希望安裝軟體。
+                    <br>2. <strong>IT 維運人員 (Admins)</strong>：需要 SSH 連線 Server、使用 RDP 維護主機，必須使用 Tunnel Mode。
+                    <br>且所有連線都必須強制啟用 <strong>FortiToken 雙因子認證</strong>。
+                </p>
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
+                <h4 class="font-bold text-gray-800 mb-2">優缺點分析</h4>
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <strong class="text-green-600">優點 (Pros)：</strong>
+                        <ul class="list-disc pl-4 mt-1">
+                            <li>Web Mode 方便快速，零接觸部署 (Zero Touch)。</li>
+                            <li>Tunnel Mode 功能強大，支援所有 TCP/UDP 應用。</li>
+                            <li>2FA 幾乎消除了帳號密碼外洩的風險。</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <strong class="text-red-600">缺點 (Cons)：</strong>
+                        <ul class="list-disc pl-4 mt-1">
+                            <li>Web Mode 容易遇到網頁相容性問題 (Java Script 重寫失敗)。</li>
+                            <li>Tunnel Mode 需維護 Client 端軟體版本。</li>
+                            <li>SSL 加解密對防火牆 CPU 負擔較大。</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h4 class="font-bold text-gray-800 mb-2"><i class="fas fa-terminal mr-2"></i>設定範例 (Configuration)</h4>
+                <p class="text-sm text-gray-500 mb-2">以下展示完成此場景的關鍵 CLI 設定指令 (亦可透過 GUI 完成)。</p>
+                
+                <div class="code-block">
+                    <span class="text-green-400"># 1. 建立使用者與群組 (包含 2FA)</span><br>
+                    config user local<br>
+                    &nbsp;&nbsp;edit "sales_user"<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;set type password<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;set passwd context_ENC...<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;set two-factor fortitoken <span class="text-yellow-300">// 啟用 FortiToken</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;set fortitoken "FTKMOB12345678"<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;set email-to "sales@example.com"<br>
+                    &nbsp;&nbsp;next<br>
+                    end<br>
+                    <br>
+                    <span class="text-green-400"># 2. 設定 VPN Portal (Web Mode & Tunnel Mode)</span><br>
+                    config vpn ssl web portal<br>
+                    &nbsp;&nbsp;edit "Sales-Web-Portal"<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;set web-mode enable <span class="text-yellow-300">// 啟用網頁模式</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;set tunnel-mode disable<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;config bookmark-group <span class="text-yellow-300">// 設定首頁書籤</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;edit "Internal-ERP"<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set url "http://192.168.1.100"<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;next<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;end<br>
+                    &nbsp;&nbsp;next<br>
+                    &nbsp;&nbsp;edit "Admin-Tunnel-Portal"<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;set tunnel-mode enable <span class="text-yellow-300">// 啟用隧道模式</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;set web-mode disable<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;set ip-pools "SSLVPN_TUNNEL_ADDR1" <span class="text-yellow-300">// 指派 IP Pool</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;set split-tunneling enable <span class="text-yellow-300">// 啟用分割通道</span><br>
+                    &nbsp;&nbsp;next<br>
+                    end<br>
+                    <br>
+                    <span class="text-green-400"># 3. SSL VPN 全域設定 (監聽介面與對應)</span><br>
+                    config vpn ssl settings<br>
+                    &nbsp;&nbsp;set servercert "Fortinet_Factory"<br>
+                    &nbsp;&nbsp;set tunnel-ip-pools "SSLVPN_TUNNEL_ADDR1"<br>
+                    &nbsp;&nbsp;set source-interface "wan1" <span class="text-yellow-300">// 外部介面</span><br>
+                    &nbsp;&nbsp;set source-address "all"<br>
+                    &nbsp;&nbsp;set default-portal "web-access"<br>
+                    &nbsp;&nbsp;config authentication-rule <span class="text-yellow-300">// 依照群組指派 Portal</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;edit 1<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set groups "Sales-Group"<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set portal "Sales-Web-Portal"<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;next<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;edit 2<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set groups "Admin-Group"<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set portal "Admin-Tunnel-Portal"<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;next<br>
+                    &nbsp;&nbsp;end<br>
+                    &nbsp;&nbsp;set port 10443 <span class="text-yellow-300">// 修改 Port 避免衝突</span><br>
+                    end<br>
+                    <br>
+                    <span class="text-green-400"># 4. 防火牆策略放行 (重要!)</span><br>
+                    config firewall policy<br>
+                    &nbsp;&nbsp;edit 1<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;set name "SSLVPN_to_LAN"<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;set srcintf "ssl.root" <span class="text-yellow-300">// 來源是虛擬介面</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;set dstintf "port1"<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;set srcaddr "all"<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;set dstaddr "Internal_Server_Subnet"<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;set action accept<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;set schedule "always"<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;set service "ALL"<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;set groups "Sales-Group" "Admin-Group" <span class="text-yellow-300">// 再次驗證身分</span><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;set nat enable <span class="text-yellow-300">// 視需要啟用 NAT</span><br>
+                    &nbsp;&nbsp;next<br>
+                    end
+                </div>
+            </div>
+        </div>
+
+        <!-- 五、隨堂測驗 (Quiz) -->
+        <div class="section-card">
+            <h3 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">
+                <span class="badge badge-quiz">Quiz</span>五、隨堂測驗
+            </h3>
+
+            <!-- Question 1 -->
+            <div class="mb-6">
+                <p class="font-bold text-gray-800 mb-2">1. 關於 SSL VPN 的「Tunnel Mode」與「Web Mode」，下列敘述何者正確？</p>
+                <div class="space-y-2">
+                    <div class="quiz-option" data-correct="false">A. Web Mode 需要安裝 FortiClient 軟體才能使用。</div>
+                    <div class="quiz-option" data-correct="true">B. Tunnel Mode 會在用戶端建立虛擬網卡，並取得內部 IP 位址。</div>
+                    <div class="quiz-option" data-correct="false">C. Web Mode 支援所有 TCP/UDP 應用程式 (如 VoIP)。</div>
+                    <div class="quiz-option" data-correct="false">D. 只有 Tunnel Mode 支援 2FA 雙因子認證。</div>
+                </div>
+                <div class="explanation">
+                    <strong>解析：</strong> <br>
+                    A 錯誤，Web Mode 只需要瀏覽器。<br>
+                    B 正確，這正是 Tunnel Mode 的核心特徵。<br>
+                    C 錯誤，Web Mode 僅支援 HTTP/HTTPS 等有限協定，無法支援複雜應用。<br>
+                    D 錯誤，兩者皆支援 2FA。
+                </div>
+            </div>
+
+            <!-- Question 2 -->
+            <div class="mb-6">
+                <p class="font-bold text-gray-800 mb-2">2. 在設定 SSL VPN 時，為什麼建議將 Listening Port 從預設的 443 更改為其他埠號 (如 10443)？</p>
+                <div class="space-y-2">
+                    <div class="quiz-option" data-correct="true">A. 避免與 FortiGate 的 HTTPS 管理介面或 Virtual IP 服務發生衝突。</div>
+                    <div class="quiz-option" data-correct="false">B. 443 Port 的加密強度較低。</div>
+                    <div class="quiz-option" data-correct="false">C. 為了提高連線速度。</div>
+                    <div class="quiz-option" data-correct="false">D. FortiClient 只支援非標準 Port。</div>
+                </div>
+                <div class="explanation">
+                    <strong>解析：</strong> FortiGate 的管理介面 (Admin GUI) 預設也使用 443。若不修改，會導致 Port Conflict，或者讓外部直接存取到管理畫面造成安全風險。
+                </div>
+            </div>
+
+            <!-- Question 3 -->
+            <div class="mb-6">
+                <p class="font-bold text-gray-800 mb-2">3. 什麼是 "Split Tunneling" (分割通道) 的主要功能？</p>
+                <div class="space-y-2">
+                    <div class="quiz-option" data-correct="false">A. 將 TCP 流量轉換為 UDP 流量以加速傳輸。</div>
+                    <div class="quiz-option" data-correct="true">B. 僅將存取企業內網的流量送入 VPN 隧道，其餘上網流量走本地網路。</div>
+                    <div class="quiz-option" data-correct="false">C. 同時使用兩條 Internet 線路來增加頻寬。</div>
+                    <div class="quiz-option" data-correct="false">D. 將 SSL VPN 流量分割給多台防火牆處理。</div>
+                </div>
+                <div class="explanation">
+                    <strong>解析：</strong> Split Tunneling 的目的是區分「去公司的流量」和「去 Internet 的流量」，避免所有上網流量都繞回公司，浪費公司頻寬。
+                </div>
+            </div>
+
+            <!-- Question 4 -->
+            <div class="mb-6">
+                <p class="font-bold text-gray-800 mb-2">4. 在建立 SSL VPN 的 Firewall Policy 時，來源介面 (Source Interface) 應該選擇什麼？</p>
+                <div class="space-y-2">
+                    <div class="quiz-option" data-correct="false">A. wan1 (外部實體介面)</div>
+                    <div class="quiz-option" data-correct="false">B. lan (內部實體介面)</div>
+                    <div class="quiz-option" data-correct="true">C. ssl.root (SSL VPN 虛擬介面)</div>
+                    <div class="quiz-option" data-correct="false">D. any (任意介面)</div>
+                </div>
+                <div class="explanation">
+                    <strong>解析：</strong> SSL VPN 流量解密後，邏輯上是從虛擬介面 `ssl.root` 進入 FortiGate 的。因此 Policy 的來源必須是 `ssl.root`。
+                </div>
+            </div>
+
+            <!-- Question 5 -->
+            <div class="mb-6">
+                <p class="font-bold text-gray-800 mb-2">5. 若使用者反映 SSL VPN 連線後，使用 Teams 語音通話品質很差，最可能的改善設定為何？</p>
+                <div class="space-y-2">
+                    <div class="quiz-option" data-correct="false">A. 改用 Web Mode。</div>
+                    <div class="quiz-option" data-correct="false">B. 停用 Split Tunneling。</div>
+                    <div class="quiz-option" data-correct="true">C. 啟用 DTLS (Datagram TLS) 功能。</div>
+                    <div class="quiz-option" data-correct="false">D. 將加密等級調到最高 (High Encryption)。</div>
+                </div>
+                <div class="explanation">
+                    <strong>解析：</strong> 語音流量 (RTP) 對延遲敏感。標準 SSL VPN 使用 TCP 傳輸，若底層網路掉包會觸發 TCP 重傳 (TCP Meltdown)，導致嚴重延遲。DTLS 使用 UDP 封裝，能有效避免此問題。
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="custom-footer">
+        Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0
+    </footer>
+
+    <script>
+        // 初始化 Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            securityLevel: 'loose',
+            flowchart: {
+                useMaxWidth: false,
+                htmlLabels: true
+            }
+        });
+
+        // 測驗功能腳本 - 使用 EventListener 確保安全執行
+        document.addEventListener('DOMContentLoaded', () => {
+            const options = document.querySelectorAll('.quiz-option');
+            options.forEach(option => {
+                option.addEventListener('click', function(e) {
+                    // 重要：防止事件冒泡與預設行為，避免觸發錯誤頁面跳轉
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // 讀取 data-correct 屬性判斷對錯
+                    const isCorrect = this.getAttribute('data-correct') === 'true';
+                    checkAnswer(this, isCorrect);
+                });
+            });
+        });
+
+        function checkAnswer(element, isCorrect) {
+            // 找出同一題的所有選項
+            const parent = element.parentElement;
+            const options = parent.querySelectorAll('.quiz-option');
+            const explanation = parent.parentElement.querySelector('.explanation');
+
+            // 重置所有選項樣式
+            options.forEach(opt => {
+                opt.classList.remove('correct', 'wrong');
+                opt.style.pointerEvents = 'none'; // 鎖定該題，禁止重複點擊
+            });
+
+            // 顯示結果
+            if (isCorrect) {
+                element.classList.add('correct');
+            } else {
+                element.classList.add('wrong');
+                
+                // 優化：答錯時，自動標示正確答案，讓使用者知道正解
+                const correctOption = Array.from(options).find(opt => opt.getAttribute('data-correct') === 'true');
+                if (correctOption) {
+                    correctOption.classList.add('correct');
+                }
+            }
+
+            // 顯示解析
+            if (explanation) {
+                explanation.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
