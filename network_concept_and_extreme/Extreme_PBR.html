@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extreme XOS 網路架構大師 - 策略路由 (PBR) 深度教學</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #622599; /* Extreme Networks Purple-ish tone */
+            --secondary-color: #f4f4f9;
+            --text-color: #333;
+            --accent-color: #00a0e9;
+            --correct-color: #28a745;
+            --wrong-color: #dc3545;
+        }
+
+        body {
+            font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+
+        header {
+            background: linear-gradient(135deg, #2c3e50, var(--primary-color));
+            color: white;
+            padding: 2rem 1rem;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.2rem;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-top: 0.5rem;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .section-card {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-left: 5px solid var(--primary-color);
+        }
+
+        h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid #eee;
+            padding-bottom: 0.5rem;
+            margin-top: 0;
+        }
+
+        h3 {
+            color: #444;
+            margin-top: 1.5rem;
+        }
+
+        .highlight {
+            background-color: #e8f4fd;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            color: #0056b3;
+            font-weight: bold;
+        }
+
+        .analogy-box {
+            background-color: #fff8e1;
+            border: 1px solid #ffe0b2;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        .analogy-icon {
+            font-size: 1.5rem;
+            margin-right: 0.5rem;
+        }
+
+        .code-block {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 1rem;
+            border-radius: 6px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            overflow-x: auto;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+            position: relative;
+        }
+        
+        .code-title {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: #555;
+            color: #fff;
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-bottom-left-radius: 6px;
+            border-top-right-radius: 6px;
+        }
+
+        .comment {
+            color: #6a9955;
+        }
+        
+        .keyword {
+            color: #c586c0;
+        }
+
+        .diagram-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 2rem 0;
+        }
+
+        .diagram-box {
+            width: 100%;
+            margin-bottom: 2rem;
+            background: white;
+            padding: 1rem;
+            border: 1px solid #eee;
+            border-radius: 8px;
+        }
+
+        /* Quiz Styles */
+        .quiz-container {
+            margin-top: 1rem;
+        }
+
+        .question {
+            margin-bottom: 1.5rem;
+            font-weight: bold;
+        }
+
+        .options label {
+            display: block;
+            padding: 0.8rem;
+            margin: 0.5rem 0;
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .options label:hover {
+            background-color: #e2e6ea;
+        }
+
+        .options input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .feedback {
+            display: none;
+            padding: 1rem;
+            margin-top: 0.5rem;
+            border-radius: 4px;
+            font-size: 0.95rem;
+        }
+
+        .feedback.correct {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .feedback.wrong {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        footer {
+            background-color: #333;
+            color: #bbb;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.85rem;
+            margin-top: 3rem;
+        }
+
+        /* Extreme Specific Tag */
+        .vendor-tag {
+            display: inline-block;
+            background-color: #622599;
+            color: white;
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            vertical-align: middle;
+            margin-left: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Extreme XOS 網路架構大師</h1>
+    <p>主題：策略路由 (Policy Based Routing, PBR) 深度解析</p>
+</header>
+
+<div class="container">
+
+    <!-- Section 1: Core Concepts -->
+    <div class="section-card">
+        <h2>一、核心概念 (Concept)</h2>
+        
+        <h3>一句話定義</h3>
+        <p>
+            策略路由 (PBR) 是一種打破傳統「僅依賴目的地位址 (Destination IP)」進行轉發的機制，允許管理者根據<span class="highlight">來源位址 (Source IP)</span>、<span class="highlight">應用程式埠號 (L4 Port)</span> 或 <span class="highlight">封包大小</span> 等多種條件，靈活決定封包的下一跳 (Next Hop)。
+        </p>
+
+        <div class="analogy-box">
+            <p><strong><span class="analogy-icon">💡</span>生活化比喻：公車 vs. 計程車</strong></p>
+            <p>
+                <strong>傳統路由 (Routing Table) 就像「公車」：</strong><br>
+                公車司機只看你的「目的地」(Destination)。不管你是總經理還是實習生，只要你要去台北車站，公車就是走固定的路線，不會因為你是誰而改變。
+            </p>
+            <p>
+                <strong>策略路由 (PBR) 就像「計程車」或「專車」：</strong><br>
+                司機(路由器)會看「你是誰」(Source IP)。<br>
+                如果是老闆(關鍵業務/高優先權封包)，司機就走高速公路(專線/MPLS)；<br>
+                如果是普通員工(一般上網流量)，司機就走一般平面道路(ADSL/Broadband)。<br>
+                <strong>PBR 讓你可以根據「乘客身分」來決定路線，而不僅僅是「目的地」。</strong>
+            </p>
+        </div>
+    </div>
+
+    <!-- Section 2: Mechanism -->
+    <div class="section-card">
+        <h2>二、運作原理 (Mechanism)</h2>
+
+        <h3>技術細節</h3>
+        <p>在 ExtremeXOS (以及大多數網路設備) 中，PBR 的處理優先權通常<strong>高於</strong>傳統路由表查表 (Routing Table Lookup)。</p>
+        <ol>
+            <li><strong>封包進入 (Ingress)：</strong> 封包進入交換器的介面。</li>
+            <li><strong>策略匹配 (ACL Match)：</strong> 系統檢查該介面是否套用了 Policy/ACL。
+                <ul>
+                    <li>ExtremeXOS 使用 <code>.pol</code> 策略檔案來定義。</li>
+                </ul>
+            </li>
+            <li><strong>執行動作 (Action)：</strong>
+                <ul>
+                    <li>若<strong>匹配 (Match)</strong>：執行 <code>redirect</code> 動作，將封包強制送往指定的 Next Hop IP。</li>
+                    <li>若<strong>未匹配 (No Match)</strong>：封包回到標準轉發流程，查詢 RIB (Routing Information Base) 路由表。</li>
+                </ul>
+            </li>
+        </ol>
+
+        <h3>ExtremeXOS 關鍵參數與指令</h3>
+        <p>在 ExtremeXOS 中，PBR 是透過 <strong>ACL (Access Control List)</strong> 結合 <code>redirect</code> 動作來實現的。</p>
+        
+        <div class="code-block">
+            <span class="code-title">Syntax</span>
+            <strong>建立策略檔案 (pbr_policy.pol)</strong><br><br>
+            entry redirect_finance {<br>
+            &nbsp;&nbsp;if match {<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;source-address 192.168.10.0/24;  <span class="comment">/* 財務部網段 */</span><br>
+            &nbsp;&nbsp;}<br>
+            &nbsp;&nbsp;then {<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;redirect 10.1.1.254;      <span class="comment">/* 強制走專線 Gateway */</span><br>
+            &nbsp;&nbsp;}<br>
+            }<br>
+            entry default_flow {<br>
+            &nbsp;&nbsp;if match {<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;all;<br>
+            &nbsp;&nbsp;}<br>
+            &nbsp;&nbsp;then {<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;permit;                   <span class="comment">/* 其他流量走正常路由 */</span><br>
+            &nbsp;&nbsp;}<br>
+            }
+        </div>
+        
+        <p><strong>注意：</strong> <code>redirect</code> 是 Layer 3 的轉發(改寫 Next Hop MAC)，而 <code>redirect-port</code> 則是 Layer 2 的強制出埠 (不經過 Routing 邏輯)。PBR 通常指的是前者。</p>
+    </div>
+
+    <!-- Section 3: Visuals -->
+    <div class="section-card">
+        <h2>三、架構視覺化 (Visuals)</h2>
+        <p>以下展示 PBR 的邏輯拓撲與封包處理流程。</p>
+
+        <div class="diagram-container">
+            <!-- Diagram 1: Topology -->
+            <div class="diagram-box">
+                <h4 style="text-align:center;">圖表 1: PBR 應用拓撲 (分流架構)</h4>
+                <div class="mermaid">
+                    graph TD
+                    subgraph 企業內部網路
+                        UserA[財務部 PC<br>Src: 192.168.10.100]
+                        UserB[訪客 Guest<br>Src: 172.16.20.50]
+                        CoreSW{核心交換器<br>Extreme Switch<br>執行 PBR}
+                    end
+
+                    subgraph 外部線路
+                        FW_MPLS[防火牆 A<br>MPLS 專線<br>Gateway: 10.1.1.254]
+                        FW_Internet[防火牆 B<br>一般 ADSL<br>Gateway: 10.1.1.1]
+                    end
+                    
+                    Cloud_HQ(總公司資料庫)
+                    Cloud_Web(Facebook/Youtube)
+
+                    UserA -->|VLAN 10| CoreSW
+                    UserB -->|VLAN 20| CoreSW
+
+                    CoreSW -->|PBR Match: Src 192.168.10.x<br>Action: Redirect 10.1.1.254| FW_MPLS
+                    CoreSW -->|No Match: Default Route<br>Gateway: 10.1.1.1| FW_Internet
+
+                    FW_MPLS ====> Cloud_HQ
+                    FW_Internet ====> Cloud_Web
+
+                    style CoreSW fill:#f9f,stroke:#333,stroke-width:2px
+                    style FW_MPLS fill:#bbf,stroke:#333
+                    style FW_Internet fill:#bbf,stroke:#333
+                </div>
+            </div>
+
+            <!-- Diagram 2: Sequence Logic -->
+            <div class="diagram-box">
+                <h4 style="text-align:center;">圖表 2: PBR 封包處理流程圖</h4>
+                <div class="mermaid">
+                    sequenceDiagram
+                        participant Pkt as 進入封包
+                        participant ACL as PBR Policy (ACL)
+                        participant PBR_Action as PBR 動作執行
+                        participant RIB as 傳統路由表 (RIB)
+                        participant Egress as 出口介面
+
+                        Pkt->>ACL: 封包進入 Ingress 介面
+                        Note over ACL: 檢查 Source IP / Port 等條件
+                        
+                        alt 規則匹配 (Match)
+                            ACL->>PBR_Action: 命中 PBR 規則
+                            PBR_Action->>Egress: 修改 Next Hop IP 並轉發 (Redirect)
+                        else 無規則匹配 (No Match)
+                            ACL->>RIB: 未命中規則
+                            RIB->>RIB: 查詢 Destination IP
+                            RIB->>Egress: 依路由表轉發
+                        end
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 4: Use Cases -->
+    <div class="section-card">
+        <h2>四、實務應用場景 (Use Case)</h2>
+        
+        <h3>場景：企業多線路負載分流 (Source-Based Routing)</h3>
+        <p>某大型企業同時擁有「昂貴但穩定的 MPLS VPN」與「便宜但頻寬大的 ADSL/光世代」。</p>
+        
+        <ul>
+            <li><strong>需求：</strong>
+                <ul>
+                    <li><strong>Finance_Vlan (192.168.10.x)：</strong>ERP 系統與財務資料必須走 MPLS VPN (Gateway: 10.1.1.254) 回總部。</li>
+                    <li><strong>其他流量：</strong>員工上網看 YouTube、訪客 Wi-Fi 流量必須走 ADSL (Gateway: 10.1.1.1)，避免佔用專線頻寬。</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h3>ExtremeXOS 設定範例 (Configuration Example)</h3>
+        <p>以下為在 Core Switch 上實作上述需求的完整指令步驟：</p>
+
+        <div class="code-block">
+            <span class="code-title">ExtremeXOS CLI</span>
+            <span class="comment"># 步驟 1: 建立並編輯策略檔案 (使用 vi 編輯器)</span><br>
+            <span class="keyword">edit</span> policy pbr_mpls.pol<br>
+            <br>
+            <span class="comment"># -- 以下為編輯器內的內容 --</span><br>
+            <span class="comment"># 定義規則 1: 財務部流量轉向 MPLS</span><br>
+            entry finance_to_mpls {<br>
+            &nbsp;&nbsp;if match {<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;source-address 192.168.10.0/24;<br>
+            &nbsp;&nbsp;}<br>
+            &nbsp;&nbsp;then {<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;redirect 10.1.1.254;<br>
+            &nbsp;&nbsp;}<br>
+            }<br>
+            <br>
+            <span class="comment"># 定義規則 2: 其餘流量正常轉發 (避免被 Drop)</span><br>
+            entry default_permit {<br>
+            &nbsp;&nbsp;if match {<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;all;<br>
+            &nbsp;&nbsp;}<br>
+            &nbsp;&nbsp;then {<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;permit;<br>
+            &nbsp;&nbsp;}<br>
+            }<br>
+            <span class="comment"># -- 編輯結束，按 Esc 並輸入 :wq 存檔離開 --</span><br>
+            <br>
+            <span class="comment"># 步驟 2: 檢查策略語法是否正確</span><br>
+            <span class="keyword">check</span> policy pbr_mpls<br>
+            <br>
+            <span class="comment"># 步驟 3: 將策略套用到 Finance VLAN 的 Ingress 方向</span><br>
+            <span class="keyword">configure</span> access-list pbr_mpls vlan Finance_Vlan ingress<br>
+            <br>
+            <span class="comment"># 步驟 4: 驗證設定</span><br>
+            <span class="keyword">show</span> access-list<br>
+            <span class="comment"># 檢查 Hit Counter 是否隨著財務部流量增加</span>
+        </div>
+
+        <div style="display: flex; gap: 2rem; margin-top: 2rem;">
+            <div style="flex: 1; background-color: #e8f5e9; padding: 1rem; border-radius: 8px;">
+                <h4 style="color: #2e7d32; margin-top:0;">優點 (Pros)</h4>
+                <ul style="padding-left: 1.2rem;">
+                    <li><strong>靈活性極高：</strong>不只看目的地，還能看來源或應用類型。</li>
+                    <li><strong>成本優化：</strong>將低價值流量導向廉價線路。</li>
+                    <li><strong>頻寬管理：</strong>避免非關鍵流量塞爆重要線路。</li>
+                </ul>
+            </div>
+            <div style="flex: 1; background-color: #ffebee; padding: 1rem; border-radius: 8px;">
+                <h4 style="color: #c62828; margin-top:0;">缺點 (Cons)</h4>
+                <ul style="padding-left: 1.2rem;">
+                    <li><strong>維護複雜：</strong>故障排除困難，Traceroute 可能會顯示非預期的路徑。</li>
+                    <li><strong>效能消耗：</strong>早期設備由 CPU 處理 PBR 會影響效能 (現代 Extreme Switch 多由 ASIC 硬體處理，影響較小)。</li>
+                    <li><strong>單點故障風險：</strong>若指定的 Next Hop 當機，需配置 PBR 備援機制 (如 Ping Check)。</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 5: Quiz -->
+    <div class="section-card">
+        <h2>五、隨堂測驗 (Quiz)</h2>
+        <p>請回答下列問題來檢視您的學習成果：</p>
+
+        <!-- Q1 -->
+        <div class="quiz-container">
+            <div class="question">1. 在大多數網路設備中，PBR 與傳統路由表查表 (Routing Table Lookup) 的優先順序為何？</div>
+            <div class="options" id="q1-options">
+                <label><input type="radio" name="q1" value="A" onclick="checkAnswer('q1', 'A')"> A. 傳統路由表優先於 PBR</label>
+                <label><input type="radio" name="q1" value="B" onclick="checkAnswer('q1', 'B')"> B. PBR 優先於傳統路由表</label>
+                <label><input type="radio" name="q1" value="C" onclick="checkAnswer('q1', 'C')"> C. 兩者同時進行，看誰比較快</label>
+            </div>
+            <div id="q1-feedback" class="feedback"></div>
+        </div>
+
+        <!-- Q2 -->
+        <div class="quiz-container">
+            <div class="question">2. PBR 最常被用來依據什麼條件進行路由選擇？(與傳統路由最大的不同)</div>
+            <div class="options" id="q2-options">
+                <label><input type="radio" name="q2" value="A" onclick="checkAnswer('q2', 'A')"> A. 目的地位址 (Destination IP)</label>
+                <label><input type="radio" name="q2" value="B" onclick="checkAnswer('q2', 'B')"> B. 來源位址 (Source IP)</label>
+                <label><input type="radio" name="q2" value="C" onclick="checkAnswer('q2', 'C')"> C. MAC 位址</label>
+            </div>
+            <div id="q2-feedback" class="feedback"></div>
+        </div>
+
+        <!-- Q3 -->
+        <div class="quiz-container">
+            <div class="question">3. 在 ExtremeXOS 中，我們通常使用什麼工具來定義 PBR 的規則？ <span class="vendor-tag">Extreme</span></div>
+            <div class="options" id="q3-options">
+                <label><input type="radio" name="q3" value="A" onclick="checkAnswer('q3', 'A')"> A. OSPF Link Cost</label>
+                <label><input type="radio" name="q3" value="B" onclick="checkAnswer('q3', 'B')"> B. Static Route (靜態路由)</label>
+                <label><input type="radio" name="q3" value="C" onclick="checkAnswer('q3', 'C')"> C. Access Control List (ACL/Policy File)</label>
+            </div>
+            <div id="q3-feedback" class="feedback"></div>
+        </div>
+
+        <!-- Q4 -->
+        <div class="quiz-container">
+            <div class="question">4. 如果一個封包進入介面，但不符合任何 PBR 的匹配規則，系統會如何處理？</div>
+            <div class="options" id="q4-options">
+                <label><input type="radio" name="q4" value="A" onclick="checkAnswer('q4', 'A')"> A. 直接丟棄 (Drop)</label>
+                <label><input type="radio" name="q4" value="B" onclick="checkAnswer('q4', 'B')"> B. 回到傳統路由表查找 (Normal Routing)</label>
+                <label><input type="radio" name="q4" value="C" onclick="checkAnswer('q4', 'C')"> C. 廣播到所有埠口 (Flood)</label>
+            </div>
+            <div id="q4-feedback" class="feedback"></div>
+        </div>
+
+        <!-- Q5 -->
+        <div class="quiz-container">
+            <div class="question">5. 在 ExtremeXOS 的 Policy 文件中，使用哪個關鍵字來指定下一跳路由器的 IP？ <span class="vendor-tag">Extreme</span></div>
+            <div class="options" id="q5-options">
+                <label><input type="radio" name="q5" value="A" onclick="checkAnswer('q5', 'A')"> A. next-hop</label>
+                <label><input type="radio" name="q5" value="B" onclick="checkAnswer('q5', 'B')"> B. forward-to</label>
+                <label><input type="radio" name="q5" value="C" onclick="checkAnswer('q5', 'C')"> C. redirect</label>
+            </div>
+            <div id="q5-feedback" class="feedback"></div>
+        </div>
+
+    </div>
+
+</div>
+
+<footer>
+    Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0
+</footer>
+
+<script>
+    mermaid.initialize({ startOnLoad: true });
+
+    const correctAnswers = {
+        'q1': 'B',
+        'q2': 'B',
+        'q3': 'C',
+        'q4': 'B',
+        'q5': 'C'
+    };
+
+    const explanations = {
+        'q1': 'PBR 的設計目的就是為了覆蓋(Override)預設的路由行為，因此優先權必須高於傳統路由表。',
+        'q2': '傳統路由只能看 Destination IP；PBR 的核心價值在於能根據 Source IP (來源) 或 Port 進行分流。',
+        'q3': 'ExtremeXOS 使用 Policy File (.pol) 或 ACL 配置，並在其中設定 redirect 動作來實踐 PBR。',
+        'q4': 'PBR 只是針對特定流量的「例外處理」，如果不符合例外條件，自然會回到標準的路由流程。',
+        'q5': '在 ExtremeXOS Policy 語法中，使用 `redirect <ip-address>` 來指定 PBR 的下一跳。'
+    };
+
+    function checkAnswer(questionId, selectedValue) {
+        const feedbackEl = document.getElementById(questionId + '-feedback');
+        const isCorrect = selectedValue === correctAnswers[questionId];
+        
+        // Disable radios
+        const inputs = document.querySelectorAll(`input[name="${questionId}"]`);
+        inputs.forEach(input => input.disabled = true);
+
+        feedbackEl.className = 'feedback ' + (isCorrect ? 'correct' : 'wrong');
+        
+        let feedbackText = isCorrect ? '<strong>🎉 正確！</strong> ' : '<strong>❌ 錯誤。</strong> ';
+        feedbackText += explanations[questionId];
+        
+        feedbackEl.innerHTML = feedbackText;
+    }
+</script>
+
+</body>
+</html>
