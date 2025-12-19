@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extreme XOS 網路架構大師：Access-list (ACL) 深度解析</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Mermaid JS -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans TC', sans-serif; }
+        .mermaid { display: flex; justify-content: center; margin: 20px 0; }
+        .quiz-option:hover { background-color: #f3f4f6; }
+        .quiz-option.selected.correct { background-color: #d1fae5; border-color: #10b981; }
+        .quiz-option.selected.wrong { background-color: #fee2e2; border-color: #ef4444; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 flex flex-col min-h-screen">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-purple-800 to-indigo-900 text-white shadow-lg">
+        <div class="container mx-auto px-6 py-8">
+            <h1 class="text-3xl font-bold mb-2">Access-list (ACL) 封包過濾機制</h1>
+            <p class="text-indigo-200">由 20 年經驗網路架構大師為您解析 | 結合 ExtremeXOS 實務與理論</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-8 flex-grow">
+        
+        <!-- Intro Section -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8 border-l-4 border-purple-600">
+            <h2 class="text-2xl font-bold mb-4 text-purple-800">導言</h2>
+            <p class="text-gray-700 leading-relaxed">
+                歡迎來到網路資安的第一道防線課程。我是您的講師 Timmy。在網路世界中，我們不能讓所有流量隨意進出，這就像你家大門不能隨便讓陌生人進入一樣。今天我們將深入探討 Access Control List (ACL)，並比較 Cisco 與 ExtremeXOS 在實作上的異同。
+            </p>
+        </div>
+
+        <!-- Section 1: Core Concept -->
+        <section class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <div class="flex items-center mb-4">
+                <span class="bg-purple-100 text-purple-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Part 1</span>
+                <h2 class="text-2xl font-bold text-gray-800">一、核心概念 (Concept)</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-gray-50 p-4 rounded border border-gray-200">
+                    <h3 class="font-bold text-lg mb-2 text-indigo-600">一句話定義</h3>
+                    <p>ACL 是一張「允許」或「拒絕」的清單，用來告訴網路設備（路由器或交換器）哪些封包可以通過，哪些必須被丟棄。</p>
+                </div>
+                <div class="bg-yellow-50 p-4 rounded border border-yellow-200">
+                    <h3 class="font-bold text-lg mb-2 text-yellow-700">生活化比喻：大樓保全與訪客名單</h3>
+                    <p>想像 Switch 是一個高級辦公大樓的<strong>「保全警衛」</strong>，而 ACL 就是警衛手上的<strong>「訪客名單」</strong>。</p>
+                    <ul class="list-disc list-inside mt-2 text-sm text-gray-600">
+                        <li>當有人 (封包) 想進入大樓 (Port) 時。</li>
+                        <li>警衛會從名單的第一行開始核對。</li>
+                        <li><strong>規則 1：</strong>如果是 VIP (允許的 IP)，直接放行。</li>
+                        <li><strong>規則 2：</strong>如果是黑名單 (禁止的 IP)，直接擋下。</li>
+                        <li><strong>隱藏規則：</strong>如果名單看完了都沒名字？抱歉，閒雜人等一律不准進入 (Implicit Deny)。</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Mechanism -->
+        <section class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <div class="flex items-center mb-4">
+                <span class="bg-purple-100 text-purple-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Part 2</span>
+                <h2 class="text-2xl font-bold text-gray-800">二、運作原理 (Mechanism)</h2>
+            </div>
+
+            <div class="space-y-4">
+                <div class="border-b pb-4">
+                    <h3 class="font-bold text-lg text-gray-800 mb-2">技術細節：Top-Down Processing</h3>
+                    <p class="text-gray-700">ACL 的檢查機制是<strong>「由上而下，逐條比對，擇一執行」</strong>(Top-down, First Match)。</p>
+                    <ul class="list-disc list-inside mt-2 ml-4 text-gray-600">
+                        <li><strong>命中即停止 (First Match)：</strong>一旦封包特徵符合某條規則，設備就會執行該規則的動作 (Permit 或 Deny)，並<strong>停止</strong>往下檢查。</li>
+                        <li><strong>隱式拒絕 (Implicit Deny)：</strong>為了安全起見，絕大多數系統在 ACL 的最後一行都隱藏著一句「拒絕所有 (Deny All) 」。這意味著如果你沒有明確說「允許」，那就是「拒絕」。</li>
+                        <li><strong>方向性 (Direction)：</strong>ACL 必須套用在介面 (Interface/VLAN) 的「進入 (Ingress)」或「出去 (Egress)」方向才有效。</li>
+                    </ul>
+                </div>
+
+                <div class="bg-blue-50 p-4 rounded border-l-4 border-blue-500">
+                    <h3 class="font-bold text-lg text-blue-800 mb-2">大師觀點：ExtremeXOS vs. Cisco</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <h4 class="font-bold text-gray-700">Cisco IOS (傳統)</h4>
+                            <code class="block bg-gray-800 text-green-400 p-2 rounded text-xs mt-1">
+                                access-list 100 permit tcp host 10.1.1.1 any eq 80<br>
+                                access-list 100 deny ip any any<br>
+                                int gi0/1<br>
+                                ip access-group 100 in
+                            </code>
+                            <p class="text-xs mt-1 text-gray-500">特色：使用編號或名稱，CLI 逐行輸入。</p>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-gray-700">ExtremeXOS (Policy Based)</h4>
+                            <code class="block bg-gray-800 text-yellow-400 p-2 rounded text-xs mt-1">
+                                entry Allow_Web {<br>
+                                &nbsp;&nbsp;if match { protocol tcp; dst-port 80; }<br>
+                                &nbsp;&nbsp;then { permit; }<br>
+                                }<br>
+                                entry Deny_All {<br>
+                                &nbsp;&nbsp;if { always; } then { deny; }<br>
+                                }
+                            </code>
+                            <p class="text-xs mt-1 text-gray-500">特色：使用 <strong>.pol 策略檔案</strong>，結構更像程式碼，邏輯清晰且易於模組化重用。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Visuals -->
+        <section class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <div class="flex items-center mb-4">
+                <span class="bg-purple-100 text-purple-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Part 3</span>
+                <h2 class="text-2xl font-bold text-gray-800">三、架構視覺化 (Visuals)</h2>
+            </div>
+
+            <div class="flex flex-col space-y-8">
+                <!-- Diagram 1: Topology -->
+                <div class="border rounded p-4">
+                    <h3 class="text-center font-bold text-gray-600 mb-2">圖一：ACL 部署位置拓撲圖</h3>
+                    <div class="mermaid">
+                        graph TD
+                            %% Nodes with quoted labels for safety
+                            Internet((網際網路 Internet))
+                            FW[防火牆 Firewall]
+                            CoreSW["核心交換器 Core Switch<br/>(L3 Routing)"]
+                            
+                            %% Subgraphs with Quoted Labels
+                            subgraph AccessLayer ["Access Layer"]
+                                AccSW1["存取交換器 SW1"]
+                                AccSW2["存取交換器 SW2"]
+                            end
+
+                            subgraph VLAN10 ["VLAN 10 (財務部)"]
+                                PC_Fin["財務部 PC<br/>192.168.10.x"]
+                            end
+
+                            subgraph VLAN20 ["VLAN 20 (工程部)"]
+                                PC_Eng["工程部 PC<br/>192.168.20.x"]
+                            end
+
+                            subgraph Servers ["Server Farm"]
+                                Svr_Fin["財務主機<br/>10.10.10.100"]
+                                Svr_Web["Web 主機<br/>10.10.10.200"]
+                            end
+
+                            %% Connections
+                            Internet --- FW
+                            FW --- CoreSW
+                            CoreSW --- AccSW1
+                            CoreSW --- AccSW2
+                            AccSW1 --- PC_Fin
+                            AccSW2 --- PC_Eng
+                            CoreSW --- Svr_Fin
+                            CoreSW --- Svr_Web
+
+                            %% Styles
+                            style CoreSW fill:#f9f,stroke:#333,stroke-width:2px
+                            style Svr_Fin fill:#ff9,stroke:#333
+                            style Svr_Web fill:#bbf,stroke:#333
+                            
+                            %% Link Styles
+                            %% Link index 6 is CoreSW --- Svr_Fin
+                            linkStyle 6 stroke:red,stroke-width:4px
+                            
+                            %% Note
+                            ACLNote["在 Core Switch 實施 ACL"]
+                            ACLNote -.-> CoreSW
+                    </div>
+                    <p class="text-center text-sm text-gray-500">說明：通常建議將 Extended ACL 盡量靠近「來源端」部署，以減少不必要的網路頻寬消耗。</p>
+                </div>
+
+                <!-- Diagram 2: Logic Flow -->
+                <div class="border rounded p-4">
+                    <h3 class="text-center font-bold text-gray-600 mb-2">圖二：封包過濾邏輯流程圖</h3>
+                    <div class="mermaid">
+                        sequenceDiagram
+                            participant Packet as 封包 (Packet)
+                            participant ACL as ACL 檢查機制
+                            participant Action as 執行動作
+
+                            Packet->>ACL: 到達介面 (Ingress)
+                            
+                            loop 規則比對 (Top-Down)
+                                ACL->>ACL: 檢查規則 1 (如: IP 符合?)
+                                alt 符合規則 1?
+                                    ACL->>Action: 是 -> 執行規則 1 (Permit/Deny)
+                                    Note right of Action: 停止檢查，封包被處理
+                                else 不符合
+                                    ACL->>ACL: 檢查規則 2 (如: Port 符合?)
+                                    alt 符合規則 2?
+                                        ACL->>Action: 是 -> 執行規則 2
+                                    else 不符合
+                                        ACL->>ACL: 繼續檢查下一條...
+                                    end
+                                end
+                            end
+
+                            opt 所有規則皆不符合
+                                ACL->>Action: 觸發隱式拒絕 (Implicit Deny)
+                                Note right of Action: 封包被丟棄 (Drop)
+                            end
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Use Case -->
+        <section class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <div class="flex items-center mb-4">
+                <span class="bg-purple-100 text-purple-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Part 4</span>
+                <h2 class="text-2xl font-bold text-gray-800">四、實務應用場景 (Use Case)</h2>
+            </div>
+
+            <!-- Case 1 -->
+            <div class="mb-8 border-b pb-6">
+                <h3 class="font-bold text-xl mb-3 text-indigo-700">案例一：財務部資料隔離 (IP Based)</h3>
+                <p class="mb-4 text-gray-700">
+                    <strong>情境：</strong>為了資訊安全，禁止「工程部 (VLAN 20)」存取「財務部伺服器 (10.10.10.100)」，但允許其他流量。
+                </p>
+
+                <div class="bg-gray-800 text-gray-200 rounded p-4 font-mono text-sm overflow-x-auto shadow-inner">
+                    <p class="text-gray-400 mb-2">// 檔案: block_eng_to_fin.pol</p>
+                    <div class="pl-4">
+                        <span class="text-pink-400">entry</span> Block_Finance_Access {<br>
+                        &nbsp;&nbsp;<span class="text-blue-400">if match</span> {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;source-address 192.168.20.0/24;<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;destination-address 10.10.10.100/32;<br>
+                        &nbsp;&nbsp;} <span class="text-blue-400">then</span> {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-red-400">deny</span>;<br>
+                        &nbsp;&nbsp;}<br>
+                        }<br>
+                        <span class="text-pink-400">entry</span> Permit_Others {<br>
+                        &nbsp;&nbsp;<span class="text-blue-400">if match</span> { <span class="text-gray-500">all</span>; } <span class="text-blue-400">then</span> { <span class="text-green-400">permit</span>; }<br>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Case 2 -->
+            <div>
+                <h3 class="font-bold text-xl mb-3 text-indigo-700">案例二：Web 伺服器服務管控 (Destination Port Filtering)</h3>
+                <p class="mb-4 text-gray-700">
+                    <strong>情境：</strong>公司有一台對外的 Web 主機 (10.10.10.200)。
+                    我們希望<strong>開放全世界</strong>存取其 Web 服務 (Port 80, 443)，但<strong>嚴格禁止</strong>外部對其進行遠端管理 (SSH Port 22)，SSH 僅允許內部 IT 管理員網段 (192.168.99.0/24) 進入。
+                </p>
+
+                <div class="bg-gray-800 text-gray-200 rounded p-4 font-mono text-sm overflow-x-auto shadow-inner">
+                    <p class="text-gray-400 mb-2">// 檔案: secure_web_server.pol</p>
+                    <div class="pl-4">
+                        <span class="text-gray-500">// 1. 優先允許 IT 管理員使用 SSH</span><br>
+                        <span class="text-pink-400">entry</span> Allow_IT_SSH {<br>
+                        &nbsp;&nbsp;<span class="text-blue-400">if match</span> {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;source-address 192.168.99.0/24;<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;destination-address 10.10.10.200/32;<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;protocol tcp;<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-yellow-300">destination-port 22;</span><br>
+                        &nbsp;&nbsp;} <span class="text-blue-400">then</span> { <span class="text-green-400">permit</span>; }<br>
+                        }<br>
+                        <br>
+                        <span class="text-gray-500">// 2. 阻擋其他所有人的 SSH (防止暴力破解)</span><br>
+                        <span class="text-pink-400">entry</span> Block_Public_SSH {<br>
+                        &nbsp;&nbsp;<span class="text-blue-400">if match</span> {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;destination-address 10.10.10.200/32;<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;protocol tcp;<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-yellow-300">destination-port 22;</span><br>
+                        &nbsp;&nbsp;} <span class="text-blue-400">then</span> { <span class="text-red-400">deny</span>; }<br>
+                        }<br>
+                        <br>
+                        <span class="text-gray-500">// 3. 開放 Web 服務 (HTTP/HTTPS) 給所有人</span><br>
+                        <span class="text-pink-400">entry</span> Allow_Web_Traffic {<br>
+                        &nbsp;&nbsp;<span class="text-blue-400">if match</span> {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;destination-address 10.10.10.200/32;<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;protocol tcp;<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-yellow-300">destination-port 80, 443;</span> <span class="text-gray-500">// 支援多埠號</span><br>
+                        &nbsp;&nbsp;} <span class="text-blue-400">then</span> { <span class="text-green-400">permit</span>; }<br>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                <div class="bg-green-50 p-3 rounded border border-green-200">
+                    <h4 class="font-bold text-green-800">優點 (Pros)</h4>
+                    <ul class="list-disc list-inside text-sm text-gray-700">
+                        <li><strong>縱深防禦：</strong>不依賴伺服器本身的防火牆，直接在交換器阻擋惡意掃描。</li>
+                        <li><strong>硬體加速：</strong>即使面對大量 Port Scan 攻擊，交換器 ASIC 也能輕鬆處理，不耗損 CPU。</li>
+                    </ul>
+                </div>
+                <div class="bg-red-50 p-3 rounded border border-red-200">
+                    <h4 class="font-bold text-red-800">注意事項 (Notes)</h4>
+                    <ul class="list-disc list-inside text-sm text-gray-700">
+                        <li><strong>Protocol 欄位：</strong>過濾 Port 時，務必先指定 L4 協定 (如 <code>protocol tcp;</code>)，否則語法會報錯。</li>
+                        <li><strong>規則順序：</strong>必須先寫「允許 IT SSH」，再寫「阻擋所有 SSH」。若順序顛倒，IT 也會被擋在門外。</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: ACL vs Firewall (New) -->
+        <section class="bg-white rounded-lg shadow-md p-6 mb-8 border-t-4 border-indigo-600">
+            <div class="flex items-center mb-4">
+                <span class="bg-purple-100 text-purple-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Part 5</span>
+                <h2 class="text-2xl font-bold text-gray-800">五、ACL 與 Firewall Policy 差異解析 (Comparison)</h2>
+            </div>
+            
+            <p class="text-gray-700 mb-6">
+                許多學員常問：「既然 Switch 上的 ACL 也能擋封包，為什麼我們還需要昂貴的 Firewall？」這就要從<strong>「無狀態 (Stateless)」</strong>與<strong>「狀態感知 (Stateful)」</strong>的核心差異說起。
+            </p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <!-- Analogy Block -->
+                <div class="bg-gray-50 p-5 rounded-lg border border-gray-200">
+                    <h3 class="font-bold text-lg mb-4 text-indigo-700 flex items-center">
+                        <span class="text-2xl mr-2">🛡️</span> 生活化比喻
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="bg-white p-3 rounded shadow-sm">
+                            <h4 class="font-bold text-gray-800">ACL (Switch 上的過濾)</h4>
+                            <p class="text-sm text-gray-600 mt-1">就像<strong>「地鐵站的驗票閘門」</strong>。</p>
+                            <ul class="list-disc list-inside text-sm text-gray-600 mt-1 ml-2">
+                                <li><strong>只看票 (Header)：</strong>只要票沒問題就開門。</li>
+                                <li><strong>沒記憶 (Stateless)：</strong>它不記得你剛剛是不是才剛進站，也不管你是不是壞人，只認票。</li>
+                                <li><strong>速度極快：</strong>每秒可以處理大量人流。</li>
+                            </ul>
+                        </div>
+                        <div class="bg-white p-3 rounded shadow-sm">
+                            <h4 class="font-bold text-gray-800">Firewall Policy (防火牆策略)</h4>
+                            <p class="text-sm text-gray-600 mt-1">就像<strong>「機場的海關移民官」</strong>。</p>
+                            <ul class="list-disc list-inside text-sm text-gray-600 mt-1 ml-2">
+                                <li><strong>查戶口 (Stateful)：</strong>它會看你的護照，還會查電腦紀錄，知道你「什麼時候出境的」。</li>
+                                <li><strong>應用層檢查 (Deep Inspection)：</strong>它會打開你的行李箱 (Payload)，檢查有沒有違禁品 (病毒、惡意程式)。</li>
+                                <li><strong>速度較慢：</strong>檢查程序繁瑣，處理量能有限。</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Comparison Table -->
+                <div class="overflow-x-auto">
+                    <h3 class="font-bold text-lg mb-4 text-gray-700">技術規格對照表</h3>
+                    <table class="min-w-full text-sm text-left text-gray-500">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-200">
+                            <tr>
+                                <th scope="col" class="px-4 py-3">特性</th>
+                                <th scope="col" class="px-4 py-3 text-indigo-700">ACL (Switch)</th>
+                                <th scope="col" class="px-4 py-3 text-red-700">Firewall Policy</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="bg-white border-b">
+                                <td class="px-4 py-3 font-medium text-gray-900">核心機制</td>
+                                <td class="px-4 py-3">Packet Filtering<br>(逐包過濾)</td>
+                                <td class="px-4 py-3">Stateful Inspection<br>(狀態檢測)</td>
+                            </tr>
+                            <tr class="bg-gray-50 border-b">
+                                <td class="px-4 py-3 font-medium text-gray-900">連線狀態</td>
+                                <td class="px-4 py-3">無狀態 (Stateless)<br>不知封包屬於哪個連線</td>
+                                <td class="px-4 py-3">有狀態 (Stateful)<br>追蹤 Session Table</td>
+                            </tr>
+                            <tr class="bg-white border-b">
+                                <td class="px-4 py-3 font-medium text-gray-900">運作層級</td>
+                                <td class="px-4 py-3">Layer 2 ~ Layer 4<br>(MAC, IP, Port)</td>
+                                <td class="px-4 py-3">Layer 3 ~ Layer 7<br>(App-ID, User-ID)</td>
+                            </tr>
+                            <tr class="bg-gray-50 border-b">
+                                <td class="px-4 py-3 font-medium text-gray-900">處理效能</td>
+                                <td class="px-4 py-3">極高 (ASIC 硬體線速)</td>
+                                <td class="px-4 py-3">中/高 (CPU/NPU 運算)</td>
+                            </tr>
+                            <tr class="bg-white">
+                                <td class="px-4 py-3 font-medium text-gray-900">主要用途</td>
+                                <td class="px-4 py-3">內網網段隔離、<br>基本 QoS、阻擋廣播風暴</td>
+                                <td class="px-4 py-3">邊界防護、VPN、<br>IPS (入侵防禦)、防毒</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Diagram 3: Stateless vs Stateful -->
+            <div class="border rounded p-4">
+                <h3 class="text-center font-bold text-gray-600 mb-2">圖三：無狀態 (Stateless) vs 有狀態 (Stateful) 運作差異</h3>
+                <div class="mermaid">
+                    graph TD
+                        subgraph ACL_Stateless ["ACL (無狀態) - 笨拙但快速"]
+                            P1["封包 1: 來源A -> 目的B (Port 80)"] --> Check1{"檢查規則"}
+                            Check1 -- "符合 Permit" --> Pass1["放行"]
+                            
+                            P2["封包 2: 目的B -> 來源A (回傳封包)"] --> Check2{"檢查規則"}
+                            Check2 -- "需額外設定規則<br/>否則會被擋下!" --> Drop1["丟棄?"]
+                            
+                            style Drop1 fill:#f9f,stroke:#333
+                        end
+
+                        subgraph FW_Stateful ["Firewall (有狀態) - 聰明且自動"]
+                            FP1["封包 1: 來源A -> 目的B (SYN)"] --> FWCheck{"檢查策略"}
+                            FWCheck -- "允許" --> Session["建立連線表 (Session Table)<br/>A <--> B"]
+                            
+                            FP2["封包 2: 目的B -> 來源A (SYN-ACK)"] --> LookSession{"查表"}
+                            LookSession -- "表中有紀錄<br/>自動放行!" --> Pass2["放行"]
+                            
+                            style Session fill:#d1fae5,stroke:#059669
+                        end
+
+                        %% Invisible link to force vertical layout
+                        Drop1 ~~~ FP1
+                </div>
+                <p class="text-center text-sm text-gray-500 mt-2">
+                    重點：ACL 必須明確設定「雙向」規則才能通訊；Firewall 只要允許「去程」，「回程」會自動依據狀態表放行。
+                </p>
+            </div>
+        </section>
+
+        <!-- Section 6: Quiz (Renumbered) -->
+        <section class="bg-white rounded-lg shadow-md p-6 mb-12">
+            <div class="flex items-center mb-4">
+                <span class="bg-purple-100 text-purple-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Part 6</span>
+                <h2 class="text-2xl font-bold text-gray-800">六、隨堂測驗 (Quiz)</h2>
+            </div>
+            
+            <div id="quiz-container" class="space-y-6">
+                <!-- Questions will be injected here by JS -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-gray-400 py-4 text-center text-sm">
+        <div class="container mx-auto">
+            Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // Initialize Mermaid with looser security to allow HTML labels if needed
+        mermaid.initialize({ 
+            startOnLoad: true, 
+            theme: 'neutral',
+            securityLevel: 'loose'
+        });
+
+        // Quiz Data
+        const quizData = [
+            {
+                question: "1. 關於 ACL 的運作順序，下列何者正確？",
+                options: [
+                    "由下而上檢查，符合條件即執行。",
+                    "由上而下檢查，符合條件即執行並停止後續檢查。",
+                    "隨機檢查，看哪條規則先被命中。",
+                    "同時檢查所有規則，取最嚴格的執行。"
+                ],
+                answer: 1, // Index of correct answer
+                explanation: "正解：ACL 採用 Top-down (由上而下) 且 First Match (擇一執行) 的機制。一旦命中某條規則，就不會再往下看。"
+            },
+            {
+                question: "2. 如果 ACL 清單中沒有任何一條規則符合目前的封包，通常會發生什麼事？",
+                options: [
+                    "封包會被允許通過 (Implicit Permit)。",
+                    "封包會被導向到管理 Port。",
+                    "封包會被丟棄 (Implicit Deny)。",
+                    "封包會退回給發送者。"
+                ],
+                answer: 2,
+                explanation: "正解：大多數系統 (包括 ExtremeXOS 與 Cisco) 在 ACL 結尾都有隱藏的 'Deny All' 規則，稱為 Implicit Deny。"
+            },
+            {
+                question: "3. 在 ExtremeXOS 中，ACL 通常是透過什麼形式來編輯與儲存的？",
+                options: [
+                    "純數字列表 (如 access-list 10)。",
+                    "Policy 檔案 (.pol)。",
+                    "Excel 表格。",
+                    "VLAN Database。"
+                ],
+                answer: 1,
+                explanation: "正解：ExtremeXOS 使用 Policy File (.pol) 來定義 ACL 規則，結構類似程式碼區塊 (entry/match/action)。"
+            },
+            {
+                question: "4. 若要禁止行銷部存取財務部，但要允許行銷部上網，ACL 規則順序應如何安排？",
+                options: [
+                    "先 Deny 財務部流量，再 Permit 其他所有流量。",
+                    "先 Permit 所有流量，再 Deny 財務部流量。",
+                    "順序沒差，只要有寫就好。",
+                    "全部寫 Deny，系統會自動判斷。"
+                ],
+                answer: 0,
+                explanation: "正解：因為是 First Match 機制，必須將「特定的拒絕規則」放在前面。如果先寫 Permit All，那麼 Deny 規則永遠不會被執行到。"
+            },
+            {
+                question: "5. 下列哪一項特性是防火牆 (Firewall) 具備，但標準 ACL 通常缺乏的？",
+                options: [
+                    "檢查來源 IP 位址。",
+                    "檢查目的 Port 號。",
+                    "狀態感知 (Stateful Inspection) 與連線追蹤。",
+                    "能夠丟棄封包。"
+                ],
+                answer: 2,
+                explanation: "正解：ACL 是無狀態的 (Stateless)，僅依據單一封包的標頭判斷；防火牆則具有狀態感知能力，能追蹤整個連線過程 (Session)。"
+            }
+        ];
+
+        // Render Quiz
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionDiv = document.createElement('div');
+            questionDiv.className = "bg-gray-50 p-4 rounded border border-gray-200";
+            
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <button class="quiz-option w-full text-left p-3 mb-2 rounded border border-gray-300 transition-colors duration-200" 
+                            onclick="checkAnswer(this, ${index}, ${optIndex})">
+                        ${String.fromCharCode(65 + optIndex)}. ${opt}
+                    </button>
+                `;
+            });
+
+            questionDiv.innerHTML = `
+                <h3 class="font-bold text-lg mb-3">${item.question}</h3>
+                <div class="mb-4">${optionsHtml}</div>
+                <div id="feedback-${index}" class="hidden p-3 rounded mt-2"></div>
+            `;
+            quizContainer.appendChild(questionDiv);
+        });
+
+        // Check Answer Function
+        function checkAnswer(btn, questionIndex, selectedOptionIndex) {
+            const currentQuiz = quizData[questionIndex];
+            const parent = btn.parentElement;
+            const buttons = parent.getElementsByTagName('button');
+            const feedbackDiv = document.getElementById(`feedback-${questionIndex}`);
+
+            // Disable all buttons for this question
+            for (let button of buttons) {
+                button.disabled = true;
+                button.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+
+            btn.classList.remove('opacity-50');
+            btn.classList.add('selected');
+
+            if (selectedOptionIndex === currentQuiz.answer) {
+                // Correct
+                btn.classList.add('correct', 'bg-green-100', 'border-green-500', 'text-green-800');
+                feedbackDiv.className = "block bg-green-100 text-green-800 p-3 rounded mt-2 border border-green-300";
+                feedbackDiv.innerHTML = `<strong>🎉 答對了！</strong><br>${currentQuiz.explanation}`;
+            } else {
+                // Wrong
+                btn.classList.add('wrong', 'bg-red-100', 'border-red-500', 'text-red-800');
+                feedbackDiv.className = "block bg-red-100 text-red-800 p-3 rounded mt-2 border border-red-300";
+                feedbackDiv.innerHTML = `<strong>⚠️ 答錯了。</strong><br>${currentQuiz.explanation}`;
+                
+                // Highlight correct answer
+                buttons[currentQuiz.answer].classList.remove('opacity-50');
+                buttons[currentQuiz.answer].classList.add('bg-green-100', 'border-green-500', 'text-green-800');
+            }
+        }
+    </script>
+</body>
+</html>
