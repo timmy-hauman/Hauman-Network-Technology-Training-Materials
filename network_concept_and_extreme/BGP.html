@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BGP 協定架構與運作原理 - Extreme XOS 網路架構大師</title>
+    <!-- 引入 Mermaid -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            }
+        });
+    </script>
+    <style>
+        :root {
+            --primary-color: #0056b3;
+            --secondary-color: #f0f4f8;
+            --accent-color: #e63946;
+            --text-color: #333;
+            --border-radius: 8px;
+            --code-bg: #282c34;
+            --code-text: #abb2bf;
+            --code-comment: #98c379;
+            --code-command: #61afef;
+        }
+
+        body {
+            font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 20px rgba(0,0,0,0.05);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: linear-gradient(135deg, #0056b3 0%, #002a5c 100%);
+            color: white;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        h1 { margin: 0; font-size: 2.2rem; }
+        h2 { border-left: 5px solid var(--primary-color); padding-left: 15px; margin-top: 40px; color: #2c3e50; }
+        h3 { color: var(--primary-color); margin-top: 25px; }
+
+        .section-box {
+            background-color: var(--secondary-color);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            border: 1px solid #e1e4e8;
+        }
+
+        .highlight-box {
+            background-color: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 4px;
+        }
+
+        .analogy-icon { font-size: 1.5rem; margin-right: 10px; }
+        
+        .diagram-container {
+            display: flex;
+            flex-direction: column; /* 垂直排列 */
+            align-items: center;
+            gap: 30px;
+            margin: 20px 0;
+        }
+
+        .diagram-box {
+            width: 100%;
+            background: white;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            text-align: center;
+        }
+
+        .diagram-title {
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        /* Code Block Styles */
+        .code-box {
+            background-color: var(--code-bg);
+            color: var(--code-text);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-top: 15px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            overflow-x: auto;
+            border-left: 5px solid #d19a66;
+        }
+        .code-box pre { margin: 0; }
+        .code-title {
+            color: #d19a66;
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: block;
+            border-bottom: 1px solid #444;
+            padding-bottom: 5px;
+        }
+        .cmd { color: var(--code-command); }
+        .cmt { color: var(--code-comment); font-style: italic; }
+
+        /* Quiz Styles */
+        .quiz-container { margin-top: 20px; }
+        .question-block {
+            background: #fff;
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: var(--border-radius);
+        }
+        .options label {
+            display: block;
+            margin: 10px 0;
+            cursor: pointer;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        .options label:hover { background: #e9ecef; }
+        .feedback {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+        .correct { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .incorrect { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .btn-check {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .btn-check:hover { background-color: #004494; }
+
+        /* Table Styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            background: white;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            color: #333;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: auto;
+            padding-top: 40px;
+            padding-bottom: 20px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #666;
+            border-top: 1px solid #eee;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Extreme XOS 網路架構大師</h1>
+        <p>深入淺出 BGP：從 iBGP/eBGP 到 Route Reflector</p>
+    </header>
+
+    <!-- 一、核心概念 -->
+    <section>
+        <h2>一、核心概念 (Concept)</h2>
+        <div class="section-box">
+            <h3><span class="analogy-icon">💡</span>一句話定義</h3>
+            <p>BGP (Border Gateway Protocol) 是網際網路的「標準語言」，屬於 <strong>EGP (外部閘道協定)</strong>，用於在不同的自治系統 (AS) 之間交換路由資訊，決定數據傳輸的最佳路徑。</p>
+            
+            <div class="highlight-box">
+                <h4>🌍 基礎分類：IGP 與 EGP 的差異</h4>
+                <p>網路協定依據「運作範圍」分為兩大類：</p>
+                <div class="mermaid">
+                    graph TB
+                        subgraph Global_Internet ["網際網路 (EGP Domain)"]
+                            direction LR
+                            AS1[("AS 100<br>(企業)")]
+                            AS2[("AS 200<br>(ISP A)")]
+                            AS3[("AS 300<br>(ISP B)")]
+                            
+                            AS1 == "BGP (EGP)" ==> AS2
+                            AS2 == "BGP (EGP)" ==> AS3
+                            AS1 == "BGP (EGP)" ==> AS3
+                        end
+
+                        subgraph Inside_AS1 ["AS 100 內部 (IGP Domain)"]
+                            R1((Router A)) --- R2((Router B))
+                            R2 --- R3((Router C))
+                            R1 --- R3
+                            linkStyle 3,4,5 stroke:blue,stroke-width:2px;
+                        end
+                        
+                        %% Add invisible link to position graphs
+                        AS1 ~~~ Inside_AS1
+                </div>
+                <br>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>特性</th>
+                            <th>IGP (內部閘道協定)</th>
+                            <th>EGP (外部閘道協定)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>全名</strong></td>
+                            <td>Interior Gateway Protocol</td>
+                            <td>Exterior Gateway Protocol</td>
+                        </tr>
+                        <tr>
+                            <td><strong>運作範圍</strong></td>
+                            <td>單一 AS <strong>內部</strong></td>
+                            <td>不同 AS <strong>之間</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>主要目標</strong></td>
+                            <td><strong>速度</strong>：快速收斂，找最短路徑。</td>
+                            <td><strong>控制</strong>：政策路由 (Policy)，選最「好」的路徑。</td>
+                        </tr>
+                        <tr>
+                            <td><strong>常見協定</strong></td>
+                            <td>OSPF, RIP, IS-IS, EIGRP</td>
+                            <td><strong>BGP</strong> (目前唯一)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>生活比喻</strong></td>
+                            <td><strong>國內導航</strong>：從台北開車到高雄，要在意路況、距離、紅綠燈 (在意速度)。</td>
+                            <td><strong>國際航班</strong>：從台灣飛往美國，要考慮簽證、航權、政治因素 (在意政策與可達性)。</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3><span class="analogy-icon">🍎</span>BGP 生活化比喻</h3>
+            <p><strong>BGP 就像是國際外交官與國內郵差的結合：</strong></p>
+            <ul>
+                <li><strong>AS (自治系統)：</strong> 想像成一個「國家」或「大型跨國企業」。</li>
+                <li><strong>eBGP (External BGP)：</strong> 像是「外交官」。負責國與國之間（不同 ISP 或企業間）交換地圖資訊。「嘿，要去 Google 國，請走這條路」。</li>
+                <li><strong>iBGP (Internal BGP)：</strong> 像是「國內郵差」。當外交官拿到國外的地圖後，必須透過國內郵差告訴國內的所有郵局（路由器），讓大家知道怎麼把信寄出國。</li>
+            </ul>
+
+            <div class="highlight-box">
+                <h4>🔑 關鍵知識：公有 vs 私有 AS Number</h4>
+                <p>就像 IP 位址有分 Public (公網) 與 Private (內網) 一樣，AS Number 也有區分。私有 AS 僅能在企業內部或與 ISP 約定使用，<strong>不可在網際網路上廣播</strong>。</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>類型</th>
+                            <th>2-Byte Range (傳統)</th>
+                            <th>4-Byte Range (新式)</th>
+                            <th>用途類似於</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Public AS (公有)</strong></td>
+                            <td>1 - 64511</td>
+                            <td>1 - 4199999999</td>
+                            <td>全球唯一的電話號碼 (+886...)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Private AS (私有)</strong></td>
+                            <td><strong>64512 - 65534</strong></td>
+                            <td><strong>4200000000 - 4294967294</strong></td>
+                            <td>公司內部分機 (Ext. 1234)</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p style="font-size: 0.9em; color: #666; margin-top: 5px;">* 註：AS 0, 23456, 65535 等為保留用途。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 二、運作原理 -->
+    <section>
+        <h2>二、運作原理 (Mechanism)</h2>
+        <div class="section-box">
+            <h3>技術細節</h3>
+            <p>BGP 是一種 <strong>路徑向量 (Path Vector)</strong> 協定，它不只看距離，更看「路徑屬性」(Attributes)。</p>
+            <ul>
+                <li><strong>連線建立：</strong> 使用 <strong>TCP Port 179</strong> 建立可靠連線。</li>
+                <li><strong>eBGP 行為：</strong> 預設 TTL 為 1 (直接相連)。當路由傳給鄰居 AS 時，會將自己的 AS 號碼加入 `AS_PATH`，並將 `Next-Hop` 改為自己。</li>
+                <li><strong>iBGP 行為：</strong> 為了防止路由迴圈，iBGP 遵守 <strong>Split Horizon (水平分割)</strong> 規則：從一個 iBGP 鄰居學到的路由，<strong>不會</strong>再傳給另一個 iBGP 鄰居。
+                    <br><em>這導致了擴展性問題：</em> 必須所有路由器互連 (Full Mesh)，或使用 Route Reflector (RR) 來打破此規則。</li>
+                <li><strong>MBGP (Multiprotocol BGP)：</strong> 標準 BGP 只能傳 IPv4。MBGP 擴充了能力，可以在同一個 BGP session 中傳遞 IPv6、MPLS VPN label、Multicast 等多種「位址族群 (Address Families)」。</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- 三、架構視覺化 -->
+    <section>
+        <h2>三、架構視覺化 (Visuals)</h2>
+        <p>以下展示 BGP 的三種關鍵架構場景：基礎對接、Full Mesh 的困境、以及 Route Reflector 的解決方案。</p>
+
+        <div class="diagram-container">
+            
+            <!-- 圖一：eBGP vs iBGP -->
+            <div class="diagram-box">
+                <span class="diagram-title">圖 1：eBGP 與 iBGP 的基本關係</span>
+                <div class="mermaid">
+                    graph LR
+                        subgraph AS_100 ["AS 100 (企業總部)"]
+                            R1(("R1<br>Edge")) --- R2(("R2<br>Core"))
+                            R2 --- R3(("R3<br>Core"))
+                            R1 -. "iBGP Session" .- R2
+                            R2 -. "iBGP Session" .- R3
+                            style R1 fill:#d4edda,stroke:#155724
+                            style R2 fill:#d4edda,stroke:#155724
+                            style R3 fill:#d4edda,stroke:#155724
+                        end
+
+                        subgraph AS_200 ["AS 200 (ISP 服務商)"]
+                            ISP1(("ISP Router"))
+                            style ISP1 fill:#cce5ff,stroke:#004085
+                        end
+
+                        R1 == "eBGP Session <br> (TTL=1)" ==> ISP1
+                        
+                        linkStyle 4 stroke-width:4px,fill:none,stroke:red;
+                </div>
+                <p style="font-size:0.9em; color:#666;">說明：跨越 AS 邊界使用 eBGP，AS 內部傳遞外部路由使用 iBGP。</p>
+            </div>
+
+            <!-- 圖二：Full Mesh 問題 -->
+            <div class="diagram-box">
+                <span class="diagram-title">圖 2：iBGP Full Mesh (沒有 RR 的混亂世界)</span>
+                <div class="mermaid">
+                    graph TD
+                        subgraph AS_300 ["AS 300 - iBGP Full Mesh"]
+                            A(("R_A")) --- B(("R_B"))
+                            A --- C(("R_C"))
+                            A --- D(("R_D"))
+                            B --- C
+                            B --- D
+                            C --- D
+                            style A fill:#fff3cd,stroke:#856404
+                            style B fill:#fff3cd,stroke:#856404
+                            style C fill:#fff3cd,stroke:#856404
+                            style D fill:#fff3cd,stroke:#856404
+                        end
+                </div>
+                <p style="font-size:0.9em; color:#666;">說明：根據 iBGP Split Horizon 規則，若無 RR，所有路由器必須兩兩互連 (N*(N-1)/2)，管理極其困難。</p>
+            </div>
+
+            <!-- 圖三：Route Reflector -->
+            <div class="diagram-box">
+                <span class="diagram-title">圖 3：Route Reflector (RR) 架構優化</span>
+                <div class="mermaid">
+                    graph TD
+                        subgraph AS_300_Optimized ["AS 300 - 使用 Route Reflector"]
+                            RR(("RR Server<br>Route Reflector"))
+                            Client1(("Client 1"))
+                            Client2(("Client 2"))
+                            Client3(("Client 3"))
+                            
+                            RR -. "反射路由" .- Client1
+                            RR -. "反射路由" .- Client2
+                            RR -. "反射路由" .- Client3
+                            
+                            Client1 --- RR
+                            Client2 --- RR
+                            Client3 --- RR
+
+                            style RR fill:#f8d7da,stroke:#721c24,stroke-width:4px
+                            style Client1 fill:#d4edda,stroke:#155724
+                            style Client2 fill:#d4edda,stroke:#155724
+                            style Client3 fill:#d4edda,stroke:#155724
+                        end
+                </div>
+                <p style="font-size:0.9em; color:#666;">說明：所有 Client 只需與 RR 建立鄰居關係。RR 打破 Split Horizon 規則，將路由「反射」給其他 Client，大幅簡化架構。</p>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- 四、實務應用場景 -->
+    <section>
+        <h2>四、實務應用場景 (Use Case)</h2>
+        
+        <!-- 場景一：eBGP -->
+        <div class="section-box">
+            <h3>場景一：企業申請自帶 IP (BYOIP) 對接 ISP (eBGP)</h3>
+            <p><strong>情境：</strong> 「快樂科技公司」是一家中型企業，因為業務擴張，決定向 TWNIC 申請自己的網段 (203.0.113.0/24) 和 AS 號碼 (AS 65001)，並與 ISP (AS 3462) 建立連線。</p>
+            
+            <div class="mermaid">
+                graph LR
+                    subgraph Customer ["快樂科技 (AS 65001)"]
+                        CE(("企業路由器<br>Edge Router<br>192.0.2.2"))
+                    end
+                    subgraph ISP ["ISP 服務商 (AS 3462)"]
+                        PE(("ISP 路由器<br>PE Router<br>192.0.2.1"))
+                    end
+                    
+                    CE == "eBGP Session" ==> PE
+                    
+                    CE -- "廣告: 203.0.113.0/24" --> PE
+                    PE -- "接收: Default Route (0.0.0.0/0)" --> CE
+                    
+                    style CE fill:#d4edda,stroke:#155724
+                    style PE fill:#cce5ff,stroke:#004085
+            </div>
+            
+            <br>
+            <ul>
+                <li><strong>設定重點：</strong> 建立 eBGP Neighbor 並宣告 (Network) 自己的網段。</li>
+                <li><strong>AS 選擇：</strong> 本案例 AS 65001 屬於 <strong>私有 AS</strong> 範圍，通常若是真實對外服務，需申請 Public AS。若僅對單一 ISP 或實驗性質，則使用 Private AS。</li>
+            </ul>
+
+            <!-- CLI 範例區塊 - eBGP -->
+            <div class="code-box">
+                <span class="code-title">💻 ExtremeXOS eBGP 設定範例</span>
+                <pre>
+<span class="cmt"># 1. 基礎介面設定 (假設 Port 1 接 ISP)</span>
+<span class="cmd">create vlan isp_link</span>
+<span class="cmd">configure vlan isp_link tag 100</span>
+<span class="cmd">configure vlan isp_link add port 1</span>
+<span class="cmd">configure vlan isp_link ipaddress 192.0.2.2/30</span>
+<span class="cmd">enable ipforwarding vlan isp_link</span>
+
+<span class="cmt"># 2. 啟動 BGP 並設定本地 AS (65001 - Private AS Example)</span>
+<span class="cmd">enable bgp</span>
+<span class="cmd">configure bgp as-number 65001</span>
+<span class="cmd">configure bgp routerid 192.0.2.2</span>
+
+<span class="cmt"># 3. 建立 eBGP 鄰居關係 (ISP AS 3462)</span>
+<span class="cmd">create bgp neighbor 192.0.2.1 remote-AS 3462</span>
+<span class="cmd">enable bgp neighbor 192.0.2.1</span>
+
+<span class="cmt"># 4. 宣告自己的網段 (需先有路由存在)</span>
+<span class="cmd">configure bgp add network 203.0.113.0/24</span>
+                </pre>
+            </div>
+        </div>
+
+        <!-- 場景二：iBGP + RR -->
+        <div class="section-box">
+            <h3>場景二：iBGP 內部核心路由優化 (Route Reflector)</h3>
+            <p><strong>情境：</strong> 企業內部有多個核心節點需要交換 BGP 路由。為了避免每台設備都要互聯 (Full Mesh) 造成管理災難，決定將 HQ 核心交換器設為 <strong>Route Reflector (RR)</strong>，分公司設備設為 <strong>Client</strong>。</p>
+            <ul>
+                <li><strong>AS Number：</strong> 全網皆為 AS 65000 (屬於 Private AS 範圍)。</li>
+                <li><strong>角色分配：</strong>
+                    <ul>
+                        <li><strong>HQ Core (RR)：</strong> 負責反射路由。IP: 10.0.0.1</li>
+                        <li><strong>Branch A (Client)：</strong> 接收並傳送路由給 HQ。IP: 10.0.0.2</li>
+                        <li><strong>Branch B (Client)：</strong> 接收並傳送路由給 HQ。IP: 10.0.0.3</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <div class="mermaid">
+                graph TD
+                    subgraph AS_65000 ["AS 65000 (Private AS)"]
+                        HQ(("HQ Core<br>(RR Server)<br>10.0.0.1"))
+                        BR_A(("Branch A<br>(Client)<br>10.0.0.2"))
+                        BR_B(("Branch B<br>(Client)<br>10.0.0.3"))
+                        
+                        HQ -. "Reflects Routes" .- BR_A
+                        HQ -. "Reflects Routes" .- BR_B
+                        
+                        BR_A -- "iBGP Session" --- HQ
+                        BR_B -- "iBGP Session" --- HQ
+                        
+                        style HQ fill:#f8d7da,stroke:#721c24,stroke-width:4px
+                        style BR_A fill:#d4edda,stroke:#155724
+                        style BR_B fill:#d4edda,stroke:#155724
+                    end
+            </div>
+            <br>
+
+            <!-- CLI 範例區塊 - iBGP RR -->
+            <div class="code-box">
+                <span class="code-title">💻 ExtremeXOS RR & Client 設定範例</span>
+                <pre>
+<span class="cmt"># --- 設定 HQ Core (RR Server) ---</span>
+<span class="cmd">enable bgp</span>
+<span class="cmd">configure bgp as-number 65000</span>
+<span class="cmd">configure bgp routerid 10.0.0.1</span>
+
+<span class="cmt"># 建立 iBGP Neighbor (指向 Branch A)</span>
+<span class="cmd">create bgp neighbor 10.0.0.2 remote-AS 65000</span>
+<span class="cmd">enable bgp neighbor 10.0.0.2</span>
+<span class="cmt"># 關鍵指令：將此鄰居設為 Client，啟用反射功能</span>
+<span class="cmd">configure bgp neighbor 10.0.0.2 route-reflector-client</span>
+
+<span class="cmt"># 建立 iBGP Neighbor (指向 Branch B)</span>
+<span class="cmd">create bgp neighbor 10.0.0.3 remote-AS 65000</span>
+<span class="cmd">enable bgp neighbor 10.0.0.3</span>
+<span class="cmd">configure bgp neighbor 10.0.0.3 route-reflector-client</span>
+
+
+<span class="cmt"># --- 設定 Branch A (RR Client) ---</span>
+<span class="cmt"># Client 端不需要知道誰是 RR，只需當作一般 iBGP 設定即可</span>
+<span class="cmd">enable bgp</span>
+<span class="cmd">configure bgp as-number 65000</span>
+<span class="cmd">configure bgp routerid 10.0.0.2</span>
+
+<span class="cmt"># 建立指向 HQ 的連線</span>
+<span class="cmd">create bgp neighbor 10.0.0.1 remote-AS 65000</span>
+<span class="cmd">enable bgp neighbor 10.0.0.1</span>
+<span class="cmt"># 注意：Client 端不需要設定 route-reflector-client 指令</span>
+                </pre>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- 五、隨堂測驗 -->
+    <section>
+        <h2>五、隨堂測驗 (Quiz)</h2>
+        <div class="quiz-container">
+            
+            <!-- Question 1 -->
+            <div class="question-block" id="q1">
+                <h4>1. 下列哪一個協定屬於 EGP (外部閘道協定)？</h4>
+                <div class="options">
+                    <label><input type="radio" name="q1" value="wrong"> OSPF</label>
+                    <label><input type="radio" name="q1" value="wrong"> RIP</label>
+                    <label><input type="radio" name="q1" value="correct"> BGP</label>
+                    <label><input type="radio" name="q1" value="wrong"> EIGRP</label>
+                </div>
+                <button class="btn-check" onclick="checkAnswer('q1')">檢查答案</button>
+                <div class="feedback"></div>
+            </div>
+
+            <!-- Question 2 -->
+            <div class="question-block" id="q2">
+                <h4>2. 為什麼在標準 iBGP 架構中(無 RR) 需要 Full Mesh 連線？</h4>
+                <div class="options">
+                    <label><input type="radio" name="q2" value="wrong"> 為了增加頻寬</label>
+                    <label><input type="radio" name="q2" value="correct"> 因為 iBGP 的 Split Horizon 規則防止從 iBGP 學到的路由傳給另一個 iBGP 鄰居</label>
+                    <label><input type="radio" name="q2" value="wrong"> 因為 eBGP 無法傳遞內部路由</label>
+                    <label><input type="radio" name="q2" value="wrong"> 為了加密安全性</label>
+                </div>
+                <button class="btn-check" onclick="checkAnswer('q2')">檢查答案</button>
+                <div class="feedback"></div>
+            </div>
+
+            <!-- Question 3 -->
+            <div class="question-block" id="q3">
+                <h4>3. Route Reflector (RR) 的主要功能是什麼？</h4>
+                <div class="options">
+                    <label><input type="radio" name="q3" value="wrong"> 加速封包轉送</label>
+                    <label><input type="radio" name="q3" value="wrong"> 改變封包的來源 IP</label>
+                    <label><input type="radio" name="q3" value="correct"> 解決 iBGP Full Mesh 擴充性問題，允許路由反射</label>
+                    <label><input type="radio" name="q3" value="wrong"> 將 BGP 轉換為 OSPF</label>
+                </div>
+                <button class="btn-check" onclick="checkAnswer('q3')">檢查答案</button>
+                <div class="feedback"></div>
+            </div>
+
+            <!-- Question 4 -->
+            <div class="question-block" id="q4">
+                <h4>4. 關於 AS Number (自治系統號碼)，下列敘述何者正確？</h4>
+                <div class="options">
+                    <label><input type="radio" name="q4" value="correct"> Private AS (2-Byte) 的範圍是 64512 - 65534，不可在網際網路上路由。</label>
+                    <label><input type="radio" name="q4" value="wrong"> 所有 AS Number 都可以自由在網際網路上使用。</label>
+                    <label><input type="radio" name="q4" value="wrong"> Private AS 只能使用 4-Byte 格式。</label>
+                    <label><input type="radio" name="q4" value="wrong"> AS 65000 是 Public AS。</label>
+                </div>
+                <button class="btn-check" onclick="checkAnswer('q4')">檢查答案</button>
+                <div class="feedback"></div>
+            </div>
+
+            <!-- Question 5 -->
+            <div class="question-block" id="q5">
+                <h4>5. IGP (如 OSPF) 與 EGP (如 BGP) 的主要目標差異為何？</h4>
+                <div class="options">
+                    <label><input type="radio" name="q5" value="wrong"> IGP 為了連線安全，EGP 為了速度</label>
+                    <label><input type="radio" name="q5" value="correct"> IGP 追求快速收斂與最短路徑；EGP 著重於政策控制 (Policy) 與 AS 間的互通</label>
+                    <label><input type="radio" name="q5" value="wrong"> IGP 只能用在 IPv4，EGP 只能用在 IPv6</label>
+                    <label><input type="radio" name="q5" value="wrong"> 兩者目標完全相同，只是廠商不同</label>
+                </div>
+                <button class="btn-check" onclick="checkAnswer('q5')">檢查答案</button>
+                <div class="feedback"></div>
+            </div>
+
+        </div>
+    </section>
+
+    <footer>
+        Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0
+    </footer>
+</div>
+
+<script>
+    function checkAnswer(questionId) {
+        const block = document.getElementById(questionId);
+        const selected = block.querySelector('input[name="' + questionId + '"]:checked');
+        const feedback = block.querySelector('.feedback');
+
+        if (!selected) {
+            alert("請先選擇一個答案！");
+            return;
+        }
+
+        feedback.style.display = "block";
+        feedback.className = "feedback"; // reset classes
+
+        if (selected.value === "correct") {
+            feedback.classList.add("correct");
+            feedback.innerHTML = "<strong>答對了！</strong> 解析：您的觀念非常正確。";
+        } else {
+            feedback.classList.add("incorrect");
+            let explanation = "";
+            switch(questionId) {
+                case 'q1': explanation = "目前網際網路上唯一的 EGP 就是 BGP。OSPF, RIP, EIGRP 皆為 AS 內部使用的 IGP。"; break;
+                case 'q2': explanation = "iBGP 的 Split Horizon 機制規定：從 iBGP 鄰居學到的路由不能傳給其他 iBGP 鄰居，目的是防止迴圈，但也因此導致需要 Full Mesh。"; break;
+                case 'q3': explanation = "RR 的設計目的就是為了打破 Split Horizon 規則，透過中心化的反射機制，減少大量 Full Mesh 的 Session 需求。"; break;
+                case 'q4': explanation = "Private AS (64512-65534) 就像 Private IP，只能在組織內部使用，不能在網際網路上出現。AS 65000 屬於此範圍。"; break;
+                case 'q5': explanation = "IGP 像是國內導航，最快到達就好；EGP 像是國際外交，需要考慮政治與商業政策 (Policy) 而非單純看速度。"; break;
+            }
+            feedback.innerHTML = "<strong>答錯了。</strong> 解析：" + explanation;
+        }
+    }
+</script>
+
+</body>
+</html>
