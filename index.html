@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>網路技術教學資源 | Network Engineering Docs</title>
+    <title>網路與資訊安全技術教學資源 | Network Engineering Docs</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -49,7 +49,9 @@
         /* 頂部導航列 */
         .navbar {
             background-color: var(--bg-white);
-            height: 80px;
+            min-height: 80px; /* 改用最小高度，允許內容撐開 */
+            height: auto;     /* 自動高度 */
+            padding: 10px 0;  /* 增加上下內距，避免內容貼邊 */
             display: flex;
             align-items: center;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
@@ -92,7 +94,9 @@
             align-items: flex-start; 
             line-height: 1.2;
             padding-top: 5px;
-            flex-shrink: 0;
+            flex-shrink: 1; /* 允許標題區塊在空間不足時縮小 */
+            min-width: 0;   /* 確保文字折行機制在 Flex 容器中生效 */
+            margin-right: 10px;
         }
         
         .main-header-title {
@@ -100,7 +104,7 @@
             color: var(--brand-purple-dark); 
             font-weight: 700;
             margin: 0;
-            white-space: nowrap;
+            white-space: nowrap; /* 主標題保持不折行 */
         }
 
         .sub-header-title {
@@ -108,7 +112,8 @@
             color: var(--text-secondary);
             margin: 0;
             font-weight: 400;
-            white-space: nowrap;
+            white-space: normal; /* 允許副標題折行 */
+            line-height: 1.3;    /* 增加行高以利閱讀折行後的文字 */
         }
         
         /* 區塊快速導航欄位 */
@@ -117,6 +122,7 @@
             gap: 10px;
             align-items: center;
             margin-left: auto; /* 將導航推到最右側 */
+            flex-shrink: 0;    /* 確保導航按鈕不會被壓縮 */
         }
 
         .nav-link {
@@ -370,8 +376,8 @@
 
             <!-- 整合後的標題區塊 -->
             <div class="header-titles">
-                <h1 class="main-header-title">網路技術教學資源</h1>
-                <p class="sub-header-title">Network Technology Training Materials & Protocols</p>
+                <h1 class="main-header-title">網路與資訊安全技術教學資源</h1>
+                <p class="sub-header-title">Network & Information Security Technology Training Materials & Protocols</p>
             </div>
 
             <!-- NEW: 區塊快速導航 (已更新名稱) -->
