@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FortiGate 實戰課程 - VXLAN Over IPsec</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'neutral', // 使用 neutral 主題讓文字對比更清晰
+            themeVariables: {
+                fontSize: '20px', // 強制加大字體
+                fontFamily: '"Noto Sans TC", sans-serif',
+                actorFontSize: '20px',
+                noteFontSize: '18px',
+                messageFontSize: '20px'
+            },
+            flowchart: {
+                useMaxWidth: false, // 禁止圖表縮放，保持原始大小
+                htmlLabels: true
+            },
+            sequence: {
+                useMaxWidth: false, // 禁止序列圖縮放
+                actorMargin: 100, // 增加角色間距
+                boxMargin: 20
+            }
+        });
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6; /* Gray-100 */
+            color: #1f2937; /* Gray-800 */
+        }
+        
+        /* 卡片通用樣式 */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left-width: 6px; /* 左側飾條寬度 */
+        }
+
+        /* 特殊區塊：生活化比喻 (綠色) */
+        .analogy-box {
+            background-color: #ecfdf5; /* Emerald-50 */
+            border: 1px solid #10b981; /* Emerald-500 */
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            position: relative;
+        }
+        .analogy-box::before {
+            content: '\f0eb'; /* Lightbulb icon */
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: #10b981;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 50%;
+            font-size: 1rem;
+        }
+
+        /* 特殊區塊：重點強調 (紅色) */
+        .highlight-box {
+            background-color: #fef2f2; /* Red-50 */
+            border-left: 4px solid #ef4444; /* Red-500 */
+            padding: 1rem;
+            margin: 1rem 0;
+            font-weight: 500;
+        }
+
+        /* Mermaid 容器優化：強制最小寬度 + 滾動條 */
+        .mermaid-container {
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            overflow-x: auto; /* 允許水平滾動 */
+            margin-bottom: 1.5rem;
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+        }
+        /* CSS 暴力覆寫：確保圖表不會被壓縮到無法閱讀 */
+        .mermaid {
+            min-width: 1200px; /* 增加寬度至 1200px 以容納加大後的字體 */
+            display: flex;
+            justify-content: center;
+        }
+
+        /* 代碼區塊樣式 */
+        pre {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        /* 頁尾樣式 */
+        footer {
+            background-color: #374151; /* Gray-700 */
+            color: #f3f4f6; /* Gray-100 */
+            text-align: center;
+            padding: 1.5rem;
+            margin-top: 3rem;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header: Fortinet Brand Colors -->
+    <header class="bg-gradient-to-r from-red-700 to-red-900 text-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-shield-alt text-3xl"></i>
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight">FortiGate 實戰課程</h1>
+                    <p class="text-red-200 text-sm">由資深架構師帶領的深度技術解析</p>
+                </div>
+            </div>
+            <div class="hidden md:block text-right">
+                <div class="text-sm font-medium opacity-90">Topic: VXLAN Over IPsec</div>
+                <div class="text-xs text-red-300">Level: Advanced</div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <!-- 1. Concept -->
+        <div class="section-card border-l-red-500">
+            <span class="inline-block px-3 py-1 mb-2 text-xs font-semibold tracking-wider text-red-100 uppercase bg-red-600 rounded-full">
+                Concept
+            </span>
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">一、核心概念</h2>
+            
+            <p class="text-lg mb-4 text-gray-700 leading-relaxed">
+                <strong>VXLAN over IPsec</strong> 是一種結合了 Layer 2 延伸能力與 Layer 3 加密安全性的混合技術。它允許我們透過網際網路（Internet）將兩個地理位置不同的區域網路（LAN）連接起來，讓兩端的設備感覺就像是在同一個實體交換器上（同一個 Subnet），同時利用 IPsec 確保資料在公網傳輸時不被竊聽或竄改。
+            </p>
+
+            <div class="analogy-box">
+                <h3 class="text-lg font-bold text-emerald-800 mb-2">生活化比喻：跨海大橋上的裝甲運鈔車</h3>
+                <p class="text-gray-700">
+                    想像台北總公司和高雄分公司各有一棟辦公大樓，我們希望這兩棟樓的員工可以直接「走」到對方的辦公室，就像中間有一條專屬走廊（Layer 2 連通）。
+                </p>
+                <ul class="list-disc list-inside mt-2 space-y-1 text-gray-600">
+                    <li><strong>VXLAN (專屬貨櫃)</strong>：我們把要傳送的資料（文件、電腦）裝進一個特製的「VXLAN 貨櫃」裡。這個貨櫃標示了這屬於哪個部門（VNI），不管運到哪裡，打開來都是原本的樣子。</li>
+                    <li><strong>Internet (公共高速公路)</strong>：貨櫃必須經過公共的高速公路，這裡充滿了各種車輛，且不安全。</li>
+                    <li><strong>IPsec (裝甲運鈔車)</strong>：因為 VXLAN 貨櫃本身是透明的（無加密），任何人都能看到裡面的東西。所以，我們把整個「VXLAN 貨櫃」再塞進一輛堅固的「IPsec 裝甲運鈔車」裡。</li>
+                </ul>
+                <p class="mt-2 font-medium text-emerald-700">
+                    結果：外人只看得到裝甲車在跑（IPsec ESP），看不到裡面裝了什麼，而到達目的地後，卸下裝甲，取出貨櫃，裡面的資料完好如初。
+                </p>
+            </div>
+        </div>
+
+        <!-- 2. Mechanism -->
+        <div class="section-card border-l-blue-500">
+            <span class="inline-block px-3 py-1 mb-2 text-xs font-semibold tracking-wider text-blue-100 uppercase bg-blue-600 rounded-full">
+                Mechanism
+            </span>
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">二、運作原理</h2>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-xl font-bold text-blue-800 mb-2"><i class="fas fa-microchip mr-2"></i>技術細節</h3>
+                    <p class="text-gray-700 mb-4 leading-relaxed">
+                        這個架構涉及雙重封裝（Double Encapsulation）。原始的 Ethernet Frame 先被封裝進 VXLAN 標頭中，然後整個 VXLAN 封包被視為 Payload，再次被封裝進 IPsec ESP 通道中。
+                    </p>
+                    <ul class="space-y-2 text-gray-600">
+                        <li><strong>Step 1 (原始資料):</strong> PC 發出標準 Ethernet Frame。</li>
+                        <li><strong>Step 2 (VXLAN 封裝):</strong> FortiGate 將 Frame 封裝，加上 UDP Header (Port 4789) 與 VXLAN Header (包含 VNI ID)。</li>
+                        <li><strong>Step 3 (IPsec 封裝):</strong> 因為設定了 IPsec Tunnel，FortiGate 將上述整個封包加密，加上 ESP Header 與新的 Outer IP Header。</li>
+                        <li><strong>Step 4 (傳輸):</strong> 加密封包透過 Internet 路由至對端 FortiGate。</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-blue-800 mb-2"><i class="fas fa-sliders-h mr-2"></i>關鍵參數與挑戰</h3>
+                    
+                    <div class="highlight-box">
+                        <p class="font-bold text-red-600 mb-1">⚠️ 關鍵挑戰：MTU (Maximum Transmission Unit)</p>
+                        <p class="text-sm text-gray-700">
+                            雙重封裝會吃掉大量的 Payload 空間！<br>
+                            VXLAN Overhead: 約 50 Bytes<br>
+                            IPsec Overhead: 約 50-80 Bytes (視加密演算法而定)<br>
+                            <strong>建議設定：</strong> 將虛擬介面的 MTU 調降至 <strong>1350 - 1370</strong> Bytes，並啟用 TCP MSS Clamping，否則大封包會被丟棄 (Fragment)。
+                        </p>
+                    </div>
+                    <ul class="text-sm text-gray-600 space-y-1">
+                        <li><strong>UDP Port:</strong> 4789 (VXLAN 標準埠號)</li>
+                        <li><strong>VNI (VXLAN Network Identifier):</strong> 類似 VLAN ID，但在 VXLAN 中有 24-bit 長度 (可支援 1600 萬個網段)。</li>
+                        <li><strong>Software Switch:</strong> 在 FortiGate 上，通常需要將 VXLAN 介面與實體 LAN Port 橋接 (Bridge) 在一起。</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Visuals -->
+        <div class="section-card border-l-green-500">
+            <span class="inline-block px-3 py-1 mb-2 text-xs font-semibold tracking-wider text-green-100 uppercase bg-green-600 rounded-full">
+                Visuals
+            </span>
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">三、架構視覺化</h2>
+
+            <h3 class="text-lg font-semibold mb-2 text-gray-700">1. 邏輯拓撲圖 (Network Topology)</h3>
+            <p class="text-sm text-gray-500 mb-2">說明：Site A 與 Site B 透過 Internet 連接，底層是 IPsec VPN，上層跑 VXLAN，將內部 VLAN 10 打通。</p>
+            <div class="mermaid-container">
+                <div class="mermaid">
+                    graph LR
+                        subgraph Site_A [台北總公司]
+                            PC_A[PC A<br>192.168.10.10] -- VLAN 10 --> LAN_A[Port2<br>Soft Switch]
+                            LAN_A -- Bridge --> VXLAN_A[VXLAN Int]
+                            VXLAN_A -- Encapsulate --> FGT_A[FortiGate A<br>WAN: 1.1.1.1]
+                        end
+
+                        FGT_A == "IPsec Tunnel (Encrypted)" ==> Internet((Internet))
+
+                        subgraph Site_B [高雄分公司]
+                            Internet == "IPsec Tunnel (Encrypted)" ==> FGT_B[FortiGate B<br>WAN: 2.2.2.2]
+                            FGT_B -- Decapsulate --> VXLAN_B[VXLAN Int]
+                            VXLAN_B -- Bridge --> LAN_B[Port2<br>Soft Switch]
+                            LAN_B -- VLAN 10 --> PC_B[PC B<br>192.168.10.20]
+                        end
+
+                        classDef device fill:#f9f,stroke:#333,stroke-width:2px;
+                        classDef pc fill:#bbf,stroke:#333,stroke-width:2px;
+                        class FGT_A,FGT_B device;
+                        class PC_A,PC_B pc;
+                </div>
+            </div>
+
+            <h3 class="text-lg font-semibold mb-2 text-gray-700 mt-8">2. 封包封裝流程 (Packet Walk)</h3>
+            <p class="text-sm text-gray-500 mb-2">說明：展示從 PC A 發出封包到 PC B 接收的過程中，封包表頭的變化。</p>
+            <div class="mermaid-container">
+                <div class="mermaid">
+                    sequenceDiagram
+                        participant User as PC A (192.168.10.10)
+                        participant FGTA as FortiGate A
+                        participant Internet
+                        participant FGTB as FortiGate B
+                        participant Dest as PC B (192.168.10.20)
+
+                        User->>FGTA: 原始封包 [Src:10.10, Dst:10.20 | Payload]
+                        Note over FGTA: 進入 Soft Switch，<br>轉發至 VXLAN 介面
+                        Note over FGTA: 加上 VXLAN Header<br>[UDP 4789 | VNI 100 | Orig Packet]
+                        Note over FGTA: 進入 IPsec Phase 1<br>加上 ESP 加密標頭
+                        FGTA->>Internet: 加密封包 [IPsec ESP | VXLAN | Orig Packet]
+                        Internet->>FGTB: 路由傳送
+                        Note over FGTB: IPsec 解密與驗證
+                        Note over FGTB: 剝除 VXLAN Header<br>取出原始封包
+                        Note over FGTB: 透過 Soft Switch<br>轉發至 LAN Port
+                        FGTB->>Dest: 原始封包 [Src:10.10, Dst:10.20 | Payload]
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Use Case -->
+        <div class="section-card border-l-purple-500">
+            <span class="inline-block px-3 py-1 mb-2 text-xs font-semibold tracking-wider text-purple-100 uppercase bg-purple-600 rounded-full">
+                Use Case
+            </span>
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">四、實務應用場景：災難備援 (DR) 與 vMotion</h2>
+
+            <p class="text-gray-700 mb-4">
+                <strong>情境：</strong> 某金融企業需要將台北資料中心 (DC) 的虛擬機 (VMware ESXi) 在緊急狀況下無痛遷移到高雄異地備援中心。為了不中斷服務，且避免修改應用程式的 IP 設定，兩地的伺服器網段必須完全一致 (192.168.10.0/24)。
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-4 mb-6">
+                <div class="bg-green-50 p-4 rounded border border-green-200">
+                    <h4 class="font-bold text-green-800">優點 (Pros)</h4>
+                    <ul class="list-disc list-inside text-sm text-gray-700">
+                        <li><strong>無痛遷移：</strong> 伺服器 IP 無需變更，vMotion 可跨 WAN 運作。</li>
+                        <li><strong>安全性高：</strong> 所有 L2 流量皆由 IPsec AES-256 加密保護。</li>
+                        <li><strong>部署彈性：</strong> 與電信商無關 (ISP Independent)，只要有 Internet 即可建立。</li>
+                    </ul>
+                </div>
+                <div class="bg-red-50 p-4 rounded border border-red-200">
+                    <h4 class="font-bold text-red-800">缺點 (Cons)</h4>
+                    <ul class="list-disc list-inside text-sm text-gray-700">
+                        <li><strong>廣播風暴：</strong> L2 廣播封包會穿越 WAN，消耗頻寬 (需做 Broadcast Suppression)。</li>
+                        <li><strong>效能耗損：</strong> 雙重封裝增加 CPU 負擔與封包大小 (Fragment 風險)。</li>
+                        <li><strong>除錯困難：</strong> 封包被層層包覆，Sniffer 抓包較難直接分析。</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3 class="text-xl font-bold text-purple-800 mb-4 border-b pb-2">設定範例 (Configuration Example)</h3>
+            <p class="text-sm text-gray-500 mb-2">以下以 Site A (台北) 為例，Site B 設定需對稱調整。</p>
+
+            <div class="space-y-4">
+                <!-- Step 1 -->
+                <div>
+                    <h4 class="font-bold text-gray-700">Step 1: 建立 IPsec VPN (Interface Mode)</h4>
+                    <pre><code>config vpn ipsec phase1-interface
+    edit "to-SiteB"
+        set interface "wan1"
+        set peertype any
+        set net-device disable
+        set proposal aes256-sha256
+        set remote-gw 2.2.2.2
+        set psksecret your-secret-password
+    next
+end
+
+config vpn ipsec phase2-interface
+    edit "to-SiteB"
+        set phase1name "to-SiteB"
+        set proposal aes256-sha256
+        set auto-negotiate enable
+    next
+end</code></pre>
+                </div>
+
+                <!-- Step 2 -->
+                <div>
+                    <h4 class="font-bold text-gray-700">Step 2: 建立 VXLAN 介面 (綁定在 IPsec 上)</h4>
+                    <pre><code>config system vxlan
+    edit "vxlan10"
+        set interface "to-SiteB"  <-- 綁定在 VPN 介面
+        set vni 100               <-- 兩端 VNI 必須一致
+        set dstport 4789
+        set remote-ip "192.168.254.2" <-- 對端的內部 Loopback 或虛擬 IP (依架構而定)
+    next
+end</code></pre>
+                    <p class="text-xs text-gray-500 mt-1">註：由於是透過 IPsec Tunnel，這裡的 remote-ip 有時在 Point-to-Point VPN 架構下可省略，或指向對端 VPN 介面 IP。</p>
+                </div>
+
+                <!-- Step 3 -->
+                <div>
+                    <h4 class="font-bold text-gray-700">Step 3: 建立 Software Switch (橋接實體與 VXLAN)</h4>
+                    <pre><code>config system switch-interface
+    edit "br-vlan10"
+        set vdom "root"
+        set member "port2" "vxlan10" <-- 將實體 Port2 與 VXLAN 綁在一起
+    next
+end
+
+config system interface
+    edit "br-vlan10"
+        set ip 192.168.10.254 255.255.255.0
+        set allowaccess ping
+    next
+end</code></pre>
+                </div>
+
+                <!-- Step 4 -->
+                <div>
+                    <h4 class="font-bold text-gray-700">Step 4: 設定防火牆政策 (允許 VPN 與 LAN 流量)</h4>
+                    <pre><code>config firewall policy
+    edit 1
+        set name "Allow-VPN-Traffic"
+        set srcintf "br-vlan10" "to-SiteB"
+        set dstintf "br-vlan10" "to-SiteB"
+        set action accept
+        set srcaddr "all"
+        set dstaddr "all"
+        set schedule "always"
+        set service "ALL"
+    next
+end</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. Quiz -->
+        <div class="section-card border-l-yellow-500">
+            <span class="inline-block px-3 py-1 mb-2 text-xs font-semibold tracking-wider text-yellow-100 uppercase bg-yellow-600 rounded-full">
+                Quiz
+            </span>
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">五、隨堂測驗</h2>
+            
+            <div id="quiz-container" class="space-y-6">
+                <!-- Questions will be injected here by JS -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container mx-auto">
+            <p class="font-mono text-sm tracking-wide">
+                Fortinet FortiGate實戰課程 | Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0
+            </p>
+        </div>
+    </footer>
+
+    <!-- JavaScript for Quiz -->
+    <script>
+        const quizData = [
+            {
+                question: "1. 在 VXLAN over IPsec 架構中，為什麼我們需要調整 MTU Size？",
+                options: [
+                    "為了增加網路速度",
+                    "因為雙重封裝 (VXLAN + IPsec) 增加了額外的 Overhead，可能導致封包超過標準 1500 Bytes 而被分割或丟棄",
+                    "為了符合 Fortinet 的原廠授權限制",
+                    "為了讓廣播封包傳送得更遠"
+                ],
+                correct: 1,
+                explanation: "正確。VXLAN 增加約 50 Bytes，IPsec 增加約 50-80 Bytes。若不調降 MTU (如降至 1350)，原始 1500 Bytes 的封包加上這些標頭後會過大，導致 Fragmentation 或 Drop。"
+            },
+            {
+                question: "2. 標準 VXLAN 使用的傳輸層協定與埠號為何？",
+                options: [
+                    "TCP 443",
+                    "UDP 500",
+                    "UDP 4789",
+                    "IP Protocol 50 (ESP)"
+                ],
+                correct: 2,
+                explanation: "正確。VXLAN 標準使用 UDP Port 4789。UDP 500 是 IKE，ESP 是 IPsec 的傳輸協定。"
+            },
+            {
+                question: "3. 若要在 FortiGate 上實現將實體網路孔 (LAN Port) 與 VXLAN 介面串接成同一個 L2 網段，通常需使用什麼功能？",
+                options: [
+                    "Virtual Wire Pair",
+                    "Software Switch (Soft Switch)",
+                    "SD-WAN Zone",
+                    "Hardware Switch"
+                ],
+                correct: 1,
+                explanation: "正確。Software Switch 允許將不同類型的介面（如實體 Port 和虛擬 VXLAN 介面）橋接在一起，形成一個 L2 廣播網域。"
+            },
+            {
+                question: "4. 在 VXLAN 標頭中，用來識別不同網段的 ID 稱為什麼？",
+                options: [
+                    "VLAN ID",
+                    "VNI (VXLAN Network Identifier)",
+                    "DLCI",
+                    "MPLS Label"
+                ],
+                correct: 1,
+                explanation: "正確。VNI (VXLAN Network Identifier) 是 24-bit 的識別碼，用來區分不同的 VXLAN 區段。"
+            },
+            {
+                question: "5. VXLAN over IPsec 最主要的應用場景之一是什麼？",
+                options: [
+                    "取代 BGP 路由協定",
+                    "增加 Internet 下載速度",
+                    "跨地理位置的 Layer 2 延伸 (如 VM 跨站遷移、災難備援)",
+                    "阻擋 DDoS 攻擊"
+                ],
+                correct: 2,
+                explanation: "正確。此架構最強大的功能就是將分散兩地的網路整合成一個 L2 網段，這對於 VM vMotion 或舊版應用程式遷移至關重要。"
+            }
+        ];
+
+        function initQuiz() {
+            const container = document.getElementById('quiz-container');
+            
+            quizData.forEach((data, qIndex) => {
+                const qDiv = document.createElement('div');
+                qDiv.className = "bg-gray-50 p-6 rounded-lg border border-gray-200";
+                
+                let optionsHtml = '';
+                data.options.forEach((opt, optIndex) => {
+                    optionsHtml += `
+                        <button onclick="checkAnswer(this, ${qIndex}, ${optIndex})" 
+                                class="quiz-option w-full text-left p-3 rounded border border-gray-300 bg-white hover:bg-gray-100 mb-2 transition-colors duration-200">
+                            ${String.fromCharCode(65 + optIndex)}. ${opt}
+                        </button>
+                    `;
+                });
+
+                qDiv.innerHTML = `
+                    <h3 class="font-bold text-lg mb-3 text-gray-800">${data.question}</h3>
+                    <div class="space-y-2" data-answered="false">
+                        ${optionsHtml}
+                    </div>
+                    <div id="result-${qIndex}" class="hidden mt-4 p-4 rounded bg-blue-50 border border-blue-200">
+                        <p class="result-title font-bold mb-1"></p>
+                        <p class="text-sm text-gray-700">${data.explanation}</p>
+                    </div>
+                `;
+                container.appendChild(qDiv);
+            });
+        }
+
+        window.checkAnswer = function(element, qIndex, optIndex) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            // 鎖定該題不可再選
+            if (element.parentElement.dataset.answered === "true") return;
+            element.parentElement.dataset.answered = "true";
+
+            // 清除並重設樣式
+            allOptions.forEach(opt => opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500'));
+
+            if (optIndex === data.correct) {
+                // 答對
+                element.classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了！";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                // 答錯
+                element.classList.add('bg-red-100', 'border-red-500');
+                // 標示正確答案
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
+                
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了，正確答案是 " + String.fromCharCode(65 + data.correct);
+                resultTitle.classList.add('text-red-700');
+            }
+        };
+
+        initQuiz();
+    </script>
+</body>
+</html>
