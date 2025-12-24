@@ -59,7 +59,7 @@
                         <li>警衛會從名單的第一行開始核對。</li>
                         <li><strong>規則 1：</strong>如果是 VIP (允許的 IP)，直接放行。</li>
                         <li><strong>規則 2：</strong>如果是黑名單 (禁止的 IP)，直接擋下。</li>
-                        <li><strong>隱藏規則：</strong>如果名單看完了都沒名字？抱歉，閒雜人等一律不准進入 (Implicit Deny)。</li>
+                        <li><strong>重要差異：</strong>Cisco 的警衛預設是「名單上沒寫的都不准進 (Implicit Deny)」，但 <strong>ExtremeXOS</strong> 的警衛比較友善，預設是「名單上沒寫的都放行 (Implicit Permit)」，所以我們通常會在名單最後手動加上「禁止其他人進入」。</li>
                     </ul>
                 </div>
             </div>
@@ -78,9 +78,20 @@
                     <p class="text-gray-700">ACL 的檢查機制是<strong>「由上而下，逐條比對，擇一執行」</strong>(Top-down, First Match)。</p>
                     <ul class="list-disc list-inside mt-2 ml-4 text-gray-600">
                         <li><strong>命中即停止 (First Match)：</strong>一旦封包特徵符合某條規則，設備就會執行該規則的動作 (Permit 或 Deny)，並<strong>停止</strong>往下檢查。</li>
-                        <li><strong>隱式拒絕 (Implicit Deny)：</strong>為了安全起見，絕大多數系統在 ACL 的最後一行都隱藏著一句「拒絕所有 (Deny All) 」。這意味著如果你沒有明確說「允許」，那就是「拒絕」。</li>
                         <li><strong>方向性 (Direction)：</strong>ACL 必須套用在介面 (Interface/VLAN) 的「進入 (Ingress)」或「出去 (Egress)」方向才有效。</li>
                     </ul>
+                    
+                    <div class="mt-4 bg-red-50 border-l-4 border-red-500 p-4">
+                        <h4 class="font-bold text-red-700">⚠️ 關鍵差異：預設行為 (Default Action)</h4>
+                        <p class="text-sm text-red-800 mt-1">
+                            這是 ExtremeXOS 使用者最容易踩到的坑！
+                        </p>
+                        <ul class="list-disc list-inside text-sm text-red-800 mt-2">
+                            <li><strong>Cisco IOS：</strong>預設為 <strong>Implicit Deny (隱式拒絕)</strong>。若沒匹配到任何規則，封包會被丟棄。</li>
+                            <li><strong>ExtremeXOS：</strong>預設為 <strong>Implicit Permit (隱式允許)</strong>。Policy 檔案若沒匹配到任何 entry，封包會被<strong>允許通過</strong>。</li>
+                            <li><strong>最佳實踐：</strong>在 ExtremeXOS 寫 Policy 時，若要實施嚴格過濾，務必在檔案最後加上一個 <code>deny-all</code> 的 entry。</li>
+                        </ul>
+                    </div>
                 </div>
 
                 <div class="bg-blue-50 p-4 rounded border-l-4 border-blue-500">
@@ -90,11 +101,11 @@
                             <h4 class="font-bold text-gray-700">Cisco IOS (傳統)</h4>
                             <code class="block bg-gray-800 text-green-400 p-2 rounded text-xs mt-1">
                                 access-list 100 permit tcp host 10.1.1.1 any eq 80<br>
-                                access-list 100 deny ip any any<br>
+                                <span class="text-gray-500">! (Hidden: deny ip any any)</span><br>
                                 int gi0/1<br>
                                 ip access-group 100 in
                             </code>
-                            <p class="text-xs mt-1 text-gray-500">特色：使用編號或名稱，CLI 逐行輸入。</p>
+                            <p class="text-xs mt-1 text-gray-500">特色：預設拒絕所有未提及流量。</p>
                         </div>
                         <div>
                             <h4 class="font-bold text-gray-700">ExtremeXOS (Policy Based)</h4>
@@ -103,11 +114,11 @@
                                 &nbsp;&nbsp;if match { protocol tcp; dst-port 80; }<br>
                                 &nbsp;&nbsp;then { permit; }<br>
                                 }<br>
-                                entry Deny_All {<br>
-                                &nbsp;&nbsp;if { always; } then { deny; }<br>
-                                }
+                                <span class="text-red-400">entry Deny_All {</span> <span class="text-gray-500">// 必須手動加！</span><br>
+                                <span class="text-red-400">&nbsp;&nbsp;if { always; } then { deny; }</span><br>
+                                <span class="text-red-400">}</span>
                             </code>
-                            <p class="text-xs mt-1 text-gray-500">特色：使用 <strong>.pol 策略檔案</strong>，結構更像程式碼，邏輯清晰且易於模組化重用。</p>
+                            <p class="text-xs mt-1 text-gray-500">特色：預設允許，需手動加上 Deny All。</p>
                         </div>
                     </div>
                 </div>
@@ -179,24 +190,24 @@
 
                 <!-- Diagram 2: Logic Flow -->
                 <div class="border rounded p-4">
-                    <h3 class="text-center font-bold text-gray-600 mb-2">圖二：封包過濾邏輯流程圖</h3>
+                    <h3 class="text-center font-bold text-gray-600 mb-2">圖二：ExtremeXOS 封包過濾邏輯流程圖</h3>
                     <div class="mermaid">
                         sequenceDiagram
                             participant Packet as 封包 (Packet)
-                            participant ACL as ACL 檢查機制
+                            participant ACL as ACL 檢查機制 (Policy)
                             participant Action as 執行動作
 
                             Packet->>ACL: 到達介面 (Ingress)
                             
                             loop 規則比對 (Top-Down)
-                                ACL->>ACL: 檢查規則 1 (如: IP 符合?)
-                                alt 符合規則 1?
-                                    ACL->>Action: 是 -> 執行規則 1 (Permit/Deny)
-                                    Note right of Action: 停止檢查，封包被處理
+                                ACL->>ACL: 檢查 Entry 1
+                                alt 符合 Entry 1?
+                                    ACL->>Action: 是 -> 執行 Entry 1 動作
+                                    Note right of Action: 停止檢查
                                 else 不符合
-                                    ACL->>ACL: 檢查規則 2 (如: Port 符合?)
-                                    alt 符合規則 2?
-                                        ACL->>Action: 是 -> 執行規則 2
+                                    ACL->>ACL: 檢查 Entry 2
+                                    alt 符合 Entry 2?
+                                        ACL->>Action: 是 -> 執行 Entry 2 動作
                                     else 不符合
                                         ACL->>ACL: 繼續檢查下一條...
                                     end
@@ -204,8 +215,9 @@
                             end
 
                             opt 所有規則皆不符合
-                                ACL->>Action: 觸發隱式拒絕 (Implicit Deny)
-                                Note right of Action: 封包被丟棄 (Drop)
+                                Note over ACL, Action: ExtremeXOS 預設行為
+                                ACL->>Action: 預設允許 (Implicit Permit) !!!
+                                Note right of Action: 封包通過 (除非手動加 Deny)
                             end
                     </div>
                 </div>
@@ -237,9 +249,8 @@
                         &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-red-400">deny</span>;<br>
                         &nbsp;&nbsp;}<br>
                         }<br>
-                        <span class="text-pink-400">entry</span> Permit_Others {<br>
-                        &nbsp;&nbsp;<span class="text-blue-400">if match</span> { <span class="text-gray-500">all</span>; } <span class="text-blue-400">then</span> { <span class="text-green-400">permit</span>; }<br>
-                        }
+                        <span class="text-gray-500">// 這裡如果不加 Permit_Others，其實預設也是 Permit</span><br>
+                        <span class="text-gray-500">// 但為了可讀性與明確性，習慣上還是會寫出來，或者在需要白名單時加 Deny_All</span>
                     </div>
                 </div>
             </div>
@@ -249,38 +260,36 @@
                 <h3 class="font-bold text-xl mb-3 text-indigo-700">案例二：Web 伺服器服務管控 (Destination Port Filtering)</h3>
                 <p class="mb-4 text-gray-700">
                     <strong>情境：</strong>公司有一台對外的 Web 主機 (10.10.10.200)。
-                    我們希望<strong>開放全世界</strong>存取其 Web 服務 (Port 80, 443)，但<strong>嚴格禁止</strong>外部對其進行遠端管理 (SSH Port 22)，SSH 僅允許內部 IT 管理員網段 (192.168.99.0/24) 進入。
+                    我們希望<strong>開放全世界</strong>存取其 Web 服務 (Port 80, 443)，但<strong>嚴格禁止</strong>外部對其進行遠端管理 (SSH Port 22)。
                 </p>
 
                 <div class="bg-gray-800 text-gray-200 rounded p-4 font-mono text-sm overflow-x-auto shadow-inner">
                     <p class="text-gray-400 mb-2">// 檔案: secure_web_server.pol</p>
                     <div class="pl-4">
-                        <span class="text-gray-500">// 1. 優先允許 IT 管理員使用 SSH</span><br>
+                        <span class="text-gray-500">// 1. 允許 IT 管理員 SSH</span><br>
                         <span class="text-pink-400">entry</span> Allow_IT_SSH {<br>
                         &nbsp;&nbsp;<span class="text-blue-400">if match</span> {<br>
                         &nbsp;&nbsp;&nbsp;&nbsp;source-address 192.168.99.0/24;<br>
                         &nbsp;&nbsp;&nbsp;&nbsp;destination-address 10.10.10.200/32;<br>
-                        &nbsp;&nbsp;&nbsp;&nbsp;protocol tcp;<br>
-                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-yellow-300">destination-port 22;</span><br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;protocol tcp; destination-port 22;<br>
                         &nbsp;&nbsp;} <span class="text-blue-400">then</span> { <span class="text-green-400">permit</span>; }<br>
                         }<br>
                         <br>
-                        <span class="text-gray-500">// 2. 阻擋其他所有人的 SSH (防止暴力破解)</span><br>
+                        <span class="text-gray-500">// 2. 阻擋其他所有人的 SSH</span><br>
                         <span class="text-pink-400">entry</span> Block_Public_SSH {<br>
                         &nbsp;&nbsp;<span class="text-blue-400">if match</span> {<br>
                         &nbsp;&nbsp;&nbsp;&nbsp;destination-address 10.10.10.200/32;<br>
-                        &nbsp;&nbsp;&nbsp;&nbsp;protocol tcp;<br>
-                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-yellow-300">destination-port 22;</span><br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;protocol tcp; destination-port 22;<br>
                         &nbsp;&nbsp;} <span class="text-blue-400">then</span> { <span class="text-red-400">deny</span>; }<br>
                         }<br>
                         <br>
-                        <span class="text-gray-500">// 3. 開放 Web 服務 (HTTP/HTTPS) 給所有人</span><br>
-                        <span class="text-pink-400">entry</span> Allow_Web_Traffic {<br>
-                        &nbsp;&nbsp;<span class="text-blue-400">if match</span> {<br>
-                        &nbsp;&nbsp;&nbsp;&nbsp;destination-address 10.10.10.200/32;<br>
-                        &nbsp;&nbsp;&nbsp;&nbsp;protocol tcp;<br>
-                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-yellow-300">destination-port 80, 443;</span> <span class="text-gray-500">// 支援多埠號</span><br>
-                        &nbsp;&nbsp;} <span class="text-blue-400">then</span> { <span class="text-green-400">permit</span>; }<br>
+                        <span class="text-gray-500">// 3. 注意：如果不加最後的 Deny All，其他 Port (如 80/443) 預設是會通的 (Implicit Permit)</span><br>
+                        <span class="text-gray-500">// 如果我們要實施「白名單」(只准 80/443/22)，則必須這樣寫：</span><br>
+                        <br>
+                        <span class="text-pink-400">entry</span> Allow_Web { ... permit; }<br>
+                        <br>
+                        <span class="text-pink-400">entry</span> <span class="text-red-400">Deny_Rest</span> {<br>
+                        &nbsp;&nbsp;<span class="text-blue-400">if</span> { always; } <span class="text-blue-400">then</span> { <span class="text-red-400">deny</span>; }<br>
                         }
                     </div>
                 </div>
@@ -290,15 +299,15 @@
                 <div class="bg-green-50 p-3 rounded border border-green-200">
                     <h4 class="font-bold text-green-800">優點 (Pros)</h4>
                     <ul class="list-disc list-inside text-sm text-gray-700">
-                        <li><strong>縱深防禦：</strong>不依賴伺服器本身的防火牆，直接在交換器阻擋惡意掃描。</li>
-                        <li><strong>硬體加速：</strong>即使面對大量 Port Scan 攻擊，交換器 ASIC 也能輕鬆處理，不耗損 CPU。</li>
+                        <li><strong>彈性高：</strong>Default Permit 對於「只擋壞人」的黑名單策略很方便，不用寫 Permit Any。</li>
+                        <li><strong>硬體加速：</strong>Extreme 交換器使用 ASIC 硬體過濾，效能極佳。</li>
                     </ul>
                 </div>
                 <div class="bg-red-50 p-3 rounded border border-red-200">
                     <h4 class="font-bold text-red-800">注意事項 (Notes)</h4>
                     <ul class="list-disc list-inside text-sm text-gray-700">
-                        <li><strong>Protocol 欄位：</strong>過濾 Port 時，務必先指定 L4 協定 (如 <code>protocol tcp;</code>)，否則語法會報錯。</li>
-                        <li><strong>規則順序：</strong>必須先寫「允許 IT SSH」，再寫「阻擋所有 SSH」。若順序顛倒，IT 也會被擋在門外。</li>
+                        <li><strong>安全性風險：</strong>若忘記加 Deny All，可能意外開放權限。</li>
+                        <li><strong>Protocol 欄位：</strong>過濾 Port 時，務必先指定 L4 協定。</li>
                     </ul>
                 </div>
             </div>
@@ -463,15 +472,15 @@
                 explanation: "正解：ACL 採用 Top-down (由上而下) 且 First Match (擇一執行) 的機制。一旦命中某條規則，就不會再往下看。"
             },
             {
-                question: "2. 如果 ACL 清單中沒有任何一條規則符合目前的封包，通常會發生什麼事？",
+                question: "2. 在 ExtremeXOS 的 Policy ACL 中，若封包不符合任何 entry，預設行為為何？",
                 options: [
                     "封包會被允許通過 (Implicit Permit)。",
-                    "封包會被導向到管理 Port。",
                     "封包會被丟棄 (Implicit Deny)。",
-                    "封包會退回給發送者。"
+                    "封包會被轉送至 CPU 檢查。",
+                    "封包會進入 Loop 狀態。"
                 ],
-                answer: 2,
-                explanation: "正解：大多數系統 (包括 ExtremeXOS 與 Cisco) 在 ACL 結尾都有隱藏的 'Deny All' 規則，稱為 Implicit Deny。"
+                answer: 0,
+                explanation: "正解：ExtremeXOS 的 Policy 預設為 Implicit Permit。這與 Cisco 預設的 Implicit Deny 不同，因此在製作白名單時務必手動加上 Deny All。"
             },
             {
                 question: "3. 在 ExtremeXOS 中，ACL 通常是透過什麼形式來編輯與儲存的？",
