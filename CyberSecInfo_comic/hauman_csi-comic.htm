@@ -73,12 +73,23 @@
             display: flex;
             align-items: center;
         }
+        
+        /* Logo 連結樣式 */
+        .logo-link {
+            display: block;
+            transition: opacity 0.2s;
+        }
+        
+        .logo-link:hover {
+            opacity: 0.8;
+        }
 
         .logo-img {
             height: 40px;
             width: auto;
             padding: 0; 
             border-radius: 4px;
+            display: block; /* 避免下方產生額外間隙 */
         }
 
         /* 右側連結容器 */
@@ -352,7 +363,9 @@
         <div class="header-content">
             <!-- 左側: 豪勉科技 Logo -->
             <div class="logo-container">
-                <img src="https://www.hauman.com.tw/images_v4/logo.png" alt="豪勉科技 Logo" class="logo-img">
+                <a href="https://www.hauman.com.tw" target="_blank" rel="noopener noreferrer" class="logo-link">
+                    <img src="https://www.hauman.com.tw/images_v4/logo.png" alt="豪勉科技 Logo" class="logo-img">
+                </a>
             </div>
 
             <!-- 中間: 盾牌 + 標題 -->
