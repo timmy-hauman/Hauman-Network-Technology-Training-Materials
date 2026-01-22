@@ -4,65 +4,255 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>豪勉科技資訊安全通報</title>
+    <!-- 引入 FontAwesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- 引入 Google Fonts -->
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        :root {
+            /* 亮色系基礎變數 */
+            --bg-body: #ffffff;        
+            --bg-card: #ffffff;        
+            --bg-card-hover: #fafafa;  
+            --text-main: #1e293b;      
+            --text-muted: #64748b;
+            
+            /* [調整] 品牌紫色：改為更深沉、不刺眼的皇室紫 (Deep Purple 900) */
+            --text-brand: #4a148c;     
+            
+            /* [調整] 分隔線：改為柔和的淺灰色，減少畫面上過多亮紫色線條 */
+            --border-color: #e2e8f0;   
+            
+            --accent-blue: #3b82f6;    
+            --accent-glow: rgba(74, 20, 140, 0.25); /* 光暈改為淡紫色 */
+        }
+
         body {
-            /* 改為淺色系背景，符合一般企業網站風格 */
-            background-color: #f9f9f9;
-            color: #333333;
-            font-family: "Microsoft JhengHei", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            font-family: 'Noto Sans TC', sans-serif;
             margin: 0;
-            padding: 0; /* 移除 body padding，讓 header 貼滿 */
+            padding: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
+            min-height: 100vh;
         }
 
-        /* 模擬豪勉科技或專業資安網站的 Header 風格 */
+        /* Header 風格 */
         header {
-            background-color: #6a1b9a; /* 改為紫色風格 */
+            background-color: var(--bg-body);
             width: 100%;
-            padding: 20px 0;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border-color); /* 線條變細且改為灰色 */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03); 
             margin-bottom: 30px;
-            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: center; 
+            align-items: center;
+            position: relative; 
+            min-height: 50px;
+        }
+
+        /* 左側 Logo 容器 */
+        .logo-container {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            align-items: center;
+        }
+
+        .logo-img {
+            height: 40px;
+            width: auto;
+            padding: 0; 
+            border-radius: 4px;
+        }
+
+        /* 右側連結容器 */
+        .home-link-container {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .home-link {
+            text-decoration: none;
+            color: var(--text-brand);
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+            background-color: rgba(74, 20, 140, 0.03); /* 極淡的紫色背景 */
+        }
+
+        .home-link:hover {
+            background-color: rgba(74, 20, 140, 0.08); /* Hover 時稍微加深 */
+            color: #310062;
+        }
+
+        /* 中間的標題群組 */
+        .title-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* [調整] 盾牌圖示容器：顏色改為與標題一致的深紫色 */
+        .logo-box {
+            width: 40px;
+            height: 40px;
+            background-color: var(--text-brand); /* 使用品牌紫 */
+            border-radius: 0.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.25rem;
+            box-shadow: 0 4px 10px var(--accent-glow); /* 光暈也改為紫色系 */
         }
 
         h1 {
             margin: 0;
-            font-size: 1.8rem;
-            color: #ffffff;
-            font-weight: 600;
-            letter-spacing: 1px;
-            border-bottom: none; /* 移除原本的下底線 */
-            padding-bottom: 0;
+            font-size: 1.5rem;
+            color: var(--text-brand); 
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+        
+        .header-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-muted); /* 副標題改回灰色，減少視覺干擾 */
+            opacity: 0.9; 
+            font-family: 'JetBrains Mono', monospace;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        /* RWD: 手機版調整 */
+        @media (max-width: 900px) {
+            .header-content {
+                flex-direction: column;
+                justify-content: center;
+                height: auto;
+                gap: 15px;
+                padding-bottom: 15px;
+                padding-top: 10px;
+            }
+
+            .logo-container, .home-link-container {
+                position: static; 
+                transform: none;
+                margin-bottom: 5px;
+            }
+            
+            .title-group {
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+                order: -1; 
+            }
+
+            .logo-container { order: -2; }
+            .home-link-container { order: 2; margin-top: 5px; }
+        }
+
+        /* 控制列樣式 */
+        .controls {
+            margin-bottom: 30px;
+            background-color: var(--bg-card);
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+        }
+
+        .controls label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .controls select {
+            padding: 8px 12px;
+            border-radius: 6px;
+            background-color: #ffffff; 
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            font-size: 0.9rem;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .controls select:hover {
+            border-color: var(--text-brand); /* Hover 時才顯示紫色 */
+        }
+
+        .controls select:focus {
+            border-color: var(--text-brand);
+            box-shadow: 0 0 0 2px rgba(74, 20, 140, 0.1);
         }
 
         #status {
-            font-size: 0.9rem;
-            color: #666;
+            font-size: 0.85rem;
+            color: var(--text-muted);
             margin-bottom: 20px;
-            height: 20px; /* 預留高度避免跳動 */
+            height: 20px;
+            font-family: 'JetBrains Mono', monospace;
         }
 
         .image-container {
             display: flex;
             flex-direction: column;
-            gap: 25px;
+            gap: 30px;
             width: 90%;
             max-width: 900px;
-            padding-bottom: 40px;
+            padding-bottom: 60px;
         }
 
         .img-wrapper {
-            background-color: #ffffff; /* 白底卡片 */
+            background-color: var(--bg-card);
             padding: 15px;
-            border-radius: 4px;
-            border: 1px solid #e0e0e0; /* 加上細邊框 */
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05); /* 柔和陰影 */
+            border-radius: 8px;
+            border: 1px solid var(--border-color); 
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02); 
             text-align: center;
-            /* 預設隱藏，載入成功才顯示 */
             display: none; 
             animation: fadeIn 0.5s ease-in;
+            transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        /* 卡片懸停效果 */
+        .img-wrapper:hover {
+            transform: translateY(-2px);
+            border-color: var(--text-brand); /* Hover 時顯示品牌紫 */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 0 10px rgba(74, 20, 140, 0.05);
+            background-color: var(--bg-card-hover);
         }
 
         .img-wrapper img {
@@ -70,37 +260,37 @@
             height: auto;
             display: block;
             margin: 0 auto;
-            border: 1px solid #eee;
-            cursor: pointer; /* 讓游標變手指，提示可點擊 */
-            transition: transform 0.2s ease;
+            border-radius: 4px;
+            border: 1px solid #f1f5f9; 
+            cursor: pointer;
+            transition: opacity 0.2s;
         }
 
         .img-wrapper img:hover {
-            opacity: 0.9;
-            transform: scale(1.01); /* 輕微放大效果 */
+            opacity: 0.95;
         }
 
         .filename {
-            margin-top: 10px;
-            font-size: 0.85rem;
-            color: #888;
-            font-family: Consolas, monospace;
-            border-top: 1px solid #f0f0f0;
-            padding-top: 5px;
+            margin-top: 12px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+            border-top: 1px solid var(--border-color);
+            padding-top: 8px;
         }
 
-        /* 燈箱 (Lightbox) 樣式 */
+        /* 燈箱 (Lightbox) */
         .lightbox {
-            display: none; /* 預設隱藏 */
+            display: none;
             position: fixed;
             z-index: 1000;
-            padding-top: 50px;
             left: 0;
             top: 0;
             width: 100%;
             height: 100%;
             overflow: auto;
-            background-color: rgba(0, 0, 0, 0.9); /* 深色半透明背景 */
+            background-color: rgba(15, 23, 42, 0.95); 
+            backdrop-filter: blur(5px);
             flex-direction: column;
             align-items: center;
             justify-content: center;
@@ -110,18 +300,19 @@
             margin: auto;
             display: block;
             width: auto;
-            max-width: 90%;
-            max-height: 90vh;
-            border-radius: 5px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            max-width: 95%;
+            max-height: 95vh;
+            border-radius: 8px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
             animation: zoom 0.3s;
+            border: 1px solid #334155;
         }
 
         .close {
             position: absolute;
             top: 20px;
             right: 35px;
-            color: #f1f1f1;
+            color: #94a3b8;
             font-size: 40px;
             font-weight: bold;
             transition: 0.3s;
@@ -129,11 +320,19 @@
             z-index: 1001;
         }
 
-        .close:hover,
-        .close:focus {
-            color: #bbb;
-            text-decoration: none;
-            cursor: pointer;
+        .close:hover {
+            color: #ffffff;
+        }
+
+        footer {
+            margin-top: auto;
+            width: 100%;
+            padding: 20px 0;
+            background-color: var(--bg-body);
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
         }
 
         @keyframes fadeIn {
@@ -142,7 +341,7 @@
         }
 
         @keyframes zoom {
-            from {transform:scale(0.8); opacity: 0;}
+            from {transform:scale(0.95); opacity: 0;}
             to {transform:scale(1); opacity: 1;}
         }
     </style>
@@ -150,13 +349,50 @@
 <body>
 
     <header>
-        <h1>豪勉科技資訊安全通報</h1>
+        <div class="header-content">
+            <!-- 左側: 豪勉科技 Logo -->
+            <div class="logo-container">
+                <img src="https://www.hauman.com.tw/images_v4/logo.png" alt="豪勉科技 Logo" class="logo-img">
+            </div>
+
+            <!-- 中間: 盾牌 + 標題 -->
+            <div class="title-group">
+                <div class="logo-box">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div>
+                    <h1>豪勉科技資訊安全通報</h1>
+                    <div class="header-subtitle">Hauman Technology Information Security Bulletin</div>
+                </div>
+            </div>
+
+            <!-- 右側: 返回教學網首頁 -->
+            <div class="home-link-container">
+                <a href="https://timmy-hauman.github.io/Hauman-Network-Technology-Training-Materials/" class="home-link">
+                    <i class="fas fa-home"></i> 返回教學網首頁
+                </a>
+            </div>
+        </div>
     </header>
 
-    <div id="status">正在更新通報列表...</div>
+    <!-- 範圍選擇區塊 -->
+    <div class="controls">
+        <label for="daysSelect"><i class="fas fa-calendar-alt"></i> 顯示範圍：</label>
+        <select id="daysSelect" onchange="updateRange()">
+            <option value="30" selected>近 30 天</option>
+            <option value="60">近 60 天</option>
+            <option value="90">近 90 天</option>
+        </select>
+    </div>
+
+    <div id="status">正在初始化系統...</div>
     <div id="gallery" class="image-container">
         <!-- 圖片將會動態插入這裡 -->
     </div>
+
+    <footer>
+        Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0
+    </footer>
 
     <!-- 燈箱結構 -->
     <div id="lightbox" class="lightbox" onclick="closeLightbox()">
@@ -166,11 +402,11 @@
 
     <script>
         // ================= 設定區 =================
-        const DAYS_TO_CHECK = 365; 
+        let daysToCheck = 30; // 預設 30 天
         const MAX_SEQUENCE = 5;
 
-        // *** 實際使用建議改回: const baseDate = new Date(); ***
-        const baseDate = new Date('2026-12-31'); 
+        // 改為使用當前日期
+        const baseDate = new Date(); 
         // =========================================
 
         const gallery = document.getElementById('gallery');
@@ -193,9 +429,23 @@
             return String(num).padStart(2, '0');
         }
 
+        // 更新日期範圍的函式
+        function updateRange() {
+            const select = document.getElementById('daysSelect');
+            daysToCheck = parseInt(select.value);
+            
+            // 重置計數與介面
+            loadedCount = 0;
+            gallery.innerHTML = ''; // 清空目前的圖片
+            statusDiv.innerText = '系統掃描中...';
+            
+            // 重新執行掃描
+            scanImages();
+        }
+
         function scanImages() {
             // 外層迴圈：日期 (從最新的一天開始往回推)
-            for (let d = 0; d < DAYS_TO_CHECK; d++) {
+            for (let d = 0; d < daysToCheck; d++) {
                 const currentDate = new Date(baseDate);
                 currentDate.setDate(baseDate.getDate() - d);
                 const dateString = formatDate(currentDate);
@@ -208,20 +458,35 @@
                 }
             }
             
-            // 掃描特殊格式 (例如 2026-02.png)
+            // 掃描特殊格式 (例如 2026-02.png) 
             const yearString = baseDate.getFullYear();
-            for(let m = 12; m >= 1; m--) {
-                 const filename = `${yearString}-${pad(m)}.png`;
-                 createImageElement(filename);
+            const currentMonth = baseDate.getMonth() + 1;
+            
+            // 簡單檢查本月與上個月 (無論選幾天，基本的月份圖檔檢查都保留)
+            createImageElement(`${yearString}-${pad(currentMonth)}.png`);
+            
+            // 根據選擇的天數決定要檢查幾個月份
+            let monthsBack = 1;
+            if (daysToCheck > 30) monthsBack = 2;
+            if (daysToCheck > 60) monthsBack = 3;
+
+            for(let m = 1; m <= monthsBack; m++) {
+                let checkMonth = currentMonth - m;
+                let checkYear = yearString;
+                
+                if (checkMonth <= 0) {
+                    checkMonth += 12;
+                    checkYear -= 1;
+                }
+                createImageElement(`${checkYear}-${pad(checkMonth)}.png`);
             }
 
             // 更新狀態文字邏輯
             setTimeout(() => {
                 if (loadedCount === 0) {
-                    // 使用者要求移除原本的 "尚未偵測到..." 提示
                     statusDiv.innerText = ''; 
                 } else {
-                    statusDiv.innerText = `已顯示 ${loadedCount} 則通報`;
+                    statusDiv.innerText = `已顯示 ${loadedCount} 則通報 (近 ${daysToCheck} 天)`;
                 }
             }, 1500); // 稍微延長一點時間讓載入完成
         }
@@ -245,8 +510,8 @@
             img.onload = function() {
                 wrapper.style.display = 'block';
                 loadedCount++;
-                // 實時更新找到的數量，讓使用者知道系統有在運作
-                statusDiv.innerText = `讀取通報中... (${loadedCount})`;
+                // 實時更新找到的數量
+                statusDiv.innerText = `讀取中... (${loadedCount})`;
             };
 
             img.onerror = function() {
@@ -271,6 +536,7 @@
             lightbox.style.display = "none";
         }
 
+        // 初始執行
         scanImages();
 
     </script>
