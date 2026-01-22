@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>豪勉科技資訊安全通報</title>
+    <style>
+        body {
+            /* 改為淺色系背景，符合一般企業網站風格 */
+            background-color: #f9f9f9;
+            color: #333333;
+            font-family: "Microsoft JhengHei", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0; /* 移除 body padding，讓 header 貼滿 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* 模擬豪勉科技或專業資安網站的 Header 風格 */
+        header {
+            background-color: #6a1b9a; /* 改為紫色風格 */
+            width: 100%;
+            padding: 20px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            color: #ffffff;
+            font-weight: 600;
+            letter-spacing: 1px;
+            border-bottom: none; /* 移除原本的下底線 */
+            padding-bottom: 0;
+        }
+
+        #status {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 20px;
+            height: 20px; /* 預留高度避免跳動 */
+        }
+
+        .image-container {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            width: 90%;
+            max-width: 900px;
+            padding-bottom: 40px;
+        }
+
+        .img-wrapper {
+            background-color: #ffffff; /* 白底卡片 */
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #e0e0e0; /* 加上細邊框 */
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05); /* 柔和陰影 */
+            text-align: center;
+            /* 預設隱藏，載入成功才顯示 */
+            display: none; 
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .img-wrapper img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+            border: 1px solid #eee;
+            cursor: pointer; /* 讓游標變手指，提示可點擊 */
+            transition: transform 0.2s ease;
+        }
+
+        .img-wrapper img:hover {
+            opacity: 0.9;
+            transform: scale(1.01); /* 輕微放大效果 */
+        }
+
+        .filename {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: #888;
+            font-family: Consolas, monospace;
+            border-top: 1px solid #f0f0f0;
+            padding-top: 5px;
+        }
+
+        /* 燈箱 (Lightbox) 樣式 */
+        .lightbox {
+            display: none; /* 預設隱藏 */
+            position: fixed;
+            z-index: 1000;
+            padding-top: 50px;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.9); /* 深色半透明背景 */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lightbox-content {
+            margin: auto;
+            display: block;
+            width: auto;
+            max-width: 90%;
+            max-height: 90vh;
+            border-radius: 5px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            animation: zoom 0.3s;
+        }
+
+        .close {
+            position: absolute;
+            top: 20px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            transition: 0.3s;
+            cursor: pointer;
+            z-index: 1001;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #bbb;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes zoom {
+            from {transform:scale(0.8); opacity: 0;}
+            to {transform:scale(1); opacity: 1;}
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>豪勉科技資訊安全通報</h1>
+    </header>
+
+    <div id="status">正在更新通報列表...</div>
+    <div id="gallery" class="image-container">
+        <!-- 圖片將會動態插入這裡 -->
+    </div>
+
+    <!-- 燈箱結構 -->
+    <div id="lightbox" class="lightbox" onclick="closeLightbox()">
+        <span class="close">&times;</span>
+        <img class="lightbox-content" id="lightbox-img">
+    </div>
+
+    <script>
+        // ================= 設定區 =================
+        const DAYS_TO_CHECK = 365; 
+        const MAX_SEQUENCE = 5;
+
+        // *** 實際使用建議改回: const baseDate = new Date(); ***
+        const baseDate = new Date('2026-12-31'); 
+        // =========================================
+
+        const gallery = document.getElementById('gallery');
+        const statusDiv = document.getElementById('status');
+        
+        // 取得燈箱元素
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-img');
+
+        let loadedCount = 0;
+
+        function formatDate(date) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}${m}${d}`;
+        }
+
+        function pad(num) {
+            return String(num).padStart(2, '0');
+        }
+
+        function scanImages() {
+            // 外層迴圈：日期 (從最新的一天開始往回推)
+            for (let d = 0; d < DAYS_TO_CHECK; d++) {
+                const currentDate = new Date(baseDate);
+                currentDate.setDate(baseDate.getDate() - d);
+                const dateString = formatDate(currentDate);
+
+                // 內層迴圈：流水號
+                for (let seq = MAX_SEQUENCE; seq >= 1; seq--) {
+                    const seqString = pad(seq);
+                    const filename = `${dateString}-${seqString}.png`;
+                    createImageElement(filename);
+                }
+            }
+            
+            // 掃描特殊格式 (例如 2026-02.png)
+            const yearString = baseDate.getFullYear();
+            for(let m = 12; m >= 1; m--) {
+                 const filename = `${yearString}-${pad(m)}.png`;
+                 createImageElement(filename);
+            }
+
+            // 更新狀態文字邏輯
+            setTimeout(() => {
+                if (loadedCount === 0) {
+                    // 使用者要求移除原本的 "尚未偵測到..." 提示
+                    statusDiv.innerText = ''; 
+                } else {
+                    statusDiv.innerText = `已顯示 ${loadedCount} 則通報`;
+                }
+            }, 1500); // 稍微延長一點時間讓載入完成
+        }
+
+        function createImageElement(filename) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'img-wrapper';
+
+            const img = document.createElement('img');
+            img.alt = filename;
+            
+            // 設定點擊放大功能
+            img.onclick = function() {
+                openLightbox(filename);
+            };
+            
+            const caption = document.createElement('div');
+            caption.className = 'filename';
+            caption.innerText = filename;
+
+            img.onload = function() {
+                wrapper.style.display = 'block';
+                loadedCount++;
+                // 實時更新找到的數量，讓使用者知道系統有在運作
+                statusDiv.innerText = `讀取通報中... (${loadedCount})`;
+            };
+
+            img.onerror = function() {
+                wrapper.remove();
+            };
+
+            img.src = filename;
+
+            wrapper.appendChild(img);
+            wrapper.appendChild(caption);
+            gallery.appendChild(wrapper);
+        }
+
+        // 開啟燈箱
+        function openLightbox(src) {
+            lightbox.style.display = "flex";
+            lightboxImg.src = src;
+        }
+
+        // 關閉燈箱 (綁定在 onclick="closeLightbox()" 以及 span close 按鈕)
+        function closeLightbox() {
+            lightbox.style.display = "none";
+        }
+
+        scanImages();
+
+    </script>
+</body>
+</html>
