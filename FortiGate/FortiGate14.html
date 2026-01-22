@@ -328,7 +328,7 @@ sequenceDiagram
                 <p class="text-gray-700"><strong>情境：</strong> 一間擁有 500 人的企業總部，要求網路不能因為單一設備故障而中斷。我們將部署兩台 FortiGate 100F 建立 A-P Cluster。</p>
                 <ul class="list-disc list-inside text-gray-600 mt-2 ml-4">
                     <li><strong>目標：</strong> 建立 Active-Passive HA。</li>
-                    <li><strong>要求：</strong> FGT-A 必須優先成為 Master (透過 Priority 設定)。開啟 Session Pickup (連線同步)。</li>
+                    <li><strong>要求：</strong> FGT-A 必須優先成為 Master (透過 Priority 設定)。開啟 Session Pickup (連線同步)。設定 Group ID 以避免 MAC 衝突。</li>
                 </ul>
             </div>
 
@@ -343,6 +343,7 @@ config system ha
     set group-name "HQ-Cluster"
     set mode a-p
     set password Fortinet123!
+    set group-id 10
     set hbdev "ha1" 50 "ha2" 50
     set session-pickup enable
     set override disable
@@ -360,13 +361,14 @@ config system ha
     set group-name "HQ-Cluster"
     set mode a-p
     set password Fortinet123!
+    set group-id 10
     set hbdev "ha1" 50 "ha2" 50
     set session-pickup enable
     set override disable
     set priority 100
     set monitor "wan1" "internal"
 end</div>
-                    <p class="text-sm text-gray-500 mt-1">說明：Group Name 與 Password 必須完全一致才能形成 Cluster。</p>
+                    <p class="text-sm text-gray-500 mt-1">說明：Group Name、Group ID 與 Password 必須完全一致才能形成 Cluster。在同一網段中有多組 HA Cluster 的環境（例如實驗室或大型資料中心）特別重要，因為 Group ID 決定了 Virtual MAC Address，若重複會導致衝突。</p>
                 </div>
             </div>
 
