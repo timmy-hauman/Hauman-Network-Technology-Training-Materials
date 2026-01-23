@@ -341,9 +341,9 @@
                 inputLabel.innerText = "MAC 位址 (OUI)";
                 domainInput.placeholder = "例如: 00:1A:2B:3C:4D:5E 或 00-1A-2B...";
             } else if (mode === 'ipcalc') {
-                apiInfoText.innerText = "* 單IP顯示網段 | 雙IP(空格隔開)顯示比對";
+                apiInfoText.innerText = "* 支援 IPv4 / IPv6 計算與比對";
                 inputLabel.innerText = "IP 位址 / CIDR (支援雙輸入比對)";
-                domainInput.placeholder = "例如: 192.168.1.1/24 (比對: 192.168.1.1/24 192.168.1.20/24)";
+                domainInput.placeholder = "例如: 192.168.1.1/24 或 2001:db8::1/64";
                 rawJsonToggleContainer.classList.add('hidden'); 
             }
         }
@@ -1054,18 +1054,37 @@
             const inputs = input.trim().split(/[\s,]+/);
             
             if (inputs.length === 2) {
-                // Compare Mode
-                runIpCompare(inputs[0], inputs[1]);
+                // Determine version for comparison
+                const isV6_1 = inputs[0].includes(':');
+                const isV6_2 = inputs[1].includes(':');
+                
+                if (isV6_1 && isV6_2) {
+                    runIPv6Compare(inputs[0], inputs[1]);
+                } else if (!isV6_1 && !isV6_2) {
+                    runIpCompare(inputs[0], inputs[1]); // Original IPv4 Compare
+                } else {
+                    throw new Error("無法比對不同版本的 IP (IPv4 vs IPv6)");
+                }
                 return;
             }
 
             // Single Mode
-            const parts = inputs[0].split('/');
+            const rawInput = inputs[0];
+            if (rawInput.includes(':')) {
+                runIPv6Calc(rawInput);
+            } else {
+                runIPv4Calc(rawInput);
+            }
+        }
+
+        // === IPv4 Logic (Original) ===
+        function runIPv4Calc(input) {
+            const parts = input.split('/');
             let ip = parts[0];
             let cidr = parts[1] ? parseInt(parts[1], 10) : 24; 
 
             if (!/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(ip)) {
-                throw new Error("無效的 IP 位址格式");
+                throw new Error("無效的 IPv4 位址格式");
             }
             if (isNaN(cidr) || cidr < 0 || cidr > 32) {
                 throw new Error("無效的 CIDR 遮罩 (範圍 0-32)");
@@ -1076,6 +1095,7 @@
         }
 
         function runIpCompare(input1, input2) {
+            // ... (Keep existing IPv4 compare logic)
             // Parse IP 1
             const parts1 = input1.split('/');
             let ip1 = parts1[0];
@@ -1087,14 +1107,12 @@
             let cidr2 = parts2[1] ? parseInt(parts2[1], 10) : 24;
 
             if (!validateIp(ip1) || !validateIp(ip2)) {
-                throw new Error("IP 格式錯誤，請檢查輸入");
+                throw new Error("IPv4 格式錯誤，請檢查輸入");
             }
 
             const d1 = calculateIpSubnet(ip1, cidr1);
             const d2 = calculateIpSubnet(ip2, cidr2);
 
-            // Compare Logic: Are they in the same subnet?
-            // Strict definition: Network Address must match AND Mask must match
             const sameNetwork = (d1.network === d2.network);
             const sameMask = (d1.cidr === d2.cidr);
             const isSameSubnet = sameNetwork && sameMask;
@@ -1102,11 +1120,233 @@
             renderGenericResults(formatIpCompareHtml(d1, d2, isSameSubnet), { ip1: d1, ip2: d2, match: isSameSubnet });
         }
 
+        // === IPv6 Logic (New) ===
+        function runIPv6Calc(input) {
+            const parts = input.split('/');
+            let ip = parts[0];
+            let prefix = parts[1] ? parseInt(parts[1], 10) : 64; // Default IPv6 prefix
+
+            if (!validateIPv6(ip)) {
+                throw new Error("無效的 IPv6 位址格式");
+            }
+            if (isNaN(prefix) || prefix < 0 || prefix > 128) {
+                throw new Error("無效的 IPv6 Prefix (範圍 0-128)");
+            }
+
+            const data = calculateIPv6Subnet(ip, prefix);
+            renderGenericResults(formatIPv6CalcHtml(data), data);
+        }
+
+        function runIPv6Compare(input1, input2) {
+            const parts1 = input1.split('/');
+            let ip1 = parts1[0];
+            let prefix1 = parts1[1] ? parseInt(parts1[1], 10) : 64;
+
+            const parts2 = input2.split('/');
+            let ip2 = parts2[0];
+            let prefix2 = parts2[1] ? parseInt(parts2[1], 10) : 64;
+
+            if (!validateIPv6(ip1) || !validateIPv6(ip2)) {
+                throw new Error("IPv6 格式錯誤");
+            }
+
+            const d1 = calculateIPv6Subnet(ip1, prefix1);
+            const d2 = calculateIPv6Subnet(ip2, prefix2);
+
+            // Compare Network Address (Prefix)
+            const sameNetwork = (d1.networkAddress === d2.networkAddress);
+            const samePrefix = (d1.prefix === d2.prefix);
+            const isSameSubnet = sameNetwork && samePrefix;
+
+            renderGenericResults(formatIPv6CompareHtml(d1, d2, isSameSubnet), { ip1: d1, ip2: d2, match: isSameSubnet });
+        }
+
+        // IPv6 Helpers
+        function validateIPv6(ip) {
+            // Simple regex for validation, not exhaustive but good for tools
+            return /^[0-9a-fA-F:]+$/.test(ip) && ip.split('::').length <= 2;
+        }
+
+        function expandIPv6(ip) {
+            let parts = ip.split(':');
+            let fullParts = [];
+            
+            // Handle double colon ::
+            if (ip.indexOf('::') !== -1) {
+                const split = ip.split('::');
+                const left = split[0] === '' ? [] : split[0].split(':');
+                const right = split[1] === '' ? [] : split[1].split(':');
+                const missing = 8 - (left.length + right.length);
+                const zeros = Array(missing).fill('0000');
+                fullParts = [...left, ...zeros, ...right];
+            } else {
+                fullParts = parts;
+            }
+
+            return fullParts.map(p => p.padStart(4, '0')).join(':');
+        }
+
+        function ipv6ToBigInt(expandedIp) {
+            const hex = expandedIp.replace(/:/g, '');
+            return BigInt('0x' + hex);
+        }
+
+        function bigIntToIPv6(bigInt) {
+            let hex = bigInt.toString(16).padStart(32, '0');
+            let parts = [];
+            for (let i = 0; i < 32; i += 4) {
+                parts.push(hex.substring(i, i + 4));
+            }
+            return parts.join(':');
+        }
+
+        function getIPv6Type(bigInt) {
+            // High bits check
+            // Multicast: ff00::/8
+            if ((bigInt >> 120n) === 0xffn) return "Multicast";
+            // Link-Local: fe80::/10
+            if ((bigInt >> 118n) === 0x3fan) return "Link-Local Unicast";
+            // Unique Local: fc00::/7
+            if ((bigInt >> 121n) === 0xfdn) return "Unique Local Unicast (ULA)";
+            // Global Unicast: 2000::/3
+            if ((bigInt >> 125n) === 0x01n) return "Global Unicast";
+            // Loopback
+            if (bigInt === 1n) return "Loopback";
+            // Unspecified
+            if (bigInt === 0n) return "Unspecified";
+            
+            return "Reserved / Other";
+        }
+
+        function calculateIPv6Subnet(ip, prefix) {
+            const expanded = expandIPv6(ip);
+            const ipBigInt = ipv6ToBigInt(expanded);
+            
+            // Mask for Prefix
+            // 128 bits total. If prefix is 64, mask is 64 ones followed by 64 zeros.
+            // 2^128 - 2^(128-prefix)
+            const totalBits = 128n;
+            const hostBits = totalBits - BigInt(prefix);
+            const maskBigInt = (1n << totalBits) - (1n << hostBits);
+            
+            const networkBigInt = ipBigInt & maskBigInt;
+            const lastIpBigInt = networkBigInt | ((1n << hostBits) - 1n);
+            
+            const totalHosts = hostBits === 128n ? 1n : (1n << hostBits);
+
+            return {
+                ip: ip,
+                expanded: expanded,
+                prefix: prefix,
+                networkAddress: bigIntToIPv6(networkBigInt),
+                startIp: bigIntToIPv6(networkBigInt), // First IP usually is the subnet router anycast or similar, but simplified as range start
+                endIp: bigIntToIPv6(lastIpBigInt),
+                totalHosts: totalHosts.toString(), // Use string for huge numbers
+                type: getIPv6Type(ipBigInt),
+                interfaceId: bigIntToIPv6(ipBigInt & ((1n << 64n) - 1n)).split(':').slice(4).join(':') // Last 64 bits usually
+            };
+        }
+
+        function formatIPv6CalcHtml(d) {
+            return `
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold flex items-center"><i class="fa-solid fa-calculator text-purple-600 mr-2"></i> IPv6 計算結果</h3>
+                    <span class="text-lg bg-purple-100 text-purple-800 px-3 py-1 rounded font-mono font-bold">${d.ip}/${d.prefix}</span>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- Basic Info -->
+                    <div class="bg-white border rounded-xl overflow-hidden shadow-sm">
+                        <div class="bg-gray-50 px-4 py-3 border-b font-bold text-gray-700">基本資訊</div>
+                        <div class="p-4 space-y-3">
+                            <div class="flex flex-col md:flex-row justify-between border-b border-gray-100 pb-2">
+                                <span class="text-gray-500">完整展開 (Expanded)</span>
+                                <span class="font-mono text-gray-800 break-all">${d.expanded}</span>
+                            </div>
+                            <div class="flex justify-between border-b border-gray-100 pb-2">
+                                <span class="text-gray-500">位址類型 (Type)</span>
+                                <span class="font-bold text-blue-600">${d.type}</span>
+                            </div>
+                            <div class="flex flex-col md:flex-row justify-between border-b border-gray-100 pb-2">
+                                <span class="text-gray-500">網路前綴 (Network Prefix)</span>
+                                <span class="font-mono font-bold text-purple-600 break-all">${d.networkAddress}/${d.prefix}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-500">總位址數量 (Total IPs)</span>
+                                <span class="font-mono text-gray-800">2^${128-d.prefix} (${d.totalHosts.length > 20 ? '> 10^20' : d.totalHosts})</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Range Info -->
+                    <div class="bg-white border rounded-xl overflow-hidden shadow-sm">
+                        <div class="bg-gray-50 px-4 py-3 border-b font-bold text-gray-700">網段範圍</div>
+                        <div class="p-4 space-y-3">
+                             <div class="flex flex-col border-b border-gray-100 pb-2">
+                                <span class="text-gray-500 text-sm mb-1">起始位址 (Start)</span>
+                                <span class="font-mono font-bold text-green-600 break-all">${d.startIp}</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-gray-500 text-sm mb-1">結束位址 (End)</span>
+                                <span class="font-mono font-bold text-green-600 break-all">${d.endIp}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function formatIPv6CompareHtml(d1, d2, isMatch) {
+             return `
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold flex items-center"><i class="fa-solid fa-code-compare text-orange-600 mr-2"></i> IPv6 網段比對</h3>
+                    ${isMatch 
+                        ? '<span class="text-lg bg-green-100 text-green-800 px-4 py-1 rounded font-bold border border-green-200"><i class="fa-solid fa-check-circle"></i> 相同網段</span>' 
+                        : '<span class="text-lg bg-red-100 text-red-800 px-4 py-1 rounded font-bold border border-red-200"><i class="fa-solid fa-times-circle"></i> 不同網段</span>'
+                    }
+                </div>
+
+                <div class="grid grid-cols-1 gap-6 mb-6">
+                    <!-- Comparison Table -->
+                    <div class="bg-white border rounded-xl overflow-hidden shadow-sm">
+                        <table class="min-w-full divide-y divide-gray-200 text-sm">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left font-medium text-gray-500">項目</th>
+                                    <th class="px-4 py-3 text-left font-medium text-gray-500">IP 1 (${d1.ip})</th>
+                                    <th class="px-4 py-3 text-left font-medium text-gray-500">IP 2 (${d2.ip})</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                <tr>
+                                    <td class="px-4 py-3 font-bold text-gray-700">Prefix 長度</td>
+                                    <td class="px-4 py-3 font-mono">/${d1.prefix}</td>
+                                    <td class="px-4 py-3 font-mono">/${d2.prefix}</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3 font-bold text-gray-700">網路位址</td>
+                                    <td class="px-4 py-3 font-mono break-all text-purple-600">${d1.networkAddress}</td>
+                                    <td class="px-4 py-3 font-mono break-all text-purple-600">${d2.networkAddress}</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3 font-bold text-gray-700">類型</td>
+                                    <td class="px-4 py-3">${d1.type}</td>
+                                    <td class="px-4 py-3">${d2.type}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- Generic (IPv4) Helpers (Keep Existing) ---
         function validateIp(ip) {
             return /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(ip);
         }
 
         function calculateIpSubnet(ip, cidr) {
+            // ... (Keep existing implementation)
             const ipInt = ipToInt(ip);
             const maskInt = (cidr === 0) ? 0 : (~0 << (32 - cidr));
             const networkInt = ipInt & maskInt;
@@ -1155,16 +1395,11 @@
             return bin.match(/.{1,8}/g).join('.');
         }
         
-        // Format binary with color highlighting for network bits
         function formatBinary(binStr, cidr) {
-            // binStr format: "11000000.10101000.00000001.00000001"
             const cleanBin = binStr.replace(/\./g, '');
             let html = '';
-            
-            // Octet logic
             for (let i = 0; i < 32; i++) {
                 if (i > 0 && i % 8 === 0) html += '<span class="bit-dot">.</span>';
-                
                 if (i < cidr) {
                     html += `<span class="bit-net">${cleanBin[i]}</span>`;
                 } else {
@@ -1183,16 +1418,16 @@
             else if (firstOctet >= 224 && firstOctet <= 239) cls = 'D (Multicast)';
             else cls = 'E (Experimental)';
 
-            // Private Check
             let isPrivate = false;
-            if (firstOctet === 10) isPrivate = true; // 10.0.0.0/8
-            else if (firstOctet === 172 && ((ipInt >>> 16) & 0xFF) >= 16 && ((ipInt >>> 16) & 0xFF) <= 31) isPrivate = true; // 172.16.0.0/12
-            else if (firstOctet === 192 && ((ipInt >>> 16) & 0xFF) === 168) isPrivate = true; // 192.168.0.0/16
+            if (firstOctet === 10) isPrivate = true; 
+            else if (firstOctet === 172 && ((ipInt >>> 16) & 0xFF) >= 16 && ((ipInt >>> 16) & 0xFF) <= 31) isPrivate = true; 
+            else if (firstOctet === 192 && ((ipInt >>> 16) & 0xFF) === 168) isPrivate = true; 
 
             return `${cls} ${isPrivate ? '(Private)' : '(Public)'}`;
         }
 
         function formatIpCalcHtml(d) {
+            // ... (Keep existing implementation)
             return `
                 <div class="flex items-center justify-between mb-6">
                     <h3 class="text-xl font-bold flex items-center"><i class="fa-solid fa-calculator text-indigo-600 mr-2"></i> IP 子網路計算</h3>
