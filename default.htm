@@ -210,6 +210,7 @@
             position: relative;
             overflow: hidden;
             height: 100%;
+            cursor: pointer; /* 增加手指游標，因為有些是 onclick 事件 */
         }
 
         .card:hover {
@@ -239,7 +240,7 @@
         .card-body {
             padding: 30px 25px;
             display: flex;
-            align-items: center;
+            align-items: flex-start; /* 改為上方對齊，以適應多行內容 */
             height: 100%;
         }
 
@@ -254,10 +255,19 @@
             font-family: 'Roboto', sans-serif;
             min-width: 40px;
             text-align: right; /* 數字靠右對齊 */
+            margin-top: 3px; /* 微調對齊 */
         }
 
         .card:hover .card-number {
             color: var(--brand-purple); 
+        }
+
+        /* 文字內容包裝器 (用於標題 + 前導圖片按鈕) */
+        .card-text-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px; /* 標題與按鈕的間距 */
         }
 
         .card-title {
@@ -270,6 +280,27 @@
         
         .card:hover .card-title {
             color: var(--brand-purple-dark); 
+        }
+
+        /* 前導圖片按鈕樣式 */
+        .preview-badge {
+            font-size: 0.85rem;
+            color: var(--brand-purple);
+            border: 1px solid var(--brand-purple);
+            padding: 2px 8px;
+            border-radius: 12px;
+            background-color: transparent;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            z-index: 10; /* 確保在連結之上 */
+            display: inline-block;
+        }
+
+        .preview-badge:hover {
+            background-color: var(--brand-purple);
+            color: #fff;
+            box-shadow: 0 2px 5px rgba(103, 58, 183, 0.3);
         }
 
         /* 箭頭圖標 (右下角裝飾) */
@@ -287,6 +318,76 @@
             opacity: 1;
             transform: translateX(0);
             color: var(--brand-purple); 
+        }
+        
+        /* 圖片卡片樣式修正 (前導圖) */
+        .card-image-trigger .card-icon {
+            content: '🔍'; /* 可以改為放大鏡符號區隔 */
+        }
+
+        /* Lightbox (圖片燈箱) 樣式 */
+        .lightbox {
+            display: none; /* 預設隱藏 */
+            position: fixed; 
+            z-index: 2000; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.9); /* 黑色背景半透明 */
+            backdrop-filter: blur(5px);
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s;
+        }
+
+        .lightbox-content {
+            margin: auto;
+            display: block;
+            max-width: 90%;
+            max-height: 90vh;
+            border-radius: 5px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            animation: zoomIn 0.3s;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            transition: 0.3s;
+            cursor: pointer;
+            z-index: 2001;
+            background: rgba(0,0,0,0.3);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        .close-btn:hover,
+        .close-btn:focus {
+            color: #bbb;
+            text-decoration: none;
+            cursor: pointer;
+            background: rgba(255,255,255,0.1);
+        }
+
+        @keyframes fadeIn {
+            from {opacity: 0;} 
+            to {opacity: 1;}
+        }
+
+        @keyframes zoomIn {
+            from {transform: scale(0.9); opacity: 0;} 
+            to {transform: scale(1); opacity: 1;}
         }
 
         /* Footer */
@@ -404,20 +505,33 @@
             </header>
             <div class="grid">
 
-                <!-- 01: Hub vs. Bridge vs. Switch -->
+                <!-- 01: Hub vs. Bridge vs. Switch (整合前導圖功能) -->
+                <!-- 使用 onclick="event.preventDefault()" 阻止連結跳轉，但允許點擊事件執行 lightbox 邏輯 -->
                 <a href="network_concept_and_extreme/HUB-vs-BRIDGE-vs-SWITCH_Ver1.0.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">01</span>
-                        <h3 class="card-title">Hub vs. Bridge vs. Switch</h3>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">Hub vs. Bridge vs. Switch</h3>
+                            <!-- 前導圖按鈕: 使用 object 標籤包裹以避免 HTML 嵌套問題，或直接依賴瀏覽器事件冒泡處理 -->
+                            <!-- 使用 object 包裹是為了讓瀏覽器不將內部點擊視為外部 a 標籤的一部分 -->
+                            <object>
+                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept01.png')">前導圖片 🔍</span>
+                            </object>
+                        </div>
                     </div>
                     <div class="card-icon">➜</div>
                 </a>
                 
-                <!-- 02: IP Address -->
+                <!-- 02: IP Address (整合前導圖功能) -->
                 <a href="network_concept_and_extreme/IP_Adressing_Ver1.0.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">02</span>
-                        <h3 class="card-title">IP Address</h3>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">IP Address</h3>
+                            <object>
+                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept02.png')">前導圖片 🔍</span>
+                            </object>
+                        </div>
                     </div>
                     <div class="card-icon">➜</div>
                 </a>
@@ -530,7 +644,7 @@
                     <div class="card-icon">➜</div>
                 </a>
 
-                <!-- 15: MSTP(802.1S) (新增項目) -->
+                <!-- 15: MSTP(802.1S) -->
                 <a href="network_concept_and_extreme/MSTP.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">15</span>
@@ -539,7 +653,7 @@
                     <div class="card-icon">➜</div>
                 </a>
 
-                <!-- 16: Link Aggregation (原 15) -->
+                <!-- 16: Link Aggregation -->
                 <a href="network_concept_and_extreme/Link_Aggregation _Ver1.0.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">16</span>
@@ -548,7 +662,7 @@
                     <div class="card-icon">➜</div>
                 </a>
                 
-                <!-- 17: Extreme MLAG (原 16) -->
+                <!-- 17: Extreme MLAG -->
                 <a href="network_concept_and_extreme/Extreme_MLAG_Ver1.0.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">17</span>
@@ -557,7 +671,7 @@
                     <div class="card-icon">➜</div>
                 </a>
 
-                <!-- 18: ICMP / TCP / UDP (原 17) -->
+                <!-- 18: ICMP / TCP / UDP -->
                 <a href="network_concept_and_extreme/ICMP_TCP_UDP_Ver1.0.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">18</span>
@@ -566,7 +680,7 @@
                     <div class="card-icon">➜</div>
                 </a>
 
-                <!-- 19: Troubleshooting & Diagnostics (原 18) -->
+                <!-- 19: Troubleshooting & Diagnostics -->
                 <a href="network_concept_and_extreme/Extreme_TS_DIAG_Ver1.0.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">19</span>
@@ -575,7 +689,7 @@
                     <div class="card-icon">➜</div>
                 </a>
                 
-                <!-- 20: VRRP (原 19) -->
+                <!-- 20: VRRP -->
                 <a href="network_concept_and_extreme/VRRP_Ver1.0.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">20</span>
@@ -584,7 +698,7 @@
                     <div class="card-icon">➜</div>
                 </a>
 
-                <!-- 21: VRRP + MLAG Topology Design (原 20) -->
+                <!-- 21: VRRP + MLAG Topology Design -->
                 <a href="network_concept_and_extreme/VRRP_MLAG_Ver1.0.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">21</span>
@@ -593,7 +707,7 @@
                     <div class="card-icon">➜</div>
                 </a>
 
-                <!-- 22: ESRP (原 21) -->
+                <!-- 22: ESRP -->
                 <a href="network_concept_and_extreme/ESRP_Ver1.0.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">22</span>
@@ -602,7 +716,7 @@
                     <div class="card-icon">➜</div>
                 </a>
                 
-                <!-- 23: ESRP+MLAG+OSPF Topology Design (原 22) -->
+                <!-- 23: ESRP+MLAG+OSPF Topology Design -->
                 <a href="network_concept_and_extreme/ESRP_MLAG_OSPF_Ver1.0.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">23</span>
@@ -611,7 +725,7 @@
                     <div class="card-icon">➜</div>
                 </a>
 
-                <!-- 24: SNMP (原 23) -->
+                <!-- 24: SNMP -->
                 <a href="network_concept_and_extreme/SNMP_Ver1.0.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">24</span>
@@ -620,7 +734,7 @@
                     <div class="card-icon">➜</div>
                 </a>
 
-                <!-- 25: DNS (原 24) -->
+                <!-- 25: DNS -->
                 <a href="network_concept_and_extreme/DNS_Ver1.0.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">25</span>
@@ -629,7 +743,7 @@
                     <div class="card-icon">➜</div>
                 </a>
                 
-                <!-- 26: DHCP (原 25) -->
+                <!-- 26: DHCP -->
                 <a href="network_concept_and_extreme/DHCP_Ver1.0.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">26</span>
@@ -638,7 +752,7 @@
                     <div class="card-icon">➜</div>
                 </a>
 
-                <!-- 27: MTU / MSS / Jumbo Frame (原 26) -->
+                <!-- 27: MTU / MSS / Jumbo Frame -->
                 <a href="network_concept_and_extreme/MTU_MSS_JumboFrame_Ver1.0.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">27</span>
@@ -647,7 +761,7 @@
                     <div class="card-icon">➜</div>
                 </a>
 
-                <!-- 28: Extreme XOS Access-list (新增項目) -->
+                <!-- 28: Extreme XOS Access-list -->
                 <a href="network_concept_and_extreme/Extreme_ACL.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">28</span>
@@ -656,7 +770,7 @@
                     <div class="card-icon">➜</div>
                 </a>
 
-                <!-- 29: Extreme XOS Policy-Base Routing (新增項目) -->
+                <!-- 29: Extreme XOS Policy-Base Routing -->
                 <a href="network_concept_and_extreme/Extreme_PBR.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">29</span>
@@ -665,7 +779,7 @@
                     <div class="card-icon">➜</div>
                 </a>
 
-                <!-- 30: GARP (Gratuitous ARP) (新增項目) -->
+                <!-- 30: GARP -->
                 <a href="network_concept_and_extreme/GARP.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">30</span>
@@ -674,7 +788,7 @@
                     <div class="card-icon">➜</div>
                 </a>
 
-                <!-- 31: BGP (新增項目) -->
+                <!-- 31: BGP -->
                 <a href="network_concept_and_extreme/BGP.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">31</span>
@@ -687,7 +801,7 @@
         </div>
 
         <!-- ========================================================= -->
-        <!-- 區塊: Fortinet FortiGate (新增區塊) -->
+        <!-- 區塊: Fortinet FortiGate -->
         <!-- ========================================================= -->
         <div class="section-container" id="sec-fortigate">
             <header class="section-header">
@@ -830,7 +944,7 @@
                     <div class="card-icon">➜</div>
                 </a>
 
-                <!-- 16: FortiGate 16 (新增項目) -->
+                <!-- 16: FortiGate 16 -->
                 <a href="FortiGate/FortiGate_VXLAN-over-IPSEC.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">16</span>
@@ -843,7 +957,7 @@
         </div>
         
         <!-- ========================================================= -->
-        <!-- 區塊 2: A10 Networks (連結維持不變) -->
+        <!-- 區塊 2: A10 Networks -->
         <!-- ========================================================= -->
         <div class="section-container" id="sec-a10">
             <header class="section-header">
@@ -851,7 +965,7 @@
             </header>
             <div class="grid">
             
-                <!-- 01: A10 Networks Thunder Level 1 - 1 ADC 概念與 A10 硬體/虛擬化介紹 -->
+                <!-- 01: A10 Networks Thunder Level 1 - 1 -->
                 <a href="a10networks/a10_1-1_introd.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">01</span>
@@ -860,7 +974,7 @@
                     <div class="card-icon">➜</div>
                 </a>
                 
-                <!-- 02: A10 Networks Thunder Level 1 - 2 系統初始化與網路配置 -->
+                <!-- 02: A10 Networks Thunder Level 1 - 2 -->
                 <a href="a10networks/a10_1-2_network.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">02</span>
@@ -869,7 +983,7 @@
                     <div class="card-icon">➜</div>
                 </a>
                 
-                <!-- 03: A10 Networks Thunder Level 1 - 3 SLB核心邏輯 -->
+                <!-- 03: A10 Networks Thunder Level 1 - 3 -->
                 <a href="a10networks/a10_1-3_slb.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">03</span>
@@ -878,7 +992,7 @@
                     <div class="card-icon">➜</div>
                 </a>
 
-                <!-- 04: A10 Network Thunder Level 2 - 1 高可用性架構 (VRRP-A) -->
+                <!-- 04: A10 Network Thunder Level 2 - 1 -->
                 <a href="a10networks/a10_2-1_vrrp-a.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">04</span>
@@ -887,7 +1001,7 @@
                     <div class="card-icon">➜</div>
                 </a>
                 
-                <!-- 05: A10 Networks Thunder Level 2 - 2 L3V (Application Delivery Partitions) -->
+                <!-- 05: A10 Networks Thunder Level 2 - 2 -->
                 <a href="a10networks/a10_2-2_L3V-ADP.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">05</span>
@@ -896,7 +1010,7 @@
                     <div class="card-icon">➜</div>
                 </a>
                 
-                <!-- 06: A10 Networks Thunder Level 2 - 3 SNAT 與 Client IP 保存 -->
+                <!-- 06: A10 Networks Thunder Level 2 - 3 -->
                 <a href="a10networks/a10_2-3_snat.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">06</span>
@@ -905,7 +1019,7 @@
                     <div class="card-icon">➜</div>
                 </a>
                 
-                <!-- 07: A10 Networks Thunder Level 2 - 4 Wildcard VIP介紹與應用 -->
+                <!-- 07: A10 Networks Thunder Level 2 - 4 -->
                 <a href="a10networks/a10_2-4_widecard-vip.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">07</span>
@@ -914,7 +1028,7 @@
                     <div class="card-icon">➜</div>
                 </a>
 
-                <!-- 08: A10 Networks Thunder Level 2 - 5 SSL/TLS Offloading -->
+                <!-- 08: A10 Networks Thunder Level 2 - 5 -->
                 <a href="a10networks/a10_2-5_SSL-offload.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">08</span>
@@ -923,7 +1037,7 @@
                     <div class="card-icon">➜</div>
                 </a>
                 
-                <!-- 09: A10 Networks Thunder Level 3 - 1 GSLB (Global Server Load Balancing) -->
+                <!-- 09: A10 Networks Thunder Level 3 - 1 -->
                 <a href="a10networks/a10_3-1_GSLB.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">09</span>
@@ -932,7 +1046,7 @@
                     <div class="card-icon">➜</div>
                 </a>
                 
-                <!-- 10: A10 Networks Thunder Level 3 - 2 aFleX Scripting Language -->
+                <!-- 10: A10 Networks Thunder Level 3 - 2 -->
                 <a href="a10networks/a10_3-2_aflex.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">10</span>
@@ -941,7 +1055,7 @@
                     <div class="card-icon">➜</div>
                 </a>
                 
-                <!-- 11: A10 Networks Thunder Level 3 - 3 aVCS (Virtual Chassis System) -->
+                <!-- 11: A10 Networks Thunder Level 3 - 3 -->
                 <a href="a10networks/a10_3-3_avcs.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">11</span>
@@ -950,7 +1064,7 @@
                     <div class="card-icon">➜</div>
                 </a>
 
-                <!-- 12: A10 Networks Thunder Level 3 - 4 axdebug(Troubleshooting) -->
+                <!-- 12: A10 Networks Thunder Level 3 - 4 -->
                 <a href="a10networks/a10_3-4_axdebug.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">12</span>
@@ -963,7 +1077,7 @@
         </div>
         
         <!-- ========================================================= -->
-        <!-- 區塊 3: EC-Council CND 快速入門 (連結維持不變) -->
+        <!-- 區塊 3: EC-Council CND 快速入門 -->
         <!-- ========================================================= -->
         <div class="section-container" id="sec-cnd">
             <header class="section-header">
@@ -1155,7 +1269,7 @@
         </div>
 
         <!-- ========================================================= -->
-        <!-- 區塊 4: Tools (已新增 IP 黑名單檢測工具) -->
+        <!-- 區塊 4: Tools -->
         <!-- ========================================================= -->
         <div class="section-container" id="sec-tools">
             <header class="section-header">
@@ -1172,7 +1286,7 @@
                     <div class="card-icon">➜</div>
                 </a>
                 
-                <!-- 02: 網路查詢工具箱 (移動至此) -->
+                <!-- 02: 網路查詢工具箱 -->
                 <a href="network_toolbox.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">02</span>
@@ -1181,7 +1295,7 @@
                     <div class="card-icon">➜</div>
                 </a>
 
-                <!-- 03: IP 黑名單檢測工具 (原 02) -->
+                <!-- 03: IP 黑名單檢測工具 -->
                 <a href="IP_Reputation.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">03</span>
@@ -1219,6 +1333,36 @@
             &copy; 2025 Network Training Course. All rights reserved.
         </div>
     </footer>
+
+    <!-- 圖片燈箱結構 -->
+    <div id="imageLightbox" class="lightbox" onclick="closeLightbox(event)">
+        <span class="close-btn" onclick="closeLightbox(event)">&times;</span>
+        <img class="lightbox-content" id="lightboxImage">
+    </div>
+
+    <!-- 燈箱控制腳本 -->
+    <script>
+        function openLightbox(imageSrc) {
+            var lightbox = document.getElementById('imageLightbox');
+            var lightboxImg = document.getElementById('lightboxImage');
+            lightbox.style.display = "flex";
+            lightboxImg.src = imageSrc;
+        }
+
+        function closeLightbox(event) {
+            // 如果點擊的是圖片本身，不關閉；點擊背景或關閉按鈕才關閉
+            if (event.target.id !== 'lightboxImage') {
+                document.getElementById('imageLightbox').style.display = "none";
+            }
+        }
+        
+        // 也可以按 ESC 鍵關閉
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Escape") {
+                document.getElementById('imageLightbox').style.display = "none";
+            }
+        });
+    </script>
 
 </body>
 </html>
