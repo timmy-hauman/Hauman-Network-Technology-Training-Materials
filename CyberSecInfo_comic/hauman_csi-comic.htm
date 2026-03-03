@@ -392,7 +392,9 @@
     <div class="controls">
         <label for="daysSelect"><i class="fas fa-calendar-alt"></i> 顯示範圍：</label>
         <select id="daysSelect" onchange="updateRange()">
-            <option value="30" selected>近 30 天</option>
+            <option value="5" selected>近 5 天</option>
+            <option value="10">近 10 天</option>
+            <option value="30">近 30 天</option>
             <option value="60">近 60 天</option>
             <option value="90">近 90 天</option>
         </select>
@@ -415,7 +417,7 @@
 
     <script>
         // ================= 設定區 =================
-        let daysToCheck = 30; // 預設 30 天
+        let daysToCheck = 5; // 預設 5 天
         const MAX_SEQUENCE = 5;
 
         // 改為使用當前日期
