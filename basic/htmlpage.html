@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML 魔法教室</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- 使用 Noto Sans TC 字體 -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --board-green: #1e3f2d;
+            --chalk-white: #fdfdfd;
+            --chalk-yellow: #fde047;
+            --chalk-pink: #f9a8d4;
+        }
+
+        body {
+            background-color: #e5e5f7;
+            background-image:  repeating-radial-gradient( circle at 0 0, transparent 0, #e5e5f7 10px ), repeating-linear-gradient( #f3f4f655, #f3f4f6 );
+            font-family: 'Noto Sans TC', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* 黑板外框與底座 */
+        .chalkboard-container {
+            position: relative;
+            max-width: 1100px;
+            width: 100%;
+            border: 18px solid #4a3525;
+            border-image: linear-gradient(45deg, #3d2817, #6b4c3a, #3d2817) 1;
+            border-radius: 8px;
+            box-shadow: 
+                inset 0 0 30px rgba(0,0,0,0.9),
+                10px 15px 25px rgba(0,0,0,0.4);
+            background-color: var(--board-green);
+            overflow: hidden;
+        }
+
+        /* 模擬粉筆灰塵與擦拭痕跡 */
+        .chalk-dust {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            background-image: 
+                radial-gradient(circle at 15% 25%, rgba(255,255,255,0.03) 0%, transparent 20%),
+                radial-gradient(circle at 75% 65%, rgba(255,255,255,0.04) 0%, transparent 35%),
+                radial-gradient(circle at 45% 80%, rgba(255,255,255,0.02) 0%, transparent 25%),
+                radial-gradient(circle at 80% 15%, rgba(255,255,255,0.03) 0%, transparent 30%);
+            z-index: 1;
+        }
+
+        /* 雜訊紋理 (讓黑板不那麼平滑) */
+        .chalkboard-bg {
+            position: relative;
+            padding: 40px 50px;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+            z-index: 2;
+        }
+
+        /* 粉筆字體共用特效 */
+        .chalk-text {
+            letter-spacing: 2px;
+            text-shadow: 
+                1px 1px 0px rgba(255,255,255,0.3),
+                -1px -1px 0px rgba(255,255,255,0.1),
+                0px 0px 3px rgba(255,255,255,0.4);
+            position: relative;
+            z-index: 10;
+        }
+
+        /* 顏色變化 */
+        .text-white { color: var(--chalk-white); }
+        .text-yellow { 
+            color: var(--chalk-yellow); 
+            text-shadow: 1px 1px 0px rgba(253, 224, 71, 0.4), 0 0 5px rgba(253, 224, 71, 0.5);
+        }
+        .text-pink { 
+            color: var(--chalk-pink); 
+            text-shadow: 1px 1px 0px rgba(249, 168, 212, 0.4), 0 0 5px rgba(249, 168, 212, 0.5);
+        }
+
+        /* SVG 塗鴉樣式 */
+        .doodle {
+            position: absolute;
+            fill: none;
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: drop-shadow(1px 1px 2px rgba(255,255,255,0.3));
+        }
+
+        /* 手繪風格框框 */
+        .chalk-box {
+            border: 3px dashed rgba(255, 255, 255, 0.6);
+            border-radius: 10px;
+            position: relative;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* 黑板底部的木頭溝槽 */
+        .board-ledge {
+            height: 35px;
+            background: linear-gradient(to bottom, #5c4033, #2b1d12);
+            border-top: 2px solid #7a5843;
+            border-radius: 0 0 6px 6px;
+            position: relative;
+            width: calc(100% + 36px);
+            margin-left: -18px;
+            margin-bottom: -18px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.6);
+            z-index: 20;
+        }
+
+        /* 橡皮擦 */
+        .eraser {
+            position: absolute;
+            bottom: 5px;
+            right: 15%;
+            width: 80px;
+            height: 30px;
+            background: linear-gradient(to bottom, #d1d5db 40%, #8b5a2b 40%);
+            border-radius: 4px;
+            transform: rotate(-3deg);
+            box-shadow: 3px 3px 8px rgba(0,0,0,0.5);
+        }
+
+        /* 散落的粉筆 */
+        .chalk-piece {
+            position: absolute;
+            bottom: 8px;
+            width: 35px;
+            height: 8px;
+            border-radius: 4px;
+            box-shadow: 1px 2px 4px rgba(0,0,0,0.4);
+        }
+        .chalk-piece.white { background: #fdfdfd; right: 25%; transform: rotate(15deg); }
+        .chalk-piece.pink { background: #f9a8d4; right: 28%; transform: rotate(-10deg); }
+        .chalk-piece.yellow { background: #fde047; left: 15%; transform: rotate(5deg); }
+
+        /* RWD 調整 */
+        @media (max-width: 768px) {
+            .chalkboard-bg { padding: 25px 20px; }
+            .doodle-circle { display: none; } /* 手機版隱藏絕對定位的圈圈以防跑版 */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="chalkboard-container">
+        <!-- 灰塵與擦拭痕跡 -->
+        <div class="chalk-dust"></div>
+
+        <div class="chalkboard-bg text-white">
+            
+            <!-- 返回首頁連結 -->
+            <a href="https://training.timmy.tw/" class="absolute top-4 left-6 md:top-6 md:left-8 text-white/70 hover:text-white chalk-text text-sm md:text-base transition-colors flex items-center z-20 group">
+                <span class="mr-1 transform group-hover:-translate-x-1 transition-transform">⬅</span> 返回教學網首頁
+            </a>
+            
+            <!-- 【開頭介紹】 -->
+            <header class="text-center mt-8 md:mt-4 mb-10 relative px-4">
+                <!-- 手繪星星 (調整定位與層級避免與標題重疊) -->
+                <svg class="doodle stroke-yellow-400 w-10 h-10 md:w-12 md:h-12 absolute -top-6 md:-top-2 left-0 md:left-8 lg:left-16 transform -rotate-12 opacity-80 z-0" viewBox="0 0 100 100">
+                    <path d="M50 10 L60 40 L90 40 L65 60 L75 90 L50 70 L25 90 L35 60 L10 40 L40 40 Z" stroke="currentColor" stroke-linejoin="round"/>
+                </svg>
+                <svg class="doodle stroke-pink-400 w-8 h-8 md:w-10 md:h-10 absolute -top-2 md:top-4 right-0 md:right-8 lg:right-16 transform rotate-12 opacity-80 z-0" viewBox="0 0 100 100">
+                    <path d="M50 10 L60 40 L90 40 L65 60 L75 90 L50 70 L25 90 L35 60 L10 40 L40 40 Z" stroke="currentColor" stroke-linejoin="round"/>
+                </svg>
+
+                <h1 class="chalk-text text-yellow text-4xl md:text-5xl lg:text-6xl font-bold mb-4 relative z-10 leading-tight md:leading-tight">
+                    🌐 零基礎大解密：<br>
+                    認識 HTML！
+                </h1>
+                <p class="chalk-text text-pink text-xl md:text-2xl relative z-10 mt-6">
+                    ~ 帶你輕鬆搞懂網頁的基礎結構，踏出寫程式的第一步！ ~
+                </p>
+                <!-- 裝飾底線 -->
+                <svg class="w-64 h-4 mx-auto mt-2 relative z-10" viewBox="0 0 200 20" fill="none">
+                    <path d="M10,10 Q50,0 100,10 T190,10" stroke="#fdfdfd" stroke-width="3" stroke-linecap="round" filter="drop-shadow(1px 1px 1px rgba(255,255,255,0.4))"/>
+                </svg>
+            </header>
+
+            <!-- 兩欄式內容區塊 (電腦版並排，手機版上下) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+                
+                <!-- 【主要內容 - 什麼是 HTML？】 -->
+                <section class="chalk-box p-6 md:p-8">
+                    <h2 class="chalk-text text-yellow text-3xl mb-4 flex items-center">
+                        <span class="mr-2">❓</span> 什麼是 HTML？
+                    </h2>
+                    <div class="space-y-4 text-lg md:text-xl leading-relaxed chalk-text">
+                        <p>
+                            <span class="text-pink text-2xl font-bold relative inline-block">
+                                HTML
+                                <!-- 手繪底線 -->
+                                <svg class="absolute w-full h-3 -bottom-1 left-0 doodle stroke-pink-400" viewBox="0 0 100 20" preserveAspectRatio="none"><path d="M0,10 Q50,20 100,5" stroke="currentColor"/></svg>
+                            </span>
+                            全名是「超文本標記語言」<br>
+                            <span class="text-sm">(HyperText Markup Language)</span>
+                        </p>
+                        <p>
+                            如果把一個網頁想像成一棟房子，<span class="text-yellow font-bold">HTML</span> 就是這棟房子的「鋼筋與水泥」！它負責把內容的「結構」搭建起來。
+                        </p>
+                        <p>
+                            它會用 <span class="text-pink text-2xl font-bold">尖括號 &lt; &gt;</span> 把內容包起來，偷偷告訴瀏覽器：「嘿！這是一段標題、那是一張圖片！」
+                        </p>
+
+                        <!-- 對照圖解 -->
+                        <div class="mt-6 p-4 bg-white/5 rounded-lg border border-white/20 relative">
+                            <!-- 箭頭塗鴉 -->
+                            <svg class="absolute doodle stroke-yellow-400 w-12 h-12 left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 hidden md:block" viewBox="0 0 50 50">
+                                <path d="M10,25 L35,25 M25,15 L35,25 L25,35" stroke="currentColor"/>
+                            </svg>
+                            
+                            <div class="flex flex-col md:flex-row justify-between text-center gap-6">
+                                <div class="flex-1 flex flex-col">
+                                    <h3 class="text-yellow mb-2 text-xl">我們看到的網頁</h3>
+                                    <div class="border border-green-500 bg-green-900/30 p-4 rounded overflow-hidden text-center flex flex-col justify-center flex-1 min-h-[140px]">
+                                        <!-- 模擬渲染後的畫面 -->
+                                        <div class="text-white text-2xl font-bold mb-2">我是大標題</div>
+                                        <div class="text-blue-200 text-sm">我是一段普通的文字段落，用來說明內容。</div>
+                                    </div>
+                                </div>
+                                <div class="flex-1 flex flex-col">
+                                    <h3 class="text-pink mb-2 text-xl">背後的 HTML</h3>
+                                    <div class="border border-dashed border-gray-400 p-3 rounded font-mono mt-1 text-left relative bg-black/20 flex-1 flex flex-col justify-center min-h-[140px]">
+                                        <div class="text-green-300 text-sm md:text-base mb-1 border-b border-green-300/30 pb-1">
+                                            👉 <span class="font-sans">通常</span><span class="text-pink font-bold font-sans">成雙成對</span><span class="font-sans">出現</span>
+                                        </div>
+                                        <div class="leading-relaxed text-sm md:text-base">
+                                            <span class="text-yellow font-bold">&lt;h1&gt;</span><span class="text-white">我是大標題</span><span class="text-yellow font-bold">&lt;/h1&gt;</span><br>
+                                            <span class="text-yellow font-bold">&lt;p&gt;</span><span class="text-gray-300">我是一段普通的<br>文字段落...</span><span class="text-yellow font-bold">&lt;/p&gt;</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 【主要內容 - 教學步驟】 -->
+                <section class="chalk-box p-6 md:p-8">
+                    <h2 class="chalk-text text-yellow text-3xl mb-4 flex items-center relative">
+                        <span class="mr-2">🛠️</span> 寫網頁初體驗 
+                        <span class="text-sm text-pink ml-4 mt-2">(簡單4步驟)</span>
+                    </h2>
+                    
+                    <ul class="space-y-6 text-xl md:text-2xl chalk-text relative">
+                        <li class="flex items-start">
+                            <span class="text-yellow mr-3">1.</span>
+                            <span>打開你電腦裡的「記事本」或任何文字編輯器。</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-yellow mr-3">2.</span>
+                            <span>
+                                試著打上：<br>
+                                <span class="text-pink font-bold text-lg tracking-widest bg-black/30 px-2 py-1 rounded inline-block mt-1">
+                                    &lt;h1&gt;哈囉世界&lt;/h1&gt;
+                                </span>
+                            </span>
+                        </li>
+                        <li class="flex items-start relative z-10">
+                            <span class="text-yellow mr-3">3.</span>
+                            <span>
+                                🌟 <span class="text-yellow font-bold">最重要的一步：</span><br>
+                                存檔時，將副檔名改成<br>
+                                <span class="inline-block relative mt-2 text-2xl font-mono tracking-widest">
+                                    index.html
+                                    <!-- 手繪圈圈強調 -->
+                                    <svg class="doodle stroke-pink-400 absolute w-[130%] h-[150%] -top-[25%] -left-[15%] z-[-1] doodle-circle" viewBox="0 0 200 50" preserveAspectRatio="none">
+                                        <ellipse cx="100" cy="25" rx="95" ry="20" stroke="currentColor" stroke-dasharray="1000" stroke-dashoffset="0"/>
+                                    </svg>
+                                </span>
+                            </span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-yellow mr-3">4.</span>
+                            <span>對這個檔案點兩下，它就會在<span class="text-pink font-bold">瀏覽器</span>打開囉！🎉</span>
+                        </li>
+                    </ul>
+
+                    <!-- Windows 顯示副檔名提示 -->
+                    <div class="mt-8 p-5 bg-pink-900/20 border border-pink-400/40 rounded-xl relative">
+                        <!-- 驚嘆號塗鴉 -->
+                        <div class="absolute -top-4 -left-4 w-8 h-8 bg-[#1e3f2d] rounded-full flex items-center justify-center">
+                            <svg class="doodle stroke-pink-400 w-8 h-8" viewBox="0 0 50 50">
+                                <path d="M25,10 L25,30 M25,40 L25,41" stroke-width="4" stroke-linecap="round"/>
+                                <circle cx="25" cy="25" r="20" stroke="currentColor" fill="none"/>
+                            </svg>
+                        </div>
+                        <h3 class="chalk-text text-pink text-xl font-bold mb-3">⚠️ 存檔後還是「記事本圖示」？</h3>
+                        <p class="chalk-text text-white text-base md:text-lg leading-relaxed">
+                            Windows 預設會隱藏副檔名，你可能不小心存成了 <span class="text-gray-400 line-through">index.html.txt</span>。<br>
+                            <span class="text-yellow font-bold mr-1">破解魔法：</span>打開任何資料夾 ➔ 點擊上方<span class="text-pink font-bold">「檢視」</span> ➔ 勾選<span class="text-pink font-bold">「副檔名」</span> (Win 11 點選「顯示」➔ 勾選「副檔名」)。<br>
+                            接著把檔名最後的 .txt 刪掉，改成純粹的 <span class="text-yellow font-bold">.html</span> 就會變身成網頁囉！
+                        </p>
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- 【進階小知識：怎麼打開 HTML？】 -->
+            <section class="chalk-box p-6 md:p-8 mb-10">
+                <h2 class="chalk-text text-yellow text-3xl mb-4 flex items-center relative">
+                    <span class="mr-2">💡</span> 小知識：同一份檔案，兩種面貌
+                </h2>
+                <p class="chalk-text text-xl mb-6 leading-relaxed">
+                    儲存好 .html 後，你用什麼軟體打開它，它就會呈現<span class="text-pink font-bold text-2xl">完全不一樣</span>的畫面喔！
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- 情況 A: 用瀏覽器打開 -->
+                    <div class="bg-white/5 p-5 rounded-xl border border-white/20 relative">
+                        <!-- 裝飾塗鴉 -->
+                        <svg class="absolute doodle stroke-green-400 w-8 h-8 -top-3 -right-3" viewBox="0 0 50 50">
+                            <path d="M10,25 L20,35 L40,15" stroke="currentColor"/>
+                        </svg>
+                        <h3 class="text-green-300 text-2xl mb-2 chalk-text">🌍 用 瀏覽器(Chrome/Edge) 點開</h3>
+                        <p class="text-white mb-4 text-base md:text-lg">瀏覽器就像個翻譯官，它會把標籤隱藏起來，並把裡面的內容<span class="text-yellow">排版成漂漂亮亮的網頁</span>給你看！</p>
+                        <div class="border border-green-500/50 bg-white p-4 rounded text-left overflow-hidden">
+                             <!-- 模擬真實網頁呈現 -->
+                             <h1 class="text-black text-2xl font-bold mb-2 font-sans" style="text-shadow: none; letter-spacing: normal;">哈囉世界</h1>
+                             <p class="text-gray-800 font-sans" style="text-shadow: none; letter-spacing: normal;">這是我寫的第一個網頁喔！</p>
+                        </div>
+                    </div>
+
+                    <!-- 情況 B: 用記事本打開 -->
+                    <div class="bg-white/5 p-5 rounded-xl border border-white/20 relative flex flex-col">
+                        <!-- 裝飾塗鴉 -->
+                        <svg class="absolute doodle stroke-blue-400 w-8 h-8 -top-3 -left-3 transform -rotate-12" viewBox="0 0 50 50">
+                            <circle cx="25" cy="25" r="15" stroke="currentColor"/>
+                        </svg>
+                        <h3 class="text-blue-300 text-2xl mb-2 chalk-text">📝 用 記事本/編輯器 點開</h3>
+                        <p class="text-white mb-4 text-base md:text-lg">你會看到它<span class="text-pink font-bold">最原始的程式碼</span>，這是給工程師編輯、修改標籤的地方！</p>
+                        <div class="border border-dashed border-gray-400 p-4 rounded font-mono text-left bg-black/40 text-base md:text-lg leading-relaxed mb-4 flex-grow">
+                            <span class="text-yellow font-bold">&lt;h1&gt;</span><span class="text-white">哈囉世界</span><span class="text-yellow font-bold">&lt;/h1&gt;</span><br>
+                            <span class="text-yellow font-bold">&lt;p&gt;</span><span class="text-gray-300">這是我寫的第一個網頁喔！</span><span class="text-yellow font-bold">&lt;/p&gt;</span>
+                        </div>
+                        
+                        <!-- Notepad++ 推薦工具 -->
+                        <div class="text-sm md:text-base text-gray-200 bg-blue-900/40 p-3 rounded-lg border border-blue-400/30">
+                            <span class="mr-1 inline-block transform hover:scale-125 transition-transform cursor-default">✨</span> 
+                            強烈推薦下載免費的 
+                            <a href="https://notepad-plus-plus.org/" target="_blank" rel="noopener noreferrer" class="text-blue-300 hover:text-white underline underline-offset-4 font-bold transition-colors">Notepad++</a> 
+                            來編輯！它會幫標籤自動上色，對新手超級友善喔！
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 【歷史小彩蛋：.html 與 .htm】 -->
+            <section class="chalk-box p-6 md:p-8 mb-10">
+                <h2 class="chalk-text text-yellow text-3xl mb-4 flex items-center relative">
+                    <span class="mr-2">🦕</span> 歷史小彩蛋：.html 和 .htm 有什麼不一樣？
+                </h2>
+                <div class="text-white text-lg md:text-xl leading-relaxed chalk-text space-y-4">
+                    <p>
+                        有時候你會看到網頁的副檔名是 <span class="text-yellow font-bold">.htm</span>，它跟 <span class="text-pink font-bold">.html</span> 到底差在哪裡？
+                    </p>
+                    <p>
+                        答案是：<span class="text-pink text-3xl font-bold ml-2">完全一樣！</span> 🎉
+                    </p>
+                    <div class="text-gray-300 text-base md:text-lg mt-4 bg-white/5 p-4 rounded-lg border border-white/10 relative">
+                        <!-- 裝飾塗鴉 -->
+                        <svg class="absolute doodle stroke-white/40 w-12 h-12 bottom-2 right-4 transform rotate-12" viewBox="0 0 100 100">
+                            <path d="M20,80 Q50,20 80,80 Q50,50 20,80 Z" stroke-width="2"/>
+                        </svg>
+                        <p class="mb-2"><span class="text-yellow font-bold">📖 老師講古時間：</span></p>
+                        <p>
+                            在很久以前的舊版 Windows（DOS 時代），電腦規定副檔名<span class="text-pink font-bold">「最多只能有 3 個字母」</span>。<br>
+                            所以 HTML 就委屈求全，被迫縮寫成了 <span class="text-yellow font-bold">.htm</span>。<br>
+                            現在的電腦早就沒有這個限制了，所以大家都習慣用完整的 <span class="text-pink font-bold">.html</span>，但為了讓舊網頁也能順利運作，這兩種副檔名現在的瀏覽器都看得懂喔！
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 【總結頁】 -->
+            <section class="text-center mt-12 mb-4 relative">
+                 <!-- 勾號塗鴉 -->
+                 <svg class="doodle stroke-green-400 w-16 h-16 absolute -top-8 left-1/4 transform -translate-x-1/2 opacity-80 hidden md:block" viewBox="0 0 50 50">
+                    <path d="M10,25 L20,35 L40,15" stroke="currentColor"/>
+                </svg>
+
+                <h2 class="chalk-text text-yellow text-4xl mb-4">📌 老師的重點筆記</h2>
+                <div class="inline-block border-2 border-pink-400/60 p-6 rounded-2xl shadow-lg relative bg-black/10">
+                    <p class="chalk-text text-white text-2xl md:text-3xl leading-relaxed max-w-3xl mx-auto">
+                        HTML 就是網頁的<span class="text-yellow">「骨架結構」</span>。<br>
+                        我們用<span class="text-pink">標籤 &lt; &gt;</span>把文字包起來告訴電腦該怎麼顯示，<br>
+                        學會它，就是踏入網頁設計魔法世界的第一步！🚀
+                    </p>
+                </div>
+            </section>
+
+            <!-- 頁尾簽名 -->
+            <footer class="mt-16 text-center text-white/50 text-xs md:text-sm chalk-text">
+                Planning & Design by Timmy(<a href="mailto:timmyc@hauman.com.tw" class="hover:text-white transition-colors">timmyc@hauman.com.tw</a>) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0
+            </footer>
+
+        </div>
+
+        <!-- 黑板底部的木頭溝槽與粉筆/橡皮擦 -->
+        <div class="board-ledge">
+            <!-- 橡皮擦 -->
+            <div class="eraser"></div>
+            <!-- 粉筆 -->
+            <div class="chalk-piece white"></div>
+            <div class="chalk-piece pink"></div>
+            <div class="chalk-piece yellow"></div>
+        </div>
+    </div>
+
+</body>
+</html>
