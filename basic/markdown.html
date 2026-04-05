@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>什麼是 Markdown？ - 黑板教學</title>
+    <!-- 引入 Tailwind CSS 用於快速排版 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Google 字體：手寫中文與英文 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=LXGW+WenKai+TC:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* 基礎設定與字體 */
+        body {
+            background-color: #1a202c; /* 外圍深色背景 */
+            font-family: 'LXGW WenKai TC', 'Caveat', cursive, sans-serif;
+        }
+
+        /* 粉筆文字特效 */
+        .chalk-white {
+            color: #f8f8f8;
+            text-shadow: 0 0 2px rgba(255,255,255,0.7), 1px 1px 1px rgba(255,255,255,0.4);
+        }
+        .chalk-yellow {
+            color: #ffe066;
+            text-shadow: 0 0 2px rgba(255,224,102,0.8), 1px 1px 2px rgba(255,224,102,0.5);
+        }
+        .chalk-pink {
+            color: #ff99cc;
+            text-shadow: 0 0 2px rgba(255,153,204,0.8), 1px 1px 2px rgba(255,153,204,0.5);
+        }
+
+        /* 黑板主體樣式：包含粉筆灰與擦拭痕跡 */
+        .chalkboard {
+            background-color: #244832; /* 基礎深綠色 */
+            background-image: 
+                /* 橡皮擦擦拭的白色模糊痕跡 */
+                radial-gradient(ellipse at 20% 30%, rgba(255, 255, 255, 0.04) 0%, transparent 25%),
+                radial-gradient(ellipse at 80% 60%, rgba(255, 255, 255, 0.05) 0%, transparent 30%),
+                radial-gradient(ellipse at 50% 80%, rgba(255, 255, 255, 0.03) 0%, transparent 20%),
+                /* 微微的粉筆灰塵雜訊底圖 */
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+            border-radius: 4px;
+        }
+
+        /* 黑板木頭邊框 */
+        .board-frame {
+            border: 24px solid #5c4033;
+            border-image: linear-gradient(to right, #3e2723, #5d4037, #3e2723) 1;
+            box-shadow: 
+                inset 0 0 20px rgba(0,0,0,0.8), /* 內部陰影製造深度 */
+                0 15px 35px rgba(0,0,0,0.6);    /* 外部陰影讓黑板立體 */
+            position: relative;
+        }
+
+        /* SVG 塗鴉濾鏡：讓線條看起來像粉筆畫的 */
+        .chalk-stroke {
+            filter: drop-shadow(1px 1px 1px rgba(255,255,255,0.4));
+        }
+
+        /* 隨機微傾斜，增加手寫感 */
+        .rotate-1 { transform: rotate(1deg); }
+        .rotate-n1 { transform: rotate(-1deg); }
+        .rotate-2 { transform: rotate(2deg); }
+        .rotate-n2 { transform: rotate(-2deg); }
+        
+        /* 手繪虛線邊框 */
+        .hand-drawn-border {
+            border: 2px dashed rgba(255,224,102,0.6);
+            border-radius: 15px 25px 15px 20px;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8 flex flex-col items-center justify-center overflow-x-hidden">
+
+    <!-- 頂部導覽列 -->
+    <div class="w-full max-w-5xl mb-4 flex justify-start relative z-10">
+        <a href="https://training.timmy.tw/" class="text-gray-400 hover:text-[#ffe066] transition-colors flex items-center font-sans text-sm md:text-base">
+            <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            返回教學網首頁
+        </a>
+    </div>
+
+    <!-- 黑板外框容器 -->
+    <div class="board-frame w-full max-w-5xl bg-[#244832] relative z-0">
+        
+        <!-- 黑板內部 (包含粉筆灰與內容) -->
+        <div class="chalkboard w-full h-full p-6 md:p-12 relative overflow-hidden">
+            
+            <!-- 裝飾塗鴉：右上角的小星星 -->
+            <svg class="absolute top-8 right-12 w-12 h-12 chalk-stroke opacity-80" viewBox="0 0 100 100" fill="none" stroke="#ffe066" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M50 10 L60 40 L90 40 L65 60 L75 90 L50 70 L25 90 L35 60 L10 40 L40 40 Z"/>
+            </svg>
+
+            <!-- ================= 開頭介紹 ================= -->
+            <header class="text-center mb-16 relative mt-4">
+                <div class="inline-block relative">
+                    <h1 class="chalk-pink text-5xl md:text-6xl font-bold mb-4 tracking-wider rotate-n1">
+                        什麼是 Markdown？
+                    </h1>
+                    <!-- 標題底線塗鴉 -->
+                    <svg class="absolute -bottom-4 left-0 w-full h-6 chalk-stroke" viewBox="0 0 200 20" preserveAspectRatio="none">
+                        <path d="M5,10 Q50,0 100,10 T195,10" fill="none" stroke="#ff99cc" stroke-width="4" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <p class="chalk-yellow text-2xl md:text-3xl mt-6 rotate-1">✨ 給初學者的超級入門指南 ✨</p>
+                <p class="chalk-white text-lg md:text-xl mt-4 opacity-90 max-w-2xl mx-auto">
+                    想像一下，如果打字時<span class="chalk-yellow">不需要滑鼠</span>點來點去，只要加上幾個簡單的符號，文章就能自動排版得漂漂亮亮... 這就是 Markdown 的魔法！
+                </p>
+            </header>
+
+            <!-- ================= 主要內容：兩欄排版 ================= -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mb-16 relative">
+                
+                <!-- 左欄：與其他格式的比較 -->
+                <div class="relative z-10">
+                    <h2 class="chalk-yellow text-3xl font-bold mb-6 flex items-center rotate-n1">
+                        <span class="mr-2 text-4xl">🤔</span> 為什麼不用 Word 或 TXT？
+                    </h2>
+                    
+                    <ul class="space-y-6 text-xl">
+                        <!-- TXT -->
+                        <li class="flex items-start">
+                            <span class="chalk-pink font-bold mr-3 mt-1">.txt</span>
+                            <div class="chalk-white">
+                                一般純文字檔<br>
+                                <span class="text-base opacity-75">就像「白開水」，什麼樣式都沒有，看久了很無聊。</span>
+                            </div>
+                        </li>
+                        
+                        <!-- Word -->
+                        <li class="flex items-start">
+                            <span class="chalk-pink font-bold mr-3 mt-1">.docx</span>
+                            <div class="chalk-white">
+                                Word 文件<br>
+                                <span class="text-base opacity-75">就像「滿漢全席」，功能太多太複雜，檔案大，而且排版常常跑掉 😵‍💫</span>
+                            </div>
+                        </li>
+                        
+                        <!-- Markdown (Highlighted) -->
+                        <li class="relative mt-4">
+                            <!-- 圈圈塗鴉 -->
+                            <svg class="absolute -top-4 -left-4 w-[110%] h-[140%] chalk-stroke z-0 pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                                <ellipse cx="50" cy="50" rx="45" ry="40" fill="none" stroke="#ffe066" stroke-width="2" stroke-dasharray="8 4" stroke-linecap="round" />
+                            </svg>
+                            <div class="flex items-start relative z-10 p-2">
+                                <span class="chalk-yellow text-2xl font-bold mr-3 mt-1">.md</span>
+                                <div class="chalk-white font-bold">
+                                    Markdown 格式<br>
+                                    <span class="text-lg chalk-yellow">完美特調！輕巧、乾淨，用簡單符號就能控制排版！👍</span>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 中間的分隔箭頭 (僅桌面版顯示) -->
+                <div class="hidden md:block absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                    <svg class="w-16 h-16 chalk-stroke opacity-80 rotate-12" viewBox="0 0 100 100">
+                        <path d="M20,50 Q50,20 80,50 M60,30 L80,50 L60,70" fill="none" stroke="#f8f8f8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+
+                <!-- 右欄：魔法符號教學 -->
+                <div class="hand-drawn-border p-6 bg-white/5 relative rotate-1">
+                    <h2 class="chalk-pink text-3xl font-bold mb-6 text-center">
+                        🪄 魔法符號大公開！
+                    </h2>
+                    
+                    <div class="space-y-5">
+                        <!-- 教學項目 1 -->
+                        <div>
+                            <div class="chalk-yellow text-xl mb-1">想要大標題？加上 # 號：</div>
+                            <div class="chalk-white bg-black/30 p-2 rounded text-lg font-mono tracking-widest">
+                                # 這是一個大標題
+                            </div>
+                            <div class="flex justify-center my-1">
+                                <svg class="w-6 h-6 chalk-stroke" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+                            </div>
+                            <div class="chalk-white text-3xl font-bold text-center">這是一個大標題</div>
+                        </div>
+
+                        <!-- 教學項目 2 -->
+                        <div>
+                            <div class="chalk-yellow text-xl mb-1">想要強調重點？加上星號：</div>
+                            <div class="chalk-white bg-black/30 p-2 rounded text-lg font-mono tracking-widest">
+                                這是 **超級重要** 的事
+                            </div>
+                            <div class="flex justify-center my-1">
+                                <svg class="w-6 h-6 chalk-stroke" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+                            </div>
+                            <div class="chalk-white text-xl text-center">這是 <span class="chalk-pink font-bold text-2xl">超級重要</span> 的事</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= 新增：更多 Markdown 語法教學 ================= -->
+            <div class="mb-16 relative w-full">
+                <div class="text-center mb-8 relative">
+                    <h2 class="chalk-yellow text-3xl md:text-4xl font-bold inline-block relative rotate-1">
+                        🪄 更多實用魔法咒語 (基礎語法)
+                        <!-- 標題底下的粉筆畫線 -->
+                        <svg class="absolute -bottom-3 left-0 w-full h-4 chalk-stroke" viewBox="0 0 200 10" preserveAspectRatio="none"><path d="M0,5 Q100,10 200,0" fill="none" stroke="#ffe066" stroke-width="3" stroke-linecap="round"/></svg>
+                    </h2>
+                </div>
+
+                <!-- 語法教學卡片網格 (手機1欄 / 平板2欄 / 電腦3欄) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    
+                    <!-- 1. 項目清單 -->
+                    <div class="border-2 border-dashed border-white/20 p-5 rounded-xl bg-black/20 relative rotate-n1 hover:bg-white/5 transition-colors">
+                        <h3 class="chalk-pink text-xl font-bold mb-3 flex items-center"><span class="mr-2">📝</span> 項目清單</h3>
+                        <div class="text-sm text-gray-400 mb-1">輸入 (減號加空白)：</div>
+                        <div class="chalk-white bg-black/40 p-2 rounded font-mono text-sm text-gray-300 mb-3 leading-relaxed">
+                            - 蘋果<br>
+                            - 香蕉
+                        </div>
+                        <div class="border-t border-white/20 pt-3">
+                            <div class="text-sm text-gray-400 mb-1">變成：</div>
+                            <ul class="list-disc list-inside chalk-white text-lg marker:text-[#ff99cc]">
+                                <li>蘋果</li>
+                                <li>香蕉</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- 2. 超連結 -->
+                    <div class="border-2 border-dashed border-white/20 p-5 rounded-xl bg-black/20 relative rotate-1 hover:bg-white/5 transition-colors">
+                        <h3 class="chalk-pink text-xl font-bold mb-3 flex items-center"><span class="mr-2">🔗</span> 插入超連結</h3>
+                        <div class="text-sm text-gray-400 mb-1">輸入 (中括號+小括號)：</div>
+                        <div class="chalk-white bg-black/40 p-2 rounded font-mono text-sm text-gray-300 mb-3 leading-relaxed break-all">
+                            [點我前往 Google](https://google.com)
+                        </div>
+                        <div class="border-t border-white/20 pt-3">
+                            <div class="text-sm text-gray-400 mb-1">變成：</div>
+                            <a href="#" class="chalk-white text-lg border-b border-[#ffe066] hover:text-[#ffe066] transition-colors">點我前往 Google</a>
+                        </div>
+                    </div>
+
+                    <!-- 3. 區塊引用 -->
+                    <div class="border-2 border-dashed border-white/20 p-5 rounded-xl bg-black/20 relative rotate-n2 hover:bg-white/5 transition-colors">
+                        <h3 class="chalk-pink text-xl font-bold mb-3 flex items-center"><span class="mr-2">🗣️</span> 區塊引用</h3>
+                        <div class="text-sm text-gray-400 mb-1">輸入 (大於符號)：</div>
+                        <div class="chalk-white bg-black/40 p-2 rounded font-mono text-sm text-gray-300 mb-3 leading-relaxed">
+                            > 保持渴望，保持傻勁。
+                        </div>
+                        <div class="border-t border-white/20 pt-3">
+                            <div class="text-sm text-gray-400 mb-1">變成：</div>
+                            <blockquote class="border-l-4 border-[#ff99cc] pl-3 chalk-white text-lg opacity-90 italic">
+                                保持渴望，保持傻勁。
+                            </blockquote>
+                        </div>
+                    </div>
+
+                    <!-- 4. 待辦清單 -->
+                    <div class="border-2 border-dashed border-white/20 p-5 rounded-xl bg-black/20 relative rotate-2 hover:bg-white/5 transition-colors">
+                        <h3 class="chalk-pink text-xl font-bold mb-3 flex items-center"><span class="mr-2">✅</span> 待辦清單</h3>
+                        <div class="text-sm text-gray-400 mb-1">輸入 (-[ ] 與 -[x])：</div>
+                        <div class="chalk-white bg-black/40 p-2 rounded font-mono text-sm text-gray-300 mb-3 leading-relaxed">
+                            - [ ] 買牛奶<br>
+                            - [x] 寫作業
+                        </div>
+                        <div class="border-t border-white/20 pt-3 space-y-2">
+                            <div class="text-sm text-gray-400 mb-1">變成：</div>
+                            <div class="flex items-center chalk-white text-lg"><span class="w-5 h-5 border-2 border-white rounded-sm mr-2 flex-shrink-0"></span>買牛奶</div>
+                            <div class="flex items-center chalk-white text-lg opacity-60 line-through"><span class="w-5 h-5 bg-[#ffe066] rounded-sm mr-2 flex items-center justify-center flex-shrink-0"><svg class="w-4 h-4 text-black" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg></span>寫作業</div>
+                        </div>
+                    </div>
+
+                    <!-- 5. 插入圖片 -->
+                    <div class="border-2 border-dashed border-white/20 p-5 rounded-xl bg-black/20 relative rotate-n1 hover:bg-white/5 transition-colors">
+                        <h3 class="chalk-pink text-xl font-bold mb-3 flex items-center"><span class="mr-2">🖼️</span> 插入圖片</h3>
+                        <div class="text-sm text-gray-400 mb-1">輸入 (驚嘆號+中括號+小括號)：</div>
+                        <div class="chalk-white bg-black/40 p-2 rounded font-mono text-sm text-gray-300 mb-3 leading-relaxed">
+                            ![貓咪照片](cat.jpg)
+                        </div>
+                        <div class="border-t border-white/20 pt-3">
+                            <div class="text-sm text-gray-400 mb-1">變成：</div>
+                            <div class="border-2 border-dashed border-gray-400 p-2 flex items-center justify-center chalk-white opacity-70 text-sm bg-black/30">
+                                🖼️ 顯示一張貓咪照片
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 6. 程式碼標記 -->
+                    <div class="border-2 border-dashed border-white/20 p-5 rounded-xl bg-black/20 relative rotate-1 hover:bg-white/5 transition-colors">
+                        <h3 class="chalk-pink text-xl font-bold mb-3 flex items-center"><span class="mr-2">💻</span> 標記單行程式碼</h3>
+                        <div class="text-sm text-gray-400 mb-1">輸入 (用反引號 ` 包起來)：</div>
+                        <div class="chalk-white bg-black/40 p-2 rounded font-mono text-sm text-gray-300 mb-3 leading-relaxed">
+                            請按下 `Enter` 鍵
+                        </div>
+                        <div class="border-t border-white/20 pt-3">
+                            <div class="text-sm text-gray-400 mb-1">變成：</div>
+                            <div class="text-lg chalk-white">
+                                請按下 <code class="bg-gray-800 text-[#ffe066] px-1.5 py-0.5 rounded font-mono text-base tracking-wider">Enter</code> 鍵
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ================= 新增：TXT vs MD 實際效果對比 ================= -->
+            <div class="mb-16 relative">
+                <!-- 裝飾塗鴉：大箭頭往下指 -->
+                <div class="absolute -top-10 left-1/4 hidden md:block">
+                    <svg class="w-12 h-12 chalk-stroke opacity-60 rotate-[-20deg]" viewBox="0 0 24 24" fill="none" stroke="#ff99cc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+                </div>
+                
+                <h2 class="chalk-yellow text-3xl md:text-4xl font-bold mb-8 text-center rotate-1">
+                    🥊 實際畫面大比拼！
+                </h2>
+                
+                <div class="flex flex-col md:flex-row items-stretch gap-6 md:gap-8">
+                    <!-- TXT 區塊 -->
+                    <div class="flex-1 border-2 border-gray-400 border-dashed p-6 bg-black/20 rounded-lg relative rotate-n1">
+                        <div class="absolute -top-4 left-4 bg-[#244832] px-2 chalk-white font-bold text-xl">純文字檔 (.txt)</div>
+                        <pre class="chalk-white opacity-70 font-mono text-lg mt-3 whitespace-pre-wrap leading-relaxed">
+# 我的會議筆記
+這是一段非常重要的決議。
+
+待辦事項：
+- 寄送報價單
+- 聯絡設計師
+                        </pre>
+                        <div class="mt-6 text-center text-lg chalk-white opacity-50 border-t border-gray-500/50 pt-3">就是... 一坨字，找不到重點 🥱</div>
+                    </div>
+                    
+                    <!-- 中間的變身魔法箭頭 -->
+                    <div class="flex items-center justify-center py-2 md:py-0">
+                        <svg class="w-10 h-10 md:w-16 md:h-16 chalk-stroke md:rotate-[-90deg]" viewBox="0 0 24 24" fill="none" stroke="#ffe066" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+                    </div>
+
+                    <!-- Markdown 區塊 -->
+                    <div class="flex-1 border-2 border-[#ffe066] p-6 bg-white/5 rounded-lg relative shadow-[0_0_20px_rgba(255,224,102,0.15)] rotate-1">
+                        <div class="absolute -top-4 left-4 bg-[#244832] px-2 chalk-yellow font-bold text-xl">Markdown 渲染後 ✨</div>
+                        <div class="mt-3">
+                            <h1 class="chalk-pink text-3xl font-bold mb-3 border-b-2 border-pink-400/30 pb-2">我的會議筆記</h1>
+                            <p class="chalk-white text-xl mb-4">這是一段<span class="chalk-yellow font-bold text-2xl mx-1">非常重要</span>的決議。</p>
+                            <p class="chalk-white text-lg mb-2">待辦事項：</p>
+                            <ul class="list-disc list-inside chalk-white text-xl marker:text-[#ff99cc] space-y-1">
+                                <li>寄送報價單</li>
+                                <li>聯絡設計師</li>
+                            </ul>
+                        </div>
+                        <div class="mt-6 text-center text-lg chalk-yellow opacity-90 border-t border-[#ffe066]/30 pt-3">自動變成漂亮又清晰的排版！🤩</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= 新增：支援 Markdown 的軟體 ================= -->
+            <div class="mb-16 relative hand-drawn-border p-6 md:p-8 bg-black/10 rotate-n1">
+                <h2 class="chalk-pink text-3xl font-bold mb-4 flex items-center justify-center">
+                    <svg class="w-8 h-8 mr-3 chalk-stroke" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                    哪裡可以使用 Markdown？
+                </h2>
+                <p class="chalk-white text-xl text-center mb-8 opacity-90">現在市面上幾乎所有主流的工具都支援 Markdown 囉！</p>
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                    <!-- Obsidian (跨平台) -->
+                    <div class="p-4 border border-white/20 rounded-xl hover:bg-white/10 transition-colors rotate-1 cursor-default">
+                        <div class="chalk-yellow font-bold text-2xl mb-1">Obsidian</div>
+                        <div class="chalk-white text-sm opacity-80">個人知識管理神器</div>
+                        <div class="text-xs text-blue-300 mt-3 font-sans tracking-wider">🪟 Win · 🍎 Mac</div>
+                    </div>
+                    <!-- Typora (跨平台) -->
+                    <div class="p-4 border border-white/20 rounded-xl hover:bg-white/10 transition-colors rotate-n1 cursor-default">
+                        <div class="chalk-yellow font-bold text-2xl mb-1">Typora</div>
+                        <div class="chalk-white text-sm opacity-80">極簡所見即所得</div>
+                        <div class="text-xs text-blue-300 mt-3 font-sans tracking-wider">🪟 Win · 🍎 Mac</div>
+                    </div>
+                    <!-- Notion (跨平台) -->
+                    <div class="p-4 border border-white/20 rounded-xl hover:bg-white/10 transition-colors rotate-2 cursor-default">
+                        <div class="chalk-yellow font-bold text-2xl mb-1">Notion</div>
+                        <div class="chalk-white text-sm opacity-80">最強大筆記資料庫</div>
+                        <div class="text-xs text-blue-300 mt-3 font-sans tracking-wider">🪟 Win · 🍎 Mac</div>
+                    </div>
+                    <!-- VS Code (跨平台) -->
+                    <div class="p-4 border border-white/20 rounded-xl hover:bg-white/10 transition-colors rotate-n2 cursor-default">
+                        <div class="chalk-yellow font-bold text-2xl mb-1">VS Code</div>
+                        <div class="chalk-white text-sm opacity-80">工程師最愛編輯器</div>
+                        <div class="text-xs text-blue-300 mt-3 font-sans tracking-wider">🪟 Win · 🍎 Mac</div>
+                    </div>
+
+                    <!-- MarkdownPad (Win) -->
+                    <div class="p-4 border border-white/20 rounded-xl hover:bg-white/10 transition-colors rotate-n1 cursor-default">
+                        <div class="chalk-yellow font-bold text-2xl mb-1">MarkdownPad</div>
+                        <div class="chalk-white text-sm opacity-80">Windows 經典老牌</div>
+                        <div class="text-xs text-teal-300 mt-3 font-sans tracking-wider">🪟 Windows 專屬</div>
+                    </div>
+                    <!-- Notepad++ (Win) -->
+                    <div class="p-4 border border-white/20 rounded-xl hover:bg-white/10 transition-colors rotate-2 cursor-default">
+                        <div class="chalk-yellow font-bold text-2xl mb-1">Notepad++</div>
+                        <div class="chalk-white text-sm opacity-80">輕量級程式編輯器</div>
+                        <div class="text-xs text-teal-300 mt-3 font-sans tracking-wider">🪟 Windows 專屬</div>
+                    </div>
+                    <!-- Bear (Mac) -->
+                    <div class="p-4 border border-white/20 rounded-xl hover:bg-white/10 transition-colors rotate-n2 cursor-default">
+                        <div class="chalk-yellow font-bold text-2xl mb-1">Bear 熊掌記</div>
+                        <div class="chalk-white text-sm opacity-80">蘋果生態系高顏值</div>
+                        <div class="text-xs text-pink-300 mt-3 font-sans tracking-wider">🍎 Mac / iOS 專屬</div>
+                    </div>
+                    <!-- MacDown (Mac) -->
+                    <div class="p-4 border border-white/20 rounded-xl hover:bg-white/10 transition-colors rotate-1 cursor-default">
+                        <div class="chalk-yellow font-bold text-2xl mb-1">MacDown</div>
+                        <div class="chalk-white text-sm opacity-80">開源免費輕量級</div>
+                        <div class="text-xs text-pink-300 mt-3 font-sans tracking-wider">🍎 Mac 專屬</div>
+                    </div>
+
+                    <!-- HackMD (Web) -->
+                    <div class="p-4 border border-white/20 rounded-xl hover:bg-white/10 transition-colors rotate-2 cursor-default">
+                        <div class="chalk-yellow font-bold text-2xl mb-1">HackMD</div>
+                        <div class="chalk-white text-sm opacity-80">台灣超紅線上筆記</div>
+                        <div class="text-xs text-purple-300 mt-3 font-sans tracking-wider">🌐 網頁 / 雲端</div>
+                    </div>
+                    <!-- GitHub (Web) -->
+                    <div class="p-4 border border-white/20 rounded-xl hover:bg-white/10 transition-colors rotate-n1 cursor-default">
+                        <div class="chalk-yellow font-bold text-2xl mb-1">GitHub</div>
+                        <div class="chalk-white text-sm opacity-80">開源專案說明標配</div>
+                        <div class="text-xs text-purple-300 mt-3 font-sans tracking-wider">🌐 網頁 / 雲端</div>
+                    </div>
+                    <!-- Discord (Web/App) -->
+                    <div class="p-4 border border-white/20 rounded-xl hover:bg-white/10 transition-colors rotate-1 cursor-default">
+                        <div class="chalk-yellow font-bold text-2xl mb-1">Discord</div>
+                        <div class="chalk-white text-sm opacity-80">聊天群組也能排版</div>
+                        <div class="text-xs text-blue-300 mt-3 font-sans tracking-wider">🪟 Win · 🍎 Mac</div>
+                    </div>
+                    <!-- ChatGPT (Web) -->
+                    <div class="p-4 border border-white/20 rounded-xl hover:bg-white/10 transition-colors rotate-n2 cursor-default">
+                        <div class="chalk-yellow font-bold text-2xl mb-1">ChatGPT</div>
+                        <div class="chalk-white text-sm opacity-80">你現在看到的 AI 回覆</div>
+                        <div class="text-xs text-purple-300 mt-3 font-sans tracking-wider">🌐 網頁 / 雲端</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= 總結頁 ================= -->
+            <div class="text-center mt-12 relative pb-8">
+                <!-- 裝飾線條 -->
+                <svg class="mx-auto w-48 h-6 chalk-stroke mb-8 opacity-60" viewBox="0 0 200 20" preserveAspectRatio="none">
+                    <path d="M0,10 Q50,-5 100,10 T200,10" fill="none" stroke="#f8f8f8" stroke-width="3" stroke-linecap="round"/>
+                </svg>
+
+                <h2 class="chalk-white text-3xl font-bold mb-6 rotate-n1">
+                    簡單來說，學會 Markdown 你就能：
+                </h2>
+                
+                <div class="flex flex-col md:flex-row justify-center items-center gap-6 md:gap-12 text-2xl chalk-yellow">
+                    <div class="flex items-center rotate-2">
+                        <svg class="w-8 h-8 mr-2 chalk-stroke text-[#ff99cc]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        專注寫作，不被打斷
+                    </div>
+                    <div class="flex items-center rotate-n2">
+                        <svg class="w-8 h-8 mr-2 chalk-stroke text-[#ff99cc]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        到哪裡都能無縫開啟
+                    </div>
+                    <div class="flex items-center rotate-1">
+                        <svg class="w-8 h-8 mr-2 chalk-stroke text-[#ff99cc]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        排版速度提升 100%
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= 黑板邊緣物件 ================= -->
+            
+            <!-- 散落的粉筆 -->
+            <div class="absolute bottom-6 right-48 w-14 h-3 bg-[#f8f8f8] rounded-full shadow-lg rotate-[-15deg] z-20 opacity-90 border-b border-gray-400"></div>
+            <div class="absolute bottom-5 right-60 w-8 h-3 bg-[#ff99cc] rounded-full shadow-lg rotate-[25deg] z-20 opacity-90 border-b border-pink-400"></div>
+            
+            <!-- 黑板擦 (3D 視覺) -->
+            <div class="absolute bottom-4 right-10 w-28 h-12 shadow-[5px_5px_15px_rgba(0,0,0,0.5)] rotate-[-6deg] z-30 flex flex-col transform transition hover:scale-105 cursor-pointer">
+                <!-- 橡皮擦黑色海綿部分 -->
+                <div class="h-4 w-full bg-[#2a2a2a] rounded-t-sm border-t border-l border-gray-600"></div>
+                <!-- 橡皮擦木頭把手部分 -->
+                <div class="flex-1 w-full bg-[#d2b48c] rounded-b-sm flex items-center justify-center border-b-[3px] border-r-[3px] border-[#8b5a2b]">
+                    <span class="text-[12px] text-[#5c4033] font-bold opacity-60 font-sans tracking-widest rotate-1">ERASER</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ================= 頁尾簽名 ================= -->
+    <footer class="mt-8 text-center text-gray-400 text-sm md:text-base font-sans tracking-wide w-full max-w-5xl relative z-10">
+        Planning & Design by Timmy(<a href="mailto:timmyc@hauman.com.tw" class="hover:text-gray-200 transition-colors">timmyc@hauman.com.tw</a>) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0
+    </footer>
+
+</body>
+</html>
