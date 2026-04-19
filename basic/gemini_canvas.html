@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Canvas 互動探索指南</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Permanent+Marker&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans TC"', 'sans-serif'],
+                        marker: ['"Permanent Marker"', 'cursive']
+                    },
+                    colors: {
+                        board: {
+                            dark: '#1a3c2c',
+                            light: '#234a38',
+                        },
+                        chalk: {
+                            white: '#f8f9fa',
+                            yellow: '#ffe66d',
+                            pink: '#ff9eb5',
+                            dim: 'rgba(255,255,255,0.6)'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 增加基礎字體大小 1.3倍 (130%)，讓所有使用 rem 的 Tailwind class 等比例放大 */
+        html { font-size: 130%; }
+        
+        body { font-family: '"Noto Sans TC"', sans-serif; background-color: #2c2c2c; padding: 10px; md:padding: 20px; color: #f8f9fa; }
+        
+        /* Chalkboard & Frame */
+        .wood-frame {
+            border: 12px solid #4a3320;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 0 15px rgba(0,0,0,0.9);
+            background-color: #1a3c2c;
+            position: relative;
+            overflow: hidden;
+        }
+        .chalkboard {
+            background-image: 
+                radial-gradient(circle, rgba(255,255,255,0.02) 20%, transparent 20%),
+                radial-gradient(circle, rgba(255,255,255,0.02) 20%, transparent 20%);
+            background-position: 0 0, 50px 50px;
+            background-size: 100px 100px;
+            box-shadow: inset 0 0 80px rgba(0,0,0,0.6);
+            min-height: 95vh;
+        }
+        
+        /* Text Effects */
+        .chalk-text { text-shadow: 1px 1px 2px rgba(255,255,255,0.3); }
+        .chalk-yellow { color: #ffe66d; text-shadow: 1px 1px 3px rgba(255,230,109,0.5); }
+        .chalk-pink { color: #ff9eb5; text-shadow: 1px 1px 3px rgba(255,158,181,0.5); }
+        
+        /* Hand-drawn Borders */
+        .chalk-border {
+            border: 2px solid rgba(255,255,255,0.6);
+            border-radius: 5px 15px 5px 15px / 15px 5px 15px 5px;
+            background: rgba(255,255,255,0.01);
+        }
+        .chalk-border-dashed {
+            border: 2px dashed rgba(255,230,109,0.6);
+            border-radius: 10px 4px 12px 6px / 6px 12px 4px 10px;
+        }
+        
+        /* 將圖表容器改為使用 rem，使其隨字體放大而等比擴大空間 */
+        .chart-container { position: relative; width: 100%; max-width: 40rem; margin-left: auto; margin-right: auto; height: 25rem; max-height: 30rem; }
+        @media (min-width: 768px) { .chart-container { height: 30rem; } }
+        
+        .case-card { transition: all 0.3s ease; }
+        .case-card:hover { transform: scale(1.02) rotate(-1deg); border-color: #ffe66d; }
+        
+        /* Doodles & Eraser */
+        .doodle { position: absolute; font-family: 'Permanent Marker', cursive; pointer-events: none; z-index: 10;}
+        .eraser-mark {
+            position: absolute; width: 200px; height: 50px;
+            background: rgba(255,255,255,0.04); filter: blur(10px);
+            border-radius: 50%; transform: rotate(-15deg); pointer-events: none;
+        }
+        .eraser {
+            position: absolute; bottom: 10px; right: 20px;
+            width: 80px; height: 30px; background: #e0e0e0;
+            border-bottom: 8px solid #333; border-radius: 4px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+            transform: rotate(-5deg); z-index: 20;
+        }
+        
+        .tab-btn { transition: all 0.2s; border: 2px solid transparent; }
+        .tab-btn.active { border-color: #ff9eb5; border-radius: 20px 10px 20px 10px / 10px 20px 10px 20px; color: #ff9eb5; }
+        
+        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; }
+        .accordion-content.open { max-height: 600px; border-top: 1px dashed rgba(255,255,255,0.3); margin-top: 10px; padding-top: 10px; }
+    </style>
+</head>
+<body class="antialiased selection:bg-chalk-yellow selection:text-board-dark">
+    <div class="max-w-7xl mx-auto wood-frame mt-2 mb-8">
+        <div class="chalkboard p-4 md:p-10 relative">
+            
+            <!-- Eraser and Dust marks -->
+            <div class="eraser-mark top-20 left-10"></div>
+            <div class="eraser-mark bottom-40 right-1/4 transform rotate-45"></div>
+            <div class="eraser"></div>
+            
+            <!-- Doodles -->
+            <div class="doodle text-chalk-yellow text-4xl top-10 right-10 rotate-12">★</div>
+            <div class="doodle text-chalk-pink text-3xl top-40 left-5 -rotate-12">➔</div>
+            <div class="doodle text-chalk-white text-5xl bottom-20 left-10 opacity-50">⭕</div>
+
+            <header class="text-center mb-16 relative z-10 pt-8">
+                <h1 class="text-4xl md:text-5xl font-bold chalk-yellow mb-4">✨ Gemini Canvas 互動探索指南</h1>
+                <div class="w-64 h-1 bg-chalk-white mx-auto opacity-50 rounded mb-6"></div>
+                <p class="text-xl chalk-text max-w-3xl mx-auto leading-relaxed">
+                    打破單向問答！體驗 <span class="chalk-pink text-2xl font-bold">左側對話、右側共創</span> 的黑板工作區。<br>
+                    請 AI 生成內容，直接在右側預覽、編輯，就像在黑板上塗改一樣簡單！
+                </p>
+            </header>
+
+            <main class="space-y-20 relative z-10">
+
+                <!-- Section 1: Overview -->
+                <section id="overview" class="max-w-6xl mx-auto">
+                    <div class="mb-10 flex flex-col items-start relative inline-block">
+                        <h2 class="text-3xl md:text-4xl font-bold chalk-pink relative z-10">1. 核心教學方向</h2>
+                        <!-- 將波浪線改為標題下方的畫線效果，移除絕對定位使其正常往下排列 -->
+                        <span class="text-chalk-yellow text-2xl md:text-3xl -mt-1 md:-mt-2 tracking-[0.2em] opacity-80 pointer-events-none">〰️〰️〰️〰️</span>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-10 items-center">
+                        <div class="space-y-6">
+                            <div class="p-5 chalk-border hover:bg-board-light transition-colors">
+                                <h3 class="font-bold text-xl mb-2 chalk-yellow">💻 網頁開發與互動原型</h3>
+                                <p class="chalk-text mb-2">無需繁瑣設定，直接運行 HTML/React/Angular。</p>
+                                <span class="text-sm border border-chalk-white px-2 py-1 rounded opacity-70">適合: 開發初學者, UI/UX, 產品經理</span>
+                            </div>
+                            <div class="p-5 chalk-border hover:bg-board-light transition-colors">
+                                <h3 class="font-bold text-xl mb-2 chalk-yellow">📝 文本創作與結構化寫作</h3>
+                                <p class="chalk-text mb-2">長文寫作、報告排版，AI 作為您的「協作編輯」。</p>
+                                <span class="text-sm border border-chalk-white px-2 py-1 rounded opacity-70">適合: 教師, 行銷, 作家, 學生</span>
+                            </div>
+                            <div class="p-5 chalk-border hover:bg-board-light transition-colors">
+                                <h3 class="font-bold text-xl mb-2 chalk-yellow">📐 學術寫作與數學排版</h3>
+                                <p class="chalk-text mb-2">自然語言描述公式，一鍵生成 LaTeX 可編譯文件與 PDF。</p>
+                                <span class="text-sm border border-chalk-white px-2 py-1 rounded opacity-70">適合: 研究生, 教授, 理科教師</span>
+                            </div>
+                            <div class="p-5 chalk-border hover:bg-board-light transition-colors">
+                                <h3 class="font-bold text-xl mb-2 chalk-yellow">🎮 遊戲化學習與視覺化</h3>
+                                <p class="chalk-text mb-2">生成互動小遊戲、物理模擬，將抽象概念具象化。</p>
+                                <span class="text-sm border border-chalk-white px-2 py-1 rounded opacity-70">適合: 教育工作者, 科普創作者</span>
+                            </div>
+                        </div>
+                        
+                        <div class="w-full flex justify-center">
+                            <div class="chart-container">
+                                <canvas id="overviewChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 2: Cases -->
+                <section id="cases" class="max-w-6xl mx-auto">
+                    <div class="mb-8 relative">
+                        <h2 class="text-3xl font-bold chalk-pink mb-2">2. 實戰案例探索區</h2>
+                        <p class="chalk-text mb-6">點擊分類標籤篩選，查看專屬 Prompt 與亮點！</p>
+                        
+                        <div class="flex flex-wrap gap-4 mb-8" id="filterContainer">
+                            <button class="tab-btn active px-4 py-1 text-lg chalk-text cursor-pointer" data-filter="all">全部案例</button>
+                            <button class="tab-btn px-4 py-1 text-lg chalk-text cursor-pointer" data-filter="web">網頁與開發</button>
+                            <button class="tab-btn px-4 py-1 text-lg chalk-text cursor-pointer" data-filter="text">教學與文本</button>
+                            <button class="tab-btn px-4 py-1 text-lg chalk-text cursor-pointer" data-filter="math">數理學術</button>
+                            <button class="tab-btn px-4 py-1 text-lg chalk-text cursor-pointer" data-filter="data">數據與多模態</button>
+                        </div>
+
+                        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6" id="casesGrid">
+                            <!-- JS Injected -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 3: Tips -->
+                <section id="tips" class="max-w-4xl mx-auto pb-10">
+                    <div class="mb-6">
+                        <h2 class="text-3xl font-bold chalk-yellow mb-2 text-center">💡 高效使用技巧</h2>
+                    </div>
+                    <div class="space-y-4" id="accordionContainer">
+                        <!-- JS Injected -->
+                    </div>
+                </section>
+                
+                <footer class="text-center opacity-60 text-sm mt-10 chalk-text pb-4">
+                    <p>~~ 透過 Gemini Canvas 協作生成 ~~</p>
+                </footer>
+
+            </main>
+        </div>
+    </div>
+
+    <script>
+        const appState = {
+            currentFilter: 'all',
+            cases: [
+                {
+                    id: 1,
+                    title: '教育互動工具 (React 番茄鐘)',
+                    category: 'web',
+                    icon: '⏱️',
+                    scenario: '老師想為學生做一個「番茄鐘工作法」的計時器，幫助學生專注。',
+                    prompt: '請用 React 幫我寫一個單一檔案的『番茄鐘計時器』。需要有 25 分鐘工作、5 分鐘休息的按鈕切換。使用 Tailwind CSS 進行美化，風格要現代且帶有圓角設計。請加上開始、暫停和重置按鈕。',
+                    highlight: '生成後，可以直接點擊右側的 "Preview" 看到互動計時器。可接續說：「幫我在計時結束時加上一個網頁通知音效」，它會直接更新程式碼。'
+                },
+                {
+                    id: 2,
+                    title: '自動化教案生成 (Markdown)',
+                    category: 'text',
+                    icon: '📘',
+                    scenario: '高中資訊老師需要準備一堂 Python 入門課。',
+                    prompt: '請幫我生成一份 Markdown 格式的『高中生 Python 基礎入門』教案。包含：1. 教學目標 2. 核心概念（變數、迴圈、條件判斷） 3. 三個有趣的隨堂小練習（附解答）。排版要清晰，多使用標題和條列式清單。',
+                    highlight: '生成文件後，可手動在右側編輯器修改，或選取特定段落請 AI「把這個練習題變得更有趣，結合寶可夢的主題」。'
+                },
+                {
+                    id: 3,
+                    title: '理科視覺化模擬 (Canvas 動畫)',
+                    category: 'web',
+                    icon: '🌍',
+                    scenario: '物理老師想解釋「太陽系行星公轉」的概念。',
+                    prompt: '請用 HTML 和 JavaScript (Canvas API) 寫一個單一檔案的網頁，模擬太陽、地球和月亮的公轉動畫。背景設為深色星空，軌道用虛線表示。請確保程式碼包含 requestAnimationFrame 來實現平滑動畫。',
+                    highlight: '學生可以直接在預覽區看到行星運轉的動畫，老師可以教學生修改左側程式碼中的變數，立刻觀察右側動畫變化，達到做中學的效果。'
+                },
+                {
+                    id: 4,
+                    title: '專業數學考卷 (LaTeX 排版)',
+                    category: 'math',
+                    icon: '∱',
+                    scenario: '數學老師需要出一份帶有複雜公式的小考測驗。',
+                    prompt: '請幫我生成一份 LaTeX 格式的高中微積分小考測驗。包含 5 題選擇題和 2 題計算題。題目涵蓋極限 (Limits) 和導數 (Derivatives)。請使用標準的 article 格式，並排版整齊。提供選擇題的選項 (A, B, C, D)。',
+                    highlight: 'Canvas 會在背景編譯 LaTeX 並直接顯示 PDF 預覽，完美呈現複雜的數學積分符號和分數。'
+                },
+                {
+                    id: 5,
+                    title: '資料匯入與視覺化工具 (React)',
+                    category: 'data',
+                    icon: '📊',
+                    scenario: '老師或研究員需要一個簡單網頁工具，讓使用者上傳 CSV 檔案並自動畫出圖表。',
+                    prompt: '請用 React 寫一個單一檔案的『CSV 資料視覺化工具』。包含一個檔案上傳區塊，利用 FileReader 讀取 CSV 資料後，在畫面上用簡單的長條圖呈現數據。請加上 Tailwind CSS 美化介面，並包含錯誤處理提示。',
+                    highlight: '在預覽模式下這個工具是真的可運作的！可直接拖曳本機 CSV 檔案測試，即時驗證資料處理邏輯，適合建立團隊內部輕量小工具。'
+                },
+                {
+                    id: 6,
+                    title: '多模態資料處理與統整',
+                    category: 'data',
+                    icon: '👁️',
+                    scenario: '設計師畫了草圖，或行銷人員有 PDF 報告，希望能轉換為程式碼或結構化重點。',
+                    prompt: '【先上傳圖片/文件】\n情境 A：「請分析這張手繪草圖，並用 HTML+Tailwind 在右側寫出對應的網頁原型。」\n情境 B：「請閱讀這份 PDF，在右側建立 Markdown 包含核心摘要、數據發現與建議表格。」',
+                    highlight: '結合多模態解析能力，Canvas 成為數位化轉換站。讀取實體資料後，轉譯的結構化成果直接呈現在右側，方便接續微調。'
+                }
+            ],
+            tips: [
+                {
+                    title: '1. 指明「單一檔案」',
+                    content: '如果是開發網頁或應用，務必提醒 AI 「將所有 HTML, CSS (用 Tailwind) 和 JS 寫在同一個檔案中」，或是「寫成一個單一檔案的 React 組件」，這樣 Canvas 的預覽效果最好。'
+                },
+                {
+                    title: '2. 善用「局部修改」',
+                    content: '不要每次都重新生成整個專案。您可以對 AI 說：「維持目前的架構，但把背景顏色改成淺藍色」，AI 會直接在當前檔案上進行 Diff 修改。'
+                },
+                {
+                    title: '3. 宣告目標受眾',
+                    content: '在 Prompt 中說明「這是一份給小學生的講義」或「這是給資深工程師的技術文件」，AI 生成的語氣和複雜度會更精準。'
+                },
+                {
+                    title: '4. 擁抱實驗精神',
+                    content: '鼓勵學生或參與者故意去破壞程式碼，再請 AI 幫忙 Debug，這是非常好的學習過程。'
+                }
+            ]
+        };
+
+        function initOverviewChart() {
+            const ctx = document.getElementById('overviewChart').getContext('2d');
+            Chart.defaults.color = '#f8f9fa';
+            Chart.defaults.font.family = '"Noto Sans TC", sans-serif';
+            // 同步放大 Chart.js 的預設字體
+            Chart.defaults.font.size = 16;
+            
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['邏輯運算 (Logic)', '創意發想 (Creativity)', '學術嚴謹 (Academic)', '視覺互動 (Interactivity)', '資料處理 (Data)'],
+                    datasets: [
+                        {
+                            label: '網頁開發與互動',
+                            data: [90, 80, 20, 100, 60],
+                            backgroundColor: 'rgba(255, 230, 109, 0.2)',
+                            borderColor: '#ffe66d',
+                            pointBackgroundColor: '#ffe66d',
+                            borderWidth: 2
+                        },
+                        {
+                            label: '學術與文本創作',
+                            data: [40, 90, 100, 10, 70],
+                            backgroundColor: 'rgba(255, 158, 181, 0.2)',
+                            borderColor: '#ff9eb5',
+                            pointBackgroundColor: '#ff9eb5',
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(255,255,255,0.2)' },
+                            grid: { color: 'rgba(255,255,255,0.2)' },
+                            // 同步放大雷達圖外圍標籤字體
+                            pointLabels: { font: { size: 17 }, color: '#f8f9fa' },
+                            ticks: { display: false, min: 0, max: 100, backdropColor: 'transparent' }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#f8f9fa' } },
+                        tooltip: { backgroundColor: 'rgba(0,0,0,0.8)' }
+                    }
+                }
+            });
+        }
+
+        function renderCases(filterType) {
+            const grid = document.getElementById('casesGrid');
+            grid.innerHTML = '';
+            
+            const filteredCases = filterType === 'all' 
+                ? appState.cases 
+                : appState.cases.filter(c => c.category === filterType);
+
+            filteredCases.forEach((c, index) => {
+                const card = document.createElement('div');
+                card.className = 'case-card chalk-border p-5 cursor-pointer relative';
+                
+                // Add a random tick mark sometimes to look hand-drawn
+                const tick = index % 2 === 0 ? `<div class="absolute top-2 right-4 text-chalk-yellow text-xl font-marker">✓</div>` : '';
+
+                card.innerHTML = `
+                    ${tick}
+                    <div onclick="toggleCardDetails(${index})">
+                        <div class="flex items-center space-x-3 mb-3">
+                            <div class="text-3xl">${c.icon}</div>
+                            <h3 class="font-bold text-xl chalk-yellow leading-tight">${c.title}</h3>
+                        </div>
+                        <p class="chalk-text mb-4 text-sm opacity-90">${c.scenario}</p>
+                        <div class="flex justify-between items-center text-sm chalk-pink">
+                            <span>[點擊查看 Prompt]</span>
+                            <span id="icon-${index}">▼</span>
+                        </div>
+                    </div>
+                    <div id="details-${index}" class="hidden mt-4 pt-4 border-t border-dashed border-gray-400 space-y-4">
+                        <div>
+                            <h4 class="text-sm font-bold chalk-pink mb-1">✎ 輸入 Prompt：</h4>
+                            <div class="bg-black bg-opacity-20 p-3 rounded text-sm chalk-text font-sans whitespace-pre-wrap">${c.prompt}</div>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-bold chalk-yellow mb-1">★ Canvas 亮點：</h4>
+                            <p class="text-sm chalk-text leading-relaxed opacity-90">${c.highlight}</p>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        window.toggleCardDetails = function(index) {
+            const details = document.getElementById(`details-${index}`);
+            const icon = document.getElementById(`icon-${index}`);
+            if (details.classList.contains('hidden')) {
+                details.classList.remove('hidden');
+                icon.textContent = '▲';
+            } else {
+                details.classList.add('hidden');
+                icon.textContent = '▼';
+            }
+        };
+
+        function setupFilters() {
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    buttons.forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    const filter = e.target.getAttribute('data-filter');
+                    renderCases(filter);
+                });
+            });
+        }
+
+        function renderTips() {
+            const container = document.getElementById('accordionContainer');
+            appState.tips.forEach((tip, index) => {
+                const item = document.createElement('div');
+                item.className = 'chalk-border-dashed p-4 cursor-pointer hover:bg-board-light transition-colors';
+                
+                item.innerHTML = `
+                    <div class="flex justify-between items-center" onclick="toggleAccordion(${index})">
+                        <span class="font-bold text-lg chalk-white pl-2">■ ${tip.title}</span>
+                        <span id="acc-icon-${index}" class="text-chalk-pink text-xl">＋</span>
+                    </div>
+                    <div id="acc-content-${index}" class="accordion-content px-6">
+                        <p class="text-chalk-white opacity-90 leading-relaxed">${tip.content}</p>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        window.toggleAccordion = function(index) {
+            const content = document.getElementById(`acc-content-${index}`);
+            const icon = document.getElementById(`acc-icon-${index}`);
+            
+            if (content.classList.contains('open')) {
+                content.classList.remove('open');
+                icon.textContent = '＋';
+            } else {
+                document.querySelectorAll('.accordion-content').forEach((el, i) => {
+                    el.classList.remove('open');
+                    document.getElementById(`acc-icon-${i}`).textContent = '＋';
+                });
+                content.classList.add('open');
+                icon.textContent = '－';
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initOverviewChart();
+            renderCases('all');
+            setupFilters();
+            renderTips();
+        });
+    </script>
+</body>
+</html>
