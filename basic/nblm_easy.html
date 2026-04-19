@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NotebookLM 黑板教學指南</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* Chosen Palette: 
+           Background: Deep Chalkboard Green (#1b3622)
+           Frame: Wooden Brown (#4a3123)
+           Chalk White: #f8fafc with glow
+           Chalk Yellow: #fde047 with glow
+           Chalk Pink: #f472b6 with glow
+        */
+
+        /* Application Structure Plan:
+           A tabbed interface presented as "chalkboard sections".
+           - Intro: Big welcoming text, sets the context.
+           - Steps: Interactive numbered list resembling chalk circles.
+           - Cases: 2x2 grid drawn with chalk lines (HTML/CSS) instead of digital charts to maintain the analog aesthetic.
+           - Summary & Exercises: Interactive checklist with chalk checkmarks.
+           This structure naturally flows like a teacher writing on different parts of a long chalkboard.
+        */
+
+        /* Visualization & Content Choices:
+           - Goal: Inform & Engage -> Viz: Pure HTML/CSS styled as chalk writing. 
+           - Interactions: Tab switching (erasing/rewriting), Step clicking (highlighting), Checklist (drawing a checkmark).
+           - NO SVG/Mermaid used. All graphics (eraser, doodles, smudges) are CSS and Unicode text.
+        */
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #2c2c2c;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 10px;
+        }
+
+        /* Chalkboard Main Frame */
+        .board-frame {
+            background-color: #4a3123; /* Wood frame */
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.8), inset 0 0 10px rgba(0,0,0,0.5);
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        /* Chalkboard Surface */
+        .chalkboard {
+            background-color: #1b3622;
+            background-image: 
+                /* Subtle noise/dust pattern */
+                radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px),
+                radial-gradient(circle, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 30px 30px, 40px 40px;
+            background-position: 0 0, 15px 15px;
+            border-radius: 4px;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
+            position: relative;
+            overflow: hidden;
+            min-height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Smudge effects (erased chalk) */
+        .smudge-1 { position: absolute; top: 10%; left: 20%; width: 250px; height: 80px; background: rgba(255,255,255,0.04); filter: blur(20px); border-radius: 50%; pointer-events: none; transform: rotate(-10deg); }
+        .smudge-2 { position: absolute; bottom: 30%; right: 15%; width: 300px; height: 100px; background: rgba(255,255,255,0.03); filter: blur(25px); border-radius: 50%; pointer-events: none; transform: rotate(15deg); }
+        .smudge-3 { position: absolute; top: 50%; left: 40%; width: 150px; height: 150px; background: rgba(255,255,255,0.02); filter: blur(30px); border-radius: 50%; pointer-events: none; }
+
+        /* Chalk Text Styles */
+        .chalk-white { color: #f8fafc; text-shadow: 0px 0px 3px rgba(255,255,255,0.6), 1px 1px 1px rgba(0,0,0,0.5); }
+        .chalk-yellow { color: #fde047; text-shadow: 0px 0px 4px rgba(253,224,71,0.6), 1px 1px 1px rgba(0,0,0,0.5); }
+        .chalk-pink { color: #f472b6; text-shadow: 0px 0px 4px rgba(244,114,182,0.6), 1px 1px 1px rgba(0,0,0,0.5); }
+
+        /* Chalk borders & doodles */
+        .chalk-border { border: 2px solid rgba(255,255,255,0.8); border-radius: 255px 15px 225px 15px/15px 225px 15px 255px; }
+        .chalk-border-dashed { border: 2px dashed rgba(255,255,255,0.6); }
+        .chalk-border-yellow { border: 2px dashed rgba(253,224,71,0.8); border-radius: 10px 255px 15px 225px/255px 15px 225px 15px; }
+        .chalk-border-pink { border: 2px solid rgba(244,114,182,0.8); border-radius: 255px 15px 225px 15px/15px 225px 15px 255px; }
+        
+        .doodle-underline { text-decoration: underline; text-decoration-style: wavy; text-decoration-color: #fde047; text-underline-offset: 6px; }
+        .doodle-circle { display: inline-block; padding: 2px 8px; border: 2px solid #f472b6; border-radius: 50% 40% 60% 40% / 40% 50% 40% 60%; }
+
+        /* Navigation Tabs */
+        .nav-tab { background: transparent; border: none; cursor: pointer; transition: all 0.3s ease; position: relative; }
+        .nav-tab::after { content: ''; position: absolute; bottom: -5px; left: 10%; width: 80%; height: 2px; background-color: transparent; border-radius: 50%; }
+        .nav-tab.active .nav-text { color: #fde047; text-shadow: 0px 0px 5px rgba(253,224,71,0.8); font-weight: bold; transform: scale(1.1); display: inline-block;}
+        .nav-tab.active::after { background-color: #fde047; box-shadow: 0 0 4px #fde047; }
+        .nav-tab:hover:not(.active) .nav-text { color: #f472b6; }
+
+        /* Eraser */
+        .eraser { position: absolute; bottom: 15px; right: 20px; width: 60px; height: 30px; background: #e2e8f0; border-top: 10px solid #27272a; border-radius: 4px; transform: rotate(-15deg); box-shadow: 2px 2px 5px rgba(0,0,0,0.5); pointer-events: none; z-index: 10;}
+        .eraser::after { content: ''; position: absolute; bottom: -2px; left: 5%; width: 90%; height: 4px; background: rgba(255,255,255,0.4); filter: blur(2px); }
+
+        /* Animations */
+        @keyframes fadeInScale { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+        .animate-chalk { animation: fadeInScale 0.4s ease-out forwards; }
+        
+        /* Custom Checkbox */
+        .chalk-checkbox { appearance: none; width: 28px; height: 28px; border: 2px solid #f8fafc; border-radius: 4px; outline: none; cursor: pointer; position: relative; background: transparent; }
+        .chalk-checkbox:checked::before { content: '✔'; position: absolute; top: -10px; left: 2px; color: #fde047; font-size: 28px; font-weight: bold; text-shadow: 0 0 3px #fde047; }
+        .crossed-out { text-decoration: line-through; text-decoration-color: #f8fafc; text-decoration-thickness: 2px; opacity: 0.7; }
+
+        /* Hide scrollbar for clean look */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1b3622; }
+        ::-webkit-scrollbar-thumb { background: #4a3123; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <div class="board-frame">
+        <div class="chalkboard p-4 md:p-8">
+            <!-- Smudge Textures -->
+            <div class="smudge-1"></div>
+            <div class="smudge-2"></div>
+            <div class="smudge-3"></div>
+
+            <!-- Header / Navigation -->
+            <header class="flex flex-col md:flex-row justify-between items-center mb-8 pb-4 border-b-2 border-dashed border-gray-500 relative z-10">
+                <div class="text-3xl md:text-4xl font-black chalk-white tracking-widest mb-4 md:mb-0 flex items-center gap-2">
+                    <span class="chalk-yellow text-4xl">★</span> NotebookLM 小教室
+                </div>
+                <nav class="flex space-x-6">
+                    <button onclick="switchBoard('intro')" id="tab-intro" class="nav-tab active">
+                        <span class="nav-text chalk-white text-xl font-bold">1. 開頭介紹</span>
+                    </button>
+                    <button onclick="switchBoard('main')" id="tab-main" class="nav-tab">
+                        <span class="nav-text chalk-white text-xl font-bold">2. 主要內容</span>
+                    </button>
+                    <button onclick="switchBoard('summary')" id="tab-summary" class="nav-tab">
+                        <span class="nav-text chalk-white text-xl font-bold">3. 總結練習</span>
+                    </button>
+                </nav>
+            </header>
+
+            <!-- Board 1: Introduction -->
+            <section id="view-intro" class="flex-grow flex flex-col items-center justify-center text-center relative z-10 animate-chalk">
+                <h1 class="text-5xl md:text-7xl font-black chalk-yellow mb-6 leading-tight">
+                    打造你專屬的<br>
+                    <span class="chalk-border-pink px-4 py-2 mt-4 inline-block transform -rotate-2">「超強數位小幫手」</span>
+                </h1>
+                
+                <div class="max-w-3xl mt-8 chalk-white text-2xl md:text-3xl leading-relaxed space-y-6">
+                    <p>
+                        想像你有一個<span class="chalk-pink font-bold text-4xl">超聰明</span>的助理！
+                    </p>
+                    <p class="chalk-border border-gray-400 p-8 bg-[#23452b] bg-opacity-50">
+                        你給他什麼資料，他就 <br>
+                        <span class="doodle-underline chalk-yellow font-bold text-4xl mt-2 inline-block">只根據這些資料</span> 回答你！
+                    </p>
+                    <p class="flex items-center justify-center gap-2 text-gray-300">
+                        <span class="text-3xl">➔</span> 絕對不會胡說八道，還會告訴你答案出處。
+                    </p>
+                </div>
+                
+                <div class="mt-12">
+                    <button onclick="switchBoard('main')" class="text-3xl chalk-yellow hover:text-white transition-colors duration-300 flex items-center gap-2 font-bold">
+                        開始上課 <span class="text-4xl">☛</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Board 2: Main Content (Steps & Cases) -->
+            <section id="view-main" class="hidden flex-grow flex-col relative z-10 animate-chalk">
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
+                    
+                    <!-- Left Column: 4 Steps -->
+                    <div class="chalk-border p-6 flex flex-col h-full bg-[#1b3622]">
+                        <h2 class="text-4xl font-bold chalk-yellow mb-6 flex items-center gap-2">
+                            <span class="doodle-circle">📝</span> 簡單四步學會
+                        </h2>
+                        
+                        <div class="space-y-5 flex-grow overflow-y-auto pr-2">
+                            <!-- Step 1 -->
+                            <div class="cursor-pointer hover:bg-[#23452b] p-3 rounded transition-colors group" onclick="toggleDetail('step1')">
+                                <h3 class="text-2xl font-bold chalk-white group-hover:chalk-pink transition-colors">
+                                    <span class="chalk-yellow text-3xl mr-2">①</span> 把資料餵給它
+                                </h3>
+                                <div id="step1-detail" class="hidden mt-3 ml-10 chalk-white text-lg md:text-xl leading-relaxed border-l-2 border-dashed border-gray-500 pl-4">
+                                    Word、PDF、網址、YT 影片都可以！<br>
+                                    一次最多 50 份，每份可以 50 萬字 〰〰
+                                </div>
+                            </div>
+                            <!-- Step 2 -->
+                            <div class="cursor-pointer hover:bg-[#23452b] p-3 rounded transition-colors group" onclick="toggleDetail('step2')">
+                                <h3 class="text-2xl font-bold chalk-white group-hover:chalk-pink transition-colors">
+                                    <span class="chalk-yellow text-3xl mr-2">②</span> 開口問問題
+                                </h3>
+                                <div id="step2-detail" class="hidden mt-3 ml-10 chalk-white text-lg md:text-xl leading-relaxed border-l-2 border-dashed border-gray-500 pl-4">
+                                    自動畫重點！<br>
+                                    點擊小數字 <span class="chalk-pink font-bold">[1]</span> 可以檢查出處，防說謊！
+                                </div>
+                            </div>
+                            <!-- Step 3 -->
+                            <div class="cursor-pointer hover:bg-[#23452b] p-3 rounded transition-colors group" onclick="toggleDetail('step3')">
+                                <h3 class="text-2xl font-bold chalk-white group-hover:chalk-pink transition-colors">
+                                    <span class="chalk-yellow text-3xl mr-2">③</span> 變成廣播節目
+                                </h3>
+                                <div id="step3-detail" class="hidden mt-3 ml-10 chalk-white text-lg md:text-xl leading-relaxed border-l-2 border-dashed border-gray-500 pl-4">
+                                    按一下 <span class="chalk-yellow">Audio Overview</span>，<br>
+                                    硬梆梆資料瞬間變雙人 Podcast 聊天！🎙️
+                                </div>
+                            </div>
+                            <!-- Step 4 -->
+                            <div class="cursor-pointer hover:bg-[#23452b] p-3 rounded transition-colors group" onclick="toggleDetail('step4')">
+                                <h3 class="text-2xl font-bold chalk-white group-hover:chalk-pink transition-colors">
+                                    <span class="chalk-yellow text-3xl mr-2">④</span> 注意安全
+                                </h3>
+                                <div id="step4-detail" class="hidden mt-3 ml-10 chalk-white text-lg md:text-xl leading-relaxed border-l-2 border-dashed border-gray-500 pl-4">
+                                    資料不會外洩給其他 AI，<br>
+                                    但還是別放最高機密密碼喔 🔒
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center mt-4 text-gray-300 text-base">（點擊上方步驟可以看詳細筆記喔！）</div>
+                    </div>
+
+                    <!-- Right Column: Cases Matrix -->
+                    <div class="flex flex-col h-full">
+                        <h2 class="text-4xl font-bold chalk-pink mb-6 text-center doodle-underline">
+                            💡 它可以幫誰？
+                        </h2>
+                        
+                        <!-- 2x2 Grid drawn with chalk styles -->
+                        <div class="grid grid-cols-2 grid-rows-2 gap-4 flex-grow">
+                            
+                            <!-- Case 1 -->
+                            <div class="chalk-border-dashed p-4 flex flex-col justify-center text-center hover:bg-[#23452b] transition-colors">
+                                <div class="text-4xl mb-2">🎓</div>
+                                <h3 class="font-bold chalk-yellow text-xl mb-2">學生 / 進修</h3>
+                                <p class="chalk-white text-base md:text-lg">做 10 份報告比較表<br>考前聽廣播複習</p>
+                            </div>
+                            
+                            <!-- Case 2 -->
+                            <div class="chalk-border-dashed p-4 flex flex-col justify-center text-center hover:bg-[#23452b] transition-colors relative">
+                                <!-- Chalk dividing lines intersection simulation -->
+                                <div class="absolute -left-2 -bottom-2 w-4 h-4 bg-[#1b3622] rounded-full z-10"></div>
+                                <div class="text-4xl mb-2">🏫</div>
+                                <h3 class="font-bold chalk-yellow text-xl mb-2">老師 / 家長</h3>
+                                <p class="chalk-white text-base md:text-lg">自動出選擇題<br>把難文章變童話</p>
+                            </div>
+
+                            <!-- Case 3 -->
+                            <div class="chalk-border-dashed p-4 flex flex-col justify-center text-center hover:bg-[#23452b] transition-colors">
+                                <div class="text-4xl mb-2">💼</div>
+                                <h3 class="font-bold chalk-yellow text-xl mb-2">上班族 / 老闆</h3>
+                                <p class="chalk-white text-base md:text-lg">錄音轉最強會議紀錄<br>當公司新人小百科</p>
+                            </div>
+
+                            <!-- Case 4 -->
+                            <div class="chalk-border-dashed p-4 flex flex-col justify-center text-center hover:bg-[#23452b] transition-colors">
+                                <div class="text-4xl mb-2">🎨</div>
+                                <h3 class="font-bold chalk-yellow text-xl mb-2">小編 / 創作者</h3>
+                                <p class="chalk-white text-base md:text-lg">濃縮 2 小時長影片<br>碎碎念錄音變好文章</p>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- Board 3: Summary & Exercises -->
+            <section id="view-summary" class="hidden flex-grow flex-col relative z-10 animate-chalk">
+                <h2 class="text-5xl font-black chalk-yellow mb-8 text-center">🎯 動手玩玩看！</h2>
+                
+                <div class="max-w-4xl mx-auto w-full chalk-border-yellow p-6 md:p-10 bg-[#23452b] bg-opacity-40">
+                    <p class="chalk-white text-2xl mb-8 font-bold text-center border-b-2 border-dashed border-gray-500 pb-4">
+                        光聽不練假把戲，完成任務打勾勾！✔
+                    </p>
+
+                    <div class="space-y-8 mt-6">
+                        
+                        <!-- Task 1 -->
+                        <div class="flex items-start gap-4">
+                            <input type="checkbox" id="task1" class="chalk-checkbox mt-1" onchange="toggleTask('text1', this)">
+                            <label for="task1" id="text1" class="chalk-white text-xl md:text-2xl cursor-pointer transition-all">
+                                <strong class="chalk-pink text-2xl">任務一：當個小偵探找碴</strong><br>
+                                <span class="text-lg md:text-xl text-gray-200 mt-2 inline-block leading-relaxed">
+                                    上傳一篇故意寫錯的小故事，問它問題，然後點擊 <span class="chalk-yellow font-bold">[1]</span> 檢查它有沒有抓到錯誤。
+                                </span>
+                            </label>
+                        </div>
+
+                        <!-- Task 2 -->
+                        <div class="flex items-start gap-4">
+                            <input type="checkbox" id="task2" class="chalk-checkbox mt-1" onchange="toggleTask('text2', this)">
+                            <label for="task2" id="text2" class="chalk-white text-xl md:text-2xl cursor-pointer transition-all">
+                                <strong class="chalk-pink text-2xl">任務二：變身廣播台台長</strong><br>
+                                <span class="text-lg md:text-xl text-gray-200 mt-2 inline-block leading-relaxed">
+                                    隨便上傳一篇長文章，按右上角的「語音總覽 (Audio Overview)」，聽聽 AI 怎麼把它變成雙人聊天！
+                                </span>
+                            </label>
+                        </div>
+
+                    </div>
+
+                    <!-- Conclusion text revealed when both checked -->
+                    <div id="conclusion-box" class="mt-10 text-center hidden opacity-0 transition-opacity duration-1000">
+                        <div class="text-6xl mb-4">🎉</div>
+                        <h3 class="text-3xl font-bold chalk-yellow mb-4 doodle-underline">恭喜畢業！</h3>
+                        <p class="chalk-white text-xl md:text-2xl leading-relaxed">
+                            記住最重要的心法：<br>
+                            <span class="chalk-pink text-3xl font-bold mt-3 inline-block">「你給它什麼等級的資料，它就給你什麼等級的答案」</span>
+                        </p>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- Eraser graphic -->
+            <div class="eraser"></div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching logic (simulates erasing and rewriting on board)
+        function switchBoard(viewId) {
+            const views = ['intro', 'main', 'summary'];
+            
+            // Remove active states
+            views.forEach(v => {
+                document.getElementById(`view-${v}`).classList.add('hidden');
+                document.getElementById(`tab-${v}`).classList.remove('active');
+            });
+
+            // Add active state to clicked
+            const selectedView = document.getElementById(`view-${viewId}`);
+            selectedView.classList.remove('hidden');
+            
+            // Re-trigger animation
+            selectedView.classList.remove('animate-chalk');
+            void selectedView.offsetWidth; // trigger reflow
+            selectedView.classList.add('animate-chalk');
+
+            document.getElementById(`tab-${viewId}`).classList.add('active');
+        }
+
+        // Accordion for steps
+        function toggleDetail(stepId) {
+            const detailElement = document.getElementById(`${stepId}-detail`);
+            if (detailElement.classList.contains('hidden')) {
+                detailElement.classList.remove('hidden');
+                detailElement.classList.add('animate-chalk');
+            } else {
+                detailElement.classList.add('hidden');
+                detailElement.classList.remove('animate-chalk');
+            }
+        }
+
+        // Checklist logic
+        function toggleTask(textId, checkbox) {
+            const textLabel = document.getElementById(textId);
+            if (checkbox.checked) {
+                textLabel.classList.add('crossed-out');
+            } else {
+                textLabel.classList.remove('crossed-out');
+            }
+
+            // Check if both tasks are completed
+            const task1 = document.getElementById('task1').checked;
+            const task2 = document.getElementById('task2').checked;
+            const conclusion = document.getElementById('conclusion-box');
+
+            if (task1 && task2) {
+                conclusion.classList.remove('hidden');
+                setTimeout(() => {
+                    conclusion.classList.remove('opacity-0');
+                    conclusion.classList.add('opacity-100');
+                }, 100);
+            } else {
+                conclusion.classList.add('opacity-0');
+                conclusion.classList.remove('opacity-100');
+                setTimeout(() => {
+                    conclusion.classList.add('hidden');
+                }, 1000);
+            }
+        }
+    </script>
+</body>
+</html>
