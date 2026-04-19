@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Canvas 神奇魔法黑板指南</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Permanent+Marker&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans TC"', 'sans-serif'],
+                        marker: ['"Permanent Marker"', 'cursive']
+                    },
+                    colors: {
+                        board: {
+                            dark: '#1a3c2c',
+                            light: '#234a38',
+                        },
+                        chalk: {
+                            white: '#f8f9fa',
+                            yellow: '#ffe66d',
+                            pink: '#ff9eb5',
+                            dim: 'rgba(255,255,255,0.6)'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 增加基礎字體大小 1.3倍 (130%)，讓所有使用 rem 的 Tailwind class 等比例放大 */
+        html { font-size: 130%; }
+        
+        body { font-family: '"Noto Sans TC"', sans-serif; background-color: #2c2c2c; padding: 10px; md:padding: 20px; color: #f8f9fa; }
+        
+        /* Chalkboard & Frame */
+        .wood-frame {
+            border: 12px solid #4a3320;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 0 15px rgba(0,0,0,0.9);
+            background-color: #1a3c2c;
+            position: relative;
+            overflow: hidden;
+        }
+        .chalkboard {
+            background-image: 
+                radial-gradient(circle, rgba(255,255,255,0.02) 20%, transparent 20%),
+                radial-gradient(circle, rgba(255,255,255,0.02) 20%, transparent 20%);
+            background-position: 0 0, 50px 50px;
+            background-size: 100px 100px;
+            box-shadow: inset 0 0 80px rgba(0,0,0,0.6);
+            min-height: 95vh;
+        }
+        
+        /* Text Effects */
+        .chalk-text { text-shadow: 1px 1px 2px rgba(255,255,255,0.3); }
+        .chalk-yellow { color: #ffe66d; text-shadow: 1px 1px 3px rgba(255,230,109,0.5); }
+        .chalk-pink { color: #ff9eb5; text-shadow: 1px 1px 3px rgba(255,158,181,0.5); }
+        
+        /* Hand-drawn Borders */
+        .chalk-border {
+            border: 2px solid rgba(255,255,255,0.6);
+            border-radius: 5px 15px 5px 15px / 15px 5px 15px 5px;
+            background: rgba(255,255,255,0.01);
+        }
+        .chalk-border-dashed {
+            border: 2px dashed rgba(255,230,109,0.6);
+            border-radius: 10px 4px 12px 6px / 6px 12px 4px 10px;
+        }
+        
+        /* 將圖表容器改為使用 rem，使其隨字體放大而等比擴大空間 */
+        .chart-container { position: relative; width: 100%; max-width: 40rem; margin-left: auto; margin-right: auto; height: 25rem; max-height: 30rem; }
+        @media (min-width: 768px) { .chart-container { height: 30rem; } }
+        
+        .case-card { transition: all 0.3s ease; }
+        .case-card:hover { transform: scale(1.02) rotate(-1deg); border-color: #ffe66d; }
+        
+        /* Doodles & Eraser */
+        .doodle { position: absolute; font-family: 'Permanent Marker', cursive; pointer-events: none; z-index: 10;}
+        .eraser-mark {
+            position: absolute; width: 200px; height: 50px;
+            background: rgba(255,255,255,0.04); filter: blur(10px);
+            border-radius: 50%; transform: rotate(-15deg); pointer-events: none;
+        }
+        .eraser {
+            position: absolute; bottom: 10px; right: 20px;
+            width: 80px; height: 30px; background: #e0e0e0;
+            border-bottom: 8px solid #333; border-radius: 4px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+            transform: rotate(-5deg); z-index: 20;
+        }
+        
+        .tab-btn { transition: all 0.2s; border: 2px solid transparent; }
+        .tab-btn.active { border-color: #ff9eb5; border-radius: 20px 10px 20px 10px / 10px 20px 10px 20px; color: #ff9eb5; }
+        
+        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; }
+        .accordion-content.open { max-height: 600px; border-top: 1px dashed rgba(255,255,255,0.3); margin-top: 10px; padding-top: 10px; }
+    </style>
+</head>
+<body class="antialiased selection:bg-chalk-yellow selection:text-board-dark">
+    <div class="max-w-7xl mx-auto wood-frame mt-2 mb-8">
+        <div class="chalkboard p-4 md:p-10 relative">
+            
+            <!-- Eraser and Dust marks -->
+            <div class="eraser-mark top-20 left-10"></div>
+            <div class="eraser-mark bottom-40 right-1/4 transform rotate-45"></div>
+            <div class="eraser"></div>
+            
+            <!-- Doodles -->
+            <div class="doodle text-chalk-yellow text-4xl top-10 right-10 rotate-12">★</div>
+            <div class="doodle text-chalk-pink text-3xl top-40 left-5 -rotate-12">➔</div>
+            <div class="doodle text-chalk-white text-5xl bottom-20 left-10 opacity-50">⭕</div>
+
+            <header class="text-center mb-16 relative z-10 pt-8">
+                <h1 class="text-4xl md:text-5xl font-bold chalk-yellow mb-4">✨ AI 神奇魔法黑板指南</h1>
+                <div class="w-64 h-1 bg-chalk-white mx-auto opacity-50 rounded mb-6"></div>
+                <p class="text-xl chalk-text max-w-3xl mx-auto leading-relaxed">
+                    完全不懂電腦也沒關係！體驗 <span class="chalk-pink text-2xl font-bold">左邊聊天、右邊看結果</span> 的神奇工具。<br>
+                    跟 AI 許願你要什麼，右邊馬上變出來，不滿意還能隨時像用橡皮擦一樣塗改！
+                </p>
+            </header>
+
+            <main class="space-y-20 relative z-10">
+
+                <!-- Section 1: Overview -->
+                <section id="overview" class="max-w-6xl mx-auto">
+                    <div class="mb-10 flex flex-col items-start relative inline-block">
+                        <h2 class="text-3xl md:text-4xl font-bold chalk-pink relative z-10">1. AI 可以幫你做什麼？</h2>
+                        <!-- 將波浪線改為標題下方的畫線效果，移除絕對定位使其正常往下排列 -->
+                        <span class="text-chalk-yellow text-2xl md:text-3xl -mt-1 md:-mt-2 tracking-[0.2em] opacity-80 pointer-events-none">〰️〰️〰️〰️</span>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-10 items-center">
+                        <div class="space-y-6">
+                            <div class="p-5 chalk-border hover:bg-board-light transition-colors">
+                                <h3 class="font-bold text-xl mb-2 chalk-yellow">💻 變出專屬網頁與小工具</h3>
+                                <p class="chalk-text mb-2">不用懂寫程式！跟 AI 說你想要什麼按鈕、什麼功能，它立刻做一個網頁給你玩。</p>
+                                <span class="text-sm border border-chalk-white px-2 py-1 rounded opacity-70">適合: 任何人、辦公室實用小工具</span>
+                            </div>
+                            <div class="p-5 chalk-border hover:bg-board-light transition-colors">
+                                <h3 class="font-bold text-xl mb-2 chalk-yellow">📝 你的私人寫作與排版助手</h3>
+                                <p class="chalk-text mb-2">不管是長篇心得、還是上課講義，AI 幫你寫好還會自動排版得漂漂亮亮。</p>
+                                <span class="text-sm border border-chalk-white px-2 py-1 rounded opacity-70">適合: 老師, 學生, 每天要寫報告的上班族</span>
+                            </div>
+                            <div class="p-5 chalk-border hover:bg-board-light transition-colors">
+                                <h3 class="font-bold text-xl mb-2 chalk-yellow">📐 搞定超複雜的數學與考卷</h3>
+                                <p class="chalk-text mb-2">只要用講的，AI 就能幫你把複雜的公式畫出來，還能變成可以印出來的漂亮考卷。</p>
+                                <span class="text-sm border border-chalk-white px-2 py-1 rounded opacity-70">適合: 數學老師, 需要寫論文的學生</span>
+                            </div>
+                            <div class="p-5 chalk-border hover:bg-board-light transition-colors">
+                                <h3 class="font-bold text-xl mb-2 chalk-yellow">🎮 變出好玩的互動小遊戲</h3>
+                                <p class="chalk-text mb-2">請 AI 幫你做個抽獎轉盤、計時器，或是會動的地球儀，讓生活跟學習變有趣！</p>
+                                <span class="text-sm border border-chalk-white px-2 py-1 rounded opacity-70">適合: 爸媽帶小孩, 活動企劃, 老師</span>
+                            </div>
+                        </div>
+                        
+                        <div class="w-full flex justify-center">
+                            <div class="chart-container">
+                                <canvas id="overviewChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 2: Cases -->
+                <section id="cases" class="max-w-6xl mx-auto">
+                    <div class="mb-8 relative">
+                        <h2 class="text-3xl font-bold chalk-pink mb-2">2. 看看別人怎麼玩 (實戰案例)</h2>
+                        <p class="chalk-text mb-6">不知道怎麼開口？點擊下方的卡片，看看別人都對 AI 說了什麼神奇咒語！</p>
+                        
+                        <div class="flex flex-wrap gap-4 mb-8" id="filterContainer">
+                            <button class="tab-btn active px-4 py-1 text-lg chalk-text cursor-pointer" data-filter="all">全部絕招</button>
+                            <button class="tab-btn px-4 py-1 text-lg chalk-text cursor-pointer" data-filter="web">好用小工具</button>
+                            <button class="tab-btn px-4 py-1 text-lg chalk-text cursor-pointer" data-filter="text">文書與寫作</button>
+                            <button class="tab-btn px-4 py-1 text-lg chalk-text cursor-pointer" data-filter="math">數理與考試</button>
+                            <button class="tab-btn px-4 py-1 text-lg chalk-text cursor-pointer" data-filter="data">看圖與看報表</button>
+                        </div>
+
+                        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6" id="casesGrid">
+                            <!-- JS Injected -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 3: Tips -->
+                <section id="tips" class="max-w-4xl mx-auto pb-10">
+                    <div class="mb-6">
+                        <h2 class="text-3xl font-bold chalk-yellow mb-2 text-center">💡 讓 AI 更聽話的四個小秘訣</h2>
+                    </div>
+                    <div class="space-y-4" id="accordionContainer">
+                        <!-- JS Injected -->
+                    </div>
+                </section>
+                
+                <footer class="text-center opacity-60 text-sm mt-10 chalk-text pb-4">
+                    <p>~~ 完全不用懂程式碼也能輕鬆上手喔 ~~</p>
+                </footer>
+
+            </main>
+        </div>
+    </div>
+
+    <script>
+        const appState = {
+            currentFilter: 'all',
+            cases: [
+                {
+                    id: 1,
+                    title: '做一個會倒數的專注時鐘',
+                    category: 'web',
+                    icon: '⏱️',
+                    scenario: '想在辦公室用一個時鐘提醒自己「工作25分鐘、休息5分鐘」。',
+                    prompt: '請幫我寫一個單一檔案的網頁版「番茄鐘計時器」。要有 25 分鐘工作、5 分鐘休息的按鈕可以切換。畫面要好看、有圓角，還要有開始跟暫停的按鈕。',
+                    highlight: '講完之後，右邊的黑板馬上出現一個真的能按、能倒數的時鐘！你還能直接對 AI 說：「幫我在時間到的時候加個聲音」，它就會自己改好。'
+                },
+                {
+                    id: 2,
+                    title: '一秒生出整齊的上課講義',
+                    category: 'text',
+                    icon: '📘',
+                    scenario: '老師需要準備下週的上課講義，不想自己慢慢打字排版。',
+                    prompt: '請幫我寫一份給高中生看的「認識電腦基礎」講義。裡面要有：1. 學習目標 2. 什麼是電腦的記憶體 3. 三個有趣的隨堂小測驗。重點標題要大，條列要清楚。',
+                    highlight: 'AI 寫完後，如果你覺得哪句不順，可以直接把滑鼠點進右邊的畫面裡自己打字修改，就像用平常打字軟體一樣簡單！'
+                },
+                {
+                    id: 3,
+                    title: '讓課本上的太陽系動起來',
+                    category: 'web',
+                    icon: '🌍',
+                    scenario: '想要做一個會動的圖片，向小朋友解釋地球怎麼繞太陽轉。',
+                    prompt: '請幫我做一個單一檔案的網頁，畫出會動的太陽系。要有太陽、地球跟月亮互相繞圈圈。背景設定成黑色的星空。',
+                    highlight: '馬上就能看到星星跟地球在畫面上轉動！你還可以當導演跟 AI 說：「讓地球轉快一點」，它就會讓畫面裡的地球加速。'
+                },
+                {
+                    id: 4,
+                    title: '輕鬆印出專業的數學考卷',
+                    category: 'math',
+                    icon: '∱',
+                    scenario: '老師要出一份有根號、分數等超難打出來的數學符號考卷。',
+                    prompt: '請幫我出一份高中數學「微積分」小考考卷。要有 5 題選擇題跟 2 題計算題。請幫我排版得像正式考卷一樣整齊，並提供 A, B, C, D 選項。',
+                    highlight: 'AI 會直接幫你把那些超難畫的數學符號排得跟教科書上一樣漂亮，還能一鍵直接存成 PDF 檔案印給學生寫。'
+                },
+                {
+                    id: 5,
+                    title: '把複雜報表變成易懂的圖表',
+                    category: 'data',
+                    icon: '📊',
+                    scenario: '手邊有一份密密麻麻的 Excel 成績單或記帳表，想一眼看懂誰最高。',
+                    prompt: '幫我做一個單一檔案的網頁小工具。畫面上有一個地方讓我把 Excel/CSV 檔案拖拉放進去，然後自動幫我把裡面的數字畫成清楚的長條圖。',
+                    highlight: '這是一個真的能用的小工具！你可以把你電腦裡的檔案直接拖進畫面裡，它就會自動幫你畫出圖表，不用學會什麼複雜的軟體。'
+                },
+                {
+                    id: 6,
+                    title: '看得懂圖片與文件的超強助理',
+                    category: 'data',
+                    icon: '👁️',
+                    scenario: '有一張自己手畫的草圖，或是一份很厚很厚的 PDF 報告看不完。',
+                    prompt: '【你要先在左邊對話框上傳圖片或檔案，然後跟它說：】\n\n「請看這張我手畫的圖，幫我把它變成真正的網頁！」\n或是\n「請幫我讀完這份厚厚的報告，在右邊幫我整理出最重要的三個重點跟表格。」',
+                    highlight: 'AI 看得懂你畫的圖形，還能幫你讀書！它會把你上傳的資料直接整理成精華筆記顯示在右邊，省下你大把的時間。'
+                }
+            ],
+            tips: [
+                {
+                    title: '1. 魔法關鍵字：「單一檔案」',
+                    content: '如果你是請 AI 幫你做個小工具、小遊戲或網頁，記得在句子的開頭加上「請幫我寫一個單一檔案的...」，這是一句魔法咒語，可以確保右邊的畫面能順利跑出來給你看喔！'
+                },
+                {
+                    title: '2. 哪裡不滿意，就針對哪裡改',
+                    content: '不要每次不滿意就叫 AI 全部重做！看到畫面後，你可以直接跟它說「維持現在這樣，但把背景換成淺藍色」，它就會很聰明地只幫你換顏色，保留你喜歡的部分。'
+                },
+                {
+                    title: '3. 告訴 AI 這是要給誰看的',
+                    content: '跟 AI 說「這是一份給國小三年級小朋友看的文章」或是「請用專家的語氣來寫」，它講話的感覺跟用的詞語就會完全不一樣，會更貼近你的需求。'
+                },
+                {
+                    title: '4. 隨便玩，弄壞了也沒關係',
+                    content: '不要怕按錯！你可以隨意在右邊的文字裡亂刪亂改，如果畫面不小心被你弄壞了，只要對 AI 說「我不小心弄壞了，幫我恢復原狀」，它就會幫你修好。'
+                }
+            ]
+        };
+
+        function initOverviewChart() {
+            const ctx = document.getElementById('overviewChart').getContext('2d');
+            Chart.defaults.color = '#f8f9fa';
+            Chart.defaults.font.family = '"Noto Sans TC", sans-serif';
+            // 同步放大 Chart.js 的預設字體
+            Chart.defaults.font.size = 16;
+            
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['邏輯思考能力', '創意發想能力', '專業嚴謹度', '畫面好玩程度', '整理資料能力'],
+                    datasets: [
+                        {
+                            label: '做網頁與小工具',
+                            data: [90, 80, 20, 100, 60],
+                            backgroundColor: 'rgba(255, 230, 109, 0.2)',
+                            borderColor: '#ffe66d',
+                            pointBackgroundColor: '#ffe66d',
+                            borderWidth: 2
+                        },
+                        {
+                            label: '寫文章與排版',
+                            data: [40, 90, 100, 10, 70],
+                            backgroundColor: 'rgba(255, 158, 181, 0.2)',
+                            borderColor: '#ff9eb5',
+                            pointBackgroundColor: '#ff9eb5',
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(255,255,255,0.2)' },
+                            grid: { color: 'rgba(255,255,255,0.2)' },
+                            // 同步放大雷達圖外圍標籤字體
+                            pointLabels: { font: { size: 17 }, color: '#f8f9fa' },
+                            ticks: { display: false, min: 0, max: 100, backdropColor: 'transparent' }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#f8f9fa' } },
+                        tooltip: { backgroundColor: 'rgba(0,0,0,0.8)' }
+                    }
+                }
+            });
+        }
+
+        function renderCases(filterType) {
+            const grid = document.getElementById('casesGrid');
+            grid.innerHTML = '';
+            
+            const filteredCases = filterType === 'all' 
+                ? appState.cases 
+                : appState.cases.filter(c => c.category === filterType);
+
+            filteredCases.forEach((c, index) => {
+                const card = document.createElement('div');
+                card.className = 'case-card chalk-border p-5 cursor-pointer relative';
+                
+                // Add a random tick mark sometimes to look hand-drawn
+                const tick = index % 2 === 0 ? `<div class="absolute top-2 right-4 text-chalk-yellow text-xl font-marker">✓</div>` : '';
+
+                card.innerHTML = `
+                    ${tick}
+                    <div onclick="toggleCardDetails(${index})">
+                        <div class="flex items-center space-x-3 mb-3">
+                            <div class="text-3xl">${c.icon}</div>
+                            <h3 class="font-bold text-xl chalk-yellow leading-tight">${c.title}</h3>
+                        </div>
+                        <p class="chalk-text mb-4 text-sm opacity-90">${c.scenario}</p>
+                        <div class="flex justify-between items-center text-sm chalk-pink">
+                            <span>[點擊看看怎麼跟 AI 說]</span>
+                            <span id="icon-${index}">▼</span>
+                        </div>
+                    </div>
+                    <div id="details-${index}" class="hidden mt-4 pt-4 border-t border-dashed border-gray-400 space-y-4">
+                        <div>
+                            <h4 class="text-sm font-bold chalk-pink mb-1">✎ 你可以這樣對 AI 說：</h4>
+                            <div class="bg-black bg-opacity-20 p-3 rounded text-sm chalk-text font-sans whitespace-pre-wrap">${c.prompt}</div>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-bold chalk-yellow mb-1">★ 有多神奇？</h4>
+                            <p class="text-sm chalk-text leading-relaxed opacity-90">${c.highlight}</p>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        window.toggleCardDetails = function(index) {
+            const details = document.getElementById(`details-${index}`);
+            const icon = document.getElementById(`icon-${index}`);
+            if (details.classList.contains('hidden')) {
+                details.classList.remove('hidden');
+                icon.textContent = '▲';
+            } else {
+                details.classList.add('hidden');
+                icon.textContent = '▼';
+            }
+        };
+
+        function setupFilters() {
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    buttons.forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    const filter = e.target.getAttribute('data-filter');
+                    renderCases(filter);
+                });
+            });
+        }
+
+        function renderTips() {
+            const container = document.getElementById('accordionContainer');
+            appState.tips.forEach((tip, index) => {
+                const item = document.createElement('div');
+                item.className = 'chalk-border-dashed p-4 cursor-pointer hover:bg-board-light transition-colors';
+                
+                item.innerHTML = `
+                    <div class="flex justify-between items-center" onclick="toggleAccordion(${index})">
+                        <span class="font-bold text-lg chalk-white pl-2">■ ${tip.title}</span>
+                        <span id="acc-icon-${index}" class="text-chalk-pink text-xl">＋</span>
+                    </div>
+                    <div id="acc-content-${index}" class="accordion-content px-6">
+                        <p class="text-chalk-white opacity-90 leading-relaxed">${tip.content}</p>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        window.toggleAccordion = function(index) {
+            const content = document.getElementById(`acc-content-${index}`);
+            const icon = document.getElementById(`acc-icon-${index}`);
+            
+            if (content.classList.contains('open')) {
+                content.classList.remove('open');
+                icon.textContent = '＋';
+            } else {
+                document.querySelectorAll('.accordion-content').forEach((el, i) => {
+                    el.classList.remove('open');
+                    document.getElementById(`acc-icon-${i}`).textContent = '＋';
+                });
+                content.classList.add('open');
+                icon.textContent = '－';
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initOverviewChart();
+            renderCases('all');
+            setupFilters();
+            renderTips();
+        });
+    </script>
+</body>
+</html>
