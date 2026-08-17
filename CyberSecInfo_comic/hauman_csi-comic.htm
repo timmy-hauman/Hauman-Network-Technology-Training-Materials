@@ -3,12 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- 內容安全政策：限制本頁只能向下列來源取得資源。
+         萬一第三方 CDN 被入侵，注入的內容也無法把資料外送到其他網域 -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data: https://www.hauman.com.tw; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+
     <title>豪勉科技資訊安全通報</title>
-    <!-- 引入 FontAwesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- 引入 Google Fonts -->
+
+    <!-- 圖示改為內嵌 SVG，不再載入 FontAwesome (原本為了 3 個圖示要拉 89KB CSS + 字型檔)。
+         圖示取自 Font Awesome Free 6.0.0 (Icons: CC BY 4.0, https://fontawesome.com/license/free) -->
+
+    <!-- 引入 Google Fonts (改用 link + preconnect；原本寫在 CSS 裡的 @import 要等 CSS 下載完才會開始要字型) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&amp;family=Noto+Sans+TC:wght@300;400;500;700&amp;display=swap" rel="stylesheet">
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
 
         :root {
             /* 亮色系基礎變數 */
@@ -74,6 +84,14 @@
             align-items: center;
         }
         
+        /* 內嵌 SVG 圖示：尺寸跟著所在文字的 font-size，顏色跟著 color */
+        .icon {
+            width: 1em;
+            height: 1em;
+            fill: currentColor;
+            flex-shrink: 0;
+        }
+
         /* Logo 連結樣式 */
         .logo-link {
             display: block;
@@ -246,14 +264,26 @@
             padding-bottom: 60px;
         }
 
+        /* 每個日期一個群組：探測時流水號由小到大，顯示時由大到小 */
+        .day-group {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        /* 沒有通報的日期不佔版面 (否則 gallery 的 gap 會留下大片空白) */
+        .day-group:empty {
+            display: none;
+        }
+
         .img-wrapper {
             background-color: var(--bg-card);
             padding: 15px;
             border-radius: 8px;
-            border: 1px solid var(--border-color); 
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02); 
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
             text-align: center;
-            display: none; 
+            display: block; /* 卡片只在確定圖片存在時才建立，不需要先隱藏 */
             animation: fadeIn 0.5s ease-in;
             transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
         }
@@ -371,7 +401,7 @@
             <!-- 中間: 盾牌 + 標題 -->
             <div class="title-group">
                 <div class="logo-box">
-                    <i class="fas fa-shield-alt"></i>
+                    <svg class="icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M466.5 83.71l-192-80C269.6 1.67 261.3 0 256 0C250.7 0 242.5 1.67 237.6 3.702l-192 80C27.7 91.1 16 108.6 16 127.1c0 257.2 189.2 384 239.1 384c51.1 0 240-128.2 240-384C496 108.6 484.3 91.1 466.5 83.71zM256 446.5l.0234-381.1c.0059-.0234 0 0 0 0l175.9 73.17C427.8 319.7 319 417.1 256 446.5z"/></svg>
                 </div>
                 <div>
                     <h1>豪勉科技資訊安全通報</h1>
@@ -382,7 +412,7 @@
             <!-- 右側: 返回教學網首頁 -->
             <div class="home-link-container">
                 <a href="https://timmy-hauman.github.io/Hauman-Network-Technology-Training-Materials/" class="home-link">
-                    <i class="fas fa-home"></i> 返回教學網首頁
+                    <svg class="icon" viewBox="0 0 576 512" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M575.8 255.5C575.8 273.5 560.8 287.6 543.8 287.6H511.8L512.5 447.7C512.5 450.5 512.3 453.1 512 455.8V472C512 494.1 494.1 512 472 512H456C454.9 512 453.8 511.1 452.7 511.9C451.3 511.1 449.9 512 448.5 512H392C369.9 512 352 494.1 352 472V384C352 366.3 337.7 352 320 352H256C238.3 352 224 366.3 224 384V472C224 494.1 206.1 512 184 512H128.1C126.6 512 125.1 511.9 123.6 511.8C122.4 511.9 121.2 512 120 512H104C81.91 512 64 494.1 64 472V360C64 359.1 64.03 358.1 64.09 357.2V287.6H32.05C14.02 287.6 0 273.5 0 255.5C0 246.5 3.004 238.5 10.01 231.5L266.4 8.016C273.4 1.002 281.4 0 288.4 0C295.4 0 303.4 2.004 309.5 7.014L564.8 231.5C572.8 238.5 576.9 246.5 575.8 255.5L575.8 255.5z"/></svg> 返回教學網首頁
                 </a>
             </div>
         </div>
@@ -390,7 +420,7 @@
 
     <!-- 範圍選擇區塊 -->
     <div class="controls">
-        <label for="daysSelect"><i class="fas fa-calendar-alt"></i> 顯示範圍：</label>
+        <label for="daysSelect"><svg class="icon" viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><path d="M160 32V64H288V32C288 14.33 302.3 0 320 0C337.7 0 352 14.33 352 32V64H400C426.5 64 448 85.49 448 112V160H0V112C0 85.49 21.49 64 48 64H96V32C96 14.33 110.3 0 128 0C145.7 0 160 14.33 160 32zM0 192H448V464C448 490.5 426.5 512 400 512H48C21.49 512 0 490.5 0 464V192zM64 304C64 312.8 71.16 320 80 320H112C120.8 320 128 312.8 128 304V272C128 263.2 120.8 256 112 256H80C71.16 256 64 263.2 64 272V304zM192 304C192 312.8 199.2 320 208 320H240C248.8 320 256 312.8 256 304V272C256 263.2 248.8 256 240 256H208C199.2 256 192 263.2 192 272V304zM336 256C327.2 256 320 263.2 320 272V304C320 312.8 327.2 320 336 320H368C376.8 320 384 312.8 384 304V272C384 263.2 376.8 256 368 256H336zM64 432C64 440.8 71.16 448 80 448H112C120.8 448 128 440.8 128 432V400C128 391.2 120.8 384 112 384H80C71.16 384 64 391.2 64 400V432zM208 384C199.2 384 192 391.2 192 400V432C192 440.8 199.2 448 208 448H240C248.8 448 256 440.8 256 432V400C256 391.2 248.8 384 240 384H208zM320 432C320 440.8 327.2 448 336 448H368C376.8 448 384 440.8 384 432V400C384 391.2 376.8 384 368 384H336C327.2 384 320 391.2 320 400V432z"/></svg> 顯示範圍：</label>
         <select id="daysSelect" onchange="updateRange()">
             <option value="5">近 5 天</option>
             <option value="10">近 10 天</option>
@@ -409,7 +439,7 @@
     </div>
 
     <footer>
-        Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0
+        Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.3
     </footer>
 
     <!-- 燈箱結構 -->
@@ -422,19 +452,29 @@
         // ================= 設定區 =================
         let daysToCheck = 15; // 預設 15 天
         const MAX_SEQUENCE = 5;
+        // 支援的圖檔附檔名。這也是探測順序，命中即停止 ——
+        // 目前實際通報都是 jpg，所以 jpg 放第一個可以少一次請求。
+        const EXTENSIONS = ['jpg', 'png', 'jpeg', 'gif', 'webp'];
+        // 掃描逾時保險 (毫秒)：避免極端狀況下狀態列一直停在「讀取中」
+        const SCAN_TIMEOUT = 20000;
 
         // 改為使用當前日期
-        const baseDate = new Date(); 
+        const baseDate = new Date();
         // =========================================
 
         const gallery = document.getElementById('gallery');
         const statusDiv = document.getElementById('status');
-        
+
         // 取得燈箱元素
         const lightbox = document.getElementById('lightbox');
         const lightboxImg = document.getElementById('lightbox-img');
 
+        // 以 http(s) 開啟時用 HEAD 請求探測檔案是否存在 —— 只要回應標頭，不會下載圖片內容。
+        // 以 file:// 直接開啟時 fetch 會被擋，退回用 Image 物件探測。
+        const canUseHeadProbe = location.protocol === 'http:' || location.protocol === 'https:';
+
         let loadedCount = 0;
+        let scanId = 0; // 掃描世代，用來忽略上一次掃描殘留的回呼
 
         function formatDate(date) {
             const y = date.getFullYear();
@@ -451,38 +491,126 @@
         function updateRange() {
             const select = document.getElementById('daysSelect');
             daysToCheck = parseInt(select.value);
-            
-            // 重置計數與介面
-            loadedCount = 0;
+
+            // 重置介面 (計數統一由 scanImages 重置)
             gallery.innerHTML = ''; // 清空目前的圖片
             statusDiv.innerText = '系統掃描中...';
-            
+
             // 重新執行掃描
             scanImages();
         }
 
-        function scanImages() {
+        // 探測單一檔名是否存在
+        function probeFile(filename) {
+            if (canUseHeadProbe) {
+                return fetch(filename, { method: 'HEAD' })
+                    .then(res => res.ok)
+                    .catch(() => false);
+            }
+            return new Promise(resolve => {
+                const probe = new Image();
+                probe.onload = () => resolve(true);
+                probe.onerror = () => resolve(false);
+                probe.src = filename;
+            });
+        }
+
+        // 依 EXTENSIONS 順序嘗試，回傳第一個存在的完整檔名；都不存在則回傳 null
+        async function resolveFilename(baseName, scan) {
+            for (const ext of EXTENSIONS) {
+                if (scan !== scanId) return null; // 已被新的掃描取代
+                const filename = `${baseName}.${ext}`;
+                if (await probeFile(filename)) return filename;
+            }
+            return null;
+        }
+
+        // 建立一張通報卡片 (只有確定檔案存在時才會呼叫)
+        function buildCard(filename) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'img-wrapper';
+
+            const img = document.createElement('img');
+            img.src = filename;
+            img.alt = filename;
+            img.loading = 'lazy';   // 捲動到才真正下載，不會一次拉完所有大圖
+            img.decoding = 'async';
+
+            // 設定點擊放大功能
+            img.onclick = function() {
+                openLightbox(filename);
+            };
+
+            // 極端情況：探測之後圖片才被刪除，這時把卡片移除
+            img.onerror = function() {
+                wrapper.remove();
+            };
+
+            const caption = document.createElement('div');
+            caption.className = 'filename';
+            caption.innerText = filename;
+
+            wrapper.appendChild(img);
+            wrapper.appendChild(caption);
+            return wrapper;
+        }
+
+        function addCard(filename, group, prepend) {
+            const card = buildCard(filename);
+            if (prepend) {
+                group.prepend(card);
+            } else {
+                group.appendChild(card);
+            }
+            loadedCount++;
+            // 實時更新找到的數量
+            statusDiv.innerText = `讀取中... (${loadedCount})`;
+        }
+
+        // 掃描單一日期：流水號由小到大，遇到缺號就停止
+        async function scanDay(dateString, group, scan) {
+            for (let seq = 1; seq <= MAX_SEQUENCE; seq++) {
+                const filename = await resolveFilename(`${dateString}-${pad(seq)}`, scan);
+                if (scan !== scanId) return;
+                // 缺號代表這一天到此為止 (通報流水號不跳號)，後面的流水號不必再試
+                if (!filename) return;
+                // prepend：流水號大的 (較新的) 排在前面，維持原本由新到舊的顯示順序
+                addCard(filename, group, true);
+            }
+        }
+
+        async function scanImages() {
+            // 重置本次掃描的計數，並取得新的掃描世代
+            loadedCount = 0;
+            const currentScan = ++scanId;
+
+            const tasks = [];
+
             // 外層迴圈：日期 (從最新的一天開始往回推)
             for (let d = 0; d < daysToCheck; d++) {
                 const currentDate = new Date(baseDate);
                 currentDate.setDate(baseDate.getDate() - d);
                 const dateString = formatDate(currentDate);
 
-                // 內層迴圈：流水號
-                for (let seq = MAX_SEQUENCE; seq >= 1; seq--) {
-                    const seqString = pad(seq);
-                    const filename = `${dateString}-${seqString}.png`;
-                    createImageElement(filename);
-                }
+                // 先把當天的容器放進版面，確保顯示順序與日期順序一致
+                const group = document.createElement('div');
+                group.className = 'day-group';
+                gallery.appendChild(group);
+
+                tasks.push(scanDay(dateString, group, currentScan));
             }
-            
-            // 掃描特殊格式 (例如 2026-02.png) 
+
+            // 掃描特殊格式 (例如 2026-02.jpg / 2026-02.png)
+            const monthGroup = document.createElement('div');
+            monthGroup.className = 'day-group';
+            gallery.appendChild(monthGroup);
+
             const yearString = baseDate.getFullYear();
             const currentMonth = baseDate.getMonth() + 1;
-            
+
             // 簡單檢查本月與上個月 (無論選幾天，基本的月份圖檔檢查都保留)
-            createImageElement(`${yearString}-${pad(currentMonth)}.png`);
-            
+            const monthBases = [`${yearString}-${pad(currentMonth)}`];
+
             // 根據選擇的天數決定要檢查幾個月份
             let monthsBack = 1;
             if (daysToCheck > 30) monthsBack = 2;
@@ -492,56 +620,39 @@
             for(let m = 1; m <= monthsBack; m++) {
                 let checkMonth = currentMonth - m;
                 let checkYear = yearString;
-                
+
                 if (checkMonth <= 0) {
                     checkMonth += 12;
                     checkYear -= 1;
                 }
-                createImageElement(`${checkYear}-${pad(checkMonth)}.png`);
+                monthBases.push(`${checkYear}-${pad(checkMonth)}`);
             }
 
-            // 更新狀態文字邏輯
-            setTimeout(() => {
-                if (loadedCount === 0) {
-                    statusDiv.innerText = ''; 
-                } else {
-                    statusDiv.innerText = `已顯示 ${loadedCount} 則通報 (近 ${daysToCheck} 天)`;
-                }
-            }, 1500); // 稍微延長一點時間讓載入完成
+            for (const base of monthBases) {
+                tasks.push(resolveFilename(base, currentScan).then(filename => {
+                    if (filename && currentScan === scanId) {
+                        addCard(filename, monthGroup, false);
+                    }
+                }));
+            }
+
+            // 保險：即使有探測卡住 (例如連線逾時)，仍在逾時後先結算一次狀態文字。
+            // 兩邊都呼叫 finalizeStatus，晚到的那次會用最終數量再蓋一次，
+            // 不會出現「逾時後又被 addCard 改回讀取中、然後就再也不更新」的情況。
+            setTimeout(() => finalizeStatus(currentScan), SCAN_TIMEOUT);
+
+            await Promise.all(tasks);
+            finalizeStatus(currentScan);
         }
 
-        function createImageElement(filename) {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'img-wrapper';
-
-            const img = document.createElement('img');
-            img.alt = filename;
-            
-            // 設定點擊放大功能
-            img.onclick = function() {
-                openLightbox(filename);
-            };
-            
-            const caption = document.createElement('div');
-            caption.className = 'filename';
-            caption.innerText = filename;
-
-            img.onload = function() {
-                wrapper.style.display = 'block';
-                loadedCount++;
-                // 實時更新找到的數量
-                statusDiv.innerText = `讀取中... (${loadedCount})`;
-            };
-
-            img.onerror = function() {
-                wrapper.remove();
-            };
-
-            img.src = filename;
-
-            wrapper.appendChild(img);
-            wrapper.appendChild(caption);
-            gallery.appendChild(wrapper);
+        // 所有探測都有結果後 (或逾時後) 更新狀態文字
+        function finalizeStatus(scan) {
+            if (scan !== scanId) return; // 已被新的掃描取代，忽略
+            if (loadedCount === 0) {
+                statusDiv.innerText = '';
+            } else {
+                statusDiv.innerText = `已顯示 ${loadedCount} 則通報 (近 ${daysToCheck} 天)`;
+            }
         }
 
         // 開啟燈箱
@@ -557,7 +668,6 @@
 
         // 初始執行
         scanImages();
-
     </script>
 </body>
 </html>
