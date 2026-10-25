@@ -1,0 +1,601 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OSI 第一層:網路線材、光纖與接頭</title>
+<style>
+:root{--bg:#f6f8fb;--card:#fff;--ink:#1d2733;--sub:#5b6b7d;--line:#dbe2ea;--accent:#0a66c2;--accent2:#e8f1fb;--tip:#fff7e0;--tipb:#f2c94c;--note:#eef6ee;--noteb:#6fb36f}
+@media (prefers-color-scheme:dark){:root{--bg:#10151b;--card:#18202a;--ink:#e6edf5;--sub:#9fb0c3;--line:#2a3644;--accent:#6db3ff;--accent2:#1b2a3b;--tip:#2b2614;--tipb:#8a6d1c;--note:#16261a;--noteb:#3f7a45}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.75 -apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif}
+.wrap{display:flex;max-width:1280px;margin:0 auto}
+nav.toc{position:sticky;top:0;align-self:flex-start;width:290px;max-height:100vh;overflow:auto;padding:20px 12px 40px 16px;border-right:1px solid var(--line);font-size:14px;flex-shrink:0}
+nav.toc .tt{font-weight:700;margin:0 0 10px;color:var(--accent)}
+nav.toc a{display:block;color:var(--ink);text-decoration:none;padding:3px 8px;border-radius:6px}
+nav.toc a:hover{background:var(--accent2)}
+nav.toc a.l2{font-weight:700;margin-top:10px}
+nav.toc a.l3{padding-left:20px;color:var(--sub);font-size:13px}
+main{flex:1;min-width:0;padding:24px 32px 80px}
+header.hero{background:linear-gradient(135deg,#0a66c2,#0b8f87);color:#fff;border-radius:14px;padding:26px 30px;margin-bottom:24px}
+header.hero h1{margin:0 0 6px;font-size:28px}
+header.hero p{margin:0;opacity:.92}
+h2{font-size:24px;margin:44px 0 12px;padding-bottom:6px;border-bottom:3px solid var(--accent)}
+h3{font-size:19px;margin:30px 0 10px;color:var(--accent)}
+h4{margin:0 0 6px}
+p,li{color:var(--ink)}
+code{background:var(--accent2);padding:1px 6px;border-radius:4px;font-size:.92em}
+pre{background:#0f1720;color:#d8e6f5;padding:12px 16px;border-radius:8px;overflow:auto;font-size:14px;line-height:1.6}
+table{border-collapse:collapse;width:100%;margin:12px 0 18px;background:var(--card);font-size:15px}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--accent2)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 18px;margin:14px 0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.tip{background:var(--tip);border-left:5px solid var(--tipb);padding:10px 14px;border-radius:6px}
+.note{background:var(--note);border-left:5px solid var(--noteb);padding:10px 14px;border-radius:6px}
+.formula{background:var(--accent2);border:1px dashed var(--accent);border-radius:8px;padding:12px 16px;margin:12px 0;font-size:17px}
+.figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:14px 0 20px}
+.figs.five{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+figure{margin:0;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px;display:flex;flex-direction:column}
+figure img{width:100%;height:210px;object-fit:contain;background:#fff;border-radius:6px}
+.figs.five figure img{height:130px}
+figcaption{font-size:13.5px;color:var(--sub);padding:8px 4px 2px;line-height:1.55}
+.svgbox{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px;margin:14px 0}
+.svgbox svg{width:100%;height:auto;display:block}
+.svgbox svg text{fill:var(--ink)}
+.sw{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-2px;border:1px solid rgba(0,0,0,.3)}
+table.pin td span{display:inline-block;width:46px;height:12px;border-radius:2px;vertical-align:middle;margin-right:4px;border:1px solid rgba(0,0,0,.35)}
+.s.o{background:#f28c28}.s.g{background:#2e9e3a}.s.b{background:#1565c0}.s.n{background:#7b4a22}
+.w.o{background:repeating-linear-gradient(135deg,#fff 0 5px,#f28c28 5px 10px)}
+.w.g{background:repeating-linear-gradient(135deg,#fff 0 5px,#2e9e3a 5px 10px)}
+.w.b{background:repeating-linear-gradient(135deg,#fff 0 5px,#1565c0 5px 10px)}
+.w.n{background:repeating-linear-gradient(135deg,#fff 0 5px,#7b4a22 5px 10px)}
+details{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 14px;margin:8px 0}
+summary{cursor:pointer;font-weight:600}
+.conn{display:grid;grid-template-columns:minmax(220px,300px) 1fr;gap:18px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin:14px 0}
+.conn .cfig{display:flex;flex-direction:column;gap:10px}
+.conn .cfig figure{border:0;padding:0}
+.conn .cfig figure img{height:220px}
+.conn .ctxt h4{font-size:18px;color:var(--accent);margin:0 0 6px}
+.conn .ctxt ul{margin:0;padding-left:20px}
+@media (max-width:700px){.conn{grid-template-columns:1fr}}
+table.credits{font-size:13px}
+footer{margin-top:40px;color:var(--sub);font-size:13px}
+@media (max-width:900px){nav.toc{display:none}main{padding:16px}.grid2{grid-template-columns:1fr}table{display:block;overflow-x:auto}}
+@page{size:A4;margin:12mm}
+@media print{*{-webkit-print-color-adjust:exact;print-color-adjust:exact}nav.toc{display:none}body{background:#fff;font-size:13px}.wrap{display:block}main{padding:0}header.hero{margin-bottom:14px}table{font-size:12px;width:100%;table-layout:auto}th,td{padding:5px 7px;word-break:break-word}h2{break-after:avoid}h3,h4{break-after:avoid}.figs{grid-template-columns:repeat(3,1fr)}figure,.card,.conn,.svgbox,details,tr{break-inside:avoid}.conn{grid-template-columns:230px 1fr}.conn .cfig figure img{height:150px}figure img{height:140px}}
+</style></head><body>
+<div class="wrap">
+<nav class="toc"><p class="tt">OSI L1 目錄</p>
+<a class="l2" href="#s0">0. OSI 第一層(Physical Layer)在做什麼</a>
+<a class="l2" href="#s1">1. 銅纜(Copper Cabling)</a>
+<a class="l3" href="#s1-1">1.1 雙絞線(Twisted Pair)原理與結構</a>
+<a class="l3" href="#s1-2">1.2 遮蔽類型:U/UTP、F/UTP、U/FTP、S/FTP…</a>
+<a class="l3" href="#s1-3">1.3 Category 等級(Cat5e / Cat6 / Cat6A / Cat7 / Cat8)</a>
+<a class="l3" href="#s1-4">1.4 外被材質(Jacket Rating)</a>
+<a class="l3" href="#s1-5">1.5 RJ45 接頭(8P8C)與 Pin 位置</a>
+<a class="l3" href="#s1-6">1.6 T568A 與 T568B 色碼(必背)</a>
+<a class="l3" href="#s1-7">1.7 直通線、跨接線、反轉線(Rollover)</a>
+<a class="l3" href="#s1-8">1.8 PoE(Power over Ethernet)簡述</a>
+<a class="l3" href="#s1-9">1.9 同軸電纜(Coaxial Cable)</a>
+<a class="l3" href="#s1-10">1.10 Twinax / DAC(Direct Attach Copper)短距離高速銅纜</a>
+<a class="l3" href="#s1-11">1.11 配線硬體與工具</a>
+<a class="l3" href="#s1-12">1.12 施工注意事項</a>
+<a class="l2" href="#s2">2. 光纖(Optical Fiber)</a>
+<a class="l3" href="#s2-1">2.1 原理:全反射</a>
+<a class="l3" href="#s2-2">2.2 光纖結構(由內而外)</a>
+<a class="l3" href="#s2-3">2.3 單模(SMF)vs 多模(MMF)</a>
+<a class="l3" href="#s2-4">2.4 光纖等級:OM1~OM5、OS1/OS2 與外被顏色</a>
+<a class="l3" href="#s2-5">2.5 波長與衰減(Attenuation)</a>
+<a class="l3" href="#s2-6">2.6 光纖連接器(Connectors)</a>
+<a class="l3" href="#s2-7">2.7 端面研磨:PC / UPC / APC(重要!)</a>
+<a class="l3" href="#s2-8">2.8 Simplex、Duplex、BiDi 與極性(Polarity)</a>
+<a class="l3" href="#s2-9">2.9 光模組(Transceiver)與 DAC / AOC</a>
+<a class="l3" href="#s2-10">2.10 乙太網路光纖標準對照(必背)</a>
+<a class="l3" href="#s2-11">2.11 熔接與現場端接</a>
+<a class="l3" href="#s2-12">2.12 損耗預算(Loss Budget)</a>
+<a class="l3" href="#s2-13">2.13 光纖測試工具</a>
+<a class="l3" href="#s2-14">2.14 清潔與安全</a>
+<a class="l2" href="#s3">3. 銅纜 vs 光纖 比較與選型</a>
+<a class="l2" href="#s4">4. 第一層故障排除速查</a>
+<a class="l2" href="#s5">5. 考試重點速記與小測驗</a>
+<a class="l2" href="#s6">6. 圖片來源與授權</a></nav>
+<main>
+<header class="hero"><h1>OSI 第一層:網路線材、光纖與接頭</h1>
+<p>網路工程師必修:銅纜 / 光纖 / 連接器 / 光模組 / 損耗預算 / L1 故障排除(附圖與速記)</p></header>
+<section id="s0">
+<h2>0. OSI 第一層(Physical Layer)在做什麼</h2>
+<p>第一層只關心一件事:<b>把「位元(bit,0 與 1)」變成能在媒介上傳遞的訊號,並在另一端還原</b>。它不認識 MAC、IP、port,只管電壓、光、無線電、時脈、接頭腳位、線材規格與傳輸距離。</p>
+<div class="grid2">
+<div class="card"><h4>第一層的範圍</h4>
+<ul>
+<li>傳輸媒介:銅纜(雙絞線、同軸)、光纖、無線</li>
+<li>接頭與腳位:RJ45、LC、SC、MPO、SFP 插槽…</li>
+<li>訊號:電壓/光功率、線路編碼(如 8b/10b、64b/66b、PAM4)、時脈同步</li>
+<li>拓樸與距離:最長線長、衰減、串音、損耗預算</li>
+<li>PDU:<b>Bit</b></li>
+<li>典型設備:網卡 PHY、Hub、Repeater、Media Converter、光模組(SFP)、線材本身</li>
+</ul></div>
+<div class="card"><h4>網路工程師為什麼要懂</h4>
+<ul>
+<li>許多「網路不通」其實是<b>線、接頭、光模組、髒污</b>問題,先排 L1 最省時間</li>
+<li>採購與施工:選錯線等級、光纖類型或接頭,整條鏈路都要重做</li>
+<li>讀得懂 <code>1000BASE-T</code>、<code>10GBASE-SR</code>、<code>OM4</code>、<code>LC/UPC</code> 這些縮寫,是 CCNA / Network+ / 現場作業的基本功</li>
+</ul></div>
+</div>
+<p class="note">本教材的結構:<b>銅纜 → 光纖 → 光模組 → 銅光比較與選型 → L1 故障排除 → 考試速記</b>。每節的圖片皆來自 Wikimedia Commons(自由授權),來源列於文末。</p>
+</section>
+
+<section id="s1">
+<h2>1. 銅纜(Copper Cabling)</h2>
+
+<h3 id="s1-1">1.1 雙絞線(Twisted Pair)原理與結構</h3>
+<p>雙絞線把<b>兩條導線互相纏繞成一對</b>。兩條線傳的是方向相反的差動訊號,外界干擾(EMI)對兩條線的影響幾乎相同,接收端相減後就被抵消;纏繞也降低<b>線對之間的串音(Crosstalk)</b>。每對的絞距(twist rate)都不同,避免相鄰線對互相干擾。</p>
+<div class="conn"><div class="cfig"><figure><a href="images/UTP_cable.jpg" target="_blank"><img src="images/UTP_cable.jpg" alt="UTP 網路線剖面:4 對雙絞線" loading="lazy"></a><figcaption><b>圖 1</b> UTP 網路線剖面:4 對雙絞線</figcaption></figure></div><div class="ctxt"><h4>外觀:4 對 = 8 條導線</h4><ul><li>一條網路線 = <b>4 對 = 8 條導線</b></li><li>四對的顏色:<b>橘、綠、藍、棕</b>;每對由「<b>純色線</b> + <b>白底色線(白線帶色條)</b>」組成</li><li><b>每對的絞距不同</b>,避免相鄰線對互相串音</li><li>線徑約 22–24 AWG,導體為銅</li></ul></div></div>
+<div class="conn"><div class="cfig"><figure><a href="images/Cross_section_of_a_Cat5e_patch_cable.jpg" target="_blank"><img src="images/Cross_section_of_a_Cat5e_patch_cable.jpg" alt="Cat5e 跳線橫切面:可看到 8 條絞線導體" loading="lazy"></a><figcaption><b>圖 2</b> Cat5e 跳線橫切面:可看到 8 條絞線導體</figcaption></figure></div><div class="ctxt"><h4>橫切面:實心線 vs 絞線</h4><ul><li><b>實心線(solid)</b>:衰減小,用於建築內固定佈線(牆內、天花板、至 patch panel / 資訊插座)</li><li><b>絞線(stranded)</b>:每條導體由多股細銅線組成,柔軟耐彎折,用於<b>跳線(patch cord)</b>;圖中即為跳線</li><li>標準通道長度:<b>最長 100 m</b>(固定走線 ≤ 90 m + 兩端跳線合計 ≤ 10 m)</li></ul></div></div>
+
+<h3 id="s1-2">1.2 遮蔽類型:U/UTP、F/UTP、U/FTP、S/FTP…</h3>
+<p>ISO/IEC 11801 命名法為 <b>「整條線的總遮蔽 / 每對線的遮蔽 + TP」</b>:<b>U</b> = 無遮蔽、<b>F</b> = 鋁箔(Foil)、<b>S</b> = 編織網(Screen / Braid)。例如 <code>S/FTP</code> = 整條有編織網、每對有鋁箔。</p>
+<div class="conn"><div class="cfig"><figure><a href="images/Twisted_pair_uutp.png" target="_blank"><img src="images/Twisted_pair_uutp.png" alt="U/UTP:無遮蔽" loading="lazy"></a><figcaption><b>圖 3</b> U/UTP:無遮蔽</figcaption></figure></div><div class="ctxt"><h4>U/UTP(常稱 UTP)</h4><ul><li><b>總遮蔽:無;線對遮蔽:無</b></li><li>最常見、最便宜,辦公室水平佈線主流</li><li>Cat5e / Cat6 多為此結構</li></ul></div></div>
+<div class="conn"><div class="cfig"><figure><a href="images/Twisted_pair_futp.png" target="_blank"><img src="images/Twisted_pair_futp.png" alt="F/UTP:整條鋁箔遮蔽" loading="lazy"></a><figcaption><b>圖 4</b> F/UTP:整條鋁箔遮蔽</figcaption></figure></div><div class="ctxt"><h4>F/UTP(常稱 FTP)</h4><ul><li><b>總遮蔽:鋁箔;線對遮蔽:無</b></li><li>整條線包一層鋁箔,抗外部干擾</li><li>常見於 Cat5e / Cat6 / Cat6A 遮蔽版</li></ul></div></div>
+<div class="conn"><div class="cfig"><figure><a href="images/Twisted_pair_uftp.png" target="_blank"><img src="images/Twisted_pair_uftp.png" alt="U/FTP:每對鋁箔" loading="lazy"></a><figcaption><b>圖 5</b> U/FTP:每對鋁箔</figcaption></figure></div><div class="ctxt"><h4>U/FTP</h4><ul><li><b>總遮蔽:無;線對遮蔽:每對鋁箔</b></li><li>抑制<b>線對之間</b>的串音(alien crosstalk)</li><li>Cat6A 常見</li></ul></div></div>
+<div class="conn"><div class="cfig"><figure><a href="images/Twisted_pair_sftp.png" target="_blank"><img src="images/Twisted_pair_sftp.png" alt="S/FTP:編織網 + 每對鋁箔" loading="lazy"></a><figcaption><b>圖 6</b> S/FTP:編織網 + 每對鋁箔</figcaption></figure></div><div class="ctxt"><h4>S/FTP</h4><ul><li><b>總遮蔽:編織網;線對遮蔽:每對鋁箔</b></li><li>Cat7 / Cat7A / Cat8 典型結構,遮蔽最佳</li></ul></div></div>
+<div class="conn"><div class="cfig"><figure><a href="images/Twisted_pair_sfftp.png" target="_blank"><img src="images/Twisted_pair_sfftp.png" alt="SF/FTP:鋁箔 + 編織網 + 每對鋁箔" loading="lazy"></a><figcaption><b>圖 7</b> SF/FTP:鋁箔 + 編織網 + 每對鋁箔</figcaption></figure></div><div class="ctxt"><h4>SF/FTP</h4><ul><li><b>總遮蔽:鋁箔 + 編織網(雙層);線對遮蔽:每對鋁箔</b></li><li>遮蔽最完整,線徑較粗、成本高</li></ul></div></div>
+<div class="conn"><div class="cfig"><figure><a href="images/CAT8_Ethernet_Cable_5837.jpg" target="_blank"><img src="images/CAT8_Ethernet_Cable_5837.jpg" alt="Cat8 線材剝開:每對線皆有獨立鋁箔包覆(S/FTP 結構)" loading="lazy"></a><figcaption><b>圖 8</b> Cat8 線材剝開:每對線皆有獨立鋁箔包覆(S/FTP 結構)</figcaption></figure></div><div class="ctxt"><h4>實物:Cat8 線材</h4><ul><li>剝開外被後可以看到<b>每對線都有鋁箔</b></li><li>Cat8 一律為<b>遮蔽線</b>(F/UTP 或 S/FTP)</li></ul></div></div>
+<p class="note">其他組合:<b>S/UTP</b>(編織網總遮蔽、線對無遮蔽)、<b>F/FTP</b>(鋁箔總遮蔽 + 每對鋁箔,Cat6A / Cat7 常見)。<br>遮蔽線的<b>接地要完整</b>:兩端的遮蔽層要透過遮蔽式接頭 / 插座與 patch panel 接地,否則遮蔽層反而會變成天線,效果比 UTP 更差。</p>
+
+<h3 id="s1-3">1.3 Category 等級(Cat5e / Cat6 / Cat6A / Cat7 / Cat8)</h3>
+<table>
+<tr><th>等級</th><th>頻寬</th><th>可支援的乙太網路</th><th>常見遮蔽</th><th>備註</th></tr>
+<tr><td>Cat5</td><td>100 MHz</td><td>10/100BASE-T</td><td>U/UTP</td><td>已淘汰</td></tr>
+<tr><td><b>Cat5e</b></td><td>100 MHz</td><td>1000BASE-T(100 m)、2.5GBASE-T / 5GBASE-T</td><td>U/UTP</td><td>目前最低可接受的新設標準,Wi-Fi AP 常用</td></tr>
+<tr><td><b>Cat6</b></td><td>250 MHz</td><td>1000BASE-T;10GBASE-T 僅約 <b>37–55 m</b></td><td>U/UTP,常有十字骨架</td><td>線徑較粗,串音較低</td></tr>
+<tr><td><b>Cat6A</b>(Augmented)</td><td>500 MHz</td><td><b>10GBASE-T 100 m</b></td><td>U/UTP 或 F/UTP、U/FTP</td><td>新建案/資料中心銅纜首選</td></tr>
+<tr><td>Cat7(ISO Class F)</td><td>600 MHz</td><td>10GBASE-T</td><td>S/FTP</td><td>非 TIA 正式標準;用 GG45 / TERA 接頭,也有 RJ45 相容跳線</td></tr>
+<tr><td>Cat7A(Class FA)</td><td>1000 MHz</td><td>10GBASE-T</td><td>S/FTP</td><td>同上</td></tr>
+<tr><td><b>Cat8</b>(8.1 / 8.2)</td><td>2000 MHz</td><td><b>25G / 40GBASE-T,最長 30 m</b></td><td>F/UTP 或 S/FTP(必為遮蔽)</td><td>機櫃內 ToR 交換器到伺服器等短距離</td></tr>
+</table>
+<p class="tip"><b>速記</b>:100 m 看 Cat5e(1G)/ Cat6A(10G);Cat6 跑 10G 只有幾十公尺;Cat8 速度最快但只有 30 m。</p>
+
+<h3 id="s1-4">1.4 外被材質(Jacket Rating)</h3>
+<table>
+<tr><th>代號</th><th>名稱</th><th>用途</th></tr>
+<tr><td>CM / CMG</td><td>一般(PVC)</td><td>一般樓層內走線,非垂直貫穿</td></tr>
+<tr><td>CMR</td><td>Riser</td><td>垂直管道(樓層間),防止火沿管道向上蔓延</td></tr>
+<tr><td><b>CMP</b></td><td><b>Plenum</b></td><td>天花板上方回風空間(plenum),低煙低毒;使用 FEP 等材料,價格較高</td></tr>
+<tr><td>LSZH</td><td>Low Smoke Zero Halogen</td><td>燃燒時低煙、不含鹵素,歐洲 / 隧道 / 船舶 / 資料中心常用</td></tr>
+<tr><td>戶外型 / 直埋</td><td>UV 防護、防水膠</td><td>戶外架空或管道,需加防雷突波保護</td></tr>
+</table>
+
+<h3 id="s1-5">1.5 RJ45 接頭(8P8C)與 Pin 位置</h3>
+<p>乙太網路銅纜使用 <b>8P8C 模組化接頭(俗稱 RJ45)</b>:8 個位置、8 個接點(8P8C)。</p>
+<div class="conn"><div class="cfig"><figure><a href="images/8P8C_modular_plug.jpg" target="_blank"><img src="images/8P8C_modular_plug.jpg" alt="透明 8P8C 模組化接頭,金色為 8 個接點" loading="lazy"></a><figcaption><b>圖 9</b> 透明 8P8C 模組化接頭,金色為 8 個接點</figcaption></figure></div><div class="ctxt"><h4>8P8C 公頭(RJ45 Plug)</h4><ul><li><b>8 個位置、8 個接點</b>,下方有<b>卡榫(彈片)</b>可卡進插座</li><li>跳線的 RJ45 頭有「穿孔式」「帶分線套件(boot)」「<b>遮蔽式(金屬外殼)</b>」,要和線材遮蔽類型相符</li><li>Cat6 / Cat6A 常搭配<b>內置分線器(wire loader)</b>的接頭,確保每對線位置固定</li></ul></div></div>
+<div class="conn"><div class="cfig"><figure><a href="images/8P8C_vs_RJ45_female_connectors.png" target="_blank"><img src="images/8P8C_vs_RJ45_female_connectors.png" alt="8P8C(無凸耳)與 Keyed RJ45(有凸耳)母座外形比較" loading="lazy"></a><figcaption><b>圖 10</b> 8P8C(無凸耳)與 Keyed RJ45(有凸耳)母座外形比較</figcaption></figure></div><div class="ctxt"><h4>8P8C vs RJ45 vs RJ11</h4><ul><li>嚴格來說 <b>RJ45</b> 是電話業一種「<b>有凸耳(keyed)</b>」的規格;乙太網路用的是無凸耳的 <b>8P8C</b>,但業界已一律稱為 RJ45</li><li><b>RJ11</b>(6P2C / 6P4C)較小,用於電話線;外形相近但<b>不能混插</b></li></ul></div></div>
+<div class="conn"><div class="cfig"><figure><a href="images/RJ_45_plug_and_jack.png" target="_blank"><img src="images/RJ_45_plug_and_jack.png" alt="RJ45 公頭 / 母座尺寸與 T568B 線序(圖中公頭是從插入端正面看,故編號為 8→1)" loading="lazy"></a><figcaption><b>圖 11</b> RJ45 公頭 / 母座尺寸與 T568B 線序(圖中公頭是從插入端正面看,故編號為 8→1)</figcaption></figure></div><div class="ctxt"><h4>Pin 位置怎麼數</h4><ul><li><b>公頭金屬接點朝上、插入端朝前、卡榫在下方,從線尾往前看,最左邊是 Pin 1,最右邊是 Pin 8</b></li><li>公頭寬約 11 mm、高約 6 mm</li><li>插入母座後 Pin 1 對 Pin 1</li></ul></div></div>
+
+<h3 id="s1-6">1.6 T568A 與 T568B 色碼(必背)</h3>
+<p>兩者的差別只有「<b>橘對</b>與<b>綠對</b>互換位置」。台灣與北美<b>最常用 T568B</b>;同一條線<b>兩端要用同一種</b>(即直通線),不要混著做。</p>
+<div class="pinwrap">
+<table class="pin">
+<tr><th>Pin</th><th>T568B</th><th>T568A</th><th>10/100 Mbps 用途</th><th>1G/10G 用途</th></tr>
+<tr><td>1</td><td><span class="w o"></span> 白橘</td><td><span class="w g"></span> 白綠</td><td>TX+</td><td>BI_DA+</td></tr>
+<tr><td>2</td><td><span class="s o"></span> 橘</td><td><span class="s g"></span> 綠</td><td>TX−</td><td>BI_DA−</td></tr>
+<tr><td>3</td><td><span class="w g"></span> 白綠</td><td><span class="w o"></span> 白橘</td><td>RX+</td><td>BI_DB+</td></tr>
+<tr><td>4</td><td><span class="s b"></span> 藍</td><td><span class="s b"></span> 藍</td><td>(未使用)</td><td>BI_DC+</td></tr>
+<tr><td>5</td><td><span class="w b"></span> 白藍</td><td><span class="w b"></span> 白藍</td><td>(未使用)</td><td>BI_DC−</td></tr>
+<tr><td>6</td><td><span class="s g"></span> 綠</td><td><span class="s o"></span> 橘</td><td>RX−</td><td>BI_DB−</td></tr>
+<tr><td>7</td><td><span class="w n"></span> 白棕</td><td><span class="w n"></span> 白棕</td><td>(未使用)</td><td>BI_DD+</td></tr>
+<tr><td>8</td><td><span class="s n"></span> 棕</td><td><span class="s n"></span> 棕</td><td>(未使用)</td><td>BI_DD−</td></tr>
+</table>
+</div>
+<p>記憶法:<b>T568B = 橘、綠、藍、棕</b> 的順序:<code>白橘 橘 白綠 藍 白藍 綠 白棕 棕</code>。<br>
+10/100 Mbps 只用 <b>1、2、3、6</b> 兩對;1000BASE-T 與 10GBASE-T <b>四對全用且雙向同時收發</b>,所以任何一對損壞都可能造成「掉速到 100M」。</p>
+
+<h3 id="s1-7">1.7 直通線、跨接線、反轉線(Rollover)</h3>
+<table>
+<tr><th>線型</th><th>兩端接法</th><th>用途</th></tr>
+<tr><td><b>直通線 Straight-through</b></td><td>兩端同為 T568B(或同為 T568A)</td><td>不同類裝置之間:PC↔交換器、交換器↔路由器</td></tr>
+<tr><td><b>跨接線 Crossover</b></td><td>一端 T568A、另一端 T568B(1↔3、2↔6;Gigabit 版 4↔7、5↔8 也要交換)</td><td>同類裝置:交換器↔交換器、PC↔PC(舊設備)</td></tr>
+<tr><td><b>反轉線 Rollover / Console</b></td><td>Pin 1↔8、2↔7、3↔6、4↔5…整條反向</td><td>接網路設備的 <b>Console 口</b>(RJ45→DB9 / USB)</td></tr>
+</table>
+<p class="tip">現代設備幾乎都支援 <b>Auto-MDI/MDIX</b>(自動偵測並調整收發腳位),所以實務上直通線可以通用,不太需要做跨接線;但<b>考試仍會考</b>,請熟記「同類用跨接、異類用直通」。<br>Console 預設參數:<b>9600 baud、8 data bits、no parity、1 stop bit、no flow control(9600 8N1)</b>。</p>
+<div class="conn"><div class="cfig"><figure><a href="images/10BASE_T_and_100BASE_T_Crossover_Cable_Pinout.png" target="_blank"><img src="images/10BASE_T_and_100BASE_T_Crossover_Cable_Pinout.png" alt="10/100BASE-T 跨接線:Pin 1↔3、2↔6 交叉" loading="lazy"></a><figcaption><b>圖 12</b> 10/100BASE-T 跨接線:Pin 1↔3、2↔6 交叉</figcaption></figure></div><div class="ctxt"><h4>跨接線 Crossover</h4><ul><li>10/100 Mbps:<b>Pin 1↔3、2↔6</b> 交叉(TX 接對方 RX)</li><li>Gigabit:另外 <b>4↔7、5↔8</b> 也要交換</li><li>用途:<b>同類裝置</b>互連(交換器↔交換器、PC↔PC)</li><li>現代設備有 <b>Auto-MDIX</b>,通常不需要特地做跨接線</li></ul></div></div>
+<div class="conn"><div class="cfig"><figure><a href="images/Rollover_cable.png" target="_blank"><img src="images/Rollover_cable.png" alt="Rollover 線序示意(整條反向)" loading="lazy"></a><figcaption><b>圖 13</b> Rollover 線序示意(整條反向)</figcaption></figure><figure><a href="images/CiscoRolloverCable.jpg" target="_blank"><img src="images/CiscoRolloverCable.jpg" alt="Cisco 淺藍色扁平 Rollover(Console)線,兩端為 RJ45" loading="lazy"></a><figcaption><b>圖 14</b> Cisco 淺藍色扁平 Rollover(Console)線,兩端為 RJ45</figcaption></figure></div><div class="ctxt"><h4>反轉線 Rollover(Console 線)</h4><ul><li>Pin 1↔8、2↔7、3↔6、4↔5…<b>整條線序反向</b></li><li>用於接網路設備的 <b>Console 口</b>(另一端 DB9 或 USB 轉接)</li><li>Console 參數:<b>9600 baud、8N1、no flow control</b></li></ul></div></div>
+
+<h3 id="s1-8">1.8 PoE(Power over Ethernet)簡述</h3>
+<p>讓網路線<b>同時供電</b>給 AP、IP Camera、VoIP 電話。<b>PSE</b> = 供電端(交換器 / PoE Injector);<b>PD</b> = 受電端。</p>
+<table>
+<tr><th>標準</th><th>名稱</th><th>PSE 輸出功率</th><th>PD 可用功率</th><th>使用線對</th></tr>
+<tr><td>IEEE 802.3af</td><td>PoE(Type 1)</td><td>15.4 W</td><td>12.95 W</td><td>2 對</td></tr>
+<tr><td>IEEE 802.3at</td><td>PoE+(Type 2)</td><td>30 W</td><td>25.5 W</td><td>2 對</td></tr>
+<tr><td>IEEE 802.3bt</td><td>PoE++(Type 3)</td><td>60 W</td><td>51 W</td><td>4 對</td></tr>
+<tr><td>IEEE 802.3bt</td><td>PoE++(Type 4)</td><td>90–100 W</td><td>71.3 W</td><td>4 對</td></tr>
+</table>
+<p class="note">PoE 大電流會讓線材發熱:高瓦數建議使用 <b>Cat6A / 純銅線(CCA 銅包鋁線不建議)</b>,並避免線束過度集中捆綁。</p>
+
+<h3 id="s1-9">1.9 同軸電纜(Coaxial Cable)</h3>
+<p>結構由內而外:<b>中心導體 → 絕緣介質(dielectric)→ 金屬遮蔽層(編織 / 鋁箔)→ 外被</b>。訊號走中心導體,遮蔽層同時是回路與抗干擾屏障。</p>
+<table>
+<tr><th>型號</th><th>阻抗</th><th>常見接頭</th><th>用途</th></tr>
+<tr><td><b>RG-6</b></td><td>75 Ω</td><td><b>F 型接頭</b></td><td>有線電視、寬頻數據機(DOCSIS)、衛星</td></tr>
+<tr><td>RG-59</td><td>75 Ω</td><td>F / BNC</td><td>CCTV、視訊(較短距離)</td></tr>
+<tr><td><b>RG-58</b></td><td>50 Ω</td><td><b>BNC</b></td><td>10BASE2「細同軸」乙太網路,單段最長 <b>185 m</b>;RF 實驗</td></tr>
+<tr><td>RG-8 / RG-213</td><td>50 Ω</td><td>N 型 / AUI 外接</td><td>10BASE5「粗同軸」,單段最長 <b>500 m</b>(吸血鬼夾 vampire tap)</td></tr>
+</table>
+<p>在現代網路中,同軸主要出現在<b>電信 / 有線電視 HFC 網路、CCTV(AHD/HD-CVI)、天線與 RF 連接</b>;區域網路早已改用雙絞線。</p>
+<div class="conn"><div class="cfig"><figure><a href="images/Coaxial_cable_cutaway.png" target="_blank"><img src="images/Coaxial_cable_cutaway.png" alt="同軸電纜結構剖面:中心導體、絕緣、金屬遮蔽、外被" loading="lazy"></a><figcaption><b>圖 15</b> 同軸電纜結構剖面:中心導體、絕緣、金屬遮蔽、外被</figcaption></figure></div><div class="ctxt"><h4>同軸電纜結構(由內而外)</h4><ul><li><b>中心導體(centre core)</b>:傳送訊號</li><li><b>絕緣介質(dielectric insulator)</b>:決定阻抗與衰減</li><li><b>金屬遮蔽層(metallic shield)</b>:編織銅網 / 鋁箔,同時是回路與抗干擾屏障</li><li><b>外被(plastic jacket)</b>:保護</li></ul></div></div>
+<div class="conn"><div class="cfig"><figure><a href="images/BNC_connector_with_10BASE2_cable_92170.jpg" target="_blank"><img src="images/BNC_connector_with_10BASE2_cable_92170.jpg" alt="BNC 接頭與 10BASE2 同軸電纜" loading="lazy"></a><figcaption><b>圖 16</b> BNC 接頭與 10BASE2 同軸電纜</figcaption></figure></div><div class="ctxt"><h4>BNC 接頭(RG-58,50 Ω)</h4><ul><li><b>卡口式(bayonet)</b>,接上後轉一下即固定</li><li>用於 <b>10BASE2 細同軸乙太網路</b>(單段最長 185 m),需用 T 型接頭與 50 Ω 終端電阻</li><li>現在多見於 <b>CCTV、測試儀器(示波器)、RF 設備</b></li></ul></div></div>
+<div class="conn"><div class="cfig"><figure><a href="images/F_Connector.jpg" target="_blank"><img src="images/F_Connector.jpg" alt="F 型接頭(端面)" loading="lazy"></a><figcaption><b>圖 17</b> F 型接頭(端面)</figcaption></figure></div><div class="ctxt"><h4>F 型接頭(RG-6,75 Ω)</h4><ul><li><b>螺紋鎖固</b>,<b>電纜的中心導體直接當接頭的針</b></li><li>用於<b>有線電視、DOCSIS 寬頻數據機、衛星</b></li></ul></div></div>
+
+<h3 id="s1-10">1.10 Twinax / DAC(Direct Attach Copper)短距離高速銅纜</h3>
+<p>兩端直接做成 <b>SFP+ / SFP28 / QSFP+ / QSFP28</b> 模組外型的同軸雙芯(twinax)銅纜,用在<b>機櫃內或相鄰機櫃</b>的交換器 ↔ 伺服器 / 儲存設備。</p>
+<div class="conn"><div class="cfig"><figure><a href="images/40Gb_QSFP_copper_twinax_cable.jpg" target="_blank"><img src="images/40Gb_QSFP_copper_twinax_cable.jpg" alt="40G QSFP+ DAC 銅纜(兩端各為一個 QSFP+ 公頭)" loading="lazy"></a><figcaption><b>圖 18</b> 40G QSFP+ DAC 銅纜(兩端各為一個 QSFP+ 公頭)</figcaption></figure></div><div class="ctxt"><h4>DAC(Direct Attach Copper)</h4><ul><li><b>優點</b>:便宜、低延遲、低功耗(不需光電轉換)</li><li><b>缺點</b>:距離短、線徑粗、彎折半徑大</li><li><b>被動式 DAC</b>:約 1–5 m(視速率最長約 7 m);<b>主動式 DAC</b>:內有等化晶片,約 5–15 m</li><li><b>AOC(Active Optical Cable)</b>:兩端含光模組、中間是光纖,約 3–100 m,較輕巧;是「光」不是銅,但外觀與 DAC 類似</li><li>部分廠牌交換器會鎖定<b>原廠相容編碼</b>,第三方 DAC / 光模組要確認相容性</li></ul></div></div>
+
+<h3 id="s1-11">1.11 配線硬體與工具</h3>
+<div class="conn"><div class="cfig"><figure><a href="images/Keystone_module_CAT5_orange.jpg" target="_blank"><img src="images/Keystone_module_CAT5_orange.jpg" alt="Cat5e Keystone 模組(橘色):後面為打線端" loading="lazy"></a><figcaption><b>圖 19</b> Cat5e Keystone 模組(橘色):後面為打線端</figcaption></figure></div><div class="ctxt"><h4>Keystone 模組 / 資訊插座</h4><ul><li>安裝在牆壁面板或 patch panel 的 <b>RJ45 母座</b></li><li>後端用 <b>110 打線</b>端接實心線,色碼標示在模組上(T568A / B)</li></ul></div></div>
+<div class="conn"><div class="cfig"><figure><a href="images/19_patchpanel_for_up_to_24_keystone_modules.jpg" target="_blank"><img src="images/19_patchpanel_for_up_to_24_keystone_modules.jpg" alt="19 吋 1U 配線架,可插 24 個 Keystone 模組" loading="lazy"></a><figcaption><b>圖 20</b> 19 吋 1U 配線架,可插 24 個 Keystone 模組</figcaption></figure></div><div class="ctxt"><h4>Patch Panel(配線架)</h4><ul><li>機櫃的 <b>19 吋 / 1U</b> 配線架,集中端接水平佈線</li><li>前面用<b>跳線</b>接交換器,後面是固定走線 → 換線不必動牆內線</li></ul></div></div>
+<div class="conn"><div class="cfig"><figure><a href="images/110_punch_block_IDC_0a.jpg" target="_blank"><img src="images/110_punch_block_IDC_0a.jpg" alt="110 打線塊上的實際走線(各對以顏色對應排列)" loading="lazy"></a><figcaption><b>圖 21</b> 110 打線塊上的實際走線(各對以顏色對應排列)</figcaption></figure></div><div class="ctxt"><h4>110 Block / Krone(打線塊)</h4><ul><li>以 <b>punch-down(打線刀)</b>把線壓入刀片式接點(IDC)</li><li>語音與數據配線皆用;可看到各對依顏色整齊排列</li></ul></div></div>
+<div class="conn"><div class="cfig"><figure><a href="images/Crimpzange_RJ45_RJ11_RJ12_IMGP1079.jpg" target="_blank"><img src="images/Crimpzange_RJ45_RJ11_RJ12_IMGP1079.jpg" alt="RJ45 / RJ11 壓線鉗" loading="lazy"></a><figcaption><b>圖 22</b> RJ45 / RJ11 壓線鉗</figcaption></figure></div><div class="ctxt"><h4>壓線鉗(Crimper)</h4><ul><li>用於製作 <b>RJ45 跳線頭</b>(圖中同時支援 RJ11 / RJ12)</li><li>另需<b>剝線鉗</b>與<b>測線器</b></li></ul></div></div>
+<div class="conn"><div class="cfig"><figure><a href="images/Network_cable_tester_IMGP1639_smial_wp.jpg" target="_blank"><img src="images/Network_cable_tester_IMGP1639_smial_wp.jpg" alt="基本網路測線器:主機 + 遠端終端" loading="lazy"></a><figcaption><b>圖 23</b> 基本網路測線器:主機 + 遠端終端</figcaption></figure></div><div class="ctxt"><h4>測線器(Cable Tester)</h4><ul><li>基本款:檢查<b>通、斷、短路、錯線、跨線</b>,把主機與遠端終端分別接在線的兩端</li><li>專業的<b>認證測試儀(如 Fluke DSX)</b>可量測衰減、NEXT、回返損耗(Return Loss)、長度、傳播延遲,並產出 TIA / ISO 認證報告</li></ul></div></div>
+<p class="note">另:<b>Toner / Probe(尋線器)</b>可在機房一堆線中找出對應的那一條。</p>
+
+<h3 id="s1-12">1.12 施工注意事項</h3>
+<ul>
+<li><b>長度</b>:通道 ≤ 100 m;超過就要換光纖或加交換器。</li>
+<li><b>解絞長度</b>:端接時拆開線對越短越好(Cat5e / Cat6 一般 ≤ 13 mm),過度解絞會讓串音(NEXT)變差。</li>
+<li><b>彎折半徑</b>:UTP 靜態彎折 ≥ <b>4 倍外徑</b>;拉線張力 ≤ <b>25 lbf(約 110 N)</b>,不可用力拉扯或用束線帶勒緊。</li>
+<li><b>避開干擾源</b>:與電力線、日光燈、馬達保持距離,必要時交叉不要平行貼靠。</li>
+<li><b>不要把銅包鋁(CCA)當純銅線</b>:電阻高、易斷,PoE 容易過熱,不符合 TIA / ISO 標準。</li>
+<li>標示:兩端標籤、patch panel 編號、做好 <b>as-built 配線圖</b>。</li>
+</ul>
+</section>
+
+<section id="s2">
+<h2>2. 光纖(Optical Fiber)</h2>
+
+<h3 id="s2-1">2.1 原理:全反射</h3>
+<p>光纖用高折射率的<b>纖芯(core)</b>包在較低折射率的<b>包層(cladding)</b>裡,光以大於臨界角的角度射入,在兩者界面發生<b>全內反射(Total Internal Reflection)</b>而被「鎖」在纖芯裡前進。光不受電磁干擾、不會對外輻射,所以具備:<b>高頻寬、長距離、低衰減、抗 EMI、電氣隔離(不引雷、不產生地迴路)、保密性較好</b>。</p>
+<p class="note">缺點:接頭與熔接需要專業工具、端面怕髒、彎折過度會漏光、不能直接供電(PoE 不能走光纖)。</p>
+
+<h3 id="s2-2">2.2 光纖結構(由內而外)</h3>
+<div class="svgbox">
+<svg viewBox="0 0 1040 300" role="img" aria-label="光纖橫切面結構">
+<defs><style>.t{font:16px sans-serif;fill:#222}.l{stroke:#555;stroke-width:1}</style></defs>
+<circle cx="170" cy="150" r="130" fill="#3a3a3a"/>
+<circle cx="170" cy="150" r="108" fill="#f2c94c"/>
+<circle cx="170" cy="150" r="84" fill="#d7ecf7"/>
+<circle cx="170" cy="150" r="64" fill="#fbe3b0"/>
+<circle cx="170" cy="150" r="42" fill="#cfe8ff" stroke="#0a66c2" stroke-width="1"/>
+<circle cx="170" cy="150" r="14" fill="#66b2ff" stroke="#0a66c2"/>
+<line class="l" x1="170" y1="150" x2="440" y2="40"/><text class="t" x="446" y="44">① 纖芯 Core(傳光):SMF 9 µm / MMF 50 或 62.5 µm</text>
+<line class="l" x1="195" y1="130" x2="440" y2="82"/><text class="t" x="446" y="86">② 包層 Cladding:125 µm(折射率較低,形成全反射)</text>
+<line class="l" x1="225" y1="125" x2="440" y2="124"/><text class="t" x="446" y="128">③ 塗覆層 Coating:245–250 µm(丙烯酸樹脂,保護玻璃)</text>
+<line class="l" x1="245" y1="150" x2="440" y2="166"/><text class="t" x="446" y="170">④ 緩衝層 Buffer:900 µm 緊套(tight)或 loose tube 鬆套管</text>
+<line class="l" x1="256" y1="185" x2="440" y2="208"/><text class="t" x="446" y="212">⑤ 強化纖維 Strength member:克維拉 Aramid(抗拉)</text>
+<line class="l" x1="275" y1="215" x2="440" y2="250"/><text class="t" x="446" y="254">⑥ 外被 Jacket:PVC / LSZH,顏色代表光纖種類</text>
+</svg>
+</div>
+<p>光纖玻璃本身(纖芯 + 包層)外徑固定為 <b>125 µm</b>(約人類頭髮的 1/2~1/3),所以不同類型的光纖<b>只差在纖芯粗細</b>(見下節)。</p>
+<div class="conn"><div class="cfig"><figure><a href="images/Fiber_Types.png" target="_blank"><img src="images/Fiber_Types.png" alt="光纖類型纖芯比較:單模 8.3 µm、多模 50–100 µm、保偏「Panda」型" loading="lazy"></a><figcaption><b>圖 24</b> 光纖類型纖芯比較:單模 8.3 µm、多模 50–100 µm、保偏「Panda」型</figcaption></figure></div><div class="ctxt"><h4>纖芯大小比較</h4><ul><li><b>單模(Single Mode)</b>:纖芯約 8.3–9 µm,包層 125 µm</li><li><b>多模(Multi-Mode)</b>:纖芯 50 µm 或 62.5 µm,包層 125 µm</li><li><b>保偏(Panda)光纖</b>:特殊用途(雷射 / 感測),一般網路用不到</li><li>重點:<b>包層永遠 125 µm</b>,差別只在纖芯</li></ul></div></div>
+<div class="conn"><div class="cfig"><figure><a href="images/RibbonCutout1.jpg" target="_blank"><img src="images/RibbonCutout1.jpg" alt="帶狀光纖(Ribbon)與一般多芯光纜剖面,多芯骨幹用" loading="lazy"></a><figcaption><b>圖 25</b> 帶狀光纖(Ribbon)與一般多芯光纜剖面,多芯骨幹用</figcaption></figure></div><div class="ctxt"><h4>帶狀光纖 Ribbon 光纜</h4><ul><li>多條光纖<b>並排成一條帶狀</b>(常見 12 芯),再疊成光纜</li><li><b>高密度</b>,適合骨幹、資料中心;可以<b>一次熔接多芯(mass fusion)</b></li><li>與 <b>MPO / MTP 多芯接頭</b>搭配最常見</li></ul></div></div>
+
+<h3 id="s2-3">2.3 單模(SMF)vs 多模(MMF)</h3>
+<div class="svgbox">
+<svg viewBox="0 0 720 260" role="img" aria-label="單模與多模光線路徑示意">
+<defs><style>.t{font:13px sans-serif;fill:#222}.cl{fill:#cfd8e3}.co{fill:#fff4c2}.r{stroke:#d62828;stroke-width:2;fill:none}</style></defs>
+<text class="t" x="10" y="16" font-weight="bold">單模 SMF(Single-Mode):只有一條路徑,模態色散極小 → 長距離</text>
+<rect class="cl" x="20" y="24" width="680" height="50"/><rect class="co" x="20" y="44" width="680" height="10"/>
+<line class="r" x1="20" y1="49" x2="700" y2="49"/>
+<text class="t" x="10" y="100" font-weight="bold">多模階變折射率 MMF(Step-Index):多條路徑,光線在界面折返 → 脈衝展寬</text>
+<rect class="cl" x="20" y="108" width="680" height="50"/><rect class="co" x="20" y="116" width="680" height="34"/>
+<polyline class="r" points="20,133 120,119 220,147 320,119 420,147 520,119 620,147 700,133"/>
+<text class="t" x="10" y="184" font-weight="bold">多模漸變折射率 MMF(Graded-Index,OM1~OM5 皆是):路徑彎曲,各模式到達時間較接近</text>
+<rect class="cl" x="20" y="192" width="680" height="50"/><rect class="co" x="20" y="200" width="680" height="34"/>
+<path class="r" d="M20,217 C80,200 140,234 200,217 S320,200 380,217 S500,234 560,217 S680,200 700,217"/>
+</svg>
+</div>
+<table>
+<tr><th>項目</th><th>單模 SMF</th><th>多模 MMF</th></tr>
+<tr><td>纖芯直徑</td><td><b>約 9 µm</b>(8.2–9)</td><td><b>50 µm</b>(OM2~OM5)或 <b>62.5 µm</b>(OM1)</td></tr>
+<tr><td>包層直徑</td><td colspan="2" style="text-align:center">125 µm(兩者相同)</td></tr>
+<tr><td>光源</td><td>雷射二極體(DFB / FP 雷射,成本高)</td><td>VCSEL(850 nm,便宜)或 LED</td></tr>
+<tr><td>常用波長</td><td><b>1310 nm、1550 nm</b></td><td><b>850 nm</b>、1300 nm</td></tr>
+<tr><td>傳輸距離</td><td>公里級(10 km、40 km、80 km 以上)</td><td>數百公尺(OM4 常見 100~400 m)</td></tr>
+<tr><td>光模組 / 設備成本</td><td>光模組較貴,但纖本身便宜</td><td>光模組便宜,但 OM3 / OM4 光纖較貴</td></tr>
+<tr><td>主要限制</td><td>色散(chromatic dispersion)</td><td><b>模態色散(modal dispersion)</b>決定最大距離</td></tr>
+<tr><td>外被顏色</td><td><b>黃色</b>(OS1/OS2)</td><td>橘(OM1/OM2)、水藍 Aqua(OM3/OM4)、萊姆綠(OM5)</td></tr>
+<tr><td>典型使用</td><td>校園骨幹、城際、電信 FTTH、長距離資料中心互連</td><td>機房內、樓內垂直幹線、資料中心短距離</td></tr>
+</table>
+<p class="tip">⚠️ <b>單模與多模不可混接。</b>用單模模組配多模光纖 / 反過來,有時「看起來會亮燈」但損耗與 BER 極高。<b>永遠先確認模組類型、光纖類型、波長、距離四項是否一致。</b></p>
+
+<h3 id="s2-4">2.4 光纖等級:OM1~OM5、OS1/OS2 與外被顏色</h3>
+<p>ISO/IEC 11801 的命名:<b>OM = Optical Multimode,OS = Optical Single-mode</b>。</p>
+<table>
+<tr><th>等級</th><th>纖芯</th><th>建議外被顏色</th><th>10G(10GBASE-SR)</th><th>40/100G(SR4)</th><th>備註</th></tr>
+<tr><td>OM1</td><td>62.5/125 µm</td><td><span class="sw" style="background:#f28c28"></span> 橘色</td><td>約 33 m</td><td>—</td><td>LED 光源,1G 最遠 275 m,已淘汰</td></tr>
+<tr><td>OM2</td><td>50/125 µm</td><td><span class="sw" style="background:#f28c28"></span> 橘色</td><td>約 82 m</td><td>—</td><td>1G 最遠 550 m</td></tr>
+<tr><td><b>OM3</b></td><td>50/125 µm(雷射最佳化)</td><td><span class="sw" style="background:#1fb6c1"></span> 水藍 Aqua</td><td><b>300 m</b></td><td>40G:100 m<br>100G:70 m</td><td>VCSEL 專用,10G 起的主流</td></tr>
+<tr><td><b>OM4</b></td><td>50/125 µm(更高頻寬)</td><td><span class="sw" style="background:#1fb6c1"></span> 水藍(部分品牌為紫紅 Erika Violet)</td><td><b>400 m</b></td><td>40G:150 m<br>100G:100 m</td><td>目前資料中心多模最常見</td></tr>
+<tr><td>OM5(WBMMF)</td><td>50/125 µm(寬頻 850–953 nm)</td><td><span class="sw" style="background:#9acd32"></span> 萊姆綠 Lime</td><td>400 m</td><td>支援 SWDM(多波長多工),用 2 芯達成 40/100G</td><td>與 OM4 同尺寸、向下相容</td></tr>
+<tr><td><b>OS1</b></td><td>9/125 µm</td><td><span class="sw" style="background:#f4d000"></span> 黃色</td><td colspan="2" style="text-align:center">室內緊套光纖,衰減 ≤ 1.0 dB/km</td><td>樓內單模</td></tr>
+<tr><td><b>OS2</b></td><td>9/125 µm</td><td><span class="sw" style="background:#f4d000"></span> 黃色</td><td colspan="2" style="text-align:center">室外鬆套管光纜,衰減 ≤ 0.4 dB/km</td><td>室外骨幹、電信、長距離</td></tr>
+</table>
+<p class="note">表中距離為 IEEE 標準「典型最大值」,實際以光模組規格書與線纜衰減為準。外被顏色為 TIA-598 / ISO 11801 建議值,<b>不同廠牌可能有差異,以標示文字(線上印字)為準</b>。</p>
+
+<h3 id="s2-5">2.5 波長與衰減(Attenuation)</h3>
+<table>
+<tr><th>光纖</th><th>波長</th><th>典型衰減</th><th>說明</th></tr>
+<tr><td>MMF</td><td>850 nm</td><td>約 3.0 dB/km</td><td>VCSEL 光源,第一視窗</td></tr>
+<tr><td>MMF</td><td>1300 nm</td><td>約 1.0 dB/km</td><td>較少用</td></tr>
+<tr><td>SMF</td><td><b>1310 nm</b></td><td>約 0.35 dB/km</td><td>第二視窗,色散最小,10G-LR / 1000BASE-LX</td></tr>
+<tr><td>SMF</td><td><b>1550 nm</b></td><td>約 0.20 dB/km</td><td>第三視窗,衰減最低,長距離(ER / ZR)與 DWDM</td></tr>
+</table>
+<p>衰減單位 <b>dB</b>(對數):每損失 3 dB ≈ 損失一半光功率;光功率單位 <b>dBm</b>(以 1 mW 為 0 dBm)。</p>
+
+<h3 id="s2-6">2.6 光纖連接器(Connectors)</h3>
+<p>必須能辨認 <b>ST、SC、FC、LC、MTP/MPO</b> 五種。下面每種接頭都是「<b>圖 + 說明並排</b>」,先看外型、再讀特徵。</p>
+
+<div class="conn">
+<div class="cfig"><figure><a href="images/ST_optical_fiber_connector_hdr_0a.jpg" target="_blank"><img src="images/ST_optical_fiber_connector_hdr_0a.jpg" alt="ST 接頭:圓形、金屬卡扣環" loading="lazy"></a><figcaption><b>圖 26</b> ST 接頭:圓形、金屬卡扣環</figcaption></figure></div>
+<div class="ctxt">
+<h4>ST(Straight Tip)</h4>
+<ul>
+<li><b>外觀</b>:圓柱形,外圈有金屬環,環上有凹槽</li>
+<li><b>鎖固</b>:<b>卡扣式(bayonet)</b>──插入後<b>旋轉</b>卡進凹槽(像舊式相機鏡頭)</li>
+<li><b>插芯</b>:2.5 mm</li>
+<li><b>場景</b>:早期多模光纖、校園舊佈線、工業現場</li>
+<li><b>辨識口訣</b>:<b>圓的 + 要轉</b> = ST</li>
+</ul>
+</div></div>
+
+<div class="conn">
+<div class="cfig"><figure><a href="images/SC_optical_fiber_connector_hdr_0a.jpg" target="_blank"><img src="images/SC_optical_fiber_connector_hdr_0a.jpg" alt="SC 雙芯接頭:方形,以 duplex clip 併成一對" loading="lazy"></a><figcaption><b>圖 27</b> SC 雙芯接頭:方形,以 duplex clip 併成一對</figcaption></figure></div>
+<div class="ctxt">
+<h4>SC(Subscriber / Square / Standard)</h4>
+<ul>
+<li><b>外觀</b>:<b>方形</b>塑膠外殼,兩條可用夾子併成雙芯</li>
+<li><b>鎖固</b>:<b>推拉式(push-pull)</b>──直接推入「喀」一聲定位,拉外殼即可拔出</li>
+<li><b>插芯</b>:2.5 mm</li>
+<li><b>場景</b>:電信、<b>FTTH / GPON 光纖到府</b>、舊式交換器與 GBIC;單模多為 <b>SC/APC(綠色)</b></li>
+<li><b>辨識口訣</b>:<b>方的 + 直接推</b> = SC</li>
+</ul>
+</div></div>
+
+<div class="conn">
+<div class="cfig"><figure><a href="images/FC_optical_fiber_connector_hdr_0a.jpg" target="_blank"><img src="images/FC_optical_fiber_connector_hdr_0a.jpg" alt="FC 接頭:金屬滾花螺帽,黃色為單模跳線" loading="lazy"></a><figcaption><b>圖 28</b> FC 接頭:金屬滾花螺帽,黃色為單模跳線</figcaption></figure></div>
+<div class="ctxt">
+<h4>FC(Ferrule Connector)</h4>
+<ul>
+<li><b>外觀</b>:金屬外殼、<b>滾花螺帽</b>,螺帽旁常有定位鍵(key)</li>
+<li><b>鎖固</b>:<b>螺紋鎖固</b>,抗震、連接穩固</li>
+<li><b>插芯</b>:2.5 mm</li>
+<li><b>場景</b>:<b>測試儀器</b>(OTDR、光功率計、光源)、電信設備、實驗室;資料網路設備上較少見</li>
+<li><b>辨識口訣</b>:<b>金屬 + 螺帽</b> = FC</li>
+</ul>
+</div></div>
+
+<div class="conn">
+<div class="cfig"><figure><a href="images/LC_optical_fiber_connector_hdr_0a.jpg" target="_blank"><img src="images/LC_optical_fiber_connector_hdr_0a.jpg" alt="LC 雙芯接頭:小型、彈片卡榫(橘色為多模線)" loading="lazy"></a><figcaption><b>圖 29</b> LC 雙芯接頭:小型、彈片卡榫(橘色為多模線)</figcaption></figure></div>
+<div class="ctxt">
+<h4>LC(Lucent / Little Connector)</h4>
+<ul>
+<li><b>外觀</b>:<b>小型</b>方形,外型像迷你 RJ45,常以雙芯夾併成 duplex</li>
+<li><b>鎖固</b>:<b>彈片卡榫</b>,按下彈片拔出</li>
+<li><b>插芯</b>:<b>1.25 mm</b>(約為 SC / ST / FC 的一半 → 密度可加倍)</li>
+<li><b>場景</b>:<b>資料中心與 SFP / SFP+ / QSFP 光模組的標準接頭</b>,目前最常見</li>
+<li><b>辨識口訣</b>:<b>小的 + 有彈片</b> = LC</li>
+</ul>
+</div></div>
+
+<div class="conn">
+<div class="cfig"><figure><a href="images/MTP_Connector.jpg" target="_blank"><img src="images/MTP_Connector.jpg" alt="MTP / MPO 多芯接頭(綠色外殼通常表示 APC 斜角端面)" loading="lazy"></a><figcaption><b>圖 30</b> MTP / MPO 多芯接頭(綠色外殼通常表示 APC 斜角端面)</figcaption></figure></div>
+<div class="ctxt">
+<h4>MTP / MPO(Multi-fiber Push On)</h4>
+<ul>
+<li><b>外觀</b>:矩形、<b>一個接頭含 8 / 12 / 16 / 24 芯</b>,前端有 MT 插芯與兩個導針孔</li>
+<li><b>鎖固</b>:推拉式,並以<b>導針(guide pin)</b>精準對位</li>
+<li><b>公母</b>:<b>公頭(male)有導針</b>、<b>母頭(female)無導針</b>,兩者才能對接</li>
+<li><b>場景</b>:<b>40G / 100G SR4</b>、高密度主幹、預端接(pre-terminated)光纜</li>
+<li><b>注意</b>:要確認<b>極性(Polarity A/B/C)</b>、公母、芯數與端面(UPC/APC)</li>
+</ul>
+</div></div>
+
+<h4 style="margin:22px 0 6px">大小與外形並排比較</h4>
+<div class="figs">
+<figure><a href="images/Lc_sc_fiber_connectors.jpg" target="_blank"><img src="images/Lc_sc_fiber_connectors.jpg" alt="LC(左)與 SC(右):LC 明顯小很多" loading="lazy"></a><figcaption><b>圖 31</b> LC(左)與 SC(右):LC 明顯小很多</figcaption></figure>
+<figure><a href="images/St_sc_fiber_connectors.jpg" target="_blank"><img src="images/St_sc_fiber_connectors.jpg" alt="ST(左,圓形帶卡扣)與 SC(右,方形)" loading="lazy"></a><figcaption><b>圖 32</b> ST(左,圓形帶卡扣)與 SC(右,方形)</figcaption></figure>
+</div>
+
+<table>
+<tr><th>接頭</th><th>形狀</th><th>鎖固方式</th><th>插芯</th><th>最常見場景</th></tr>
+<tr><td><b>ST</b></td><td>圓形</td><td>旋轉卡扣</td><td>2.5 mm</td><td>舊多模佈線</td></tr>
+<tr><td><b>SC</b></td><td>方形</td><td>推拉</td><td>2.5 mm</td><td>電信、FTTH、舊設備</td></tr>
+<tr><td><b>FC</b></td><td>圓形、金屬</td><td>螺紋</td><td>2.5 mm</td><td>測試儀器、電信</td></tr>
+<tr><td><b>LC</b></td><td>小型方形</td><td>彈片卡榫</td><td><b>1.25 mm</b></td><td><b>資料中心 / SFP 模組</b></td></tr>
+<tr><td><b>MTP/MPO</b></td><td>矩形多芯</td><td>推拉 + 導針</td><td>MT 插芯(8–24 芯)</td><td>40G / 100G SR4</td></tr>
+</table>
+<p class="note">其他:<b>E2000</b>(歐洲電信 / 實驗室,自帶防塵蓋)、<b>MU</b>(迷你 SC)、<b>MT-RJ</b>(舊式雙芯小型接頭)。</p>
+<p class="tip"><b>連接器類型 ≠ 光纖類型 ≠ 端面研磨類型</b>,三者互相獨立。完整規格像 <code>LC/UPC – SC/UPC 單模 9/125 雙芯 OS2 3 m</code>,要一次講清楚。</p>
+
+<h3 id="s2-7">2.7 端面研磨:PC / UPC / APC(重要!)</h3>
+<p>光纖接頭的陶瓷插芯端面有<b>不同的研磨形狀</b>,目的是降低<b>回返損耗(Return Loss, RL)</b>:光在接點的反射會回到雷射造成雜訊。</p>
+<table>
+<tr><th>類型</th><th>端面</th><th>顏色(接頭 / 防塵蓋)</th><th>回返損耗</th><th>用途</th></tr>
+<tr><td>PC</td><td>微凸圓弧</td><td>多為黑 / 米色</td><td>約 ≥ 30 dB</td><td>早期使用</td></tr>
+<tr><td><b>UPC</b></td><td>更平滑的凸面(Ultra PC)</td><td><span class="sw" style="background:#1565c0"></span> <b>藍色</b></td><td>約 ≥ 50 dB</td><td>一般資料網路、乙太網路光模組(LC/UPC)</td></tr>
+<tr><td><b>APC</b></td><td><b>8° 斜角</b>研磨(Angled PC)</td><td><span class="sw" style="background:#2e9e3a"></span> <b>綠色</b></td><td>約 ≥ 60 dB</td><td>FTTH / GPON、CATV(RF Overlay)、DWDM、高精密測試</td></tr>
+</table>
+<p class="tip">⚠️ <b>UPC 與 APC 不可互插。</b>斜角面對平面接不到位,會有明顯損耗、也可能刮傷插芯。記口訣:<b>綠色斜角(APC)、藍色平面(UPC)</b>。</p>
+<div class="conn"><div class="cfig"><figure><a href="images/APC2.png" target="_blank"><img src="images/APC2.png" alt="PC 與 APC 對接示意:APC 以 8° 斜角把反射光導入包層" loading="lazy"></a><figcaption><b>圖 33</b> PC 與 APC 對接示意:APC 以 8° 斜角把反射光導入包層</figcaption></figure></div><div class="ctxt"><h4>PC 與 APC 的差異</h4><ul><li><b>PC / UPC</b>:端面接近垂直,光在接點的<b>反射會沿原路回到雷射</b>,產生雜訊</li><li><b>APC</b>:端面磨成 <b>8° 斜角</b>,反射光折進包層被吸收,<b>回返損耗高(≥ 60 dB)</b></li><li>所以 FTTH / CATV / DWDM 這類對反射敏感的系統用 APC</li></ul></div></div>
+<div class="conn"><div class="cfig"><figure><a href="images/Optical_patch_fiber_FC_APC_connectors.jpg" target="_blank"><img src="images/Optical_patch_fiber_FC_APC_connectors.jpg" alt="FC/APC 黃色單模跳線(綠色接頭 = APC)" loading="lazy"></a><figcaption><b>圖 34</b> FC/APC 黃色單模跳線(綠色接頭 = APC)</figcaption></figure></div><div class="ctxt"><h4>實物:FC/APC 跳線</h4><ul><li><b>黃色外被 = 單模</b>、<b>綠色接頭 = APC</b></li><li>兩端皆為 FC/APC,常用於測試儀器與光學實驗</li><li>APC 只能接 APC,不可與藍色 UPC 互插</li></ul></div></div>
+
+<h3 id="s2-8">2.8 Simplex、Duplex、BiDi 與極性(Polarity)</h3>
+<ul>
+<li><b>Simplex(單芯)</b>:1 條光纖;<b>Duplex(雙芯)</b>:2 條光纖(<b>一條 Tx 發、一條 Rx 收</b>),這是最常見的乙太網路光連結。</li>
+<li><b>極性(Polarity)</b>:A 端的 Tx 必須對到 B 端的 Rx。若兩條光纖接反(Tx↔Tx、Rx↔Rx),<b>光模組亮燈但鏈路不起來</b>。常見處置:把一端的 LC duplex 光纖<b>對調(flip)</b>。</li>
+<li><b>BiDi(單纖雙向)</b>模組:只用 1 條光纖,兩端用<b>不同波長</b>(如 1310 / 1490 / 1550 nm)分別傳送與接收,必須<b>成對使用</b>(A 端搭配 B 端的模組),可節省一半光纖。</li>
+<li><b>MPO 極性</b>:Method A(直通)、B(反轉,40/100G SR4 最常用)、C(成對反轉)。選購 MPO 線要注意 <b>male/female + 極性 + 光纖數量(8/12/24)</b>。</li>
+</ul>
+
+<h3 id="s2-9">2.9 光模組(Transceiver)與 DAC / AOC</h3>
+<p>光模組把交換器的<b>電訊號</b>轉成<b>光訊號</b>(與反向),插在設備的<b>熱插拔(hot-swappable)</b>插槽,是 L1 的核心元件。</p>
+<table>
+<tr><th>外型</th><th>速率</th><th>典型光介面</th><th>常見光學接頭</th></tr>
+<tr><td><b>SFP</b></td><td>100M / <b>1G</b>(最高約 4G)</td><td>1000BASE-SX / LX / LX10 / EX / ZX / BX</td><td>LC 雙芯(BiDi 為單芯)</td></tr>
+<tr><td><b>SFP+</b></td><td><b>10G</b></td><td>10GBASE-SR / LR / ER / ZR、DAC</td><td>LC 雙芯</td></tr>
+<tr><td><b>SFP28</b></td><td><b>25G</b></td><td>25GBASE-SR / LR</td><td>LC 雙芯</td></tr>
+<tr><td><b>QSFP+</b></td><td><b>40G</b>(4×10G)</td><td>40GBASE-SR4 / LR4</td><td>SR4:MPO-12;LR4:LC 雙芯</td></tr>
+<tr><td><b>QSFP28</b></td><td><b>100G</b>(4×25G)</td><td>100GBASE-SR4 / LR4 / CWDM4</td><td>SR4:MPO-12;LR4:LC 雙芯</td></tr>
+<tr><td>QSFP-DD / OSFP</td><td>400G / 800G</td><td>400GBASE-SR8 / DR4 / FR4 / LR4</td><td>MPO-16 / LC</td></tr>
+</table>
+<p>型號代號:<b>SR</b> = Short Reach(多模 850 nm);<b>LR</b> = Long Reach(單模 1310 nm,10 km);<b>ER</b> = Extended Reach(1550 nm,40 km);<b>ZR</b> = 80 km;<b>SX / LX</b> 是 1G 的對應命名;<b>BX</b> = BiDi;<b>DR / FR</b> 等為 400G 新命名。</p>
+<div class="conn"><div class="cfig"><figure><a href="images/Multi_mode_sfp_transceiver_IMGP7820_wp.jpg" target="_blank"><img src="images/Multi_mode_sfp_transceiver_IMGP7820_wp.jpg" alt="1000BASE-SX SFP 光模組(多模 850 nm)" loading="lazy"></a><figcaption><b>圖 35</b> 1000BASE-SX SFP 光模組(多模 850 nm)</figcaption></figure></div><div class="ctxt"><h4>SFP:1G 光模組</h4><ul><li>圖為 <b>1000BASE-SX</b>,<b>850 nm 多模</b>,前端兩個孔(Tx / Rx)接 <b>LC 雙芯</b></li><li>標籤上會寫速率、光纖類型、波長與距離</li><li>金屬外殼、拉環(bail)用來鎖定與拔出</li></ul></div></div>
+<div class="conn"><div class="cfig"><figure><a href="images/Cisco_SFP_10G_SR_10GBASE_SR_SFP_optical_transceive.jpg" target="_blank"><img src="images/Cisco_SFP_10G_SR_10GBASE_SR_SFP_optical_transceive.jpg" alt="一批 10GBASE-SR SFP+ 模組(外型與 SFP 相同,速率與編碼不同)" loading="lazy"></a><figcaption><b>圖 36</b> 一批 10GBASE-SR SFP+ 模組(外型與 SFP 相同,速率與編碼不同)</figcaption></figure></div><div class="ctxt"><h4>SFP+:10G 光模組</h4><ul><li>外型與 SFP 幾乎相同,但<b>速率 10G、編碼不同</b></li><li>圖為 <b>10GBASE-SR</b>(850 nm 多模,OM3 300 m / OM4 400 m)</li><li>SFP+ 與 SFP 外型相同但<b>速率與編碼不同</b>,SFP 插槽不能用 SFP+ 跑 10G;SFP+ 插槽是否相容 1G 模組視設備而定</li></ul></div></div>
+<div class="conn"><div class="cfig"><figure><a href="images/QSFP28_100G_SR4.jpg" target="_blank"><img src="images/QSFP28_100G_SR4.jpg" alt="QSFP28 100G-SR4 模組(多模 850 nm,MPO 介面)" loading="lazy"></a><figcaption><b>圖 37</b> QSFP28 100G-SR4 模組(多模 850 nm,MPO 介面)</figcaption></figure></div><div class="ctxt"><h4>QSFP28 SR4:100G 多模</h4><ul><li><b>4 × 25G</b>,850 nm 多模,用 <b>MPO-12(8 芯)</b></li><li>OM3 70 m / OM4 100 m</li><li>橘黃色拉環只是模組的拉環顏色,不代表光纖類型</li></ul></div></div>
+<div class="conn"><div class="cfig"><figure><a href="images/QSFP28_100G_LR4.jpg" target="_blank"><img src="images/QSFP28_100G_LR4.jpg" alt="QSFP28 100G-LR4 模組(單模 1310 nm 4 波長,LC 介面)" loading="lazy"></a><figcaption><b>圖 38</b> QSFP28 100G-LR4 模組(單模 1310 nm 4 波長,LC 介面)</figcaption></figure></div><div class="ctxt"><h4>QSFP28 LR4:100G 單模</h4><ul><li><b>4 個波長(LAN-WDM)</b>合在 1 對光纖,用 <b>LC 雙芯</b></li><li>單模 <b>10 km</b></li><li>與 SR4 外型相近,<b>務必看標籤分辨</b></li></ul></div></div>
+<div class="conn"><div class="cfig"><figure><a href="images/Disassembled_QSFP_transciever.jpg" target="_blank"><img src="images/Disassembled_QSFP_transciever.jpg" alt="拆開的 QSFP 模組:可看到內部電路板與光學元件" loading="lazy"></a><figcaption><b>圖 39</b> 拆開的 QSFP 模組:可看到內部電路板與光學元件</figcaption></figure></div><div class="ctxt"><h4>拆開看內部</h4><ul><li>內部是<b>電路板 + 雷射發射組件 + 接收組件 + 控制晶片</b></li><li>電訊號 ⇄ 光訊號轉換就在這裡完成</li><li>也說明為什麼光模組<b>怕髒、怕靜電、要小心拔插</b></li></ul></div></div>
+<p class="note">光模組都有 <b>DOM / DDM(Digital Optical Monitoring)</b>,可在 CLI 查詢 <b>溫度、供電電壓、Tx 功率、Rx 功率、偏壓電流</b>(例如 Cisco:<code>show interfaces transceiver detail</code>)。Rx 功率偏低 → 髒污 / 彎折 / 距離過長;過高 → 需加光衰減器(attenuator)。</p>
+
+<h3 id="s2-10">2.10 乙太網路光纖標準對照(必背)</h3>
+<table>
+<tr><th>標準</th><th>速率</th><th>波長 / 介質</th><th>最遠距離</th><th>接頭</th></tr>
+<tr><td>100BASE-FX</td><td>100M</td><td>1310 nm MMF</td><td>2 km</td><td>SC / LC</td></tr>
+<tr><td><b>1000BASE-SX</b></td><td>1G</td><td>850 nm MMF</td><td>OM1 275 m / OM2 <b>550 m</b></td><td>LC</td></tr>
+<tr><td><b>1000BASE-LX</b></td><td>1G</td><td>1310 nm SMF(亦可 MMF 550 m)</td><td><b>5 km</b>(LX10 為 10 km)</td><td>LC</td></tr>
+<tr><td>1000BASE-ZX(非 IEEE)</td><td>1G</td><td>1550 nm SMF</td><td>約 70–80 km</td><td>LC</td></tr>
+<tr><td><b>10GBASE-SR</b></td><td>10G</td><td>850 nm MMF</td><td>OM3 300 m / OM4 400 m</td><td>LC</td></tr>
+<tr><td><b>10GBASE-LR</b></td><td>10G</td><td>1310 nm SMF</td><td><b>10 km</b></td><td>LC</td></tr>
+<tr><td>10GBASE-ER</td><td>10G</td><td>1550 nm SMF</td><td>40 km</td><td>LC</td></tr>
+<tr><td>10GBASE-ZR(非 IEEE)</td><td>10G</td><td>1550 nm SMF</td><td>80 km</td><td>LC</td></tr>
+<tr><td>25GBASE-SR</td><td>25G</td><td>850 nm MMF</td><td>OM3 70 m / OM4 100 m</td><td>LC</td></tr>
+<tr><td><b>40GBASE-SR4</b></td><td>40G</td><td>850 nm MMF,<b>4 對光纖</b></td><td>OM3 100 m / OM4 150 m</td><td><b>MPO-12</b>(用 8 芯)</td></tr>
+<tr><td>40GBASE-LR4</td><td>40G</td><td>1310 nm CWDM 4 波,SMF</td><td>10 km</td><td>LC</td></tr>
+<tr><td><b>100GBASE-SR4</b></td><td>100G</td><td>850 nm MMF,4×25G</td><td>OM3 70 m / OM4 100 m</td><td><b>MPO-12</b></td></tr>
+<tr><td>100GBASE-LR4 / ER4</td><td>100G</td><td>1310 nm LAN-WDM 4 波,SMF</td><td>10 km / 40 km</td><td>LC</td></tr>
+</table>
+
+<h3 id="s2-11">2.11 熔接與現場端接</h3>
+<table>
+<tr><th>方式</th><th>原理</th><th>典型損耗</th><th>備註</th></tr>
+<tr><td><b>熔接 Fusion Splice</b></td><td>以電弧把兩段光纖<b>熔在一起</b>,對準後加熱熔合</td><td><b>0.02–0.1 dB</b></td><td>損耗最小、最可靠;需熔接機(含光纖切割刀、剝線鉗)</td></tr>
+<tr><td>機械式接續 Mechanical Splice</td><td>以精密 V 槽 + 折射率匹配膠對接</td><td>約 0.2–0.5 dB</td><td>無需熔接機,但損耗較高,常用於臨時 / 搶修</td></tr>
+<tr><td><b>Pigtail 熔接法</b></td><td>在<b>光纖盤(ODF)</b>內把「一端已做好接頭的短纖(pigtail)」熔到光纜纖芯上</td><td>連接器損耗 + 熔接約 0.1 dB</td><td>現場端接最主流作法,品質最好</td></tr>
+<tr><td>現場組裝接頭(Field-install connector)</td><td>用組裝式接頭直接做在光纖上</td><td>約 0.3–0.75 dB</td><td>少量或救急使用</td></tr>
+</table>
+<p>每個<b>配對的接頭(mated pair)</b>典型損耗 0.2–0.5 dB,TIA 標準容許最大 <b>0.75 dB</b>。</p>
+<div class="conn"><div class="cfig"><figure><a href="images/Fusion_splicer_working.jpg" target="_blank"><img src="images/Fusion_splicer_working.jpg" alt="現場以光纖熔接機進行熔接" loading="lazy"></a><figcaption><b>圖 40</b> 現場以光纖熔接機進行熔接</figcaption></figure></div><div class="ctxt"><h4>熔接機現場作業</h4><ul><li>流程:<b>剝除塗覆層 → 酒精擦拭 → 光纖切割刀切平 → 放入熔接機 → 自動對準 → 電弧熔接 → 套熱縮護套加熱</b></li><li>切割面品質決定熔接損耗,<b>切割刀</b>是關鍵工具</li><li>熔接完成後放入<b>接續盤(splice tray)</b>保護</li></ul></div></div>
+<div class="conn"><div class="cfig"><figure><a href="images/Fiber_Panel_Rack.jpg" target="_blank"><img src="images/Fiber_Panel_Rack.jpg" alt="機櫃內的光纖配線與黃色單模跳線" loading="lazy"></a><figcaption><b>圖 41</b> 機櫃內的光纖配線與黃色單模跳線</figcaption></figure></div><div class="ctxt"><h4>光纖配線架(ODF)與跳線</h4><ul><li><b>ODF(Optical Distribution Frame)</b>內以 pigtail 熔接光纜,前面用 <b>LC / SC 跳線</b>接交換器</li><li>黃色跳線 = 單模;注意整理線材、保持<b>彎曲半徑</b></li><li>每個埠都要有<b>標籤</b>,日後排障才找得到</li></ul></div></div>
+
+<h3 id="s2-12">2.12 損耗預算(Loss Budget)</h3>
+<div class="formula">
+<b>鏈路總損耗</b> = 光纖長度 × 衰減係數 + 接頭對數 × 單對損耗 + 熔接點數 × 單點損耗 + 安全餘裕(約 2–3 dB)
+</div>
+<p><b>要小於</b>光模組的「功率預算(Tx 最小輸出 − Rx 靈敏度)」或標準的「最大通道插入損耗」,且接收功率不能超過 Rx 過載點。</p>
+<div class="card">
+<h4>範例:10GBASE-LR,10 km 單模(1310 nm)</h4>
+<ul>
+<li>光纖:10 km × 0.4 dB/km = <b>4.0 dB</b>(OS2 規格上限)</li>
+<li>接頭:2 對(配線架兩端)× 0.5 dB = <b>1.0 dB</b></li>
+<li>熔接:1 點 × 0.1 dB = <b>0.1 dB</b></li>
+<li>合計:<b>5.1 dB</b> ≤ 標準通道插入損耗上限約 6.2 dB → <b>可通過,剩約 1.1 dB 餘裕</b></li>
+</ul>
+<p class="note" style="margin:6px 0 0">實務上:如果距離很短(例如 LR 模組接 100 m 單模),<b>光功率過強可能超過 Rx 過載</b>,需加 <b>5–10 dB 光衰減器</b>。</p>
+</div>
+
+<h3 id="s2-13">2.13 光纖測試工具</h3>
+<table>
+<tr><th>工具</th><th>用途</th></tr>
+<tr><td><b>VFL 目視故障定位器</b></td><td>發出<b>可見紅光(約 650 nm)</b>,看出<b>斷點、重度彎折、極性</b>;只適合短距離(數公里內)</td></tr>
+<tr><td><b>光功率計(Power Meter)+ 光源(Light Source)</b></td><td>量測整條鏈路的<b>端到端損耗(dB)</b>,是損耗驗收的基本方式</td></tr>
+<tr><td><b>OTDR(光時域反射儀)</b></td><td>從一端發脈衝,依回波畫出<b>距離—損耗曲線</b>,可找出<b>熔接點、接頭、彎折與斷點的位置</b>;需要發射光纖(launch cable)來避開盲區</td></tr>
+<tr><td><b>光纖檢查顯微鏡(Inspection Scope)</b></td><td>接上前先檢查<b>端面是否有污染與刮傷</b>(IEC 61300-3-35)</td></tr>
+<tr><td>清潔工具</td><td>一鍵式清潔筆(One-click cleaner)、無塵乾 / 濕擦拭紙、清潔卡帶;<b>先乾擦,必要時再濕擦</b></td></tr>
+<tr><td>剝纖鉗 / 光纖切割刀</td><td>熔接前處理纖芯;切割面品質決定熔接損耗</td></tr>
+</table>
+<div class="conn"><div class="cfig"><figure><a href="images/OTDR_Yokogawa_AQ7270_1.jpg" target="_blank"><img src="images/OTDR_Yokogawa_AQ7270_1.jpg" alt="OTDR(Yokogawa AQ7270):螢幕顯示距離—損耗曲線" loading="lazy"></a><figcaption><b>圖 42</b> OTDR(Yokogawa AQ7270):螢幕顯示距離—損耗曲線</figcaption></figure></div><div class="ctxt"><h4>OTDR(光時域反射儀)</h4><ul><li>從光纖一端發<b>脈衝</b>,依反射回來的光畫出<b>距離—損耗曲線</b></li><li>可看出<b>熔接點、接頭、彎折與斷點的位置</b>(曲線的階梯與尖峰)</li><li>需要<b>發射光纖(launch cable)</b>避開近端盲區</li></ul></div></div>
+<div class="conn"><div class="cfig"><figure><a href="images/Optical_power_meter.jpg" target="_blank"><img src="images/Optical_power_meter.jpg" alt="手持式光功率計" loading="lazy"></a><figcaption><b>圖 43</b> 手持式光功率計</figcaption></figure></div><div class="ctxt"><h4>光功率計(Power Meter)</h4><ul><li>量測<b>光功率(dBm)</b>;搭配<b>光源</b>量整條鏈路的<b>端到端損耗(dB)</b></li><li>損耗驗收的基本方式;也可用來確認光模組 Tx 輸出</li><li>使用前要<b>選對波長</b>(850 / 1310 / 1550 nm)並校零</li></ul></div></div>
+
+<h3 id="s2-14">2.14 清潔與安全</h3>
+<ul>
+<li><b>髒污是光纖鏈路故障的第一名原因</b>。口訣:<b>「Inspect Before You Connect」</b>(連接前先檢查),不要用手、嘴、衣服擦端面,不要用壓縮空氣罐直接噴(會有油霧)。</li>
+<li>備用的接頭一定戴防塵蓋;光模組沒插線時也要裝防塵塞。</li>
+<li><b>雷射安全</b>:1310 / 1550 nm 為<b>不可見紅外光</b>;<b>絕不直視光纖端面或模組光孔</b>,尤其不可用放大鏡 / 顯微鏡直視正在發光的光纖(請使用有濾光保護的檢查鏡,或先斷電)。</li>
+<li><b>彎折半徑</b>:一般光纜最小彎曲半徑約為<b>外徑的 10 倍(無張力)/ 20 倍(受拉)</b>;跳線常用 <b>G.657 彎曲不敏感光纖</b>,可忍受更小半徑,但仍避免打折。</li>
+<li>斷裂的玻璃光纖碎片像針,要用膠帶收集,不可徒手撿。</li>
+</ul>
+</section>
+
+<section id="s3">
+<h2>3. 銅纜 vs 光纖 比較與選型</h2>
+<table>
+<tr><th>項目</th><th>銅纜(UTP)</th><th>多模光纖(MMF)</th><th>單模光纖(SMF)</th></tr>
+<tr><td>最大距離</td><td>100 m</td><td>~550 m(1G)<br>100–400 m(10G+)</td><td>10 km ~ 80 km 以上</td></tr>
+<tr><td>頻寬潛力</td><td>~10G(Cat6A)/ 25–40G(Cat8, 30 m)</td><td>10G ~ 400G</td><td>最高,可達 Tbps(WDM)</td></tr>
+<tr><td>EMI 抗干擾</td><td>差(UTP)~ 好(遮蔽)</td><td><b>免疫</b></td><td><b>免疫</b></td></tr>
+<tr><td>是否可供電</td><td>✅ PoE</td><td>❌</td><td>❌</td></tr>
+<tr><td>成本(線 + 介面)</td><td>低</td><td>中(光模組便宜)</td><td>中高(光模組較貴)</td></tr>
+<tr><td>施工難度</td><td>低(打線 / 壓線)</td><td>中(需端面管理)</td><td>中高(熔接、OTDR)</td></tr>
+<tr><td>電氣隔離 / 防雷</td><td>需接地與突波保護</td><td>✅ 無導電</td><td>✅ 無導電</td></tr>
+<tr><td>典型場景</td><td>桌面、AP、IP Cam、機櫃內</td><td>機房、樓內垂直、短距離互連</td><td>校園、跨樓、電信、長距離</td></tr>
+</table>
+<div class="card">
+<h4>選型速查(由情境推荐)</h4>
+<ul>
+<li>辦公桌 / AP / IP 攝影機 / PoE 設備(≤ 90 m)→ <b>Cat6A 或至少 Cat5e UTP</b></li>
+<li>機櫃內交換器到伺服器(1–3 m,10/25G)→ <b>DAC</b>;40/100G 短距 → DAC 或 AOC</li>
+<li>機房列間(10–100 m)→ <b>OM4 + SR 光模組(LC / MPO)</b></li>
+<li>跨樓 / 跨校區(100 m ~ 10 km)→ <b>OS2 單模 + LR 光模組(LC/UPC)</b></li>
+<li>FTTH / PON → <b>SC/APC(綠色)</b></li>
+<li>電磁干擾嚴重或需電氣隔離的工廠環境 → <b>光纖</b>或 <b>F/UTP / S/FTP 遮蔽銅纜</b></li>
+</ul>
+</div>
+</section>
+
+<section id="s4">
+<h2>4. 第一層故障排除速查</h2>
+<p>排障原則:<b>先 L1</b>。看<b>實體介面燈號</b>→ 看 CLI 介面狀態與錯誤計數 → 換線 / 換模組 / 換埠交叉驗證。</p>
+<table>
+<tr><th>現象</th><th>常見原因</th><th>處置</th></tr>
+<tr><td>介面 <code>down / down</code>,燈不亮</td><td>線斷、沒接好、對端關閉、光纖極性接反、模組不相容</td><td>換線 / 換埠 / 對調光纖 Tx-Rx;確認模組相容性</td></tr>
+<tr><td><code>up / down</code> 或鏈路反覆 flapping</td><td>線材品質差、接頭鬆動、接地問題、光功率臨界</td><td>重新端接、更換跳線、清潔光纖端面</td></tr>
+<tr><td>掉到 100M 或 10M</td><td>Pin 4/5/7/8 其中一對壞或接錯(1G 需四對)</td><td>用測線器檢查;重做接頭</td></tr>
+<tr><td>CRC / FCS / input error 持續增加</td><td>串音、EMI、線過長、接頭不良、雙工不符</td><td>換線、確認長度 &lt; 100 m、查 <code>show interfaces</code></td></tr>
+<tr><td>Late collision / runt</td><td>雙工不符(一端 half 一端 full)、線過長</td><td>雙邊 auto-negotiation 或同為固定 speed/duplex</td></tr>
+<tr><td>光模組亮燈但 link down</td><td>Tx/Rx 接反、SMF/MMF 不匹配、波長不符</td><td>檢查極性、類型、波長;用 <b>DOM</b> 看 Rx 功率</td></tr>
+<tr><td>Rx 功率過低</td><td>髒污、彎折、距離超過預算、熔接 / 接頭損耗過高</td><td>清潔、OTDR / 光功率計定位</td></tr>
+<tr><td>Rx 功率過高</td><td>距離太短而發射功率過強(如 LR 模組接短距)</td><td>加光衰減器</td></tr>
+</table>
+<div class="card">
+<h4>常用指令(Cisco IOS 範例)</h4>
+<pre>show interfaces gigabitEthernet 1/0/1
+show interfaces status
+show interfaces transceiver detail     ! 光模組 DOM:溫度、Tx/Rx dBm
+show controllers ethernet-controller gi1/0/1 phy
+show cdp neighbors                    ! 確認實體對端</pre>
+</div>
+</section>
+
+<section id="s5">
+<h2>5. 考試重點速記與小測驗</h2>
+<ul>
+<li><b>L1 PDU = Bit</b>;設備:Hub、Repeater、媒體轉換器、網卡 PHY。</li>
+<li>銅纜:<b>100 m</b>;Cat5e = 1G;Cat6A = 10G 100 m;Cat8 = 25/40G 30 m。</li>
+<li>T568B 色序:<b>白橘/橘/白綠/藍/白藍/綠/白棕/棕</b>;100M 只用 <b>1、2、3、6</b>。</li>
+<li>同類用跨接、異類用直通;Console 用 Rollover,<b>9600 8N1</b>。</li>
+<li>光纖:SMF 9 µm / MMF 50 或 62.5 µm / 包層 125 µm;SMF 黃、OM1/OM2 橘、OM3/OM4 水藍、OM5 萊姆綠。</li>
+<li>連接器:ST 卡扣、SC 推拉方形、FC 螺紋、LC 小型彈片、MTP/MPO 多芯。</li>
+<li>端面:<b>UPC 藍、APC 綠 8°</b>,不可混接。</li>
+<li>1000BASE-SX 550 m、LX 5 km;10GBASE-SR 300–400 m、LR 10 km、ER 40 km。</li>
+<li>損耗預算 = 長度 × 衰減 + 接頭 + 熔接 + 餘裕。</li>
+</ul>
+
+<h3>自我測驗(點開看答案)</h3>
+<details><summary>Q1. 一條 Cat6 線要跑 10GBASE-T,最長可以多遠?要跑 100 m 該換成哪個等級?</summary><p>約 37–55 m;換成 <b>Cat6A</b>。</p></details>
+<details><summary>Q2. 同一棟大樓兩台交換器,距離 300 m,10G,用多模光纖該選哪個等級與介面?</summary><p><b>OM3 以上(建議 OM4)+ 10GBASE-SR(850 nm,LC)</b>;OM3 上限 300 m 勉強,OM4 才有餘裕。</p></details>
+<details><summary>Q3. 光模組燈亮但鏈路起不來,最先檢查什麼?</summary><p><b>Tx/Rx 極性是否接反</b>、單模 / 多模是否一致、兩端模組波長是否匹配,再查 DOM 的 Rx 功率與端面是否髒污。</p></details>
+<details><summary>Q4. 為什麼 APC(綠色)接頭不能接到 UPC(藍色)接頭?</summary><p>APC 為 <b>8° 斜角</b>端面,UPC 為平面凸面;兩者無法面對面緊貼,造成<b>高損耗</b>,且可能刮傷插芯。</p></details>
+<details><summary>Q5. PC 接到 Router 的 Ethernet 口,該用哪種線?</summary><p>PC 與 Router 屬不同類 → <b>直通線</b>(同 T568B 兩端)。若為舊式不支援 Auto-MDIX 的同類設備互連才用跨接線。</p></details>
+<details><summary>Q6. 100 公尺單模光纖鏈路,LR 模組會有什麼注意事項?</summary><p>距離極短時,LR 雷射功率可能<b>超過 Rx 過載點</b>,需加 <b>光衰減器</b>,或改用短距 SR(多模)。</p></details>
+</section>
+
+<section id="s6"><h2>6. 圖片來源與授權</h2><p class="note">所有照片與圖解皆取自 <b>Wikimedia Commons</b>,依各自的自由授權(CC BY / CC BY-SA / CC0 / 公有領域 / GFDL 等)使用。轉載或再散布時,請依授權標示作者與來源;CC BY-SA 的圖片衍生作品須以相同方式授權。本頁的結構圖(光纖橫切面、光線路徑、T568 色碼表)為自繪。</p><table class="credits"><tr><th>#</th><th>檔案(點擊前往 Commons 頁面)</th><th>作者</th><th>授權</th></tr><tr><td>1</td><td><a href="https://commons.wikimedia.org/wiki/File:UTP_cable.jpg" target="_blank">UTP cable.jpg</a></td><td>Baran Ivo</td><td>Public domain</td></tr><tr><td>2</td><td><a href="https://commons.wikimedia.org/wiki/File:Cross_section_of_a_Cat5e_patch_cable.jpg" target="_blank">Cross section of a Cat5e patch cable.jpg</a></td><td>TubeTimeUS</td><td>CC BY-SA 4.0</td></tr><tr><td>3</td><td><a href="https://commons.wikimedia.org/wiki/File:Twisted_pair_uutp.svg" target="_blank">Twisted pair uutp.svg</a></td><td>cmglee</td><td>CC BY-SA 4.0</td></tr><tr><td>4</td><td><a href="https://commons.wikimedia.org/wiki/File:Twisted_pair_futp.svg" target="_blank">Twisted pair futp.svg</a></td><td>cmglee</td><td>CC BY-SA 4.0</td></tr><tr><td>5</td><td><a href="https://commons.wikimedia.org/wiki/File:Twisted_pair_uftp.svg" target="_blank">Twisted pair uftp.svg</a></td><td>cmglee</td><td>CC BY-SA 4.0</td></tr><tr><td>6</td><td><a href="https://commons.wikimedia.org/wiki/File:Twisted_pair_sftp.svg" target="_blank">Twisted pair sftp.svg</a></td><td>cmglee</td><td>CC BY-SA 4.0</td></tr><tr><td>7</td><td><a href="https://commons.wikimedia.org/wiki/File:Twisted_pair_sfftp.svg" target="_blank">Twisted pair sfftp.svg</a></td><td>cmglee</td><td>CC BY-SA 4.0</td></tr><tr><td>8</td><td><a href="https://commons.wikimedia.org/wiki/File:CAT8_Ethernet_Cable-5837.jpg" target="_blank">CAT8 Ethernet Cable-5837.jpg</a></td><td>Raimond Spekking</td><td>CC BY-SA 4.0</td></tr><tr><td>9</td><td><a href="https://commons.wikimedia.org/wiki/File:8P8C_modular_plug.JPG" target="_blank">8P8C modular plug.JPG</a></td><td>CyberXRef</td><td>CC BY-SA 3.0</td></tr><tr><td>10</td><td><a href="https://commons.wikimedia.org/wiki/File:8P8C_vs_RJ45_female_connectors.png" target="_blank">8P8C vs RJ45 female connectors.png</a></td><td>Keministi</td><td>CC0</td></tr><tr><td>11</td><td><a href="https://commons.wikimedia.org/wiki/File:RJ-45_plug_and_jack.svg" target="_blank">RJ-45 plug and jack.svg</a></td><td>Sylvain Leroux (talk)</td><td>CC BY-SA 3.0</td></tr><tr><td>12</td><td><a href="https://commons.wikimedia.org/wiki/File:10BASE-T_and_100BASE-T_Crossover_Cable_Pinout.svg" target="_blank">10BASE-T and 100BASE-T Crossover Cable Pinout.svg</a></td><td>Emcc83</td><td>CC BY-SA 4.0</td></tr><tr><td>13</td><td><a href="https://commons.wikimedia.org/wiki/File:Rollover_cable.png" target="_blank">Rollover cable.png</a></td><td>Orangeori</td><td>CC BY-SA 4.0</td></tr><tr><td>14</td><td><a href="https://commons.wikimedia.org/wiki/File:CiscoRolloverCable.jpg" target="_blank">CiscoRolloverCable.jpg</a></td><td>Rainwished</td><td>CC BY-SA 4.0</td></tr><tr><td>15</td><td><a href="https://commons.wikimedia.org/wiki/File:Coaxial_cable_cutaway.svg" target="_blank">Coaxial cable cutaway.svg</a></td><td>Tkgd2007</td><td>CC BY 3.0</td></tr><tr><td>16</td><td><a href="https://commons.wikimedia.org/wiki/File:BNC_connector_with_10BASE2_cable-92170.jpg" target="_blank">BNC connector with 10BASE2 cable-92170.jpg</a></td><td>Raimond Spekking</td><td>CC BY-SA 4.0</td></tr><tr><td>17</td><td><a href="https://commons.wikimedia.org/wiki/File:F_Connector.jpg" target="_blank">F Connector.jpg</a></td><td>Andux at English Wikipedia</td><td>Public domain</td></tr><tr><td>18</td><td><a href="https://commons.wikimedia.org/wiki/File:40Gb_QSFP%2B_copper_twinax_cable.jpg" target="_blank">40Gb QSFP+ copper twinax cable.jpg</a></td><td>Dmitry Nosachev</td><td>CC BY-SA 4.0</td></tr><tr><td>19</td><td><a href="https://commons.wikimedia.org/wiki/File:Keystone_module_CAT5_orange.jpg" target="_blank">Keystone module CAT5 orange.jpg</a></td><td>Dmeranda</td><td>Public domain</td></tr><tr><td>20</td><td><a href="https://commons.wikimedia.org/wiki/File:19%22_patchpanel_for_up_to_24_keystone_modules.jpg" target="_blank">19&quot; patchpanel for up to 24 keystone modules.jpg</a></td><td>Phiarc</td><td>CC BY-SA 4.0</td></tr><tr><td>21</td><td><a href="https://commons.wikimedia.org/wiki/File:110-punch-block-IDC-0a.jpg" target="_blank">110-punch-block-IDC-0a.jpg</a></td><td>Adamantios</td><td>CC BY-SA 3.0</td></tr><tr><td>22</td><td><a href="https://commons.wikimedia.org/wiki/File:Crimpzange_RJ45_-_RJ11_-_RJ12_-_IMGP1079.JPG" target="_blank">Crimpzange RJ45 - RJ11 - RJ12 - IMGP1079.JPG</a></td><td>Johann H. Addicks - addicks@gmx.net</td><td>GFDL 1.2</td></tr><tr><td>23</td><td><a href="https://commons.wikimedia.org/wiki/File:Network_cable_tester_IMGP1639_smial_wp.jpg" target="_blank">Network cable tester IMGP1639 smial wp.jpg</a></td><td>Smial (talk)</td><td>FAL</td></tr><tr><td>24</td><td><a href="https://commons.wikimedia.org/wiki/File:Fiber_Types.svg" target="_blank">Fiber Types.svg</a></td><td>Matthew Leigh</td><td>CC BY 3.0</td></tr><tr><td>25</td><td><a href="https://commons.wikimedia.org/wiki/File:RibbonCutout1.jpg" target="_blank">RibbonCutout1.jpg</a></td><td>Infestor</td><td>CC BY-SA 4.0</td></tr><tr><td>26</td><td><a href="https://commons.wikimedia.org/wiki/File:ST-optical-fiber-connector-hdr-0a.jpg" target="_blank">ST-optical-fiber-connector-hdr-0a.jpg</a></td><td>Adamantios</td><td>CC BY-SA 3.0</td></tr><tr><td>27</td><td><a href="https://commons.wikimedia.org/wiki/File:SC-optical-fiber-connector-hdr-0a.jpg" target="_blank">SC-optical-fiber-connector-hdr-0a.jpg</a></td><td>Adamantios</td><td>CC BY-SA 3.0</td></tr><tr><td>28</td><td><a href="https://commons.wikimedia.org/wiki/File:FC-optical-fiber-connector-hdr-0a.jpg" target="_blank">FC-optical-fiber-connector-hdr-0a.jpg</a></td><td>Adamantios</td><td>CC BY-SA 3.0</td></tr><tr><td>29</td><td><a href="https://commons.wikimedia.org/wiki/File:LC-optical-fiber-connector-hdr-0a.jpg" target="_blank">LC-optical-fiber-connector-hdr-0a.jpg</a></td><td>Adamantios</td><td>CC BY-SA 3.0</td></tr><tr><td>30</td><td><a href="https://commons.wikimedia.org/wiki/File:MTP-Connector.jpg" target="_blank">MTP-Connector.jpg</a></td><td>Kirnehkrib</td><td>CC BY-SA 3.0</td></tr><tr><td>31</td><td><a href="https://commons.wikimedia.org/wiki/File:Lc-sc-fiber-connectors.jpg" target="_blank">Lc-sc-fiber-connectors.jpg</a></td><td>(見 Commons 頁面)</td><td>CC BY-SA 3.0</td></tr><tr><td>32</td><td><a href="https://commons.wikimedia.org/wiki/File:St-sc-fiber-connectors.jpg" target="_blank">St-sc-fiber-connectors.jpg</a></td><td>Poil 23:10, 26 Apr 2005 (UTC)</td><td>CC BY-SA 3.0</td></tr><tr><td>33</td><td><a href="https://commons.wikimedia.org/wiki/File:APC2.png" target="_blank">APC2.png</a></td><td>Kirnehkrib</td><td>CC BY-SA 3.0</td></tr><tr><td>34</td><td><a href="https://commons.wikimedia.org/wiki/File:Optical-patch-fiber-FC-APC-connectors.jpg" target="_blank">Optical-patch-fiber-FC-APC-connectors.jpg</a></td><td>Geek3</td><td>CC BY-SA 4.0</td></tr><tr><td>35</td><td><a href="https://commons.wikimedia.org/wiki/File:Multi_mode_sfp_transceiver_IMGP7820_wp.jpg" target="_blank">Multi mode sfp transceiver IMGP7820 wp.jpg</a></td><td>smial (talk)</td><td>FAL</td></tr><tr><td>36</td><td><a href="https://commons.wikimedia.org/wiki/File:Cisco_SFP-10G-SR_10GBASE-SR_SFP%2B_optical_transceiver_modules_%28lot%29_-_overview.jpg" target="_blank">Cisco SFP-10G-SR 10GBASE-SR SFP+ optical transceiver modules (lot) - overview.jpg</a></td><td>ITEagle Europe - Sebastiaan Broekhoven</td><td>CC BY-SA 4.0</td></tr><tr><td>37</td><td><a href="https://commons.wikimedia.org/wiki/File:QSFP28-100G-SR4.jpg" target="_blank">QSFP28-100G-SR4.jpg</a></td><td>Aurélien Rinaldi</td><td>CC BY-SA 4.0</td></tr><tr><td>38</td><td><a href="https://commons.wikimedia.org/wiki/File:QSFP28-100G-LR4.jpg" target="_blank">QSFP28-100G-LR4.jpg</a></td><td>Aurélien Rinaldi</td><td>CC BY-SA 4.0</td></tr><tr><td>39</td><td><a href="https://commons.wikimedia.org/wiki/File:Disassembled_QSFP_transciever.jpg" target="_blank">Disassembled QSFP transciever.jpg</a></td><td>Dragon Sully</td><td>CC0</td></tr><tr><td>40</td><td><a href="https://commons.wikimedia.org/wiki/File:Fusion_splicer_working.jpg" target="_blank">Fusion splicer working.jpg</a></td><td>Yifangzheng</td><td>CC BY-SA 4.0</td></tr><tr><td>41</td><td><a href="https://commons.wikimedia.org/wiki/File:Fiber-Panel-Rack.jpg" target="_blank">Fiber-Panel-Rack.jpg</a></td><td>Lijorijo</td><td>CC BY-SA 3.0</td></tr><tr><td>42</td><td><a href="https://commons.wikimedia.org/wiki/File:OTDR_-_Yokogawa_AQ7270_-_1.jpg" target="_blank">OTDR - Yokogawa AQ7270 - 1.jpg</a></td><td>Electron</td><td>CC BY 3.0</td></tr><tr><td>43</td><td><a href="https://commons.wikimedia.org/wiki/File:Optical_power_meter.jpg" target="_blank">Optical power meter.jpg</a></td><td>Shyamal</td><td>CC BY-SA 4.0</td></tr></table></section>
+<footer>Ver.2026.10.25.20.59</footer>
+</main></div></body></html>
