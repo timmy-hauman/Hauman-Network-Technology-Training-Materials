@@ -307,6 +307,25 @@
             box-shadow: 0 2px 5px rgba(103, 58, 183, 0.3);
         }
 
+        /* 多個按鈕並排 (導讀圖說 / 教學影片 / 教學網頁) */
+        .badge-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        /* 尚未提供影片網址的按鈕 */
+        .preview-badge[data-yt=""] {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .preview-badge[data-yt=""]:hover {
+            background-color: transparent;
+            color: var(--brand-purple);
+            box-shadow: none;
+        }
+
         /* 箭頭圖標 (右下角裝飾) */
         .card-icon {
             position: absolute;
@@ -490,8 +509,11 @@
             <div class="section-nav">
                 <a href="CyberSecInfo_comic/hauman_csi-comic.htm" class="nav-link" target="_blank">資訊安全通報</a>
                 <a href="#sec-xos" class="nav-link">Network & Extreme</a>
+                <a href="#sec-ipv6" class="nav-link">IPv6</a>
                 <a href="#sec-fortigate" class="nav-link">Fortinet</a>
                 <a href="#sec-a10" class="nav-link">A10</a>
+                <a href="#sec-paloalto" class="nav-link">Palo Alto</a>
+                <a href="#sec-ivanti" class="nav-link">Ivanti</a>
                 <a href="#sec-cnd" class="nav-link">CND</a>
                 <a href="#sec-tools" class="nav-link">Tools</a>
                 <a href="#sec-basic" class="nav-link">零基礎大解密</a>
@@ -517,6 +539,13 @@
                         <span class="card-number">00</span>
                         <div class="card-text-wrapper">
                             <h3 class="card-title">線材與接頭</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('nw_layer1/layer1.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=x19pjHzqKQQ&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('nw_layer1/index.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
                         </div>
                     </div>
                     <div class="card-icon">➜</div>
@@ -529,7 +558,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">Hub vs. Bridge vs. Switch</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept01.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept01.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=hrNzKtJ9vqo&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/HUB-vs-BRIDGE-vs-SWITCH_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -543,7 +576,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">IP Address</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept02.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept02.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=4aASC9gLiPs&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/IP_Adressing_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -557,7 +594,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">ARP Protocol</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept03.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept03.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=vQeuyUqNdX8&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/ARP_Protocol_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -571,7 +612,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">Layer2 Packet Forwarding</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept04.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept04.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=ZCurAXjFIXs&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/L2_Packet_Forwarding_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -585,7 +630,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">Routing</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept05.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept05.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=1jqQ9D2XUA4&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/Routing_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -599,7 +648,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">Layer3 Packet Forwarding</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept06.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept06.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=I5W7uDWHCHs&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/L3_Packet_Forwarding_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -613,7 +666,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">Static Route, RIP, OSPF</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept07.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept07.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=1wHKOFHQK4w&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/Static-Route_RIP_OSPF_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -627,7 +684,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">ECMP (Equal-Cost Multi-Path)</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept08.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept08.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=CgkZrlS2acc&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/ECMP_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -641,7 +702,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">Loopback IP</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept09.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept09.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=HECIQMVKHQc&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/Loopback_IP_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -655,7 +720,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">Lab: ECMP + Loopback IP</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept10.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept10.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=bxQg8VlL4q4&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/Lab_ECMP_Loopback-IP.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -669,7 +738,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">VLAN Tagging</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept11.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept11.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=8ZY2-wqbMkY&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/VLAN_Tagging_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -683,7 +756,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">Broadcast Storm & STP</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept12.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept12.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=puu70bITzRQ&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/BroadcastStorm_and_STP_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -697,7 +774,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">STP (802.1D / 802.1W)</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept13.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept13.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=Hob_QhLItVQ&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/STP_8021d_8021w_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -711,7 +792,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">Per-VLAN STP (P-VSTP)</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept14.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept14.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=_emAHaP6WPU&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/STP_PerVlan-STP_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -725,7 +810,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">MSTP(802.1S)</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept15.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept15.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=czMA8KNdcsU&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/MSTP.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -739,7 +828,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">Link Aggregation</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept16.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept16.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=6VysRZ7Ft7o&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/Link_Aggregation _Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -753,7 +846,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">Extreme MLAG(Multi-Switch Link Aggregation)</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept17.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept17.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=wCXvJQ_8g6A&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/Extreme_MLAG_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -767,7 +864,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">ICMP / TCP / UDP</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept18.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept18.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=jHvDHjqh8h4&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/ICMP_TCP_UDP_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -781,7 +882,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">Troubleshooting & Diagnostics on EXTREME XOS</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept19.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept19.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=woOpy-Q7QP4&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/Extreme_TS_DIAG_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -795,7 +900,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">VRRP (Virtual Router Redundancy Protocol)</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept20.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept20.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=4dLG5QyCU4Q&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/VRRP_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -809,7 +918,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">VRRP + MLAG Topology Design</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept21.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept21.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=GBzhJUAIEJY&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/VRRP_MLAG_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -823,7 +936,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">ESRP (Extreme Standby Router Protocol)</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept22.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept22.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=zj5nXPrrkzY&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/ESRP_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -837,7 +954,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">ESRP+MLAG+OSPF Topology Design</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept23.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept23.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=tjekqtk3oNI&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/ESRP_MLAG_OSPF_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -851,7 +972,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">SNMP (Simple Network Management Protocol)</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept24.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept24.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=jgyqxvpObWA&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/SNMP_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -865,7 +990,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">DNS (Domain Name System)</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept25.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept25.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=AKhV-W2rtGw&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/DNS_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -879,7 +1008,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">DHCP (Dynamic Host Configuration Protocol)</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept26.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept26.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=UGWzHsvR7Hw&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/DHCP_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -893,7 +1026,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">MTU / MSS / Jumbo Frame</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept27.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept27.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=WFGn5a3Rp0Q&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/MTU_MSS_JumboFrame_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -907,7 +1044,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">Extreme XOS Access-list</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept28.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept28.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=wJUNeQgk3sY&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/Extreme_ACL.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -921,7 +1062,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">Extreme XOS Policy-Base Routing</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept29.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept29.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=MOPxLNqygeU&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/Extreme_PBR.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -935,7 +1080,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">GARP (Gratuitous ARP)</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept30.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept30.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=oQEyo3arE6E&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/GARP.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -949,7 +1098,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">BGP (Border Gateway Protocol)</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept31.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept31.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=HMSLTH-RYSA&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/BGP.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -959,6 +1112,194 @@
             </div>
         </div>
 
+        <!-- ========================================================= -->
+        <!-- 區塊: IPv6 入門 (僅教學影片) -->
+        <!-- ========================================================= -->
+        <div class="section-container" id="sec-ipv6">
+            <header class="section-header">
+                <h2>IPv6 入門</h2>
+            </header>
+            <div class="grid">
+
+                <!-- 01: IPv6 入門 為什麼現在要學 IPv6 -->
+                <a href="https://www.youtube.com/watch?v=iJwQ4g24KH8&amp;list=PLVHn05DJsa1Y" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">01</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">IPv6 入門<br>為什麼現在要學 IPv6</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=iJwQ4g24KH8&amp;list=PLVHn05DJsa1Y" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 02: IPv6 入門 讀懂一個 IPv6 位址 -->
+                <a href="https://www.youtube.com/watch?v=YMaWnJxPN8M&amp;list=PLVHn05DJsa1Y" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">02</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">IPv6 入門<br>讀懂一個 IPv6 位址</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=YMaWnJxPN8M&amp;list=PLVHn05DJsa1Y" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 03: IPv6 入門 位址種類與消失的廣播 -->
+                <a href="https://www.youtube.com/watch?v=g_gQgIhkhLs&amp;list=PLVHn05DJsa1Y" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">03</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">IPv6 入門<br>位址種類與消失的廣播</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=g_gQgIhkhLs&amp;list=PLVHn05DJsa1Y" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 04: IPv6 入門 NDP 取代 ARP -->
+                <a href="https://www.youtube.com/watch?v=7mDA3EFEqOo&amp;list=PLVHn05DJsa1Y" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">04</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">IPv6 入門<br>NDP 取代 ARP</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=7mDA3EFEqOo&amp;list=PLVHn05DJsa1Y" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 05: IPv6 入門 位址怎麼自動取得 -->
+                <a href="https://www.youtube.com/watch?v=76qtfDagLKY&amp;list=PLVHn05DJsa1Y" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">05</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">IPv6 入門<br>位址怎麼自動取得</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=76qtfDagLKY&amp;list=PLVHn05DJsa1Y" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 06: IPv6 入門 一張網卡為什麼有好幾個位址 -->
+                <a href="https://www.youtube.com/watch?v=U7qJsZgKXFw&amp;list=PLVHn05DJsa1Y" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">06</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">IPv6 入門<br>一張網卡為什麼有好幾個位址</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=U7qJsZgKXFw&amp;list=PLVHn05DJsa1Y" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 07: IPv6 入門 位址規劃：從 /48 切到 /64 -->
+                <a href="https://www.youtube.com/watch?v=c-aRneEZGzE&amp;list=PLVHn05DJsa1Y" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">07</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">IPv6 入門<br>位址規劃：從 /48 切到 /64</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=c-aRneEZGzE&amp;list=PLVHn05DJsa1Y" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 08: IPv6 入門 ICMPv6 與 MTU -->
+                <a href="https://www.youtube.com/watch?v=ro3F9YMqAFI&amp;list=PLVHn05DJsa1Y" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">08</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">IPv6 入門<br>ICMPv6 與 MTU</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=ro3F9YMqAFI&amp;list=PLVHn05DJsa1Y" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 09: IPv6 入門 過渡技術 -->
+                <a href="https://www.youtube.com/watch?v=a0uz3Ks8XM0&amp;list=PLVHn05DJsa1Y" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">09</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">IPv6 入門<br>過渡技術</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=a0uz3Ks8XM0&amp;list=PLVHn05DJsa1Y" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 10: IPv6 入門 IPv6 安全 -->
+                <a href="https://www.youtube.com/watch?v=tnSfYTyZC7E&amp;list=PLVHn05DJsa1Y" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">10</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">IPv6 入門<br>IPv6 安全</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=tnSfYTyZC7E&amp;list=PLVHn05DJsa1Y" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 11: IPv6 入門 IPv6 排錯五關 -->
+                <a href="https://www.youtube.com/watch?v=HstrstyEq5Y&amp;list=PLVHn05DJsa1Y" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">11</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">IPv6 入門<br>IPv6 排錯五關</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=HstrstyEq5Y&amp;list=PLVHn05DJsa1Y" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+            </div>
+        </div>
+        
         <!-- ========================================================= -->
         <!-- 區塊 2: Fortinet FortiGate -->
         <!-- ========================================================= -->
@@ -975,7 +1316,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">FortiGate 01<br>核心架構與初始化</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('FortiGate-comic/fg01.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('FortiGate-comic/fg01.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=CR_E1IR7NYo&amp;list=PLUwOy9976Vj8" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('FortiGate/FortiGate01.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -989,7 +1334,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">FortiGate 02<br>網路介面與區域 (Network & Zones)</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('FortiGate-comic/fg02.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('FortiGate-comic/fg02.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=4UkNG_rI_54&amp;list=PLUwOy9976Vj8" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('FortiGate/FortiGate02.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -1003,7 +1352,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">FortiGate 03<br>防火牆策略與物件 (Firewall Policy & Objects)</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('FortiGate-comic/fg03.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('FortiGate-comic/fg03.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=HVIcl3RHBmM&amp;list=PLUwOy9976Vj8" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('FortiGate/FortiGate03.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -1017,7 +1370,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">FortiGate 04<br>網路位址轉換 (NAT)</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('FortiGate-comic/fg04.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('FortiGate-comic/fg04.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=HdXOgr_0Egw&amp;list=PLUwOy9976Vj8" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('FortiGate/FortiGate04.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -1031,7 +1388,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">FortiGate 05<br>使用者認證 (Authentication)</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('FortiGate-comic/fg05.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('FortiGate-comic/fg05.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=VSXYDOc_VVE&amp;list=PLUwOy9976Vj8" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('FortiGate/FortiGate05.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -1045,7 +1406,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">FortiGate 06<br>安全織網 (Security Fabric)</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('FortiGate-comic/fg06.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('FortiGate-comic/fg06.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=cecIz1uNjOU&amp;list=PLUwOy9976Vj8" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('FortiGate/FortiGate06.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -1059,7 +1424,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">FortiGate 07<br>安全性設定檔 (Security Profiles) - 內容檢測</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('FortiGate-comic/fg07.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('FortiGate-comic/fg07.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=JNeTgy-ZWg4&amp;list=PLUwOy9976Vj8" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('FortiGate/FortiGate07.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -1073,7 +1442,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">FortiGate 08<br>SSL/TLS 檢測 (SSL Inspection)</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('FortiGate-comic/fg08.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('FortiGate-comic/fg08.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=NhPpG_Gb0yI&amp;list=PLUwOy9976Vj8" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('FortiGate/FortiGate08.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -1087,7 +1460,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">FortiGate 09<br>IPsec VPN 實戰</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('FortiGate-comic/fg09.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('FortiGate-comic/fg09.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=gAkSD2eWBjg&amp;list=PLUwOy9976Vj8" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('FortiGate/FortiGate09.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -1101,7 +1478,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">FortiGate 10<br>SSL VPN 遠端存取</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('FortiGate-comic/fg10.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('FortiGate-comic/fg10.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=_RcCt_Vx8hE&amp;list=PLUwOy9976Vj8" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('FortiGate/FortiGate10.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -1115,7 +1496,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">FortiGate 11<br>路由控制 (Advanced Routing)</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('FortiGate-comic/fg11.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('FortiGate-comic/fg11.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=lImx5wK8kew&amp;list=PLUwOy9976Vj8" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('FortiGate/FortiGate11.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -1129,7 +1514,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">FortiGate 12<br>SD-WAN 軟體定義廣域網路</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('FortiGate-comic/fg12.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('FortiGate-comic/fg12.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=AozDO77RvGg&amp;list=PLUwOy9976Vj8" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('FortiGate/FortiGate12.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -1143,7 +1532,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">FortiGate 13<br>虛擬網域 (VDOM)</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('FortiGate-comic/fg13.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('FortiGate-comic/fg13.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=sSZMRC4iDjU&amp;list=PLUwOy9976Vj8" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('FortiGate/FortiGate13.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -1157,7 +1550,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">FortiGate 14<br>高可用性 (High Availability, HA)</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('FortiGate-comic/fg14.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('FortiGate-comic/fg14.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=LdYTQdpMbBM&amp;list=PLUwOy9976Vj8" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('FortiGate/FortiGate14.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -1171,7 +1568,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">FortiGate 15<br>系統診斷與除錯 (Diagnostics & Debugging)</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('FortiGate-comic/fg15.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('FortiGate-comic/fg15.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=L4Tq1wtplec&amp;list=PLUwOy9976Vj8" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('FortiGate/FortiGate15.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -1185,7 +1586,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">FortiGate 16<br>VXLAN Over IPSec</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('FortiGate-comic/fg16.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('FortiGate-comic/fg16.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=khJfcyN-DvE&amp;list=PLUwOy9976Vj8" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('FortiGate/FortiGate_VXLAN-over-IPSEC.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -1211,7 +1616,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">A10 Networks Thunder<br>Level 1 - 1<br>ADC 概念與 A10 硬體/虛擬化介紹</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('a10networks-comic/a10_1-1.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('a10networks-comic/a10_1-1.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=UAowWfXgibg&amp;list=PLcejnpFf68Qk" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('a10networks/a10_1-1_introd.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -1225,7 +1634,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">A10 Networks Thunder<br>Level 1 - 2<br>系統初始化與網路配置</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('a10networks-comic/a10_1-2.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('a10networks-comic/a10_1-2.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=8-Gzo36VGVU&amp;list=PLcejnpFf68Qk" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('a10networks/a10_1-2_network.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -1239,7 +1652,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">A10 Networks Thunder<br>Level 1 - 3<br>SLB核心邏輯</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('a10networks-comic/a10_1-3.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('a10networks-comic/a10_1-3.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=ZnQ6LxXajVs&amp;list=PLcejnpFf68Qk" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('a10networks/a10_1-3_slb.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -1253,7 +1670,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">A10 Networks Thunder<br>Level 2 - 1<br>高可用性架構 (VRRP-A)</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('a10networks-comic/a10_2-1.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('a10networks-comic/a10_2-1.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=3WXVPjS7vdU&amp;list=PLcejnpFf68Qk" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('a10networks/a10_2-1_vrrp-a.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -1267,7 +1688,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">A10 Networks Thunder<br>Level 2 - 2<br>L3V (Application Delivery Partitions)</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('a10networks-comic/a10_2-2.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('a10networks-comic/a10_2-2.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=nQfHLnM6e8w&amp;list=PLcejnpFf68Qk" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('a10networks/a10_2-2_L3V-ADP.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -1281,7 +1706,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">A10 Networks Thunder<br>Level 2 - 3<br>SNAT 與 Client IP 保存</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('a10networks-comic/a10_2-3.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('a10networks-comic/a10_2-3.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=tU8yOZIBspQ&amp;list=PLcejnpFf68Qk" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('a10networks/a10_2-3_snat.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -1295,7 +1724,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">A10 Networks Thunder<br>Level 2 - 4<br>Wildcard VIP介紹與應用</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('a10networks-comic/a10_2-4.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('a10networks-comic/a10_2-4.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=oJc-nopjMnE&amp;list=PLcejnpFf68Qk" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('a10networks/a10_2-4_widecard-vip.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -1309,7 +1742,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">A10 Networks Thunder<br>Level 2 - 5<br>SSL/TLS Offloading</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('a10networks-comic/a10_2-5.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('a10networks-comic/a10_2-5.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=qoiCGwN1o4Q&amp;list=PLcejnpFf68Qk" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('a10networks/a10_2-5_SSL-offload.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -1323,7 +1760,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">A10 Networks Thunder<br>Level 3 - 1<br>GSLB (Global Server Load Balancing)</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('a10networks-comic/a10_3-1.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('a10networks-comic/a10_3-1.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=YyTzwDc5xJw&amp;list=PLcejnpFf68Qk" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('a10networks/a10_3-1_GSLB.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -1337,7 +1778,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">A10 Networks Thunder<br>Level 3 - 2<br>aFleX Scripting Language</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('a10networks-comic/a10_3-2.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('a10networks-comic/a10_3-2.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=EjiBSBKTAao&amp;list=PLcejnpFf68Qk" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('a10networks/a10_3-2_aflex.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -1351,7 +1796,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">A10 Networks Thunder<br>Level 3 - 3<br>aVCS (Virtual Chassis System)</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('a10networks-comic/a10_3-3.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('a10networks-comic/a10_3-3.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=zXXMNGrh-l8&amp;list=PLcejnpFf68Qk" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('a10networks/a10_3-3_avcs.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -1365,7 +1814,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">A10 Networks Thunder<br>Level 3 - 4<br>axdebug(Troubleshooting)</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('a10networks-comic/a10_3-4.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('a10networks-comic/a10_3-4.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=jJGy8CRBHds&amp;list=PLcejnpFf68Qk" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('a10networks/a10_3-4_axdebug.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -1376,7 +1829,643 @@
         </div>
         
         <!-- ========================================================= -->
-        <!-- 區塊 4: EC-Council CND 快速入門 -->
+        <!-- 區塊 4: Palo Alto Networks NGFW -->
+        <!-- ========================================================= -->
+        <div class="section-container" id="sec-paloalto">
+            <header class="section-header">
+                <h2>Palo Alto Networks NGFW</h2>
+            </header>
+            <div class="grid">
+
+                <!-- 01: Palo Alto NGFW 單元 1 -->
+                <a href="PaloAlto/PaloAlto01.html" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">01</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">Palo Alto Networks NGFW<br>基礎篇 單元 1<br>NGFW 架構與單通道處理</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=4lX_ON_pKvc&amp;list=PLM7Uwlxo_xEM" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('PaloAlto/PaloAlto01.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 02: Palo Alto NGFW 單元 2 -->
+                <a href="PaloAlto/PaloAlto02.html" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">02</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">Palo Alto Networks NGFW<br>基礎篇 單元 2<br>管理網路與初始存取</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=3kZ-x8d9ztE&amp;list=PLM7Uwlxo_xEM" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('PaloAlto/PaloAlto02.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 03: Palo Alto NGFW 單元 3 -->
+                <a href="PaloAlto/PaloAlto03.html" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">03</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">Palo Alto Networks NGFW<br>基礎篇 單元 3<br>授權、更新與最佳實務範本</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=s2hn4cYgrqM&amp;list=PLM7Uwlxo_xEM" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('PaloAlto/PaloAlto03.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 04: Palo Alto NGFW 單元 4 -->
+                <a href="PaloAlto/PaloAlto04.html" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">04</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">Palo Alto Networks NGFW<br>基礎篇 單元 4<br>組態管理、Commit 與日誌檢視</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=dRxQCnozxlQ&amp;list=PLM7Uwlxo_xEM" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('PaloAlto/PaloAlto04.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 05: Palo Alto NGFW 單元 5 -->
+                <a href="PaloAlto/PaloAlto05.html" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">05</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">Palo Alto Networks NGFW<br>網路篇 單元 5<br>網路分段、安全區域與介面類型</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=jjL07Gs0FH4&amp;list=PLM7Uwlxo_xEM" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('PaloAlto/PaloAlto05.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 06: Palo Alto NGFW 單元 6 -->
+                <a href="PaloAlto/PaloAlto06.html" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">06</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">Palo Alto Networks NGFW<br>網路篇 單元 6<br>Layer 3 介面與虛擬路由器</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=p8_eOSRGFto&amp;list=PLM7Uwlxo_xEM" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('PaloAlto/PaloAlto06.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 07: Palo Alto NGFW 單元 7 -->
+                <a href="PaloAlto/PaloAlto07.html" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">07</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">Palo Alto Networks NGFW<br>網路篇 單元 7<br>Layer 2/VLAN 介面與 PBF</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=A3py7r-OF-M&amp;list=PLM7Uwlxo_xEM" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('PaloAlto/PaloAlto07.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 08: Palo Alto NGFW 單元 8 -->
+                <a href="PaloAlto/PaloAlto08.html" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">08</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">Palo Alto Networks NGFW<br>政策篇 單元 8<br>安全政策概念與規則比對</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=55Fc2gdGbMw&amp;list=PLM7Uwlxo_xEM" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('PaloAlto/PaloAlto08.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 09: Palo Alto NGFW 單元 9 -->
+                <a href="PaloAlto/PaloAlto09.html" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">09</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">Palo Alto Networks NGFW<br>政策篇 單元 9<br>規則設定與政策維運</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=BxZuREMKWS0&amp;list=PLM7Uwlxo_xEM" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('PaloAlto/PaloAlto09.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 10: Palo Alto NGFW 單元 10 -->
+                <a href="PaloAlto/PaloAlto10.html" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">10</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">Palo Alto Networks NGFW<br>政策篇 單元 10<br>Source NAT</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=JwH4EBazw_8&amp;list=PLM7Uwlxo_xEM" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('PaloAlto/PaloAlto10.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 11: Palo Alto NGFW 單元 11 -->
+                <a href="PaloAlto/PaloAlto11.html" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">11</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">Palo Alto Networks NGFW<br>政策篇 單元 11<br>Destination NAT 與 U-Turn NAT</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=ovVhKIXl0y8&amp;list=PLM7Uwlxo_xEM" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('PaloAlto/PaloAlto11.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 12: Palo Alto NGFW 單元 12 -->
+                <a href="PaloAlto/PaloAlto12.html" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">12</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">Palo Alto Networks NGFW<br>威脅防護篇 單元 12<br>App-ID 應用程式識別</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=T_bOUqByZ44&amp;list=PLM7Uwlxo_xEM" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('PaloAlto/PaloAlto12.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 13: Palo Alto NGFW 單元 13 -->
+                <a href="PaloAlto/PaloAlto13.html" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">13</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">Palo Alto Networks NGFW<br>威脅防護篇 單元 13<br>Content-ID 與安全設定檔</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=muBHGohGr6Q&amp;list=PLM7Uwlxo_xEM" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('PaloAlto/PaloAlto13.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 14: Palo Alto NGFW 單元 14 -->
+                <a href="PaloAlto/PaloAlto14.html" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">14</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">Palo Alto Networks NGFW<br>進階篇 單元 14<br>User-ID</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=91a0e1lxRfE&amp;list=PLM7Uwlxo_xEM" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('PaloAlto/PaloAlto14.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 15: Palo Alto NGFW 單元 15 -->
+                <a href="PaloAlto/PaloAlto15.html" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">15</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">Palo Alto Networks NGFW<br>進階篇 單元 15<br>SSL/TLS 解密</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=Ci4hZmgqju4&amp;list=PLM7Uwlxo_xEM" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('PaloAlto/PaloAlto15.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 16: Palo Alto NGFW 單元 16 -->
+                <a href="PaloAlto/PaloAlto16.html" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">16</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">Palo Alto Networks NGFW<br>進階篇 單元 16<br>GlobalProtect 與 VPN</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=Uc9jlcRzphw&amp;list=PLM7Uwlxo_xEM" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('PaloAlto/PaloAlto16.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 17: Palo Alto NGFW 單元 17 -->
+                <a href="PaloAlto/PaloAlto17.html" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">17</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">Palo Alto Networks NGFW<br>進階篇 單元 17<br>高可用性 HA</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=IvO_jWwPdcY&amp;list=PLM7Uwlxo_xEM" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('PaloAlto/PaloAlto17.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 18: Palo Alto NGFW 單元 18 -->
+                <a href="PaloAlto/PaloAlto18.html" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">18</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">Palo Alto Networks NGFW<br>進階篇 單元 18<br>Panorama 集中管理</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=eelMc84I3ZY&amp;list=PLM7Uwlxo_xEM" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('PaloAlto/PaloAlto18.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+            </div>
+        </div>
+        
+        <!-- ========================================================= -->
+        <!-- 區塊 5: Ivanti Connect Secure SSL VPN -->
+        <!-- ========================================================= -->
+        <div class="section-container" id="sec-ivanti">
+            <header class="section-header">
+                <h2>Ivanti Connect Secure SSL VPN</h2>
+            </header>
+            <div class="grid">
+
+                <!-- 01: Ivanti SSL VPN 單元 1 -->
+                <a href="Ivanti/Ivanti01.html" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">01</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">Ivanti Connect Secure SSL VPN<br>單元 1<br>產品沿革與現況</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=KdwXuKLL7Do&amp;list=PLQ8o2mCdjMe0" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('Ivanti/Ivanti01.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 02: Ivanti SSL VPN 單元 2 -->
+                <a href="Ivanti/Ivanti02.html" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">02</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">Ivanti Connect Secure SSL VPN<br>單元 2<br>核心觀念:存取管理模型</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=dTqcw3jngjI&amp;list=PLQ8o2mCdjMe0" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('Ivanti/Ivanti02.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 03: Ivanti SSL VPN 單元 3 -->
+                <a href="Ivanti/Ivanti03.html" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">03</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">Ivanti Connect Secure SSL VPN<br>單元 3<br>部署規劃</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=BtHRpFXoTgI&amp;list=PLQ8o2mCdjMe0" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('Ivanti/Ivanti03.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 04: Ivanti SSL VPN 單元 4 -->
+                <a href="Ivanti/Ivanti04.html" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">04</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">Ivanti Connect Secure SSL VPN<br>單元 4<br>初始化與基本設定</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=nadNNVNTEKU&amp;list=PLQ8o2mCdjMe0" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('Ivanti/Ivanti04.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 05: Ivanti SSL VPN 單元 5 -->
+                <a href="Ivanti/Ivanti05.html" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">05</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">Ivanti Connect Secure SSL VPN<br>單元 5<br>認證伺服器(Auth Server)</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=fgqtTp8AFC4&amp;list=PLQ8o2mCdjMe0" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('Ivanti/Ivanti05.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 06: Ivanti SSL VPN 單元 6 -->
+                <a href="Ivanti/Ivanti06.html" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">06</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">Ivanti Connect Secure SSL VPN<br>單元 6<br>使用者角色(User Role)</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=l4v6rKmb8aI&amp;list=PLQ8o2mCdjMe0" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('Ivanti/Ivanti06.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 07: Ivanti SSL VPN 單元 7 -->
+                <a href="Ivanti/Ivanti07.html" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">07</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">Ivanti Connect Secure SSL VPN<br>單元 7<br>使用者領域與角色對應</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=aGhvct0fAYg&amp;list=PLQ8o2mCdjMe0" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('Ivanti/Ivanti07.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 08: Ivanti SSL VPN 單元 8 -->
+                <a href="Ivanti/Ivanti08.html" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">08</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">Ivanti Connect Secure SSL VPN<br>單元 8<br>資源存取(Resource Profile 與 Resource Policy)</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=oDCK97GVc6U&amp;list=PLQ8o2mCdjMe0" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('Ivanti/Ivanti08.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 09: Ivanti SSL VPN 單元 9 -->
+                <a href="Ivanti/Ivanti09.html" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">09</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">Ivanti Connect Secure SSL VPN<br>單元 9<br>VPN Tunneling(原 Network Connect)</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=lVbQMZM2xZQ&amp;list=PLQ8o2mCdjMe0" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('Ivanti/Ivanti09.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 10: Ivanti SSL VPN 單元 10 -->
+                <a href="Ivanti/Ivanti10.html" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">10</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">Ivanti Connect Secure SSL VPN<br>單元 10<br>登入政策(Sign-in Policy)與登入頁</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=ILRagwVNJvM&amp;list=PLQ8o2mCdjMe0" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('Ivanti/Ivanti10.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 11: Ivanti SSL VPN 單元 11 -->
+                <a href="Ivanti/Ivanti11.html" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">11</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">Ivanti Connect Secure SSL VPN<br>單元 11<br>多因素驗證</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=Vbz0cWSfaQ0&amp;list=PLQ8o2mCdjMe0" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('Ivanti/Ivanti11.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 12: Ivanti SSL VPN 單元 12 -->
+                <a href="Ivanti/Ivanti12.html" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">12</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">Ivanti Connect Secure SSL VPN<br>單元 12<br>端點合規檢查(Host Checker)</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=Sk816CSPa_4&amp;list=PLQ8o2mCdjMe0" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('Ivanti/Ivanti12.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 13: Ivanti SSL VPN 單元 13 -->
+                <a href="Ivanti/Ivanti13.html" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">13</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">Ivanti Connect Secure SSL VPN<br>單元 13<br>用戶端(Ivanti Secure Access Client)</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=Odryyfg0cfg&amp;list=PLQ8o2mCdjMe0" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('Ivanti/Ivanti13.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 14: Ivanti SSL VPN 單元 14 -->
+                <a href="Ivanti/Ivanti14.html" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">14</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">Ivanti Connect Secure SSL VPN<br>單元 14<br>高可用性(叢集)</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=6fsTEuFlVsA&amp;list=PLQ8o2mCdjMe0" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('Ivanti/Ivanti14.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 15: Ivanti SSL VPN 單元 15 -->
+                <a href="Ivanti/Ivanti15.html" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">15</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">Ivanti Connect Secure SSL VPN<br>單元 15<br>日誌、監控與疑難排解</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=du98E9mZTEw&amp;list=PLQ8o2mCdjMe0" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('Ivanti/Ivanti15.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 16: Ivanti SSL VPN 單元 16 -->
+                <a href="Ivanti/Ivanti16.html" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">16</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">Ivanti Connect Secure SSL VPN<br>單元 16<br>備份、升級與遷移</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=k6tUxv9alx4&amp;list=PLQ8o2mCdjMe0" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('Ivanti/Ivanti16.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 17: Ivanti SSL VPN 單元 17 -->
+                <a href="Ivanti/Ivanti17.html" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">17</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">Ivanti Connect Secure SSL VPN<br>單元 17<br>安全公告與加固</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=VzU0Gb7sXIE&amp;list=PLQ8o2mCdjMe0" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('Ivanti/Ivanti17.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+                <!-- 18: Ivanti SSL VPN 單元 18 -->
+                <a href="Ivanti/Ivanti18.html" class="card" target="_blank">
+                    <div class="card-body">
+                        <span class="card-number">18</span>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">Ivanti Connect Secure SSL VPN<br>單元 18<br>綜合實作:從零建好一套 SSL VPN</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=bjhUxczDmUs&amp;list=PLQ8o2mCdjMe0" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('Ivanti/Ivanti18.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
+                    </div>
+                    <div class="card-icon">➜</div>
+                </a>
+
+            </div>
+        </div>
+        
+        <!-- ========================================================= -->
+        <!-- 區塊 6: EC-Council CND 快速入門 -->
         <!-- ========================================================= -->
         <div class="section-container" id="sec-cnd">
             <header class="section-header">
@@ -1388,7 +2477,15 @@
                 <a href="ec-council_cnd/eccouncil_cnd_m01.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">01</span>
-                        <h3 class="card-title">CND Module01<br>Network Attacks & Defense Strategies</h3>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">CND Module01<br>Network Attacks & Defense Strategies</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=9OZ3OjPYK6g&amp;list=PLK46uVUcWYfw" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('ec-council_cnd/eccouncil_cnd_m01.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
                     </div>
                     <div class="card-icon">➜</div>
                 </a>
@@ -1397,7 +2494,15 @@
                 <a href="ec-council_cnd/eccouncil_cnd_m02.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">02</span>
-                        <h3 class="card-title">CND Module02<br>Administrative Network Security</h3>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">CND Module02<br>Administrative Network Security</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=JsP7CUzCyrk&amp;list=PLK46uVUcWYfw" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('ec-council_cnd/eccouncil_cnd_m02.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
                     </div>
                     <div class="card-icon">➜</div>
                 </a>
@@ -1406,7 +2511,15 @@
                 <a href="ec-council_cnd/eccouncil_cnd_m03.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">03</span>
-                        <h3 class="card-title">CND Module03<br>Technical Network Security</h3>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">CND Module03<br>Technical Network Security</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=jQ1c-a-zYXs&amp;list=PLK46uVUcWYfw" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('ec-council_cnd/eccouncil_cnd_m03.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
                     </div>
                     <div class="card-icon">➜</div>
                 </a>
@@ -1415,7 +2528,15 @@
                 <a href="ec-council_cnd/eccouncil_cnd_m04.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">04</span>
-                        <h3 class="card-title">CND Module04<br>Network Perimeter Security</h3>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">CND Module04<br>Network Perimeter Security</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=nZjg2UGCBkA&amp;list=PLK46uVUcWYfw" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('ec-council_cnd/eccouncil_cnd_m04.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
                     </div>
                     <div class="card-icon">➜</div>
                 </a>
@@ -1424,7 +2545,15 @@
                 <a href="ec-council_cnd/eccouncil_cnd_m05.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">05</span>
-                        <h3 class="card-title">CND Module05<br>Endpoint Security-Windows Systems</h3>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">CND Module05<br>Endpoint Security-Windows Systems</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=k4u-kn4a5C0&amp;list=PLK46uVUcWYfw" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('ec-council_cnd/eccouncil_cnd_m05.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
                     </div>
                     <div class="card-icon">➜</div>
                 </a>
@@ -1433,7 +2562,15 @@
                 <a href="ec-council_cnd/eccouncil_cnd_m06.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">06</span>
-                        <h3 class="card-title">CND Module06<br>Endpoint Security-Linux Systems</h3>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">CND Module06<br>Endpoint Security-Linux Systems</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=-qDuJzN-_Vk&amp;list=PLK46uVUcWYfw" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('ec-council_cnd/eccouncil_cnd_m06.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
                     </div>
                     <div class="card-icon">➜</div>
                 </a>
@@ -1442,7 +2579,15 @@
                 <a href="ec-council_cnd/eccouncil_cnd_m07.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">07</span>
-                        <h3 class="card-title">CND Module07<br>Endpoint Security-Mobile Devices</h3>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">CND Module07<br>Endpoint Security-Mobile Devices</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=IXX3NS4IKVw&amp;list=PLK46uVUcWYfw" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('ec-council_cnd/eccouncil_cnd_m07.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
                     </div>
                     <div class="card-icon">➜</div>
                 </a>
@@ -1451,7 +2596,15 @@
                 <a href="ec-council_cnd/eccouncil_cnd_m08.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">08</span>
-                        <h3 class="card-title">CND Module08<br>Endpoint Security-IoT Devices</h3>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">CND Module08<br>Endpoint Security-IoT Devices</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=XVG_GWGyOUk&amp;list=PLK46uVUcWYfw" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('ec-council_cnd/eccouncil_cnd_m08.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
                     </div>
                     <div class="card-icon">➜</div>
                 </a>
@@ -1460,7 +2613,15 @@
                 <a href="ec-council_cnd/eccouncil_cnd_m09.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">09</span>
-                        <h3 class="card-title">CND Module09<br>Administrative Application Security</h3>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">CND Module09<br>Administrative Application Security</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=iNCzhBE3v5E&amp;list=PLK46uVUcWYfw" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('ec-council_cnd/eccouncil_cnd_m09.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
                     </div>
                     <div class="card-icon">➜</div>
                 </a>
@@ -1469,7 +2630,15 @@
                 <a href="ec-council_cnd/eccouncil_cnd_m10.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">10</span>
-                        <h3 class="card-title">CND Module10<br>Data Security</h3>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">CND Module10<br>Data Security</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=D0IF2b35h-I&amp;list=PLK46uVUcWYfw" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('ec-council_cnd/eccouncil_cnd_m10.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
                     </div>
                     <div class="card-icon">➜</div>
                 </a>
@@ -1478,7 +2647,15 @@
                 <a href="ec-council_cnd/eccouncil_cnd_m11.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">11</span>
-                        <h3 class="card-title">CND Module11<br>Enterprise Virtual Network Security</h3>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">CND Module11<br>Enterprise Virtual Network Security</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=cQ-NBY9JiYg&amp;list=PLK46uVUcWYfw" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('ec-council_cnd/eccouncil_cnd_m11.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
                     </div>
                     <div class="card-icon">➜</div>
                 </a>
@@ -1487,7 +2664,15 @@
                 <a href="ec-council_cnd/eccouncil_cnd_m12.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">12</span>
-                        <h3 class="card-title">CND Module12<br>Enterprise Cloud Network Security</h3>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">CND Module12<br>Enterprise Cloud Network Security</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=oG_qUiQrw3E&amp;list=PLK46uVUcWYfw" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('ec-council_cnd/eccouncil_cnd_m12.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
                     </div>
                     <div class="card-icon">➜</div>
                 </a>
@@ -1496,7 +2681,15 @@
                 <a href="ec-council_cnd/eccouncil_cnd_m13.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">13</span>
-                        <h3 class="card-title">CND Module13<br>Enterprise Wireless Network Security</h3>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">CND Module13<br>Enterprise Wireless Network Security</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=qDBTJQBppv0&amp;list=PLK46uVUcWYfw" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('ec-council_cnd/eccouncil_cnd_m13.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
                     </div>
                     <div class="card-icon">➜</div>
                 </a>
@@ -1505,7 +2698,15 @@
                 <a href="ec-council_cnd/eccouncil_cnd_m14.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">14</span>
-                        <h3 class="card-title">CND Module14<br>Network Traffic Monitoring and Analysis</h3>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">CND Module14<br>Network Traffic Monitoring and Analysis</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=Lna4TZ3ha5A&amp;list=PLK46uVUcWYfw" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('ec-council_cnd/eccouncil_cnd_m14.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
                     </div>
                     <div class="card-icon">➜</div>
                 </a>
@@ -1514,7 +2715,15 @@
                 <a href="ec-council_cnd/eccouncil_cnd_m15.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">15</span>
-                        <h3 class="card-title">CND Module15<br>Network Logs Monitoring and Analysis</h3>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">CND Module15<br>Network Logs Monitoring and Analysis</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=jIJlhPMcsMs&amp;list=PLK46uVUcWYfw" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('ec-council_cnd/eccouncil_cnd_m15.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
                     </div>
                     <div class="card-icon">➜</div>
                 </a>
@@ -1523,7 +2732,15 @@
                 <a href="ec-council_cnd/eccouncil_cnd_m16.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">16</span>
-                        <h3 class="card-title">CND Module16<br>Incident Response and Forensic Investigation</h3>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">CND Module16<br>Incident Response and Forensic Investigation</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=vEwoYea3K8E&amp;list=PLK46uVUcWYfw" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('ec-council_cnd/eccouncil_cnd_m16.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
                     </div>
                     <div class="card-icon">➜</div>
                 </a>
@@ -1532,7 +2749,15 @@
                 <a href="ec-council_cnd/eccouncil_cnd_m17.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">17</span>
-                        <h3 class="card-title">CND Module17<br>Business Continuity and Disaster Recovery</h3>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">CND Module17<br>Business Continuity and Disaster Recovery</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=Y31QgUkO7HA&amp;list=PLK46uVUcWYfw" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('ec-council_cnd/eccouncil_cnd_m17.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
                     </div>
                     <div class="card-icon">➜</div>
                 </a>
@@ -1541,7 +2766,15 @@
                 <a href="ec-council_cnd/eccouncil_cnd_m18.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">18</span>
-                        <h3 class="card-title">CND Module18<br>Risk Anticipation with Risk Management</h3>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">CND Module18<br>Risk Anticipation with Risk Management</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=eGf8eNjAzaw&amp;list=PLK46uVUcWYfw" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('ec-council_cnd/eccouncil_cnd_m18.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
                     </div>
                     <div class="card-icon">➜</div>
                 </a>
@@ -1550,7 +2783,15 @@
                 <a href="ec-council_cnd/eccouncil_cnd_m19.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">19</span>
-                        <h3 class="card-title">CND Module19<br>Threat Assessment with Attack Surface Analysis</h3>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">CND Module19<br>Threat Assessment with Attack Surface Analysis</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=did-72nYfHU&amp;list=PLK46uVUcWYfw" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('ec-council_cnd/eccouncil_cnd_m19.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
                     </div>
                     <div class="card-icon">➜</div>
                 </a>
@@ -1559,7 +2800,15 @@
                 <a href="ec-council_cnd/eccouncil_cnd_m20.html" class="card" target="_blank">
                     <div class="card-body">
                         <span class="card-number">20</span>
-                        <h3 class="card-title">CND Module20<br>Threat Prediction With Cyber Threat Intelligence</h3>
+                        <div class="card-text-wrapper">
+                            <h3 class="card-title">CND Module20<br>Threat Prediction With Cyber Threat Intelligence</h3>
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=9llrtKwH6S0&amp;list=PLK46uVUcWYfw" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('ec-council_cnd/eccouncil_cnd_m20.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
+                        </div>
                     </div>
                     <div class="card-icon">➜</div>
                 </a>
@@ -1568,7 +2817,7 @@
         </div>
 
         <!-- ========================================================= -->
-        <!-- 區塊 5: Tools -->
+        <!-- 區塊 7: Tools -->
         <!-- ========================================================= -->
         <div class="section-container" id="sec-tools">
             <header class="section-header">
@@ -1631,6 +2880,12 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">Excel 變身 CSV</h3>
                             <!-- 可在此加入導讀圖說 -->
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=fY18bRdgYuE" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('basic/excel2csv.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
                         </div>
                     </div>
                     <div class="card-icon">➜</div>
@@ -1643,6 +2898,12 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">認識 HTML</h3>
                             <!-- 可在此加入導讀圖說 -->
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=HjVmwWas3hs" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('basic/htmlpage.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
                         </div>
                     </div>
                     <div class="card-icon">➜</div>
@@ -1655,6 +2916,12 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">什麼是 Markdown？</h3>
                             <!-- 可在此加入導讀圖說 -->
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=ytNEIpX1hEY" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('basic/markdown.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
                         </div>
                     </div>
                     <div class="card-icon">➜</div>
@@ -1703,6 +2970,12 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">魔法連連看：<br>認識 Primary Key</h3>
                             <!-- 可在此加入導讀圖說 -->
+                            <object>
+                                <div class="badge-row">
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=STiQ7PR1yhA" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('basic/magicl_link_pkey.html', '_blank')">教學網頁 📄</span>
+                                </div>
+                            </object>
                         </div>
                     </div>
                     <div class="card-icon">➜</div>
@@ -1742,6 +3015,14 @@
             var lightboxImg = document.getElementById('lightboxImage');
             lightbox.style.display = "flex";
             lightboxImg.src = imageSrc;
+        }
+
+        // 開啟教學影片；data-yt 尚未填網址時不動作
+        function openVideo(badge) {
+            var url = badge.getAttribute('data-yt');
+            if (url) {
+                window.open(url, '_blank');
+            }
         }
 
         function closeLightbox(event) {
