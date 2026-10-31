@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palo Alto Networks NGFW 實戰課程 - Content-ID 與安全設定檔</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        /* 卡片主體樣式 (Palo Alto Orange) */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #fa582d;
+        }
+
+        /* 重點提示框 (橘) */
+        .highlight-box {
+            background-color: #fff7ed;
+            border-left: 4px solid #fa582d;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 技術名詞標記 */
+        .tech-term {
+            color: #c2410c;
+            font-weight: 700;
+            background-color: #fff1e6;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
+        }
+
+        /* 比喻說明框 (綠) */
+        .analogy-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 版本差異框 (紫) */
+        .version-box {
+            background-color: #faf5ff;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 常見踩坑框 (紅) */
+        .pitfall-box {
+            background-color: #fef2f2;
+            border-left: 4px solid #dc2626;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .diagram-container {
+            background-color: #ffffff;
+            padding: 1.25rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-top: 1rem;
+            overflow-x: auto;
+        }
+
+        @media (max-width: 640px) {
+            .section-card { padding: 1rem; }
+            .diagram-container { padding: 0.25rem; }
+        }
+
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover:not(.disabled) {
+            background-color: #f3f4f6;
+        }
+
+        .footer-signature {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+            margin-top: 4rem;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-orange-600 to-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-fire-flame-curved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold">Palo Alto Networks NGFW 實戰課程</h1>
+                    <p class="text-orange-100 mt-1">威脅防護篇 - 單元 13：Content-ID 與安全設定檔</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <!-- Introduction -->
+        <div class="mb-8">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
+                <h2 class="text-xl font-bold text-blue-800 mb-2 flex items-center">
+                    <i class="fas fa-user-tie mr-2"></i>講師導言
+                </h2>
+                <p class="text-blue-900 leading-relaxed">
+                    前面幾章解決的是「這是什麼應用程式、誰在用、從哪個區域到哪個區域」。但流量被安全政策<strong>放行</strong>，不代表裡面的內容就是安全的：
+                    一個正常的網頁下載，可能夾帶病毒；一條正常的 DNS 查詢，可能正在找惡意程式的指揮伺服器。
+                    這一章的主角是 <strong>Content-ID</strong> 與<strong>安全設定檔（Security Profile）</strong>：
+                    它們在「放行之後」再檢查一次內容，並決定要警示、阻擋，還是請使用者自己確認。
+                    你會學到每種設定檔擋什麼、日誌去哪裡看、怎麼處理誤判，以及怎麼把設定檔<strong>真正掛到規則上</strong>，因為沒掛上去的設定檔，什麼也不會做。
+                </p>
+            </div>
+        </div>
+
+        <!-- 學習目標 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-gray-100 text-gray-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Goals</span>
+                本章學習目標
+            </h2>
+            <ul class="list-disc pl-6 space-y-1 text-gray-700">
+                <li>說明 Content-ID 檢查哪些內容，並指出設定檔在流量處理流程中的位置</li>
+                <li>列出主要安全設定檔類型，以及各自的防護對象與日誌位置</li>
+                <li>設定 Vulnerability Protection 與 Antivirus 設定檔，並用例外處理誤判</li>
+                <li>說明 Anti-Spyware 的 DNS 簽章與 DNS Sinkhole 的運作，並從日誌找出疑似受感染的主機</li>
+                <li>建立 File Blocking 設定檔，分辨 alert、block、continue 三種動作與其限制</li>
+                <li>用 Security Profile Group 把設定檔套用到安全政策規則</li>
+            </ul>
+        </div>
+
+        <!-- Topic 1 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Concept</span>
+                一、Content-ID 與串流式掃描
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                <span class="tech-term">Content-ID</span> 是防火牆的威脅防護引擎，加上一組政策，用來檢查與控制<strong>穿越防火牆的內容</strong>。
+                它掃描的對象包括：軟體弱點攻擊、病毒、間諜程式、惡意網址，以及受限制的檔案與資料。
+                它的設計是<strong>串流式（stream-based）</strong>而不是檔案式（file-based）：不必等整個檔案收完才開始檢查，而是封包一邊流過、一邊比對，才能維持即時的效能。
+            </p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">設定檔在流程中的位置</h3>
+            <p class="mb-2 text-gray-700">
+                回想第 1 章的流量處理流程，順序如下圖：進入封包後，先做區域防護（Zone Protection），再做轉送查詢與 NAT 規則查詢（判斷目的區域，含 DNAT 檢查）和 DoS 防護政策查詢，接著做安全政策的<strong>初步檢查</strong>（這時還不看應用程式，視為 any），再建立工作階段，由 App-ID 辨識應用程式。辨識之後會<strong>再比對一次安全政策</strong>，被<strong>放行</strong>的流量才會往下走：如果應用程式是 ssl，會先比對解密政策並解密，App-ID 再辨識解密後的內容，應用程式若改變，就再比對一次安全政策，然後才交給安全設定檔做額外檢查；如果是 ssh，解密後只控制 ssh-tunnel，不做 Content-ID 檢查；其他流量直接交給安全設定檔。設定檔檢查完，有解密的流量重新加密，最後套用 NAT 轉換並送出。
+            </p>
+
+            <div class="diagram-container">
+<svg viewBox="0 0 460 1444" width="100%" style="max-width:460px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c13d1-t" font-family="'Noto Sans TC', sans-serif">
+<title id="c13d1-t">封包處理順序圖：進入封包後先做區域防護，再依序做轉送查詢與 NAT 規則查詢、DoS 防護政策查詢、安全政策初步檢查、建立工作階段、App-ID 辨識應用程式與安全政策再比對；放行後若是 ssl，比對解密政策並解密，App-ID 再辨識解密後的內容，應用程式改變時再比對安全政策，再由 Content-ID 套用安全設定檔；若是 ssh，解密後只控制 ssh-tunnel，不做 Content-ID 檢查；其他流量直接由 Content-ID 套用安全設定檔；最後需要時重新加密、套用 NAT 轉換並轉送出去</title>
+<defs><marker id="c13d1-m-gray" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#4b5563"/></marker><marker id="c13d1-m-red" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#dc2626"/></marker></defs>
+<rect x="20" y="10" width="420" height="64" rx="8" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1.6"/>
+<text x="230" y="36" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">進入封包</text>
+<text x="230" y="60" text-anchor="middle" font-size="18" fill="#1f2937">區域防護（Zone Protection）</text>
+<path d="M230,74 L230,100" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c13d1-m-gray)"/>
+<rect x="20" y="100" width="420" height="64" rx="8" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1.6"/>
+<text x="230" y="126" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">轉送查詢與 NAT 規則查詢</text>
+<text x="230" y="150" text-anchor="middle" font-size="18" fill="#1f2937">判斷目的區域，含 DNAT 檢查</text>
+<path d="M230,164 L230,190" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c13d1-m-gray)"/>
+<rect x="20" y="190" width="420" height="40" rx="8" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1.6"/>
+<text x="230" y="216" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">DoS 防護政策查詢</text>
+<path d="M230,230 L230,256" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c13d1-m-gray)"/>
+<rect x="20" y="256" width="420" height="64" rx="8" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1.6"/>
+<text x="230" y="282" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">安全政策初步檢查</text>
+<text x="230" y="306" text-anchor="middle" font-size="18" fill="#1f2937">此時還不看應用程式（視為 any）</text>
+<path d="M230,320 L230,346" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c13d1-m-gray)"/>
+<rect x="20" y="346" width="420" height="64" rx="8" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1.6"/>
+<text x="230" y="372" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">建立工作階段</text>
+<text x="230" y="396" text-anchor="middle" font-size="18" fill="#1f2937">Session ID</text>
+<path d="M230,410 L230,436" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c13d1-m-gray)"/>
+<rect x="20" y="436" width="420" height="40" rx="8" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1.6"/>
+<text x="230" y="462" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">App-ID 辨識應用程式</text>
+<path d="M230,476 L230,502" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c13d1-m-gray)"/>
+<rect x="20" y="502" width="420" height="64" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.6"/>
+<text x="230" y="528" text-anchor="middle" font-size="18" fill="#1e3a8a" font-weight="700">安全政策再比對</text>
+<text x="230" y="552" text-anchor="middle" font-size="18" fill="#1e3a8a">改用辨識出的應用程式</text>
+<path d="M355,566 L355,592" fill="none" stroke="#dc2626" stroke-width="2.2" marker-end="url(#c13d1-m-red)"/>
+<rect x="270" y="592" width="170" height="64" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="355" y="618" text-anchor="middle" font-size="18" fill="#991b1b" font-weight="700">Deny 或 Drop</text>
+<text x="355" y="642" text-anchor="middle" font-size="18" fill="#991b1b">阻擋，不進設定檔</text>
+<path d="M202,566 L202,684" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c13d1-m-gray)"/>
+<text x="214" y="636" text-anchor="start" font-size="18" fill="#4b5563" font-weight="700" stroke="#ffffff" stroke-width="5" paint-order="stroke" stroke-linejoin="round">放行</text>
+<polygon points="202,684 352,748 202,812 52,748" fill="#faf5ff" stroke="#7c3aed" stroke-width="1.6"/>
+<text x="202" y="740" text-anchor="middle" font-size="18" fill="#4c1d95" font-weight="700">放行後，</text>
+<text x="202" y="766" text-anchor="middle" font-size="18" fill="#4c1d95" font-weight="700">是 ssl 或 ssh？</text>
+<path d="M52,748 L52,854" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c13d1-m-gray)"/>
+<path d="M352,748 L352,854" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c13d1-m-gray)"/>
+<text x="62" y="818" text-anchor="start" font-size="18" fill="#4c1d95" font-weight="700" stroke="#ffffff" stroke-width="5" paint-order="stroke" stroke-linejoin="round">ssl</text>
+<text x="362" y="818" text-anchor="start" font-size="18" fill="#4c1d95" font-weight="700" stroke="#ffffff" stroke-width="5" paint-order="stroke" stroke-linejoin="round">ssh</text>
+<rect x="20" y="854" width="170" height="64" rx="8" fill="#faf5ff" stroke="#7c3aed" stroke-width="1.6"/>
+<text x="105" y="880" text-anchor="middle" font-size="18" fill="#4c1d95" font-weight="700">比對解密政策</text>
+<text x="105" y="904" text-anchor="middle" font-size="18" fill="#4c1d95">並解密</text>
+<path d="M105,918 L105,944" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c13d1-m-gray)"/>
+<rect x="20" y="944" width="170" height="64" rx="8" fill="#faf5ff" stroke="#7c3aed" stroke-width="1.6"/>
+<text x="105" y="970" text-anchor="middle" font-size="18" fill="#4c1d95" font-weight="700">解密後 App-ID</text>
+<text x="105" y="994" text-anchor="middle" font-size="18" fill="#4c1d95">再辨識</text>
+<path d="M105,1008 L105,1034" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c13d1-m-gray)"/>
+<rect x="20" y="1034" width="170" height="64" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.6"/>
+<text x="105" y="1060" text-anchor="middle" font-size="18" fill="#1e3a8a" font-weight="700">應用程式改變時</text>
+<text x="105" y="1084" text-anchor="middle" font-size="18" fill="#1e3a8a">再比對安全政策</text>
+<rect x="215" y="854" width="225" height="64" rx="8" fill="#faf5ff" stroke="#7c3aed" stroke-width="1.6"/>
+<text x="327.5" y="880" text-anchor="middle" font-size="18" fill="#4c1d95" font-weight="700">比對解密政策並解密</text>
+<text x="327.5" y="904" text-anchor="middle" font-size="18" fill="#4c1d95">（SSH Proxy）</text>
+<path d="M327.5,918 L327.5,944" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c13d1-m-gray)"/>
+<rect x="215" y="944" width="225" height="64" rx="8" fill="#ffffff" stroke="#7c3aed" stroke-width="1.6"/>
+<text x="327.5" y="970" text-anchor="middle" font-size="18" fill="#4c1d95" font-weight="700">只控制 ssh-tunnel</text>
+<text x="327.5" y="994" text-anchor="middle" font-size="18" fill="#4c1d95">不做 Content-ID 檢查</text>
+<path d="M202,812 L202,1124" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c13d1-m-gray)"/>
+<text x="202" y="836" text-anchor="middle" font-size="18" fill="#4b5563" font-weight="700" stroke="#ffffff" stroke-width="5" paint-order="stroke" stroke-linejoin="round">其他流量</text>
+<path d="M105,1098 L105,1124" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c13d1-m-gray)"/>
+<rect x="20" y="1124" width="310" height="88" rx="8" fill="#c2410c" stroke="#9a3412" stroke-width="1.6"/>
+<text x="175" y="1150" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="700">Content-ID 套用安全設定檔</text>
+<text x="175" y="1174" text-anchor="middle" font-size="18" fill="#ffffff">弱點、防毒、間諜程式、</text>
+<text x="175" y="1198" text-anchor="middle" font-size="18" fill="#ffffff">檔案、URL、資料</text>
+<path d="M175,1212 L175,1238" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c13d1-m-gray)"/>
+<path d="M390,1008 L390,1238" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c13d1-m-gray)"/>
+<rect x="20" y="1238" width="420" height="64" rx="8" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1.6"/>
+<text x="230" y="1264" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">需要時重新加密</text>
+<text x="230" y="1288" text-anchor="middle" font-size="18" fill="#1f2937">先前有解密的流量</text>
+<path d="M230,1302 L230,1328" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c13d1-m-gray)"/>
+<rect x="20" y="1328" width="420" height="40" rx="8" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1.6"/>
+<text x="230" y="1354" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">套用 NAT 轉換</text>
+<path d="M230,1368 L230,1394" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c13d1-m-gray)"/>
+<rect x="130" y="1394" width="200" height="40" rx="20" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.6"/>
+<text x="230" y="1420" text-anchor="middle" font-size="18" fill="#166534" font-weight="700">轉送出去</text>
+</svg>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">橘色是安全設定檔作用的位置，已被安全政策阻擋的流量不會進入設定檔檢查；ssl 或 ssh 要比對到解密規則才會真的解密，沒有符合的規則時不解密，流量照常往下走。教材的圖是簡化畫法，順序與第 1 章相同。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">安全設定檔類型一覽</h3>
+            <p class="text-sm text-gray-600 mb-2">路徑：<span class="tech-term">Objects &gt; Security Profiles</span>，群組在 <span class="tech-term">Objects &gt; Security Profile Groups</span></p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border">設定檔</th>
+                            <th class="py-2 px-4 text-left border">擋什麼</th>
+                            <th class="py-2 px-4 text-left border">事件記錄在</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">Vulnerability Protection</td><td class="py-2 px-4 border">針對系統與應用程式弱點的攻擊（類似 IPS）</td><td class="py-2 px-4 border">Threat 日誌</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Antivirus</td><td class="py-2 px-4 border">病毒與惡意程式檔案，依各通訊協定解碼器處理</td><td class="py-2 px-4 border">Threat 日誌</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Anti-Spyware</td><td class="py-2 px-4 border">間諜程式與 C2 回連；DNS 簽章與 Sinkhole 也在這個設定檔</td><td class="py-2 px-4 border">Threat 日誌</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">File Blocking</td><td class="py-2 px-4 border">依「應用程式、檔案類型、方向」阻擋或警示特定檔案，防止惡意檔案進入與機敏檔案外流</td><td class="py-2 px-4 border">Data Filtering 日誌</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Data Filtering</td><td class="py-2 px-4 border">依資料樣式（例如信用卡號）偵測機敏資料外流</td><td class="py-2 px-4 border">Data Filtering 日誌</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">URL Filtering</td><td class="py-2 px-4 border">依網站分類控制網址存取（本課程不展開）</td><td class="py-2 px-4 border">URL Filtering 日誌</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">WildFire Analysis</td><td class="py-2 px-4 border">決定哪些檔案送到 WildFire 做沙箱分析、送公有雲還是私有雲</td><td class="py-2 px-4 border">WildFire Submissions 日誌</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Security Profile Group</td><td class="py-2 px-4 border">不是檢查項目，而是把常一起使用的設定檔打包，方便套用</td><td class="py-2 px-4 border">（無）</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">設定檔能做的動作，教材歸納為：允許、阻擋、詢問使用者許可、記錄威脅。各設定檔實際提供的動作不同，下面各節分別說明。</p>
+
+            <div class="analogy-box">
+                <p class="font-bold mb-2 text-green-800">🏢 生活化比喻：大樓門禁、包裹檢查與詐騙電話轉接</p>
+                <ul class="list-none space-y-2 pl-2 text-gray-700">
+                    <li class="flex items-start"><i class="fas fa-id-card text-blue-500 mt-1 mr-3"></i><span><strong>安全政策</strong>：大樓警衛，看證件決定誰可以進門。</span></li>
+                    <li class="flex items-start"><i class="fas fa-box-open text-orange-500 mt-1 mr-3"></i><span><strong>安全設定檔</strong>：進門後的包裹檢查。X 光看有沒有違禁品（Vulnerability Protection），驗毒機看有沒有病毒（Antivirus），檢查人員比對黑名單來源（Anti-Spyware），還有人專門檢查有沒有拿走公司文件（File Blocking）。警衛放行了，包裹還是要檢查。</span></li>
+                    <li class="flex items-start"><i class="fas fa-phone-volume text-red-500 mt-1 mr-3"></i><span><strong>DNS Sinkhole</strong>：有人要撥電話給詐騙集團，總機把電話偷偷轉到反詐騙專線。電話接通的那一刻，就知道是哪一支分機中招了。</span></li>
+                </ul>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Threat 日誌</h3>
+            <p class="mb-2 text-gray-700">
+                Vulnerability Protection、Antivirus 與 Anti-Spyware 的事件，都記錄在 <span class="tech-term">Monitor &gt; Logs &gt; Threat</span>。
+            </p>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>點選欄位標題，可以調整要顯示的欄位數量。</li>
+                <li>每一筆都有<strong>威脅 ID（Threat ID）</strong>；之後要建立例外，就要用這個 ID。</li>
+                <li>可開啟 Threat Details 視窗看詳細內容；若設定檔啟用了封包擷取（Packet Capture），日誌上會帶有封包擷取可下載。</li>
+                <li>動作設為 allow 的簽章，不會產生 Threat 日誌，也沒有封包擷取；要看得到，至少選 alert。</li>
+            </ul>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異：訂閱名稱與雲端檢查</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>教材（PAN-OS 8.0）的威脅防護只談 Threat Prevention。現行原廠文件已經把檢查能力分成 <strong>Threat Prevention</strong> 與 <strong>Advanced Threat Prevention</strong>；授權名稱、相依關係與更新方式，請回頭看第 3 章，這裡不再重講。</li>
+                    <li>Advanced Threat Prevention 的 <strong>Inline Cloud Analysis</strong>，設定位置就在本章的兩種設定檔裡：Anti-Spyware（偵測進階 C2）與 Vulnerability Protection（偵測指令注入與 SQL 注入）。兩者都有獨立的 <strong>Inline Cloud Analysis</strong> 頁籤，每個引擎的預設動作為 Alert。</li>
+                    <li>以 Inline Cloud Analysis 偵測到的威脅<strong>不會產生封包擷取</strong>，這點與一般簽章不同。</li>
+                    <li>WildFire 現在分成三級：隨防火牆提供的基本 WildFire、WildFire 訂閱，以及另外加購的 Advanced WildFire（見第 3 章）。Advanced WildFire 不是 WildFire 的新名稱；本章只用到「哪些檔案要送去分析」這個觀念。</li>
+                    <li>現行 12.1 的設定檔總覽另列了一個 <strong>AI Security</strong> 類型，但說明它只適用於 Prisma AIRS Network intercept，一般 NGFW 課程不需要用到。</li>
+                </ul>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>最常見的踩坑：設定檔建好了，卻沒有作用</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>設定檔只對<strong>「允許」的流量</strong>生效，而且要<strong>掛在那條實際比對到流量的規則上</strong>。規則是由上往下、第一個符合就停，比對到一條沒掛設定檔的規則，後面的規則再完整也沒用。</li>
+                    <li><strong>加密流量是黑盒子</strong>：HTTPS 內容沒有解密，Content-ID 看不到裡面的檔案與攻擊，設定檔實際上形同虛設。解密要在第 15 章處理。</li>
+                    <li>簽章來自內容更新；更新沒有排程或授權過期，設定檔雖然存在，保護卻是舊的（第 3 章）。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Topic 2 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Profile</span>
+                二、弱點防護與防毒
+            </h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">Vulnerability Protection：規則與預設設定檔</h3>
+            <p class="text-sm text-gray-600 mb-2">路徑：<span class="tech-term">Objects &gt; Security Profiles &gt; Vulnerability Protection</span></p>
+            <p class="mb-4 text-gray-700">
+                設定檔內有一組<strong>規則</strong>，每條規則指定「對哪一類弱點事件，採取什麼動作」。原廠提供兩個預設設定檔（唯讀）：
+                <strong>default</strong> 與 <strong>strict</strong>。想要自訂動作，就<strong>複製（Clone）預設設定檔後再編輯複本</strong>，或直接新增全新的設定檔。
+            </p>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border w-44">Rules 頁籤欄位</th>
+                            <th class="py-2 px-4 text-left border">說明</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">Rule Name / Threat Name</td><td class="py-2 px-4 border">規則名稱；Threat Name 是比對簽章名稱的文字，不填就是全部</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">CVE</td><td class="py-2 px-4 border">限定特定 CVE 編號（格式 CVE-年份-編號，可只輸入部分字串）</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Host Type</td><td class="py-2 px-4 border">client 端、server 端，或 any</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Severity</td><td class="py-2 px-4 border">informational、low、medium、high、critical</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Category</td><td class="py-2 px-4 border">弱點類別，用來縮小簽章範圍</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Action</td><td class="py-2 px-4 border">預設為各簽章自己預先定義的動作（default）；也可統一改成其他動作</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Packet Capture</td><td class="py-2 px-4 border">single-packet（擷取一個封包）或 extended-capture（1 到 50 個，預設 5）</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h4 class="font-bold text-gray-800 mt-6 mb-2">嚴重度與動作對照</h4>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border">嚴重度（client 與 server）</th>
+                            <th class="py-2 px-4 text-left border">default 設定檔</th>
+                            <th class="py-2 px-4 text-left border">strict 設定檔</th>
+                            <th class="py-2 px-4 text-left border">原廠最佳實務建議</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">Critical / High / Medium</td><td class="py-2 px-4 border">採簽章的 default 動作</td><td class="py-2 px-4 border">block（阻擋）</td><td class="py-2 px-4 border">reset-both</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Low</td><td class="py-2 px-4 border">不偵測</td><td class="py-2 px-4 border">default 動作</td><td class="py-2 px-4 border">default 動作</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Informational</td><td class="py-2 px-4 border">不偵測</td><td class="py-2 px-4 border">default 動作</td><td class="py-2 px-4 border">default 動作</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">以上是 PAN-OS 12.1 的預設行為。default 動作實際是 alert 還是 reset，由 Palo Alto Networks 內容更新包決定。</p>
+
+            <h4 class="font-bold text-gray-800 mt-6 mb-2">動作怎麼選</h4>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-44">動作</th><th class="py-2 px-4 text-left border">意思</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">default</td><td class="py-2 px-4 border">採用該簽章預先定義的動作（由內容更新決定）</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">allow</td><td class="py-2 px-4 border">放行，而且<strong>不產生日誌</strong></td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">alert</td><td class="py-2 px-4 border">放行，並產生 Threat 日誌</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">drop</td><td class="py-2 px-4 border">直接丟棄封包</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">reset-client / reset-server / reset-both</td><td class="py-2 px-4 border">中斷連線，並對用戶端、伺服器端或雙方送出 reset；UDP 沒有 reset，連線會直接丟棄；最佳實務傾向用 reset-both</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">block-ip</td><td class="py-2 px-4 border">在一段指定時間內，封鎖來源，或來源加目的的組合（Vulnerability Protection 與 Anti-Spyware 規則可用）</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h4 class="font-bold text-gray-800 mt-6 mb-2">Exceptions：覆蓋規則的動作</h4>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li><span class="tech-term">Exceptions</span> 頁籤可以針對<strong>單一威脅</strong>指定動作，<strong>覆蓋規則裡設定的動作</strong>。</li>
+                <li>預設只列出已建立的例外；勾選 <strong>Show all signatures</strong> 才會列出所有簽章與各自的動作。</li>
+                <li><strong>IP Address Exemptions</strong>：每個簽章最多 100 個單一 IP（不用遮罩），只有當工作階段的來源或目的位址符合時，例外動作才蓋過規則動作。這樣就不必為了一個特例 IP 另外複製出一份設定檔與一條規則。</li>
+                <li>每條例外也可以個別調整 Packet Capture。</li>
+                <li>原廠提醒：<strong>只針對確認過的誤判建立例外</strong>，建議同時開技術支援案件，問題修正後把例外移除。</li>
+            </ul>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異：Vulnerability Protection 的 Inline Cloud Analysis</p>
+                <p class="text-gray-700 text-sm">教材沒有這個頁籤。現行 12.1 多了 <strong>Inline Cloud Analysis</strong>：啟用後以深度學習引擎偵測指令注入與 SQL 注入，每個引擎可選 Allow、Alert、Reset-Client、Reset-Server、Reset-Both，預設為 Alert；
+                    並可用 EDL URL 或 IP 型 EDL 把特定對象排除在雲端分析之外（只用在確認為誤判時）。使用這項功能需要 Advanced Threat Prevention 授權與持續的雲端連線（第 3 章）。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-8 mb-2">Antivirus：預設設定檔與動作</h3>
+            <p class="text-sm text-gray-600 mb-2">路徑：<span class="tech-term">Objects &gt; Security Profiles &gt; Antivirus</span></p>
+            <p class="mb-4 text-gray-700">
+                Antivirus 設定檔按<strong>通訊協定解碼器（Decoder）</strong>逐一指定動作，例如 HTTP、FTP、SMTP 等。教材的畫面分成兩欄動作：
+                依<strong>內容更新送來的防毒簽章</strong>採取的動作（Action），以及依 <strong>WildFire 送來的簽章</strong>採取的動作（WildFire Action）。出廠就有一個唯讀的 <strong>default</strong> 設定檔。
+            </p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-56">Action 頁籤欄位</th><th class="py-2 px-4 text-left border">說明</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">Signature Action</td><td class="py-2 px-4 border">依 Palo Alto Networks 標準防毒簽章處理（教材的 Action 欄）</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">WildFire Signature Action</td><td class="py-2 px-4 border">依 WildFire 產生的簽章處理（教材的 WildFire Action 欄）</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">WildFire Inline ML Action</td><td class="py-2 px-4 border">現行版本新增的第三欄：防火牆本機的機器學習模型即時判斷</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Enable Packet Capture</td><td class="py-2 px-4 border">擷取符合的封包</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Application Exceptions</td><td class="py-2 px-4 border">列出要<strong>不依此設定檔檢查</strong>的應用程式，並為每一個指定動作</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Signature Exceptions</td><td class="py-2 px-4 border">輸入 Threat ID 後按 Add，該威脅就被設定檔忽略</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 mt-4">
+                <li>default 設定檔檢查所有解碼器；原廠說明：SMTP、IMAP、POP3 產生 alert，其餘解碼器採各簽章預設動作。</li>
+                <li>原廠建議：複製 default，把<strong>所有解碼器的 Action 與 WildFire Action 都改成 reset-both</strong>，再附加到所有允許流量的安全政策規則。</li>
+                <li>例外的用途是<strong>降低誤判</strong>：從 Threat 日誌找到 Threat ID，輸入到 Signature Exceptions；或在 Application Exceptions 把特定應用程式排除。同樣要記得，只處理確認的誤判，問題解決後移除。</li>
+            </ul>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異：WildFire 與簽章兩種動作怎麼分</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>「簽章」動作針對<strong>已經發佈的防毒簽章</strong>；「WildFire」動作針對<strong>WildFire 分析後產生的簽章</strong>，兩者獨立設定，因為信心程度與更新節奏不同。</li>
+                    <li>12.1 另有 <strong>WildFire Inline ML</strong> 頁籤，可在防火牆本機用機器學習模型即時判斷檔案。每個模型可選 enable（沿用各協定的動作）、alert-only（把較嚴格的動作降為 alert）或 disable。原廠建議把樣本也轉送 WildFire 雲端，讓誤判在二次分析中被修正。</li>
+                    <li>Action 頁籤另有 <strong>Hold for WildFire Real Time Signature Look Up</strong>：先暫停封包，等即時簽章查詢完成再決定，需要同時在 <span class="tech-term">Device &gt; Setup &gt; Content-ID</span> 全域啟用。</li>
+                    <li>Antivirus 設定檔本身只決定「碰到簽章怎麼處理」；<strong>哪些檔案要送去 WildFire 分析</strong>由 <span class="tech-term">Objects &gt; Security Profiles &gt; WildFire Analysis</span> 決定，不在本章的設定範圍。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Topic 3 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">DNS</span>
+                三、Anti-Spyware 與 DNS Sinkhole
+            </h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">規則與預設設定檔</h3>
+            <p class="text-sm text-gray-600 mb-2">路徑：<span class="tech-term">Objects &gt; Security Profiles &gt; Anti-Spyware</span></p>
+            <p class="mb-4 text-gray-700">
+                Anti-Spyware 偵測的是<strong>已被植入主機的間諜程式</strong>，以及它們對外的指揮與控制（C2）連線。
+                出廠有 <strong>default</strong> 與 <strong>strict</strong> 兩個唯讀設定檔；自訂的方式與前面相同：複製後編輯，或另建新的。
+                規則欄位與 Vulnerability Protection 相似：Rule Name、Threat Name、Category、Severity、Action、Packet Capture。
+            </p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border">嚴重度</th>
+                            <th class="py-2 px-4 text-left border">default 設定檔</th>
+                            <th class="py-2 px-4 text-left border">strict 設定檔</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">Critical / High / Medium</td><td class="py-2 px-4 border">採內容更新包定義的動作</td><td class="py-2 px-4 border">reset-both</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Low</td><td class="py-2 px-4 border">採內容更新包定義的動作</td><td class="py-2 px-4 border">default 動作</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Informational</td><td class="py-2 px-4 border">沒有簽章政策</td><td class="py-2 px-4 border">default 動作</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">以上是 PAN-OS 12.1 的預設行為。</p>
+
+            <p class="mt-4 text-gray-700">
+                <strong>Exceptions</strong> 的邏輯與前一節相同：針對單一威脅覆蓋規則的動作，可以逐筆調整 Packet Capture，並可加入 IP Address Exemptions（每個簽章最多 100 個）。同樣只用在確認的誤判。
+            </p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">DNS 簽章與 DNS Policies</h3>
+            <p class="mb-2 text-gray-700">
+                惡意程式要連回指揮伺服器，第一步通常是查 DNS。Anti-Spyware 設定檔可以比對<strong>惡意網域清單</strong>，並決定遇到時怎麼做。教材的畫面有三個重點：惡意網域清單與動作、DNS 簽章例外、Sinkhole 設定。
+                現行版本把這些集中在 <span class="tech-term">Objects &gt; Security Profiles &gt; Anti-Spyware &gt; Add &gt; DNS Policies</span> 頁籤，例外則在 <span class="tech-term">DNS Exceptions</span> 頁籤（頁籤配置以實機為準）。
+            </p>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-56">簽章來源（Signature Source）</th><th class="py-2 px-4 text-left border">說明</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">Palo Alto Networks Content</td><td class="py-2 px-4 border">防火牆本機的清單，由動態內容更新維護；預設動作為 sinkhole</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">DNS Security</td><td class="py-2 px-4 border">雲端服務，要有 DNS Security 授權，另外還要 Threat Prevention 授權</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Advanced DNS Security</td><td class="py-2 px-4 border">多了即時偵測 DNS 劫持的網域偵測器（偵測器細節以實機為準）；需要 Advanced DNS Security 授權，加上 Advanced Threat Prevention 或 Threat Prevention</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">External Dynamic Lists</td><td class="py-2 px-4 border">網域型 EDL；預設動作為 Allow，而 EDL 的 Allow 不會蓋過 DNS Security 的動作</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 mt-4">
+                <li>每個來源可以設定 <strong>Log Severity</strong>（比對到時記錄的嚴重度）、<strong>Policy Action</strong>（alert、allow、block、sinkhole）與 Packet Capture（建議對 sinkhole 的流量啟用）。</li>
+                <li>要讓某個網域例外，用 <strong>DNS Exceptions</strong> 頁籤的 DNS Domain/FQDN Allow List，或啟用特定 Threat ID；不要寄望於 EDL 的 Allow。</li>
+                <li>防火牆要連上 DNS Security 雲端，安全政策必須放行 <span class="tech-term">paloalto-dns-security</span> 這個 App-ID，否則連線會失敗。</li>
+            </ul>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異：DNS 簽章與 DNS Security 現在在同一個地方</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>教材的「DNS Signatures」是只有本機惡意網域清單的年代。現行 12.1 的 Anti-Spyware 設定檔有 <strong>Signature Policies</strong>（相當於教材的 Rules）、<strong>Signature Exceptions</strong>、<strong>DNS Policies</strong>、<strong>DNS Exceptions</strong> 與 <strong>Inline Cloud Analysis</strong> 等頁籤。</li>
+                    <li>DNS Security 與 Advanced DNS Security 在授權上是<strong>獨立的訂閱</strong>（見第 3 章），但在設定上<strong>不是獨立的 Profile 物件</strong>：它們是 DNS Policies 頁籤裡的「簽章來源」，所以還是要把 Anti-Spyware 設定檔掛到安全政策規則上才會生效。</li>
+                    <li>DNS Policies 頁籤還有教材沒有的 <strong>Block DNS Record Types</strong>（SVCB、HTTPS、ANY），原廠建議全部封鎖以避免使用 ECH；以及 DNS over TLS（連接埠 853）的 DNS 內容是加密的，沒有解密就看不到，實際效果以實機為準；解密的基本做法見第 15 章。</li>
+                    <li>預設 Sinkhole 位址：新版文件的預設是 FQDN <code>sinkhole.paloaltonetworks.com</code>，由內容更新維護。防火牆回給用戶端的是 CNAME，所以<strong>用戶端必須有能解析 CNAME 的內部 DNS</strong>；否則改用固定的 Sinkhole IP。</li>
+                </ul>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-8 mb-2">DNS Sinkhole 的運作</h3>
+            <p class="mb-2 text-gray-700">
+                Sinkhole（污水池）的做法不是丟棄 DNS 查詢，而是<strong>偽造一個回應，把惡意網域指向一個無害的位址</strong>。受感染的主機以為找到了指揮伺服器，實際上連到的是 Sinkhole 位址，而這個連線會被防火牆看到。
+            </p>
+
+            <div class="diagram-container">
+<svg viewBox="0 0 460 1020" width="100%" style="max-width:460px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c13d2-t" font-family="'Noto Sans TC', sans-serif">
+<title id="c13d2-t">DNS Sinkhole 運作圖：步驟 1 到 4 發生在 DNS 解析階段，Host A 查詢惡意網域，防火牆偽造回應，原本要送往外部 DNS 的查詢在防火牆被攔下；步驟 5 受感染主機連線到 Sinkhole 位址並被記錄在 Traffic 日誌</title>
+<defs><marker id="c13d2-m-gray" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#4b5563"/></marker><marker id="c13d2-m-orange" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#c2410c"/></marker><marker id="c13d2-m-red" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#dc2626"/></marker></defs>
+<text x="14" y="28" text-anchor="start" font-size="18" fill="#1f2937" font-weight="700">DNS 解析階段（步驟 1 到 4）</text>
+<rect x="10" y="40" width="440" height="258" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.6" stroke-dasharray="6 4"/>
+<text x="24" y="66" text-anchor="start" font-size="18" fill="#1e3a8a" font-weight="700">Zone 1 內部網路</text>
+<rect x="130" y="80" width="200" height="64" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="1.6"/>
+<text x="230" y="106" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">Host A</text>
+<text x="230" y="130" text-anchor="middle" font-size="18" fill="#1f2937">受感染主機</text>
+<rect x="130" y="244" width="200" height="40" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="1.6"/>
+<text x="230" y="270" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">本地 DNS 伺服器</text>
+<path d="M190,144 L190,244" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c13d2-m-gray)"/>
+<text x="178" y="186" text-anchor="end" font-size="18" fill="#1f2937">1 查詢</text>
+<text x="178" y="210" text-anchor="end" font-size="18" fill="#1f2937">惡意網域</text>
+<path d="M270,244 L270,144" fill="none" stroke="#c2410c" stroke-width="2.2" marker-end="url(#c13d2-m-orange)"/>
+<text x="282" y="186" text-anchor="start" font-size="18" fill="#7c2d12">4 轉回</text>
+<text x="282" y="210" text-anchor="start" font-size="18" fill="#7c2d12">Sinkhole 位址</text>
+<path d="M190,284 L190,400" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c13d2-m-gray)"/>
+<text x="178" y="345" text-anchor="end" font-size="18" fill="#1f2937">2 轉發查詢</text>
+<path d="M270,400 L270,284" fill="none" stroke="#c2410c" stroke-width="2.2" marker-end="url(#c13d2-m-orange)"/>
+<text x="282" y="345" text-anchor="start" font-size="18" fill="#7c2d12" font-weight="700">3 偽造回應</text>
+<text x="282" y="369" text-anchor="start" font-size="18" fill="#7c2d12">偵測到 DNS 簽章</text>
+<rect x="130" y="400" width="200" height="64" rx="8" fill="#c2410c" stroke="#9a3412" stroke-width="1.6"/>
+<text x="230" y="426" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="700">防火牆</text>
+<text x="230" y="450" text-anchor="middle" font-size="18" fill="#ffffff">DNS 簽章比對</text>
+<path d="M230,464 L230,536" fill="none" stroke="#4b5563" stroke-width="2.2" stroke-dasharray="7 5" marker-end="url(#c13d2-m-gray)"/>
+<text x="244" y="494" text-anchor="start" font-size="18" fill="#4b5563">原本要送往外部 DNS</text>
+<text x="244" y="518" text-anchor="start" font-size="18" fill="#4b5563">的查詢，在這裡被攔下</text>
+<rect x="130" y="536" width="200" height="64" rx="8" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1.6"/>
+<text x="230" y="562" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">Zone 2 外部</text>
+<text x="230" y="586" text-anchor="middle" font-size="18" fill="#1f2937">外部 DNS 伺服器</text>
+<text x="14" y="654" text-anchor="start" font-size="18" fill="#1f2937" font-weight="700">之後的連線（步驟 5）</text>
+<rect x="20" y="672" width="230" height="64" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="1.6"/>
+<text x="135" y="698" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">Host A</text>
+<text x="135" y="722" text-anchor="middle" font-size="18" fill="#1f2937">受感染主機</text>
+<path d="M135,736 L135,820" fill="none" stroke="#c2410c" stroke-width="2.2" marker-end="url(#c13d2-m-orange)"/>
+<text x="148" y="770" text-anchor="start" font-size="18" fill="#7c2d12" font-weight="700">5 連線到</text>
+<text x="148" y="794" text-anchor="start" font-size="18" fill="#7c2d12">Sinkhole 位址</text>
+<rect x="20" y="820" width="230" height="40" rx="8" fill="#c2410c" stroke="#9a3412" stroke-width="1.6"/>
+<text x="135" y="846" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="700">防火牆</text>
+<path d="M135,860 L135,944" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c13d2-m-gray)"/>
+<text x="148" y="894" text-anchor="start" font-size="18" fill="#1f2937">放行並記錄</text>
+<text x="148" y="918" text-anchor="start" font-size="18" fill="#1f2937">連線</text>
+<rect x="20" y="944" width="230" height="64" rx="8" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1.6"/>
+<text x="135" y="970" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">Zone 2</text>
+<text x="135" y="994" text-anchor="middle" font-size="18" fill="#1f2937">Sinkhole 位址</text>
+<path d="M250,840 L290,840" fill="none" stroke="#dc2626" stroke-width="2.2" stroke-dasharray="7 5" marker-end="url(#c13d2-m-red)"/>
+<rect x="290" y="796" width="160" height="88" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="370" y="822" text-anchor="middle" font-size="18" fill="#991b1b" font-weight="700">Traffic 日誌</text>
+<text x="370" y="846" text-anchor="middle" font-size="18" fill="#991b1b">來源是 Host A</text>
+<text x="370" y="870" text-anchor="middle" font-size="18" fill="#991b1b">找出受感染主機</text>
+</svg>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">步驟 1 到 4 發生在 DNS 解析階段，步驟 5 才是受感染主機自己發出的連線。虛線是這個查詢原本要去的外部 DNS 伺服器；惡意網域的查詢在防火牆就被攔下，改回偽造的回應。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">從日誌找出受感染主機</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>在 <span class="tech-term">Monitor &gt; Logs &gt; Threat</span> 可以篩選出 sinkhole 事件，例如條件 <code>action eq sinkhole</code>（原廠建議的篩選條件）。教材的畫面標出的是「Potentially infected host」。</li>
+                <li><strong>要看清楚來源是誰</strong>：如果防火牆看到的 DNS 查詢是由「本地 DNS 伺服器」送出的，日誌上的來源位址就是這台 DNS 伺服器，不是真正中招的主機。</li>
+                <li>真正受感染的主機，要靠它<strong>後來連向 Sinkhole 位址</strong>的流量去找：原廠說明，Sinkhole 讓受感染的用戶端連到 Sinkhole IP，之後可以在 Traffic 日誌找到這些用戶端。所以承載這條連線的安全政策規則，要記得啟用 Log at Session End。</li>
+                <li>預設的 Sinkhole 位址是 FQDN，背後的 IP 可能會更換，所以不要只靠固定 IP 去篩選 Traffic 日誌；建議為這個 FQDN 建一個位址物件，搭配一條專用規則，日誌就能依規則篩選（做法以實機為準）。</li>
+                <li>如果用戶端直接把 DNS 查詢送過防火牆（沒有經過內部 DNS 伺服器轉發），日誌來源就是用戶端本身。原廠建議：<strong>防火牆看不到 DNS 查詢的發起者時（例如防火牆在本地 DNS 伺服器的外側），啟用 sinkhole；如果無法 sinkhole，至少要 block</strong>。</li>
+            </ul>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：Threat 日誌裡的「來源」是你自己的 DNS 伺服器</p>
+                <p class="text-gray-700 text-sm">看到整排 sinkhole 事件的來源都是同一台內部 DNS 伺服器，千萬不要去清查那台 DNS 伺服器。真正要找的是「連到 Sinkhole 位址的內部主機」。
+                    另一個常見問題是：防火牆根本沒機會看到 DNS 查詢（用戶端用了 DNS over HTTPS，或查詢走加密通道），簽章就無從比對，這要靠解密（第 15 章）與 App-ID 控管。</p>
+            </div>
+        </div>
+
+        <!-- Topic 4 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">File</span>
+                四、檔案封鎖
+            </h2>
+
+            <p class="text-sm text-gray-600 mb-2">路徑：<span class="tech-term">Objects &gt; Security Profiles &gt; File Blocking &gt; Add</span></p>
+            <p class="mb-4 text-gray-700">
+                File Blocking 有兩個目的：<strong>防止惡意資料進入</strong>，以及<strong>防止機敏資料外流</strong>。
+                它的判斷依據不是檔案內容，而是三個條件的組合：<strong>應用程式（Application）、檔案類型（File Types）、方向（Direction：Upload、Download、Both）</strong>，符合之後就執行規則指定的動作。一個設定檔可以有多條規則。
+            </p>
+
+            <div class="diagram-container">
+<svg viewBox="0 0 460 494" width="100%" style="max-width:460px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c13d3-t" font-family="'Noto Sans TC', sans-serif">
+<title id="c13d3-t">File Blocking 判斷流程：檔案傳輸先看是否符合應用程式、檔案類型與方向，符合才依規則動作 alert、continue 或 block 處理</title>
+<defs><marker id="c13d3-m-gray" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#4b5563"/></marker></defs>
+<rect x="60" y="10" width="200" height="40" rx="20.0" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1.6"/>
+<text x="160" y="36" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">檔案傳輸</text>
+<path d="M160,50 L160,84" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c13d3-m-gray)"/>
+<rect x="20" y="84" width="280" height="64" rx="8" fill="#fff7ed" stroke="#fdba74" stroke-width="1.6"/>
+<text x="160" y="110" text-anchor="middle" font-size="18" fill="#7c2d12" font-weight="700">符合規則？</text>
+<text x="160" y="134" text-anchor="middle" font-size="18" fill="#7c2d12">應用程式、檔案類型、方向</text>
+<path d="M300,116 L340,116" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c13d3-m-gray)"/>
+<text x="320" y="104" text-anchor="middle" font-size="18" fill="#4b5563" font-weight="700">否</text>
+<rect x="340" y="92" width="110" height="48" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.6"/>
+<text x="395" y="122" text-anchor="middle" font-size="18" fill="#166534" font-weight="700">正常放行</text>
+<path d="M160,148 L160,190" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c13d3-m-gray)"/>
+<text x="174" y="176" text-anchor="start" font-size="18" fill="#4b5563" font-weight="700">是</text>
+<rect x="60" y="190" width="200" height="44" rx="8" fill="#c2410c" stroke="#9a3412" stroke-width="1.6"/>
+<text x="160" y="218" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="700">規則動作</text>
+<path d="M160,234 L160,246 L64,246 L64,450" fill="none" stroke="#4b5563" stroke-width="2.2"/>
+<rect x="10" y="258" width="108" height="64" rx="8" fill="#fff7ed" stroke="#fdba74" stroke-width="1.6"/>
+<text x="64" y="296" text-anchor="middle" font-size="18" fill="#7c2d12" font-weight="700">alert</text>
+<path d="M118,290 L150,290" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c13d3-m-gray)"/>
+<rect x="150" y="258" width="300" height="64" rx="8" fill="#fff7ed" stroke="#fdba74" stroke-width="1.6"/>
+<text x="300" y="284" text-anchor="middle" font-size="18" fill="#7c2d12">放行並記錄</text>
+<text x="300" y="308" text-anchor="middle" font-size="18" fill="#7c2d12">Data Filtering 日誌</text>
+<rect x="10" y="338" width="108" height="64" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.6"/>
+<text x="64" y="376" text-anchor="middle" font-size="18" fill="#1e3a8a" font-weight="700">continue</text>
+<path d="M118,370 L150,370" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c13d3-m-gray)"/>
+<rect x="150" y="338" width="300" height="64" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.6"/>
+<text x="300" y="364" text-anchor="middle" font-size="18" fill="#1e3a8a">顯示 Continue 回應頁</text>
+<text x="300" y="388" text-anchor="middle" font-size="18" fill="#1e3a8a">使用者確認後才下載</text>
+<rect x="10" y="418" width="108" height="64" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="64" y="456" text-anchor="middle" font-size="18" fill="#991b1b" font-weight="700">block</text>
+<path d="M118,450 L150,450" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c13d3-m-gray)"/>
+<rect x="150" y="418" width="300" height="64" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="300" y="456" text-anchor="middle" font-size="18" fill="#991b1b">阻擋檔案傳輸並記錄</text>
+</svg>
+            </div>
+
+            <div class="overflow-x-auto mt-4">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-32">動作</th><th class="py-2 px-4 text-left border">行為</th><th class="py-2 px-4 text-left border">適合的情境</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">alert</td><td class="py-2 px-4 border">放行檔案，並寫入日誌</td><td class="py-2 px-4 border">先觀察、盤點有哪些檔案在流動</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">block</td><td class="py-2 px-4 border">阻擋檔案傳輸，並寫入日誌</td><td class="py-2 px-4 border">高風險類型，例如可執行檔、批次檔</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">continue</td><td class="py-2 px-4 border">寫入日誌，並回應一個頁面，請使用者確認後才繼續傳輸</td><td class="py-2 px-4 border">提醒使用者可能是順手下載（drive-by download）</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Data Filtering 日誌</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>File Blocking 事件記錄在 <span class="tech-term">Monitor &gt; Logs &gt; Data Filtering</span>（實際顯示位置以實機為準），內容包含被處理的<strong>檔案名稱與檔案類型</strong>。</li>
+                <li>欄位的意思：<strong>Source 是送出檔案的系統，Destination 是接收檔案的系統</strong>，判讀方向時不要弄反。</li>
+                <li>原廠說明，Data Filtering 日誌同時涵蓋「機敏資料」與「File Blocking 設定檔」兩種事件；例如規則阻擋 .exe 時，這個日誌會顯示被擋的檔案。</li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Continue 回應頁</h3>
+            <p class="mb-2 text-gray-700">
+                continue 動作會要求使用者<strong>自己許可</strong>才完成傳輸，因此有幾個限制：
+            </p>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>只有<strong>瀏覽器</strong>能顯示確認頁，所以教材與原廠都說：只適用 <strong>web-browsing</strong> 應用程式。其他應用程式沒有辦法提示使用者，傳輸會直接被擋下。</li>
+                <li>HTTPS 網站需要先有<strong>解密政策</strong>，防火牆才看得到檔案（第 15 章）。</li>
+                <li>如果伺服器把 HTTP 回應標頭與檔案內容分在不同封包送出，即使動作是 continue，檔案仍會被阻擋。</li>
+                <li>日誌中的應用程式名稱可能與瀏覽器看到的不同（例如 sharepoint 系列），設定前先查日誌確認實際的 App-ID。</li>
+                <li>想換成自己公司的說明文字，到 <span class="tech-term">Device &gt; Response Pages</span> 建立自訂頁面。</li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">多層編碼的檔案</h3>
+            <p class="mb-2 text-gray-700">
+                檔案常被層層包裝：例如一份 .docx 先壓成 zip，zip 再用 HTTP 的 chunked 與 gzip 傳輸。教材寫防火牆<strong>最多解開四層</strong>編碼再檢查，現行版本的上限以實機為準；
+                <strong>超過上限的檔案不會被完整解碼</strong>，所以教材教你在 File Blocking 規則裡，把「超過四層的多層編碼檔案」直接阻擋。
+            </p>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>檔案類型清單裡有一個 <strong>multi-level-encoding</strong> 類型，就是為此設計的。</li>
+                <li>原廠預設設定檔：<strong>strict file blocking</strong> 有阻擋 multi-level-encoding；basic file blocking 的清單則沒有列出。需要時，複製 strict 再依需求調整。</li>
+            </ul>
+
+            <div class="overflow-x-auto mt-4">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-44">預設設定檔</th><th class="py-2 px-4 text-left border">內容（原廠說明）</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">basic file blocking</td><td class="py-2 px-4 border">適合較不敏感的應用。上傳與下載都阻擋 PE 檔、Java 檔、Help 檔，以及 .vbe、.hta、.wsf、.torrent、.7z、.rar、.bat；加密的 rar 與 zip 則請使用者確認；其餘類型 alert</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">strict file blocking</td><td class="py-2 px-4 border">適合最敏感的應用。包含上列全部，再加上 flash、.tar、multi-level-encoding、.cab、.msi，且加密的 rar 與 zip 直接阻擋</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Data Filtering 設定檔（補充）</h3>
+            <p class="text-gray-700 text-sm">
+                教材把 Data Filtering 日誌放在 File Blocking 之後，是因為兩者共用同一個日誌。
+                <span class="tech-term">Objects &gt; Security Profiles &gt; Data Filtering</span> 本身則是另一種設定檔：先在 <span class="tech-term">Objects &gt; Custom Objects &gt; Data Patterns</span> 定義資料樣式，再在設定檔裡指定應用程式、檔案類型、方向、<strong>Alert Threshold</strong>（出現幾次就警示）與 <strong>Block Threshold</strong>（出現幾次就阻擋）、日誌嚴重度，以及是否啟用 Data Capture（查看擷取資料需要另外設定密碼）。
+            </p>
+
+            <div class="highlight-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>補充：File Blocking 的動作與送 WildFire</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>File Blocking 的動作只有 <strong>alert、continue、block</strong> 三種，教材與現行 12.1 一樣，沒有 forward（轉送 WildFire）選項。如果你在其他舊資料看到「把檔案轉送 WildFire」的說法，現在的做法是另建 <span class="tech-term">WildFire Analysis</span> 設定檔，依「應用程式、檔案類型、方向」決定要送去 public-cloud 還是 private-cloud。</li>
+                    <li>預設的 WildFire Analysis 設定檔會把所有未知檔案轉送分析；WildFire Analysis 設定檔要另外掛到允許規則上（或放進群組），它不依賴 File Blocking。</li>
+                    <li>12.1 的 WildFire Analysis 設定檔還可以啟用 <strong>Advanced WildFire Inline Cloud Analysis</strong>（方向只限下載）；詳細授權依第 3 章。</li>
+                    <li>strict、basic 兩個預設設定檔在內容更新 653 版（含）以後提供，可以複製修改。</li>
+                </ul>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：continue 對非瀏覽器應用等於 block，HTTPS 沒解密則等於沒設</p>
+                <p class="text-gray-700 text-sm">把 continue 用在 web-browsing 以外的應用程式（例如雲端同步軟體），使用者看不到確認頁，傳輸就直接失敗，常被誤認為「網路壞了」。
+                    另外，HTTPS 的檔案在沒有解密的情況下，防火牆看不到檔案類型，規則就不會命中。測試時把 Application 暫時設為 any、先看 Data Filtering 日誌，比較容易釐清是哪一層的問題。</p>
+            </div>
+        </div>
+
+        <!-- Topic 5 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Group</span>
+                五、安全設定檔群組與套用
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                設定檔很多，規則也很多，如果每條規則都要一個個勾選五、六種設定檔，既麻煩又容易漏。
+                <span class="tech-term">Security Profile Group</span> 的做法是：<strong>把常一起使用的設定檔打包成一組</strong>，規則只要選這一個群組，就能簡化規則管理。
+            </p>
+
+            <div class="diagram-container">
+<svg viewBox="0 0 460 580" width="100%" style="max-width:460px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c13d4-t" font-family="'Noto Sans TC', sans-serif">
+<title id="c13d4-t">Security Profile Group 示意：多種設定檔打包成群組，安全政策規則選用群組後，符合的流量逐項被檢查</title>
+<defs><marker id="c13d4-m-gray" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#4b5563"/></marker><marker id="c13d4-m-orange" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#c2410c"/></marker></defs>
+<rect x="10" y="10" width="440" height="280" rx="8" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1.6" stroke-dasharray="6 4"/>
+<text x="24" y="34" text-anchor="start" font-size="18" fill="#1f2937" font-weight="700">個別設定檔</text>
+<rect x="22" y="46" width="205" height="48" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="1.6"/>
+<text x="124.5" y="76" text-anchor="middle" font-size="18" fill="#1f2937">Antivirus</text>
+<rect x="233" y="46" width="205" height="48" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="1.6"/>
+<text x="335.5" y="76" text-anchor="middle" font-size="18" fill="#1f2937">Anti-Spyware</text>
+<rect x="22" y="102" width="205" height="64" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="1.6"/>
+<text x="124.5" y="128" text-anchor="middle" font-size="18" fill="#1f2937">Vulnerability</text>
+<text x="124.5" y="152" text-anchor="middle" font-size="18" fill="#1f2937">Protection</text>
+<rect x="233" y="102" width="205" height="64" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="1.6"/>
+<text x="335.5" y="140" text-anchor="middle" font-size="18" fill="#1f2937">File Blocking</text>
+<rect x="22" y="174" width="205" height="48" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="1.6"/>
+<text x="124.5" y="204" text-anchor="middle" font-size="18" fill="#1f2937">URL Filtering</text>
+<rect x="233" y="174" width="205" height="48" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="1.6"/>
+<text x="335.5" y="204" text-anchor="middle" font-size="18" fill="#1f2937">Data Filtering</text>
+<rect x="22" y="230" width="416" height="48" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="1.6"/>
+<text x="230" y="260" text-anchor="middle" font-size="18" fill="#1f2937">WildFire Analysis</text>
+<path d="M230,290 L230,328" fill="none" stroke="#c2410c" stroke-width="2.2" marker-end="url(#c13d4-m-orange)"/>
+<rect x="80" y="328" width="300" height="64" rx="8" fill="#c2410c" stroke="#9a3412" stroke-width="1.6"/>
+<text x="230" y="354" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="700">Security Profile Group</text>
+<text x="230" y="378" text-anchor="middle" font-size="18" fill="#ffffff">例如 Outbound-Web</text>
+<path d="M230,392 L230,428" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c13d4-m-gray)"/>
+<rect x="80" y="428" width="300" height="64" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.6"/>
+<text x="230" y="454" text-anchor="middle" font-size="18" fill="#1e3a8a" font-weight="700">安全政策規則</text>
+<text x="230" y="478" text-anchor="middle" font-size="18" fill="#1e3a8a">Action 設為 Allow</text>
+<path d="M230,492 L230,528" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c13d4-m-gray)"/>
+<rect x="80" y="528" width="300" height="40" rx="20.0" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.6"/>
+<text x="230" y="554" text-anchor="middle" font-size="18" fill="#166534" font-weight="700">符合的流量被逐項檢查</text>
+</svg>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">群組名稱 Outbound-Web 只是示意。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">建立群組與套用到規則</h3>
+            <ol class="list-decimal pl-6 text-gray-700 space-y-2">
+                <li>到 <span class="tech-term">Objects &gt; Security Profile Groups &gt; Add</span>，輸入名稱，把需要的設定檔加進去。群組可包含 Antivirus、Anti-Spyware、Vulnerability Protection、URL Filtering、File Blocking、Data Filtering 與 WildFire Analysis 設定檔；WildFire Analysis 要掛到規則上（個別選或放進群組），未知檔案才會送去分析。</li>
+                <li>到 <span class="tech-term">Policies &gt; Security &gt; Add</span>（或編輯既有規則），在 <strong>Actions</strong> 頁籤的 <strong>Profile Setting</strong> 選擇：
+                    <ul class="list-disc pl-6 mt-1 space-y-1">
+                        <li><strong>Profiles</strong>：逐一指定個別設定檔；或</li>
+                        <li><strong>Group</strong>：指定一個 Security Profile Group。</li>
+                    </ul>
+                </li>
+                <li>同一個 Actions 頁籤，<strong>Log at Session End</strong> 預設已勾選，確認沒有被取消，才有完整的流量日誌（前面找感染主機會用到）。</li>
+                <li><strong>Commit</strong> 之後才會生效（第 4 章）。</li>
+            </ol>
+
+            <div class="highlight-box mt-4">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>重點：名為 default 的群組有特別待遇</p>
+                <p class="text-gray-700 text-sm">原廠說明：若把一個群組命名為 <strong>default</strong>，新增安全政策規則時就會<strong>自動套用這個群組</strong>，不必手動選擇。這很適合把你的標準防護當成預設值；個別規則不需要時，建立時改選別的群組或設定即可。
+                    此外，修改群組內的設定檔，所有引用該群組的規則會一起套用新設定，不用逐條規則修改。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">建議的做法</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>每條<strong>允許流量</strong>的規則都要掛上設定檔或群組。原廠建議把 Vulnerability Protection 套用到所有允許流量的規則上，防範攻擊嘗試。</li>
+                <li>依風險建立幾組群組，例如「對外上網」「內部伺服器」「僅警示」，而不是每條規則量身訂做。</li>
+                <li>剛導入時，可先以 alert 為主觀察日誌、處理誤判，再逐步改成阻擋，避免一開始就中斷業務。</li>
+                <li>設定檔存在、群組存在，都不代表流量被檢查，請隨時回到 <span class="tech-term">Policies &gt; Security</span> 確認規則的 Profile Setting 欄位。</li>
+            </ul>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異：最佳實務範本與群組內容</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>教材沒有談最佳實務設定檔。現在可以從第 3 章的 <strong>IronSkillet</strong> 取得一套 Day 1 的設定檔與群組範本，載入前的注意事項與版本分支，請回看第 3 章。</li>
+                    <li>教材的設定檔類型圖，列出 Antivirus、Anti-Spyware、Vulnerability Protection、URL Filtering、File Blocking、Security Profile Group、WildFire Analysis、Data Filtering 八項。現行 12.1 對群組可納入類型的列舉只到 Antivirus、Anti-Spyware、Vulnerability Protection、URL Filtering、File Blocking、Data Filtering，沒有列出 WildFire Analysis；原廠文件說法不完整，但實務上群組可以放 WildFire Analysis 設定檔，操作時請以你設備的畫面為準。</li>
+                    <li>Strata Cloud Manager 與 PAN-OS 的操作位置不同：PAN-OS 與 Panorama 用 Objects &gt; Security Profile Groups；本課程以 PAN-OS 的操作為主。</li>
+                </ul>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：群組建好了，規則卻選了「None」</p>
+                <p class="text-gray-700 text-sm">Profile Setting 預設不一定選你想要的群組。新增規則後務必檢查「Profile Setting」欄：顯示的是群組名稱，還是空白？
+                    另外，Deny 或 Drop 的規則掛設定檔沒有意義（流量根本被擋掉了，不會進到設定檔），只有 Allow 規則需要。</p>
+            </div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
+                隨堂測驗
+            </h2>
+            <p class="mb-6 text-gray-600">請點選您認為正確的選項，系統將會顯示解析。</p>
+            <div class="space-y-6" id="quiz-container"></div>
+        </div>
+
+    </main>
+
+    <footer class="footer-signature">
+        Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver.2026.10.29.11.09
+    </footer>
+
+    <script>
+        const quizData = [
+            {
+                question: "Q1. 管理員建好了嚴格的 Antivirus 與 Vulnerability Protection 設定檔，但實際流量沒有任何 Threat 日誌。下列哪一項最可能是原因？",
+                options: ["A. 設定檔需要重新開機才會生效", "B. 流量比對到的那條 Allow 規則沒有掛上設定檔（或群組）", "C. 設定檔只對 UDP 流量有效", "D. Threat 日誌只在半夜寫入"],
+                correct: 1,
+                desc: "正解：B。安全設定檔只對被安全政策「允許」的流量生效，而且必須掛在實際比對到流量的規則上；規則由上往下、第一個符合就停止。設定檔建好但沒有掛上規則，內容不會被檢查。其他選項都不是設定檔的運作方式。另外也別忘了，HTTPS 沒有解密時內容也看不到（第 15 章）。"
+            },
+            {
+                question: "Q2. 你在 Threat 日誌看到許多 DNS sinkhole 事件，來源位址全是同一台內部 DNS 伺服器。要找出真正受感染的主機，下列做法何者最正確？",
+                options: ["A. 立刻清查並重灌那台 DNS 伺服器", "B. 把 sinkhole 動作改成 allow", "C. 從連向 Sinkhole 位址的流量（Traffic 日誌）找出發起連線的內部主機", "D. 在 Data Filtering 日誌搜尋檔案名稱"],
+                correct: 2,
+                desc: "正解：C。防火牆看到的 DNS 查詢是由本地 DNS 伺服器代為轉發，所以 Threat 日誌的來源是 DNS 伺服器。被偽造回應騙到的受感染主機，之後會連線到 Sinkhole 位址，這條連線的來源才是中招的主機，可在 Traffic 日誌找到（承載規則需啟用 Log at Session End）。allow 會讓簽章失效；Data Filtering 日誌是檔案相關事件。"
+            },
+            {
+                question: "Q3. 公司想在上網規則使用 File Blocking 的 continue 動作，提醒使用者下載執行檔。下列敘述何者正確？",
+                options: ["A. continue 適用所有應用程式，包含雲端同步軟體", "B. continue 只適用 web-browsing，其他應用程式無法提示使用者，傳輸會被擋下；HTTPS 還需要解密政策", "C. continue 會把檔案自動送去 WildFire 分析", "D. continue 動作不會寫入任何日誌"],
+                correct: 1,
+                desc: "正解：B。確認頁只有瀏覽器能顯示，所以 continue 只適用 web-browsing；其他應用程式因為無法提示使用者而被阻擋。HTTPS 網站要先有解密政策，防火牆才看得到檔案。送 WildFire 分析是 WildFire Analysis 設定檔的工作，現行 File Blocking 只提供 alert、continue、block；continue 與其他動作一樣會寫入 Data Filtering 日誌。"
+            },
+            {
+                question: "Q4. 下列關於 Security Profile Group 的敘述，何者正確？",
+                options: ["A. 群組只能包含 Antivirus 一種設定檔", "B. 套用群組的規則，必須逐條手動修改才會使用到新的設定檔內容", "C. 把群組命名為 default，新增的安全政策規則會自動套用它", "D. Deny 規則掛上群組後，流量仍會被設定檔逐項檢查"],
+                correct: 2,
+                desc: "正解：C。原廠說明，名稱為 default 的群組會自動套用到新增的安全政策規則。群組可以打包多種設定檔（A 錯）；群組內設定檔改了，引用該群組的規則會一起套用（B 錯）；被 Deny 的流量根本不會進入設定檔檢查，所以只有 Allow 規則需要掛設定檔（D 錯）。"
+            }
+        ];
+
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionBox = document.createElement('div');
+            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
+
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border mb-2 text-gray-700" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            questionBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
+                <div class="space-y-2 mb-4">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
+                    <p class="font-bold result-title"></p>
+                    <p class="text-sm text-gray-600 mt-1">${item.desc}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionBox);
+        });
+
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            if (element.parentElement.dataset.answered) return;
+            element.parentElement.dataset.answered = "true";
+
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+                opt.classList.add('disabled');
+            });
+
+            if (optIndex === data.correct) {
+                element.classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了！";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                element.classList.add('bg-red-100', 'border-red-500');
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了！";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+    </script>
+</body>
+</html>

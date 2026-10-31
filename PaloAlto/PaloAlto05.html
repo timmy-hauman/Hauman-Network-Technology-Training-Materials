@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palo Alto Networks NGFW 實戰課程 - 網路分段、安全區域與介面類型</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        /* 卡片主體樣式 (Palo Alto Orange) */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #fa582d;
+        }
+
+        /* 重點提示框 (橘) */
+        .highlight-box {
+            background-color: #fff7ed;
+            border-left: 4px solid #fa582d;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 技術名詞標記 */
+        .tech-term {
+            color: #c2410c;
+            font-weight: 700;
+            background-color: #fff1e6;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
+        }
+
+        /* 比喻說明框 (綠) */
+        .analogy-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 版本差異框 (紫) */
+        .version-box {
+            background-color: #faf5ff;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 常見踩坑框 (紅) */
+        .pitfall-box {
+            background-color: #fef2f2;
+            border-left: 4px solid #dc2626;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .diagram-container {
+            display: block;
+            background-color: #ffffff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-top: 1rem;
+            overflow-x: hidden;
+        }
+
+        .diagram-container svg {
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+
+        @media (max-width: 640px) {
+            .section-card { padding: 1rem; }
+            .diagram-container { padding: 0.25rem; }
+        }
+
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover:not(.disabled) {
+            background-color: #f3f4f6;
+        }
+
+        .footer-signature {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+            margin-top: 4rem;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-orange-600 to-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-fire-flame-curved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold">Palo Alto Networks NGFW 實戰課程</h1>
+                    <p class="text-orange-100 mt-1">網路篇 - 單元 5：網路分段、安全區域與介面類型</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <!-- Introduction -->
+        <div class="mb-8">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
+                <h2 class="text-xl font-bold text-blue-800 mb-2 flex items-center">
+                    <i class="fas fa-user-tie mr-2"></i>講師導言
+                </h2>
+                <p class="text-blue-900 leading-relaxed">
+                    防火牆接上線之前，先要決定兩件事：<strong>網路要切成哪幾塊</strong>，以及<strong>每個實體介面要用哪一種身分接進來</strong>。
+                    前者是「安全區域（Zone）」，後者是「介面類型（Interface Type）」。這一章把兩者的關係講清楚：
+                    介面放進哪種區域、區域之間為什麼預設不通、旁路監看（Tap）與串接線路（Virtual Wire）各適合什麼場合。
+                    三層介面（Layer 3）與虛擬路由器留到第 6 章，二層與 VLAN 留到第 7 章。
+                </p>
+            </div>
+        </div>
+
+        <!-- 學習目標 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-gray-100 text-gray-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Goals</span>
+                本章學習目標
+            </h2>
+            <ul class="list-disc pl-6 space-y-1 text-gray-700">
+                <li>說明網路分段的目的，以及 Zero Trust「從不信任、一律驗證」的基本想法</li>
+                <li>解釋安全區域（Zone）是什麼，並說出區域內與區域間的預設流量行為</li>
+                <li>依介面類型選出對應的區域類型，並知道介面一定要先放進區域才會處理流量</li>
+                <li>描述 Tap 介面的用途與限制（只能看、不能擋）</li>
+                <li>設定並解釋 Virtual Wire 物件、介面與子介面，包含 VLAN 標籤 0 的意思</li>
+            </ul>
+        </div>
+
+        <!-- Topic 1 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Concept</span>
+                一、為什麼要分段？Zero Trust 的想法
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                <span class="tech-term">網路分段（Network Segmentation）</span> 的目的是「保護資料的存取」。規劃時先問業務與組織的問題：
+                <strong>誰需要存取什麼？</strong>採<strong>最小權限原則（Principle of Least Privilege）</strong>，並把法規要求（例如信用卡資料）一併考慮進去。
+                如果整個內網是一大塊平面，攻擊者只要攻破一台電腦，就能在內網裡橫向移動（lateral movement）去找重要資料；
+                把網路切成多個區域、區域之間由防火牆檢查，就能縮小受攻擊面（attack surface）。
+            </p>
+
+            <div class="diagram-container">
+<svg viewBox="0 0 480 432" width="100%" style="max-width:480px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c05d1-t" font-family="'Noto Sans TC', sans-serif"><title id="c05d1-t">網路分段與安全區域：B2B 區的 Bob 與 Accounting 區的 Accounting-Grp 靠規則 1、規則 2 可以存取 PCI 區；Internet 區沒有對應規則，其他跨區流量也被預設拒絕</title><defs><marker id="c05d1-an" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#166534"/></marker><marker id="c05d1-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#b91c1c"/></marker></defs><rect x="10" y="30" width="200" height="70" rx="10" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/>
+<text x="110" y="59.15" font-size="18" text-anchor="middle" fill="#1f2937" font-weight="700">B2B Zone</text>
+<text x="110" y="83.45" font-size="18" text-anchor="middle" fill="#1f2937">Bob</text>
+<rect x="10" y="190" width="200" height="70" rx="10" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/>
+<text x="110" y="219.15" font-size="18" text-anchor="middle" fill="#1f2937" font-weight="700">Accounting Zone</text>
+<text x="110" y="243.45" font-size="18" text-anchor="middle" fill="#1f2937">Accounting-Grp</text>
+<rect x="10" y="350" width="200" height="70" rx="10" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/>
+<text x="110" y="379.15" font-size="18" text-anchor="middle" fill="#1f2937" font-weight="700">Internet Zone</text>
+<text x="110" y="403.45" font-size="18" text-anchor="middle" fill="#1f2937">公開網路</text>
+<rect x="340" y="30" width="130" height="390" rx="10" fill="#c2410c" stroke="#9a3412" stroke-width="2"/>
+<text x="405" y="219.15" font-size="18" text-anchor="middle" fill="#ffffff" font-weight="700">PCI Zone</text>
+<text x="405" y="243.45" font-size="18" text-anchor="middle" fill="#ffffff">信用卡資料</text>
+<path d="M210,65 L340,65" fill="none" stroke="#166534" stroke-width="2.6" marker-end="url(#c05d1-an)"/>
+<rect x="216" y="37.9" width="118" height="23.4" fill="#ffffff" fill-opacity="0.92"/>
+<text x="275" y="55" font-size="18" text-anchor="middle" fill="#166534" font-weight="700">規則 1 Allow</text>
+<path d="M210,225 L340,225" fill="none" stroke="#166534" stroke-width="2.6" marker-end="url(#c05d1-an)"/>
+<rect x="216" y="197.9" width="118" height="23.4" fill="#ffffff" fill-opacity="0.92"/>
+<text x="275" y="215" font-size="18" text-anchor="middle" fill="#166534" font-weight="700">規則 2 Allow</text>
+<path d="M210,385 L340,385" fill="none" stroke="#b91c1c" stroke-width="2.6" stroke-dasharray="7 6" marker-end="url(#c05d1-ar)"/>
+<rect x="220" y="331.9" width="96" height="23.4" fill="#ffffff" fill-opacity="0.92"/>
+<text x="268" y="349" font-size="18" text-anchor="middle" fill="#b91c1c">無對應規則</text>
+<rect x="229" y="353.9" width="78" height="23.4" fill="#ffffff" fill-opacity="0.92"/>
+<text x="268" y="371" font-size="18" text-anchor="middle" fill="#b91c1c">預設拒絕</text>
+<path d="M110,100 L110,190" fill="none" stroke="#b91c1c" stroke-width="2.6" stroke-dasharray="7 6" marker-end="url(#c05d1-ar)"/>
+<rect x="121" y="120.9" width="114" height="23.4" fill="#ffffff" fill-opacity="0.92"/>
+<text x="124" y="138" font-size="18" text-anchor="start" fill="#b91c1c">其他跨區流量</text>
+<rect x="121" y="142.9" width="78" height="23.4" fill="#ffffff" fill-opacity="0.92"/>
+<text x="124" y="160" font-size="18" text-anchor="start" fill="#b91c1c">預設拒絕</text></svg>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">圖例：實線代表有安全規則允許的跨區流量；虛線代表沒有規則、被預設拒絕。此例取自教材：B2B 區的 Bob 與 Accounting 區的 Accounting-Grp 可以存取 PCI 區，其餘跨區流量一律被預設擋下。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Zero Trust：從不信任，一律驗證</h3>
+            <p class="mb-3 text-gray-700">
+                <span class="tech-term">Zero Trust</span> 的核心是「<strong>Never trust, always verify</strong>」。白話一點：不信任任何使用者、裝置、應用程式或封包，每一項都要驗證。
+                落實在防火牆上，就是兩個方向都要檢查：
+            </p>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border">流量方向</th>
+                            <th class="py-2 px-4 text-left border">名稱</th>
+                            <th class="py-2 px-4 text-left border">說明</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">進出邊界</td><td class="py-2 px-4 border">南北向（north-south）</td><td class="py-2 px-4 border">網際網路與內部之間，包含入站（inbound）與出站（outbound）</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">內部之間</td><td class="py-2 px-4 border">東西向（east-west）</td><td class="py-2 px-4 border">內部區域之間，例如 web-int、app-int、db-int 之間的往來，同樣要檢查</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="diagram-container">
+<svg viewBox="0 0 480 442" width="100%" style="max-width:480px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c05d2-t" font-family="'Noto Sans TC', sans-serif"><title id="c05d2-t">Zero Trust 的兩個檢查方向：公開網路使用者進入對外應用是南北向入站檢查；對外應用與內部應用之間的往來是東西向內部檢查</title><defs><marker id="c05d2-ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4b5563"/></marker><marker id="c05d2-ao" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#c2410c"/></marker><marker id="c05d2-ap" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5b21b6"/></marker></defs><rect x="110" y="10" width="260" height="68.6" rx="10" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/>
+<text x="240" y="38.45" font-size="18" text-anchor="middle" fill="#1f2937">Public users or hosts</text>
+<text x="240" y="62.75" font-size="18" text-anchor="middle" fill="#1f2937">公開網路使用者</text>
+<rect x="10" y="130" width="220" height="300" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2" stroke-dasharray="7 6"/>
+<rect x="250" y="130" width="220" height="300" rx="10" fill="#eff6ff" stroke="#93c5fd" stroke-width="2" stroke-dasharray="7 6"/>
+<text x="120" y="158" font-size="18" text-anchor="middle" fill="#4b5563" font-weight="700">對外應用</text>
+<text x="120" y="182" font-size="18" text-anchor="middle" fill="#4b5563" font-weight="700">Internet</text>
+<text x="120" y="206" font-size="18" text-anchor="middle" fill="#4b5563" font-weight="700">Applications</text>
+<text x="360" y="158" font-size="18" text-anchor="middle" fill="#4b5563" font-weight="700">內部應用</text>
+<text x="360" y="182" font-size="18" text-anchor="middle" fill="#4b5563" font-weight="700">Internal</text>
+<text x="360" y="206" font-size="18" text-anchor="middle" fill="#4b5563" font-weight="700">Applications</text>
+<rect x="50" y="238" width="140" height="46" rx="10" fill="#ffffff" stroke="#c2410c" stroke-width="2"/>
+<text x="120" y="267.3" font-size="18" text-anchor="middle" fill="#1f2937">web-ext</text>
+<rect x="50" y="310" width="140" height="46" rx="10" fill="#ffffff" stroke="#c2410c" stroke-width="2"/>
+<text x="120" y="339.3" font-size="18" text-anchor="middle" fill="#1f2937">app-ext</text>
+<path d="M120,284 L120,310" fill="none" stroke="#4b5563" stroke-width="2.6" marker-end="url(#c05d2-ag)"/>
+<rect x="50" y="382" width="140" height="46" rx="10" fill="#ffffff" stroke="#c2410c" stroke-width="2"/>
+<text x="120" y="411.3" font-size="18" text-anchor="middle" fill="#1f2937">db-ext</text>
+<path d="M120,356 L120,382" fill="none" stroke="#4b5563" stroke-width="2.6" marker-end="url(#c05d2-ag)"/>
+<rect x="290" y="238" width="140" height="46" rx="10" fill="#ffffff" stroke="#1d4ed8" stroke-width="2"/>
+<text x="360" y="267.3" font-size="18" text-anchor="middle" fill="#1f2937">web-int</text>
+<rect x="290" y="310" width="140" height="46" rx="10" fill="#ffffff" stroke="#1d4ed8" stroke-width="2"/>
+<text x="360" y="339.3" font-size="18" text-anchor="middle" fill="#1f2937">app-int</text>
+<path d="M360,284 L360,310" fill="none" stroke="#4b5563" stroke-width="2.6" marker-end="url(#c05d2-ag)"/>
+<rect x="290" y="382" width="140" height="46" rx="10" fill="#ffffff" stroke="#1d4ed8" stroke-width="2"/>
+<text x="360" y="411.3" font-size="18" text-anchor="middle" fill="#1f2937">db-int</text>
+<path d="M360,356 L360,382" fill="none" stroke="#4b5563" stroke-width="2.6" marker-end="url(#c05d2-ag)"/>
+<path d="M110,44.3 L30,44.3 L30,261 L50,261" fill="none" stroke="#c2410c" stroke-width="2.6" marker-end="url(#c05d2-ao)"/>
+<rect x="37" y="80.9" width="112" height="23.4" fill="#ffffff" fill-opacity="0.92"/>
+<text x="40" y="98" font-size="18" text-anchor="start" fill="#c2410c" font-weight="700">north-south</text>
+<rect x="37" y="102.9" width="81.6" height="23.4" fill="#ffffff" fill-opacity="0.92"/>
+<text x="40" y="120" font-size="18" text-anchor="start" fill="#c2410c" font-weight="700">入站檢查</text>
+<path d="M190,333 L290,333" fill="none" stroke="#5b21b6" stroke-width="2.6" stroke-dasharray="7 6" marker-end="url(#c05d2-ap)"/>
+<rect x="193" y="305.9" width="94" height="23.4" fill="#ffffff" fill-opacity="0.92"/>
+<text x="240" y="323" font-size="18" text-anchor="middle" fill="#5b21b6" font-weight="700">east-west</text>
+<rect x="199.2" y="343.9" width="81.6" height="23.4" fill="#ffffff" fill-opacity="0.92"/>
+<text x="240" y="361" font-size="18" text-anchor="middle" fill="#5b21b6" font-weight="700">內部檢查</text></svg>
+            </div>
+
+            <div class="analogy-box">
+                <p class="font-bold mb-2 text-green-800">🏢 生活化比喻：社區大樓的門禁與樓層管制</p>
+                <ul class="list-none space-y-2 pl-2 text-gray-700">
+                    <li class="flex items-start"><i class="fas fa-door-closed text-red-500 mt-1 mr-3"></i><span><strong>只管大門的舊做法</strong>：進了大門就能搭電梯去任何一層。壞人混進來，整棟都走得到。</span></li>
+                    <li class="flex items-start"><i class="fas fa-layer-group text-green-600 mt-1 mr-3"></i><span><strong>分段（Zone）</strong>：每一層樓是一個區域，住戶在自己樓層走動不受限（同區域預設放行）。</span></li>
+                    <li class="flex items-start"><i class="fas fa-id-card text-blue-500 mt-1 mr-3"></i><span><strong>Zero Trust</strong>：要去別的樓層，電梯每次都要刷卡驗證（跨區預設拒絕，要有規則才放行）。大門和電梯兩處都有管制，才是南北向加東西向。</span></li>
+                </ul>
+            </div>
+
+            <div class="highlight-box mt-4">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>重點</p>
+                <p class="text-gray-700">要完整保護網路，<strong>所有流量都必須流經防火牆</strong>。區域切得越細，控制力越強，受攻擊面也越小；功能、應用程式用法或使用者權限能清楚劃分的地方，就可以各自成為一個區域。</p>
+            </div>
+        </div>
+
+        <!-- Topic 2 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Zone</span>
+                二、安全區域（Security Zone）
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                <span class="tech-term">Security Zone</span> 是「一個或多個防火牆介面，加上接在這些介面後面的網路區段」的集合，用來把安全需求相近的裝置與使用者歸成一組，通常與網路分段對應。
+                <strong>安全政策規則是寫在區域與區域之間的</strong>，不是直接寫在介面上。
+            </p>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">四條基本規則</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 mb-4">
+                <li><strong>一個介面只能屬於一個區域</strong>；<strong>一個區域可以包含多個</strong>實體或邏輯（子介面）介面。</li>
+                <li><strong>沒有放進區域的介面不會處理流量</strong>。</li>
+                <li>管理介面（MGT）與 HA 介面<strong>不放進區域</strong>。</li>
+                <li>區域有類型（Zone Type），只收對應類型的介面，下一節會整理。</li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">預設行為：區域內放行、區域間拒絕</h3>
+            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h4 class="font-bold text-green-800 mb-1"><i class="fas fa-arrows-left-right mr-1"></i>區域內（Intrazone）</h4>
+                    <p class="text-sm text-gray-700">同一個區域內的流量，預設<strong>允許</strong>，不需要另外寫規則。</p>
+                </div>
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <h4 class="font-bold text-red-800 mb-1"><i class="fas fa-ban mr-1"></i>區域間（Interzone）</h4>
+                    <p class="text-sm text-gray-700">不同區域之間的流量，預設<strong>拒絕</strong>，直到你寫一條規則允許它。</p>
+                </div>
+            </div>
+            <p class="text-sm text-gray-600 mb-4">
+                這兩個行為是由規則庫最底部的預設規則（<span class="tech-term">intrazone-default</span> 與 <span class="tech-term">interzone-default</span>）提供的：它們預先定義為允許所有區域內流量、拒絕所有區域間流量，預設唯讀，但可以覆寫（override）動作、日誌設定、標籤與安全設定檔。
+                安全規則的類型（Rule Type）分 Universal（預設，同時涵蓋區域內與區域間）、Intrazone 與 Interzone 三種，第 8、9 章會再細談。
+            </p>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">建立區域</h3>
+            <p class="mb-2 text-gray-700">
+                選單路徑：<span class="tech-term">Network &gt; Zones &gt; Add</span>。最基本要做三件事：
+            </p>
+            <ol class="list-decimal pl-6 text-gray-700 space-y-1 mb-4">
+                <li>指定區域名稱（Name）。</li>
+                <li>指定區域類型（Type）。</li>
+                <li>指派介面（Interfaces）：必須是對應類型的介面。</li>
+            </ol>
+            <p class="text-gray-700 mb-2">區域設定頁上還有幾個欄位，本章只點到名字，細節留到對應章節：</p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-56">欄位</th><th class="py-2 px-4 text-left border">用途</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">Zone Protection Profile</td><td class="py-2 px-4 border">決定防火牆如何回應來自該區域的攻擊（如洪水、偵察）。原廠建議每個區域都套用，作用在流量進入的入口（ingress）區域。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Enable User Identification</td><td class="py-2 px-4 border">啟用該區域的 User-ID 使用者對應。原廠建議只在受信任（trusted）的區域啟用（第 14 章 User-ID）。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Log Setting</td><td class="py-2 px-4 border">選擇 Log Forwarding 設定檔，把區域防護日誌轉送到外部系統。</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>最常見的踩坑一：介面沒進區域，流量就是不通</p>
+                <p class="text-gray-700 text-sm">
+                    介面接好線、燈也亮，但<strong>沒有指派到區域，就不會處理任何流量</strong>。排查「接上去卻完全不通」時，先到 <span class="tech-term">Network &gt; Interfaces &gt; Ethernet</span> 確認介面類型與所屬區域，別急著懷疑安全規則。
+                </p>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>最常見的踩坑二：以為跨區預設會通，或以為同區也會被擋</p>
+                <p class="text-gray-700 text-sm">
+                    跨區要通，<strong>一定要有明確的 Allow 規則</strong>；同一區域內則預設就通。因此「把所有主機放進同一個區域」等於放棄區域內的隔離，要隔離就得拆區域。
+                    另外，如果你在規則庫上方放了一條 any 到 any 的拒絕規則，同區域內的流量也會被擋，因為它排在預設放行規則之前。
+                </p>
+            </div>
+        </div>
+
+        <!-- Topic 3 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Mapping</span>
+                三、介面類型與區域類型對應
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                防火牆的資料平面負責處理 in-band 網路介面（走業務流量的介面）。實體乙太網路介面可以設成不同的部署模式，能力由簡到繁：
+            </p>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border">部署模式</th>
+                            <th class="py-2 px-4 text-left border">能做什麼</th>
+                            <th class="py-2 px-4 text-left border">典型用途</th>
+                            <th class="py-2 px-4 text-left border">對應區域類型</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr>
+                            <td class="py-2 px-4 border font-semibold">Tap</td>
+                            <td class="py-2 px-4 border">不必串在線路上，就能看到應用程式、使用者與內容；不能阻擋、不能流量整形</td>
+                            <td class="py-2 px-4 border">評估與稽核既有網路</td>
+                            <td class="py-2 px-4 border">Tap Zone</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 px-4 border font-semibold">Virtual Wire</td>
+                            <td class="py-2 px-4 border">App-ID、Content-ID、User-ID、SSL 解密，也含 NAT；不需要 IP 與 MAC，不做路由與交換</td>
+                            <td class="py-2 px-4 border">插入既有線路，不想改動前後設備</td>
+                            <td class="py-2 px-4 border">Virtual Wire Zone</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 px-4 border font-semibold">Layer 3</td>
+                            <td class="py-2 px-4 border">具備 Virtual Wire 的所有能力，再加上三層服務：虛擬路由器、VPN、路由協定（第 6 章）</td>
+                            <td class="py-2 px-4 border">邊界閘道、多網段路由</td>
+                            <td class="py-2 px-4 border">Layer 3 Zone</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 px-4 border font-semibold">Layer 2</td>
+                            <td class="py-2 px-4 border">以 VLAN 為單位做二層交換並檢查（第 7 章）</td>
+                            <td class="py-2 px-4 border">需要防火牆承擔二層交換的場合</td>
+                            <td class="py-2 px-4 border">Layer 2 Zone</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">「不同類型的區域只收特定類型的介面」</h3>
+            <div class="diagram-container">
+<svg viewBox="0 0 480 652" width="100%" style="max-width:480px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c05d3-t" font-family="'Noto Sans TC', sans-serif"><title id="c05d3-t">介面類型與區域類型的對應：Layer 3、VLAN、Loopback、Tunnel 介面進 Layer3 區域，Virtual Wire 介面進 Virtual Wire 區域，Tap 介面進 Tap 區域，Layer 2 介面進 Layer2 區域，Tunnel 區域不指派介面；MGT 與 HA 介面不屬於任何區域；External 區域只在多虛擬系統機型出現</title><defs><marker id="c05d3-ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4b5563"/></marker></defs><text x="110" y="28" font-size="18" text-anchor="middle" fill="#4b5563" font-weight="700">介面類型</text>
+<text x="110" y="50" font-size="18" text-anchor="middle" fill="#4b5563" font-weight="700">Interface Type</text>
+<text x="385" y="28" font-size="18" text-anchor="middle" fill="#4b5563" font-weight="700">區域類型</text>
+<text x="385" y="50" font-size="18" text-anchor="middle" fill="#4b5563" font-weight="700">Zone Type</text>
+<rect x="5" y="66" width="212" height="94" rx="10" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/>
+<text x="111" y="95" font-size="18" text-anchor="middle" fill="#1f2937">Layer 3 / VLAN</text>
+<text x="111" y="119.3" font-size="18" text-anchor="middle" fill="#1f2937">Loopback / Tunnel</text>
+<text x="111" y="143.6" font-size="18" text-anchor="middle" fill="#1f2937">介面</text>
+<rect x="305" y="66" width="170" height="94" rx="10" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/>
+<text x="390" y="119.3" font-size="18" text-anchor="middle" fill="#1f2937">Layer3 Zone</text>
+<path d="M217,113 L305,113" fill="none" stroke="#4b5563" stroke-width="2.6" marker-end="url(#c05d3-ag)"/>
+<rect x="5" y="182" width="212" height="70" rx="10" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/>
+<text x="111" y="223.3" font-size="18" text-anchor="middle" fill="#1f2937">Virtual Wire 介面</text>
+<rect x="305" y="182" width="170" height="70" rx="10" fill="#fff7ed" stroke="#fa582d" stroke-width="2"/>
+<text x="390" y="211.15" font-size="18" text-anchor="middle" fill="#1f2937">Virtual Wire</text>
+<text x="390" y="235.45" font-size="18" text-anchor="middle" fill="#1f2937">Zone</text>
+<path d="M217,217 L305,217" fill="none" stroke="#4b5563" stroke-width="2.6" marker-end="url(#c05d3-ag)"/>
+<rect x="5" y="274" width="212" height="46" rx="10" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/>
+<text x="111" y="303.3" font-size="18" text-anchor="middle" fill="#1f2937">Tap 介面</text>
+<rect x="305" y="274" width="170" height="46" rx="10" fill="#fff7ed" stroke="#fa582d" stroke-width="2"/>
+<text x="390" y="303.3" font-size="18" text-anchor="middle" fill="#1f2937">Tap Zone</text>
+<path d="M217,297 L305,297" fill="none" stroke="#4b5563" stroke-width="2.6" marker-end="url(#c05d3-ag)"/>
+<rect x="5" y="342" width="212" height="46" rx="10" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/>
+<text x="111" y="371.3" font-size="18" text-anchor="middle" fill="#1f2937">Layer 2 介面</text>
+<rect x="305" y="342" width="170" height="46" rx="10" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/>
+<text x="390" y="371.3" font-size="18" text-anchor="middle" fill="#1f2937">Layer2 Zone</text>
+<path d="M217,365 L305,365" fill="none" stroke="#4b5563" stroke-width="2.6" marker-end="url(#c05d3-ag)"/>
+<rect x="5" y="410" width="212" height="46" rx="10" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/>
+<text x="111" y="439.3" font-size="18" text-anchor="middle" fill="#1f2937">不指派任何介面</text>
+<rect x="305" y="410" width="170" height="46" rx="10" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/>
+<text x="390" y="439.3" font-size="18" text-anchor="middle" fill="#1f2937">Tunnel Zone</text>
+<path d="M217,433 L305,433" fill="none" stroke="#4b5563" stroke-width="2.6" marker-end="url(#c05d3-ag)"/>
+<rect x="5" y="484" width="470" height="68.6" rx="10" fill="#ffffff" stroke="#9ca3af" stroke-width="2" stroke-dasharray="7 6"/>
+<text x="240" y="512.45" font-size="18" text-anchor="middle" fill="#1f2937" font-weight="700">MGT 與 HA 介面</text>
+<text x="240" y="536.75" font-size="18" text-anchor="middle" fill="#1f2937">不放進任何區域</text>
+<rect x="5" y="570" width="470" height="68.6" rx="10" fill="#ffffff" stroke="#9ca3af" stroke-width="2" stroke-dasharray="7 6"/>
+<text x="240" y="598.45" font-size="18" text-anchor="middle" fill="#1f2937" font-weight="700">External Zone</text>
+<text x="240" y="622.75" font-size="18" text-anchor="middle" fill="#1f2937">僅多虛擬系統機型，用於虛擬系統之間</text></svg>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">對應關係依教材（PAN-OS 9 / 10 時代簡報）整理；橘色為本章要實作的兩種。MGT 與 HA 介面不屬於任何區域。教材的圖只畫了前五種區域類型（圖中虛線框的 External 是第六種）；區域類型下拉選單實際共有六種：<strong>Tap、Virtual Wire、Layer2、Layer3、External、Tunnel</strong>。第六種 <span class="tech-term">External</span> 區域用於控制「同一台防火牆上多個虛擬系統（virtual system）之間」的流量，只有多虛擬系統的機型才看得到，一般單一系統環境用不到。Tunnel 區域是給通道內容檢查（Tunnel Content Inspection）用的，不指派介面；VPN 的 tunnel 介面則放進 Layer 3 區域。</p>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>教材兩份簡報對 Loopback 與 Tunnel 介面的標示略有出入：較舊的簡報（PAN-OS 8.0）把它們列在 Layer 3 區域，同時又用星號另註「Not in a zone」，兩處並列，說法不明確；較新的簡報只把它們列在 Layer 3 區域，且 Loopback 設定畫面要求選 Layer 3 類型的區域。實作時請以新簡報為準，並以實機為準。</li>
+                    <li>Layer 2 與 Layer 3 區域類型會列出該類型的所有乙太網路介面與子介面；上表其餘對應關係以教材為準，並以實機為準。</li>
+                </ul>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>最常見的踩坑三：區域類型與介面類型對不上</p>
+                <p class="text-gray-700 text-sm">
+                    例如把一個設成 Tap 的介面，硬塞進 Layer 3 區域，在下拉選單裡就找不到它。<strong>順序是先決定介面類型，再建立或選擇同類型的區域</strong>。同一台防火牆可以在不同的實體介面上混用不同類型，所以混合部署時，要先規劃好每個介面的類型與所屬區域。
+                </p>
+            </div>
+        </div>
+
+        <!-- Topic 4 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Tap</span>
+                四、Tap 介面：旁路被動監看
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                <span class="tech-term">Tap 介面</span>把防火牆當成「錄影機」：交換器的 <strong>SPAN 或鏡射埠（mirror port）</strong>把流量副本送給防火牆的 Tap 介面，防火牆在不影響實際線路的情況下，辨識應用程式與威脅，並寫進日誌與 ACC（應用程式指揮中心）報表。
+            </p>
+
+            <div class="diagram-container">
+<svg viewBox="0 0 480 684" width="100%" style="max-width:480px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c05d4-t" font-family="'Noto Sans TC', sans-serif"><title id="c05d4-t">Tap 與 Virtual Wire 兩種部署：Tap 是交換器的 SPAN 鏡射副本送到防火牆的 Tap 介面，流量照原路走；Virtual Wire 是上游設備、防火牆的兩個介面、下游設備串接在同一條線路上</title><defs><marker id="c05d4-ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4b5563"/></marker><marker id="c05d4-ao" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#c2410c"/></marker></defs><rect x="5" y="5" width="470" height="262" rx="10" fill="#ffffff" stroke="#fdba74" stroke-width="2"/>
+<text x="240" y="36" font-size="18" text-anchor="middle" fill="#c2410c" font-weight="700">Tap 部署：旁路被動監看</text>
+<rect x="15" y="56" width="100" height="46" rx="10" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/>
+<text x="65" y="85.3" font-size="18" text-anchor="middle" fill="#1f2937">LAN</text>
+<rect x="165" y="56" width="150" height="46" rx="10" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/>
+<text x="240" y="85.3" font-size="18" text-anchor="middle" fill="#1f2937">交換器 Switch</text>
+<rect x="358" y="56" width="117" height="46" rx="10" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/>
+<text x="416.5" y="85.3" font-size="18" text-anchor="middle" fill="#1f2937">Internet</text>
+<path d="M115,79 L165,79" fill="none" stroke="#4b5563" stroke-width="2.6"/>
+<path d="M315,79 L358,79" fill="none" stroke="#4b5563" stroke-width="2.6"/>
+<rect x="110" y="168" width="260" height="68.6" rx="10" fill="#fff7ed" stroke="#fa582d" stroke-width="2"/>
+<text x="240" y="196.45" font-size="18" text-anchor="middle" fill="#1f2937" font-weight="700">防火牆 ethernet1/1</text>
+<text x="240" y="220.75" font-size="18" text-anchor="middle" fill="#1f2937">Tap Zone</text>
+<path d="M240,102 L240,168" fill="none" stroke="#c2410c" stroke-width="2.6" stroke-dasharray="7 6" marker-end="url(#c05d4-ao)"/>
+<rect x="249" y="122.9" width="143.592" height="23.4" fill="#ffffff" fill-opacity="0.92"/>
+<text x="252" y="140" font-size="18" text-anchor="start" fill="#c2410c" font-weight="700">SPAN 鏡射副本</text>
+<rect x="5" y="290" width="470" height="382" rx="10" fill="#ffffff" stroke="#fdba74" stroke-width="2"/>
+<text x="240" y="321" font-size="18" text-anchor="middle" fill="#c2410c" font-weight="700">Virtual Wire 部署：串接在線路中</text>
+<rect x="110" y="340" width="260" height="46" rx="10" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/>
+<text x="240" y="369.3" font-size="18" text-anchor="middle" fill="#1f2937">上游設備</text>
+<rect x="110" y="414" width="260" height="68.6" rx="10" fill="#c2410c" stroke="#9a3412" stroke-width="2"/>
+<text x="240" y="442.45" font-size="18" text-anchor="middle" fill="#ffffff" font-weight="700">ethernet1/1</text>
+<text x="240" y="466.75" font-size="18" text-anchor="middle" fill="#ffffff">Zone A</text>
+<rect x="110" y="510.6" width="260" height="68.6" rx="10" fill="#c2410c" stroke="#9a3412" stroke-width="2"/>
+<text x="240" y="539.05" font-size="18" text-anchor="middle" fill="#ffffff" font-weight="700">ethernet1/2</text>
+<text x="240" y="563.35" font-size="18" text-anchor="middle" fill="#ffffff">Zone B</text>
+<rect x="110" y="607.2" width="260" height="46" rx="10" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/>
+<text x="240" y="636.5" font-size="18" text-anchor="middle" fill="#1f2937">下游設備</text>
+<path d="M240,386 L240,414" fill="none" stroke="#4b5563" stroke-width="2.6" marker-end="url(#c05d4-ag)"/>
+<path d="M240,482.6 L240,510.6" fill="none" stroke="#4b5563" stroke-width="2.6" marker-end="url(#c05d4-ag)"/>
+<path d="M240,579.2 L240,607.2" fill="none" stroke="#4b5563" stroke-width="2.6" marker-end="url(#c05d4-ag)"/></svg>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">上半：流量照原路走，防火牆只收副本。下半（第五節）：流量實際穿過防火牆，可檢查也可阻擋。</p>
+
+            <div class="grid md:grid-cols-2 gap-4 mt-4">
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h4 class="font-bold text-green-800 mb-1"><i class="fas fa-eye mr-1"></i>能做的事</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>辨識應用程式與威脅</li>
+                        <li>記錄並出報表（日誌、ACC）</li>
+                        <li>用流量日誌（Traffic log）的內容，規劃之後正式上線時的安全規則</li>
+                    </ul>
+                </div>
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <h4 class="font-bold text-red-800 mb-1"><i class="fas fa-hand mr-1"></i>不能做的事</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>控制流量：不能阻擋有威脅的流量</li>
+                        <li>流量整形（QoS）</li>
+                        <li>Block 與 Reset 動作都不可用</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">設定步驟</h3>
+            <ol class="list-decimal pl-6 text-gray-700 space-y-1">
+                <li>把防火牆的一個埠接到交換器的 SPAN 或鏡射埠。</li>
+                <li>到 <span class="tech-term">Network &gt; Interfaces &gt; Ethernet</span>，點選該介面，<strong>Interface Type 選 Tap</strong>。</li>
+                <li>在 Security Zone 欄位選一個<strong> Tap 類型的區域</strong>（可在此新建，也可事先到 <span class="tech-term">Network &gt; Zones</span> 建好）。</li>
+                <li>到 <span class="tech-term">Policies &gt; Security</span> 建立規則：來源區域與目的區域都選這個 Tap 區域，動作 Allow，並啟用 <strong>Log at Session End</strong>。</li>
+                <li>安全設定檔（Security Profiles）的動作設成 <strong>alert</strong>，Commit 之後到 <span class="tech-term">Monitor &gt; Logs</span> 與 ACC 觀察。</li>
+            </ol>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>最常見的踩坑四：在 Tap 模式期待「擋住」攻擊</p>
+                <p class="text-gray-700 text-sm">
+                    Tap 只看得到副本，<strong>無法執行 block 或 reset</strong>，安全設定檔要用 alert 動作，日誌裡看到「已偵測到威脅」不代表它被擋下。
+                    Tap 安全規則的<strong>來源區域與目的區域必須是同一個 Tap 區域</strong>。要真正阻擋，必須改用 Virtual Wire 或 Layer 3 串接。
+                </p>
+            </div>
+
+            <div class="highlight-box mt-4">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>小提醒：Tap 區域什麼時候建立都可以</p>
+                <p class="text-gray-700 text-sm">Tap 區域可以先在 Network &gt; Zones 建立，也可以在介面設定頁的 Security Zone 欄位直接 New Zone，兩種做法結果相同。本章只談 PAN-OS 本機 Web 介面；Strata Cloud Manager 的選單名稱與本章不同。</p>
+            </div>
+        </div>
+
+        <!-- Topic 5 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Virtual Wire</span>
+                五、Virtual Wire 與子介面
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                <span class="tech-term">Virtual Wire（虛擬線）</span>把防火牆上的<strong>兩個介面綁成一條「看不見的線」</strong>，用一個 Virtual Wire 物件連起來。介面本身沒有 IP 位址也沒有 MAC 位址，所以前後的網路設備<strong>完全不必改設定</strong>。適合「不需要交換、也不需要路由」，只想把防火牆插進既有線路的情況。
+            </p>
+
+            <div class="grid md:grid-cols-3 gap-4 mb-4">
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h4 class="font-bold text-orange-800 mb-1"><i class="fas fa-link mr-1"></i>1. Virtual Wire 物件</h4>
+                    <p class="text-sm text-gray-700"><span class="tech-term">Network &gt; Virtual Wires &gt; Add</span>：建立物件、選兩個介面，並設定允許的 VLAN 標籤。</p>
+                </div>
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h4 class="font-bold text-orange-800 mb-1"><i class="fas fa-ethernet mr-1"></i>2. Virtual Wire 介面</h4>
+                    <p class="text-sm text-gray-700"><span class="tech-term">Network &gt; Interfaces &gt; Ethernet</span>：Interface Type 選 Virtual Wire，指定物件（可先留空、之後再加）。</p>
+                </div>
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h4 class="font-bold text-orange-800 mb-1"><i class="fas fa-shield-halved mr-1"></i>3. 區域</h4>
+                    <p class="text-sm text-gray-700">兩個介面各放進一個 <strong>Virtual Wire 類型</strong>的區域（例如 Zone A 與 Zone B），規則寫在兩區之間。</p>
+                </div>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Virtual Wire 物件的主要設定</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-52">設定項目</th><th class="py-2 px-4 text-left border">說明</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">Tag Allowed</td><td class="py-2 px-4 border">允許通過的 802.1Q VLAN 標籤，可列多個值或範圍並以逗號分隔。<strong>0 代表沒有標籤（untagged）的流量</strong>（例如 BPDU 這類二層控制流量）。預設值 0，範圍 0 至 4094。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Multicast Firewalling</td><td class="py-2 px-4 border">勾選後，安全規則才能套用到穿越虛擬線的多播流量；沒勾選時，多播流量直接透明轉送。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Link State Pass Through</td><td class="py-2 px-4 border">勾選後，一側斷線時防火牆會把另一側介面也關閉，兩側設備看到一致的連線狀態，彷彿中間沒有防火牆。</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">另外，構成一條虛擬線的兩個介面必須有相同的連線速率（Link Speed）與雙工模式（Link Duplex）。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Virtual Wire 子介面（Subinterface）</h3>
+            <p class="mb-3 text-gray-700">
+                一條實體虛擬線上若跑著好幾個 VLAN 或網段，可以建立<strong>子介面</strong>，讓不同標籤的流量歸到不同區域，達成更細的規則與邏輯分流。子介面能依下列條件分類流量：
+            </p>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 mb-4">
+                <li><strong>VLAN 標籤</strong>（1 至 4094）</li>
+                <li><strong>VLAN 標籤 + IP 分類器（IP classifier，來源 IP）</strong></li>
+                <li><strong>只用 IP 分類器</strong>（處理無標籤流量，依來源 IP）</li>
+            </ul>
+            <p class="mb-3 text-gray-700">設定時要填 Subinterface ID、802.1Q VLAN tag、（選填）IP Classifiers、Virtual Wire 物件，以及 Virtual Wire 類型的區域。子介面一樣在 <span class="tech-term">Network &gt; Interfaces &gt; Ethernet</span> 新增。</p>
+
+            <div class="diagram-container">
+<svg viewBox="0 0 480 372" width="100%" style="max-width:480px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c05d5-t" font-family="'Noto Sans TC', sans-serif"><title id="c05d5-t">Virtual Wire 子介面：外側線路在上、內側線路在下。VLAN 1 這一對是 ethernet1/2.1（Outside-1 區域）與 ethernet1/3.1（Inside-1 區域），VLAN 2 這一對是 ethernet1/2.2（Outside-2 區域）與 ethernet1/3.2（Inside-2 區域）；每一對的兩個區域不同，都需要安全規則放行；兩對之間沒有連線</title><text x="240" y="26" font-size="18" text-anchor="middle" fill="#4b5563" font-weight="700">外側 Outside 線路</text>
+<rect x="18" y="44" width="172" height="92.9" rx="10" fill="#fff7ed" stroke="#fa582d" stroke-width="2"/>
+<text x="104" y="72.45" font-size="18" text-anchor="middle" fill="#1f2937" font-weight="700">ethernet1/2.1</text>
+<text x="104" y="96.75" font-size="18" text-anchor="middle" fill="#1f2937">VLAN 1</text>
+<text x="104" y="121.05" font-size="18" text-anchor="middle" fill="#1f2937">Outside-1 Zone</text>
+<rect x="18" y="236.9" width="172" height="92.9" rx="10" fill="#fff7ed" stroke="#fa582d" stroke-width="2"/>
+<text x="104" y="265.35" font-size="18" text-anchor="middle" fill="#1f2937" font-weight="700">ethernet1/3.1</text>
+<text x="104" y="289.65" font-size="18" text-anchor="middle" fill="#1f2937">VLAN 1</text>
+<text x="104" y="313.95" font-size="18" text-anchor="middle" fill="#1f2937">Inside-1 Zone</text>
+<path d="M44,136.9 L44,236.9" fill="none" stroke="#c2410c" stroke-width="3.2"/>
+<text x="56" y="162.9" font-size="18" text-anchor="start" fill="#c2410c" font-weight="700">VLAN 1 成對</text>
+<text x="56" y="190.9" font-size="18" text-anchor="start" fill="#b91c1c" font-weight="700">兩個區域不同，</text>
+<text x="56" y="214.9" font-size="18" text-anchor="start" fill="#b91c1c" font-weight="700">需要安全規則放行</text>
+<rect x="290" y="44" width="172" height="92.9" rx="10" fill="#fff7ed" stroke="#fa582d" stroke-width="2"/>
+<text x="376" y="72.45" font-size="18" text-anchor="middle" fill="#1f2937" font-weight="700">ethernet1/2.2</text>
+<text x="376" y="96.75" font-size="18" text-anchor="middle" fill="#1f2937">VLAN 2</text>
+<text x="376" y="121.05" font-size="18" text-anchor="middle" fill="#1f2937">Outside-2 Zone</text>
+<rect x="290" y="236.9" width="172" height="92.9" rx="10" fill="#fff7ed" stroke="#fa582d" stroke-width="2"/>
+<text x="376" y="265.35" font-size="18" text-anchor="middle" fill="#1f2937" font-weight="700">ethernet1/3.2</text>
+<text x="376" y="289.65" font-size="18" text-anchor="middle" fill="#1f2937">VLAN 2</text>
+<text x="376" y="313.95" font-size="18" text-anchor="middle" fill="#1f2937">Inside-2 Zone</text>
+<path d="M316,136.9 L316,236.9" fill="none" stroke="#c2410c" stroke-width="3.2"/>
+<text x="328" y="162.9" font-size="18" text-anchor="start" fill="#c2410c" font-weight="700">VLAN 2 成對</text>
+<text x="328" y="190.9" font-size="18" text-anchor="start" fill="#b91c1c" font-weight="700">兩個區域不同，</text>
+<text x="328" y="214.9" font-size="18" text-anchor="start" fill="#b91c1c" font-weight="700">需要安全規則放行</text>
+<text x="240" y="359.8" font-size="18" text-anchor="middle" fill="#4b5563" font-weight="700">內側 Inside 線路</text></svg>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">教材範例：兩組 VLAN 各自成對（VLAN 1 與 VLAN 2），每一對的外側與內側分屬不同的區域，跨區仍需要安全規則放行；這種做法適合多租戶（multi-tenant）網路。圖中只有成對的子介面彼此相連：VLAN 1 的流量只在 ethernet1/2.1 與 ethernet1/3.1 之間往來，VLAN 2 同理，兩組之間不會互通。</p>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>最常見的踩坑五：標籤重複或兩側不成對</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>虛擬線<strong>不會改寫 VLAN 標籤</strong>，所以進線與出線的成對子介面必須使用<strong>相同的標籤</strong>。</li>
+                    <li>已經指派給子介面的標籤，<strong>不可以又出現在上層 Virtual Wire 物件的 Tag Allowed 清單</strong>裡。</li>
+                    <li>IP 分類器只能用在虛擬線其中一側的子介面。</li>
+                    <li>Virtual Wire 不適合需要交換、VPN 隧道或路由的介面。要路由請改用 Layer 3（第 6 章）。</li>
+                </ul>
+            </div>
+
+            <div class="highlight-box mt-4">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>小提醒：投影片上的說明文字對應哪些選項</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>教材投影片只用標註文字（例如「多播流量會被轉送」「連線狀態會被轉送」）說明，實際對應到物件上的兩個選項：<strong>Multicast Firewalling</strong>（勾選後安全規則才管得到多播）與 <strong>Link State Pass Through</strong>。</li>
+                    <li>Virtual Wire 物件除了在 Network &gt; Virtual Wires 建立，也可以在 Ethernet 介面設定頁的 Virtual Wire 欄位選 New Virtual Wire 當場建立；先建立介面、之後再補物件也可以。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
+                隨堂測驗
+            </h2>
+            <p class="mb-6 text-gray-600">請點選您認為正確的選項，系統將會顯示解析。</p>
+            <div class="space-y-6" id="quiz-container"></div>
+        </div>
+
+    </main>
+
+    <footer class="footer-signature">
+        Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver.2026.10.29.11.11
+    </footer>
+
+    <script>
+        const quizData = [
+            {
+                question: "Q1. 接好線、燈號也亮的介面，卻完全沒有處理任何流量。最可能的原因是？",
+                options: ["A. 安全政策裡沒有寫 intrazone 規則", "B. 介面還沒有被指派到任何安全區域", "C. 介面速率設定成 Auto", "D. 管理介面（MGT）沒有放進區域"],
+                correct: 1,
+                desc: "正解：B。介面必須先指派到區域，才會處理流量。A 不對，因為同區域預設就放行；D 不對，MGT 與 HA 介面本來就不放進區域。"
+            },
+            {
+                question: "Q2. 公司已有 B2B、Accounting、PCI 三個區域，並只寫了「Bob（B2B 區）→ PCI 區 Allow」一條規則。下列敘述何者正確？",
+                options: ["A. 三個區域之間預設全部互通", "B. 同一個區域內的主機互相通訊也需要寫規則", "C. Accounting 區的主機可以直接存取 PCI 區，因為會計部門比較重要", "D. Accounting 區到 PCI 區的流量，因為沒有規則允許，被預設的區域間拒絕規則擋下"],
+                correct: 3,
+                desc: "正解：D。區域間流量預設拒絕，要有明確的 Allow 規則才通；區域內則預設允許（所以 B 不對）。要讓 Accounting-Grp 存取 PCI 區，必須再寫一條規則。"
+            },
+            {
+                question: "Q3. 下列關於 Tap 介面的敘述，哪一項是正確的？",
+                options: ["A. 它接在交換器的 SPAN 或鏡射埠，只能被動觀察，無法阻擋流量也無法做流量整形", "B. 它能像 Virtual Wire 一樣把流量放行並擋下惡意程式", "C. 它必須放在 Layer 3 區域", "D. 它的安全設定檔建議使用 block 或 reset 動作"],
+                correct: 0,
+                desc: "正解：A。Tap 只看得到鏡射副本，因此不能 block、reset，也不能做 QoS；安全設定檔須用 alert，介面也必須放在 Tap 類型的區域。"
+            },
+            {
+                question: "Q4. 在 Virtual Wire 物件的 Tag Allowed 欄位填入 0，代表什麼意思？",
+                options: ["A. 不允許任何流量通過", "B. 只允許 VLAN 1 的流量", "C. 允許沒有 802.1Q 標籤的流量（untagged）", "D. 允許所有 VLAN 標籤，並自動改寫成 0"],
+                correct: 2,
+                desc: "正解：C。0 代表無標籤流量，是預設值。另外，虛擬線不會改寫 VLAN 標籤，所以進出兩側成對的子介面必須使用相同標籤。"
+            }
+        ];
+
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionBox = document.createElement('div');
+            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
+
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border mb-2 text-gray-700" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            questionBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
+                <div class="space-y-2 mb-4">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
+                    <p class="font-bold result-title"></p>
+                    <p class="text-sm text-gray-600 mt-1">${item.desc}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionBox);
+        });
+
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            if (element.parentElement.dataset.answered) return;
+            element.parentElement.dataset.answered = "true";
+
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+                opt.classList.add('disabled');
+            });
+
+            if (optIndex === data.correct) {
+                element.classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了！";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                element.classList.add('bg-red-100', 'border-red-500');
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了！";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+    </script>
+</body>
+</html>

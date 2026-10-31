@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palo Alto Networks NGFW 實戰課程 - Destination NAT 與 U-Turn NAT</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        /* 卡片主體樣式 (Palo Alto Orange) */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #fa582d;
+        }
+
+        /* 重點提示框 (橘) */
+        .highlight-box {
+            background-color: #fff7ed;
+            border-left: 4px solid #fa582d;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 技術名詞標記 */
+        .tech-term {
+            color: #c2410c;
+            font-weight: 700;
+            background-color: #fff1e6;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
+        }
+
+        /* 比喻說明框 (綠) */
+        .analogy-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 版本差異框 (紫) */
+        .version-box {
+            background-color: #faf5ff;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 常見踩坑框 (紅) */
+        .pitfall-box {
+            background-color: #fef2f2;
+            border-left: 4px solid #dc2626;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .diagram-container {
+            display: block;
+            background-color: #ffffff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 640px) {
+            .section-card { padding: 1.25rem 0.75rem; }
+            .diagram-container { padding: 0.25rem; }
+        }
+
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover:not(.disabled) {
+            background-color: #f3f4f6;
+        }
+
+        .footer-signature {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+            margin-top: 4rem;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-orange-600 to-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-fire-flame-curved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold">Palo Alto Networks NGFW 實戰課程</h1>
+                    <p class="text-orange-100 mt-1">政策篇 - 單元 11：Destination NAT 與 U-Turn NAT</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <!-- Introduction -->
+        <div class="mb-8">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
+                <h2 class="text-xl font-bold text-blue-800 mb-2 flex items-center">
+                    <i class="fas fa-user-tie mr-2"></i>講師導言
+                </h2>
+                <p class="text-blue-900 leading-relaxed">
+                    第 10 章我們處理的是「內部主機連出去」，改的是<strong>來源位址</strong>。這一章倒過來：外面的人要<strong>連進來</strong>找你的內部伺服器，
+                    防火牆要改的是<strong>目的位址</strong>，這就是 <strong>Destination NAT</strong>。
+                    它的設定本身不難，真正會卡人的是<strong>安全政策該怎麼寫</strong>：位址要填「轉換前」的，區域要填「轉換後」的。
+                    接著我們會學一個公開位址後面放好幾台伺服器的<strong>連接埠轉送</strong>，最後看一個經典情境：公司內部的使用者，用「公開位址」去連自己 DMZ 裡的伺服器，也就是 <strong>U-Turn NAT</strong>。
+                </p>
+            </div>
+        </div>
+
+        <!-- 學習目標 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-gray-100 text-gray-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Goals</span>
+                本章學習目標
+            </h2>
+            <ul class="list-disc pl-6 space-y-1 text-gray-700">
+                <li>說明 Destination NAT 的用途，並分辨 Static IP、連接埠轉換與 Dynamic IP 三種屬性</li>
+                <li>寫出 Destination NAT 對應的安全規則：位址用轉換前（pre-NAT），目的區域用轉換後（post-NAT）</li>
+                <li>在 <span class="tech-term">Policies &gt; NAT</span> 建立一條 Destination NAT 規則，並說明 Original Packet 與 Translated Packet 兩個頁籤各放什麼</li>
+                <li>用服務物件與 Translated Port 完成連接埠轉送，並寫出配套的兩條安全規則</li>
+                <li>說明三區域 U-Turn NAT 的情境、兩條規則怎麼寫，以及為什麼規則順序會決定成敗</li>
+            </ul>
+        </div>
+
+        <!-- Topic 1 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Concept</span>
+                一、Destination NAT 的用途與屬性
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                <span class="tech-term">Destination NAT</span> 會把封包的<strong>原始目的 IP 位址</strong>，轉換成另一個目的位址。
+                最典型的用途：伺服器放在 DMZ，使用私有位址，但對外只公布一個<strong>公開位址</strong>；外部使用者連公開位址，防火牆在中間把目的位址換成內部伺服器。
+            </p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-4 mb-2">轉換前後的封包對照</h3>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div class="overflow-x-auto">
+                    <p class="text-sm font-bold text-gray-700 mb-1">Before（進入防火牆時）</p>
+                    <table class="min-w-full bg-white border text-sm">
+                        <thead class="bg-gray-50 text-gray-700">
+                            <tr><th class="py-2 px-4 text-left border"></th><th class="py-2 px-4 text-left border">Source</th><th class="py-2 px-4 text-left border">Destination</th></tr>
+                        </thead>
+                        <tbody class="text-gray-700">
+                            <tr><td class="py-2 px-4 border font-semibold">位址</td><td class="py-2 px-4 border">192.0.2.5</td><td class="py-2 px-4 border bg-orange-50 font-bold">198.51.100.22</td></tr>
+                            <tr><td class="py-2 px-4 border font-semibold">區域</td><td class="py-2 px-4 border">Untrust-L3</td><td class="py-2 px-4 border">Untrust-L3</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="overflow-x-auto">
+                    <p class="text-sm font-bold text-gray-700 mb-1">After（離開防火牆時）</p>
+                    <table class="min-w-full bg-white border text-sm">
+                        <thead class="bg-gray-50 text-gray-700">
+                            <tr><th class="py-2 px-4 text-left border"></th><th class="py-2 px-4 text-left border">Source</th><th class="py-2 px-4 text-left border">Destination</th></tr>
+                        </thead>
+                        <tbody class="text-gray-700">
+                            <tr><td class="py-2 px-4 border font-semibold">位址</td><td class="py-2 px-4 border">192.0.2.5</td><td class="py-2 px-4 border bg-orange-50 font-bold">192.168.16.2</td></tr>
+                            <tr><td class="py-2 px-4 border font-semibold">區域</td><td class="py-2 px-4 border">Untrust-L3</td><td class="py-2 px-4 border bg-orange-50 font-bold">DMZ</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">位址取自教材示意，皆為文件保留位址或私有位址，實際請換成自己環境的位址。來源位址不變，只有目的位址（以及它所在的區域）改變。</p>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 520 674" width="100%" style="max-width:520px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c11d1-t" font-family="'Noto Sans TC', sans-serif" font-size="19"><title id="c11d1-t">Destination NAT 封包轉換示意圖：外部使用者連到防火牆的公開位址，防火牆用 DST-NAT 規則把目的位址改成 DMZ 伺服器的位址，再轉給伺服器</title><defs><marker id="c11d1-agray" viewBox="0 0 10 8" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,4 L0,8 z" fill="#4b5563"/></marker></defs><rect x="110.0" y="10.0" width="300.0" height="72.0" rx="9.0" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/><text x="260.0" y="39.5" text-anchor="middle" fill="#1f2937" font-weight="700">外部使用者</text><text x="260.0" y="65.5" text-anchor="middle" fill="#1f2937">192.0.2.5</text><circle cx="198.0" cy="122.0" r="14" fill="#c2410c"/><text x="198.0" y="128.5" text-anchor="middle" fill="#ffffff" font-weight="700">1</text><text x="222.0" y="115.5" text-anchor="start" fill="#1f2937">目的位址為</text><text x="222.0" y="141.5" text-anchor="start" fill="#1f2937">198.51.100.22</text><rect x="30.0" y="162.0" width="460.0" height="328.0" rx="12" fill="#f3f4f6" fill-opacity="0.55" stroke="#9ca3af" stroke-width="2" stroke-dasharray="7 5"/><text font-weight="700" x="42.0" y="187.5" text-anchor="start" fill="#374151">防火牆</text><path d="M 170.0 82.0 L 170.0 200.0" fill="none" stroke="#4b5563" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#c11d1-agray)"/><rect x="80.0" y="200.0" width="360.0" height="72.0" rx="9.0" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/><text x="260.0" y="229.5" text-anchor="middle" fill="#1f2937" font-weight="700">e1/4　Zone: Untrust-L3</text><text x="260.0" y="255.5" text-anchor="middle" fill="#1f2937">公開位址 198.51.100.22</text><path d="M 260.0 272.0 L 260.0 302.0" fill="none" stroke="#4b5563" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#c11d1-agray)"/><rect x="80.0" y="302.0" width="360.0" height="72.0" rx="9.0" fill="#c2410c" stroke="#9a3412" stroke-width="2"/><text x="260.0" y="331.5" text-anchor="middle" fill="#ffffff" font-weight="700">DST-NAT 規則</text><text x="260.0" y="357.5" text-anchor="middle" fill="#ffffff">目的位址改為 192.168.16.2</text><path d="M 260.0 374.0 L 260.0 404.0" fill="none" stroke="#4b5563" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#c11d1-agray)"/><rect x="80.0" y="404.0" width="360.0" height="72.0" rx="9.0" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/><text x="260.0" y="433.5" text-anchor="middle" fill="#1f2937" font-weight="700">e1/2　Zone: DMZ</text><text x="260.0" y="459.5" text-anchor="middle" fill="#1f2937">192.168.16.1</text><path d="M 170.0 476.0 L 170.0 562.0" fill="none" stroke="#4b5563" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#c11d1-agray)"/><circle cx="198.0" cy="519.0" r="14" fill="#c2410c"/><text x="198.0" y="525.5" text-anchor="middle" fill="#ffffff" font-weight="700">2</text><text x="222.0" y="512.5" text-anchor="start" fill="#1f2937">目的位址為</text><text x="222.0" y="538.5" text-anchor="start" fill="#1f2937">192.168.16.2</text><rect x="110.0" y="562.0" width="300.0" height="98.0" rx="9.0" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/><text x="260.0" y="591.5" text-anchor="middle" fill="#1f2937" font-weight="700">DMZ 伺服器</text><text x="260.0" y="617.5" text-anchor="middle" fill="#1f2937">www.example.com</text><text x="260.0" y="643.5" text-anchor="middle" fill="#1f2937">192.168.16.2</text></svg>
+            </div>
+
+            <div class="analogy-box">
+                <p class="font-bold mb-2 text-green-800">☎️ 生活化比喻：大樓總機轉分機</p>
+                <ul class="list-none space-y-2 pl-2 text-gray-700">
+                    <li class="flex items-start"><i class="fas fa-phone text-blue-500 mt-1 mr-3"></i><span><strong>公開位址</strong>：公司對外公布的總機號碼。訪客只知道這個號碼，不知道誰坐哪裡。</span></li>
+                    <li class="flex items-start"><i class="fas fa-headset text-orange-500 mt-1 mr-3"></i><span><strong>Destination NAT 規則</strong>：櫃檯桌上的轉接表。訪客說「找業務部」，櫃檯就轉到業務部的分機。</span></li>
+                    <li class="flex items-start"><i class="fas fa-building text-green-600 mt-1 mr-3"></i><span><strong>內部伺服器位址</strong>：分機號碼。只在大樓內部用，外面的人從頭到尾不需要知道。</span></li>
+                    <li class="flex items-start"><i class="fas fa-user-shield text-red-500 mt-1 mr-3"></i><span><strong>安全政策</strong>：門禁。櫃檯願意轉接，不代表訪客能進大樓，仍要有門禁規則放行。</span></li>
+                </ul>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Destination NAT 的三種屬性</h3>
+            <p class="text-sm text-gray-600 mb-2">設定位置：<span class="tech-term">Policies &gt; NAT &gt; Add</span>，在 Translated Packet 頁籤選擇轉換型態。</p>
+            <div class="grid md:grid-cols-3 gap-4 mb-4">
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h4 class="font-bold text-orange-800 mb-2"><i class="fas fa-link mr-1"></i>Static IP</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>一對一的固定轉換</li>
+                        <li>只改目的位址，<strong>目的連接埠不變</strong></li>
+                        <li>教材也提到：Static Source NAT 開啟 Bi-directional 選項，同樣能讓外部連進來（第 10 章）</li>
+                    </ul>
+                </div>
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h4 class="font-bold text-orange-800 mb-2"><i class="fas fa-right-left mr-1"></i>連接埠轉換</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>在 Translated Packet 填 <strong>Translated Port</strong></li>
+                        <li>用於伺服器聽的不是標準連接埠</li>
+                        <li>搭配 NAT 規則的 Service 欄位，可讓一個公開位址依連接埠分流到多台伺服器（第四節）</li>
+                    </ul>
+                </div>
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-2"><i class="fas fa-arrows-rotate mr-1"></i>Dynamic IP</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>轉換後的目標位址會變動（例如雲端環境，或伺服器位址由 DHCP 發放、且 DNS 會跟著更新）</li>
+                        <li>轉換後的位址可用 <strong>FQDN、位址物件或位址群組</strong>（要以 FQDN 為基礎，才跟得上位址變動）</li>
+                        <li>型態選 <strong>Dynamic IP</strong></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異：Dynamic IP 與「連接埠轉送」的說法</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li><strong>名稱不同</strong>：教材只寫 Dynamic IP。現行原廠文件的完整名稱是 <strong>Dynamic IP (with session distribution)</strong>，轉換後的位址可以是 FQDN、位址物件或位址群組；當一個 FQDN 解析出多個位址，防火牆會把新的工作階段分散到這些位址。</li>
+                    <li><strong>分配方式</strong>：現行版提供 Round Robin（預設）、Source IP Hash、IP Modulo、IP Hash、Least Sessions 五種。</li>
+                    <li><strong>只支援 IPv4</strong>：現行版的 Dynamic IP (with session distribution) 只支援 IPv4 位址；FQDN 若只解析出 IPv6 位址，該規則視同尚未解析。若 DNS 回傳超過 32 個 IPv4 位址，只用前 32 個。教材備註對 IPv6 的說法與此不同，以實機為準。</li>
+                    <li><strong>何時用</strong>：原廠的最佳作法是靜態位址用 Static IP，只有 FQDN 這類動態位址才用 Dynamic IP。另外，若<strong>轉換前</strong>的位址（Original Packet 的 Destination Address）是 FQDN 物件，轉換型態也必須是 Dynamic IP (with session distribution)，不能選 Static IP。</li>
+                    <li><strong>用詞</strong>：教材把「依埠分流」稱為 port forwarding；換埠的設定頁，舊版教材叫 Port Forwarding Configuration，新版教材已改叫 Port Translation Configuration。原廠現行版把兩者分開：<strong>Port Forwarding</strong> 是公開位址與埠轉成私有位址、埠號不變；<strong>Port Translation</strong> 才是換成不同的埠，作法是在 Translated Packet 填 Translated Port。本章依原廠分法。</li>
+                    <li>原廠另有 DNS Rewrite 功能（Static IP 的 IPv4 情境），用來處理內外 DNS 回應不同位址的狀況；本章不展開。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Topic 2 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Policy</span>
+                二、Destination NAT 對應的安全政策怎麼寫
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                第 1 章與第 10 章都提過：防火牆先查路由、比對 NAT 規則，再比對安全政策，<strong>真正的轉換要等封包離開防火牆時才發生</strong>。
+                所以安全政策比對時，看到的是「轉換前」的位址；但它判斷區域時，用的卻是「轉換後」位址所在的區域。
+                換句話說，安全政策依據<strong>原始（pre-NAT）的來源與目的位址，但使用 post-NAT 區域</strong>。
+            </p>
+
+            <div class="highlight-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>一句話記法</p>
+                <p class="text-gray-700 text-sm"><strong>位址看轉換前，區域看轉換後。</strong>
+                    NAT 規則的目的區域，是用「轉換前目的位址」查路由得到的區域；安全規則的目的區域，是用「轉換後目的位址」查路由得到的區域（也就是伺服器實際所在的區域）。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">範例：一對一 Destination NAT 的兩條規則</h3>
+            <p class="text-sm text-gray-600 mb-2">情境：外部使用者（Untrust-L3）連公開位址 198.51.100.22，防火牆轉給 DMZ 的 www.example.com（192.168.16.2）。</p>
+
+            <p class="text-sm font-bold text-gray-700 mb-1">① NAT 規則：<span class="tech-term">Policies &gt; NAT</span></p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-44">頁籤</th><th class="py-2 px-4 text-left border w-56">欄位</th><th class="py-2 px-4 text-left border">範例值</th><th class="py-2 px-4 text-left border">說明</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border" rowspan="5">Original Packet<br/><span class="text-xs text-gray-500">轉換前的比對條件</span></td><td class="py-2 px-4 border">Source Zone</td><td class="py-2 px-4 border">Untrust-L3</td><td class="py-2 px-4 border">流量從哪個區域進來</td></tr>
+                        <tr><td class="py-2 px-4 border">Destination Zone</td><td class="py-2 px-4 border bg-orange-50 font-bold">Untrust-L3</td><td class="py-2 px-4 border">以<strong>公開位址</strong>查路由得到的區域：公開位址在外部介面上，所以仍是 Untrust-L3</td></tr>
+                        <tr><td class="py-2 px-4 border">Destination Interface</td><td class="py-2 px-4 border">any</td><td class="py-2 px-4 border">可限定經由哪個介面，用於多條 ISP 的環境</td></tr>
+                        <tr><td class="py-2 px-4 border">Source Address</td><td class="py-2 px-4 border">any</td><td class="py-2 px-4 border">誰來連都適用</td></tr>
+                        <tr><td class="py-2 px-4 border">Destination Address</td><td class="py-2 px-4 border bg-orange-50 font-bold">198.51.100.22</td><td class="py-2 px-4 border"><strong>pre-NAT</strong> 的公開位址</td></tr>
+                        <tr><td class="py-2 px-4 border" rowspan="2">Translated Packet<br/><span class="text-xs text-gray-500">轉換後的結果</span></td><td class="py-2 px-4 border">Source Address Translation</td><td class="py-2 px-4 border">none</td><td class="py-2 px-4 border">這條規則不改來源</td></tr>
+                        <tr><td class="py-2 px-4 border">Destination Address Translation</td><td class="py-2 px-4 border bg-orange-50 font-bold">Static IP：192.168.16.2</td><td class="py-2 px-4 border"><strong>post-NAT</strong> 的伺服器位址；Translated Port 留空，埠不變</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <p class="text-sm font-bold text-gray-700 mt-6 mb-1">② 安全規則：<span class="tech-term">Policies &gt; Security</span></p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-56">欄位</th><th class="py-2 px-4 text-left border">範例值</th><th class="py-2 px-4 text-left border">轉換前或轉換後</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border">Source Zone</td><td class="py-2 px-4 border">Untrust-L3</td><td class="py-2 px-4 border">流量進來的區域</td></tr>
+                        <tr><td class="py-2 px-4 border">Source Address</td><td class="py-2 px-4 border">any</td><td class="py-2 px-4 border">來源未轉換</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Destination Zone</td><td class="py-2 px-4 border bg-green-50 font-bold">DMZ</td><td class="py-2 px-4 border"><strong>post-NAT 區域</strong>：192.168.16.2 實際所在的區域</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Destination Address</td><td class="py-2 px-4 border bg-orange-50 font-bold">198.51.100.22</td><td class="py-2 px-4 border"><strong>pre-NAT 位址</strong>：封包原始的公開位址</td></tr>
+                        <tr><td class="py-2 px-4 border">Application / Service</td><td class="py-2 px-4 border">web-browsing / application-default</td><td class="py-2 px-4 border">與 NAT 無關，依需求設定（第 8、9 章）</td></tr>
+                        <tr><td class="py-2 px-4 border">Action</td><td class="py-2 px-4 border">Allow</td><td class="py-2 px-4 border"></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">兩張表的欄位與位址來自教材的 Destination NAT 範例。橘底是轉換前的值，綠底是轉換後的區域：安全規則的目的位址是 pre-NAT 位址，目的區域是伺服器實際連接的區域。</p>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>最常見的踩坑：安全規則的目的位址寫成「轉換後」的內部位址</p>
+                <p class="text-gray-700 text-sm">直覺上會想：「伺服器在 192.168.16.2，那安全規則就放行 192.168.16.2。」<strong>這樣寫，規則不會命中。</strong>
+                    因為安全政策比對時，封包的目的位址還是轉換前的公開位址 198.51.100.22。
+                    症狀通常是：NAT 規則本身沒錯，但外部連線被預設規則擋下。
+                    反過來，目的<strong>區域</strong>卻不能寫成公開位址所在的 Untrust-L3，而要寫伺服器所在的 DMZ。
+                    檢查方式：被預設規則擋下的流量，要先對 interzone-default 做 Override 並開啟日誌，才會出現在 <span class="tech-term">Monitor &gt; Logs &gt; Traffic</span>（怎麼開啟見第 9 章）；也可以在連線後用 CLI <span class="tech-term">show session all filter destination 198.51.100.22</span> 確認轉換是否發生，或用 Test Policy Match（第 9 章）確認封包會命中哪一條安全規則。</p>
+            </div>
+        </div>
+
+        <!-- Topic 3 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Config</span>
+                三、設定一條 Destination NAT 規則
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                規則都在 <span class="tech-term">Policies &gt; NAT &gt; Add</span>。視窗上有三個頁籤：General、Original Packet、Translated Packet。
+                教材用兩個動作概括：<strong>Match Criteria</strong>（在 Original Packet 頁籤寫「什麼流量要轉」）與 <strong>Translation</strong>（在 Translated Packet 頁籤寫「轉成什麼」）。
+            </p>
+
+            <div class="grid md:grid-cols-3 gap-4 mb-4">
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-2"><span class="tech-term">1</span> General</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>Name：有意義的名稱，例如 DST-NAT</li>
+                        <li>NAT Type 選 ipv4（新增規則時通常已是 ipv4，以畫面為準）</li>
+                    </ul>
+                </div>
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h4 class="font-bold text-orange-800 mb-2"><span class="tech-term">2</span> Original Packet</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li><strong>Source Zone</strong>：流量來源的區域</li>
+                        <li><strong>Destination Zone</strong>：公開位址所在的區域</li>
+                        <li><strong>Destination Address</strong>：公開位址（建議先建立位址物件）</li>
+                        <li><strong>Service</strong>：要轉換的服務；any 代表全部，連接埠轉送時才指定</li>
+                    </ul>
+                </div>
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h4 class="font-bold text-orange-800 mb-2"><span class="tech-term">3</span> Translated Packet</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li><strong>Destination Address Translation</strong> 的 Translation Type：Static IP 或 Dynamic IP (with session distribution)</li>
+                        <li><strong>Translated Address</strong>：內部伺服器位址</li>
+                        <li><strong>Translated Port</strong>：要換埠才填，範圍 1 到 65535；留空代表不改埠</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">建立步驟</h3>
+            <ol class="list-decimal pl-6 text-gray-700 space-y-1">
+                <li><span class="tech-term">Objects &gt; Addresses &gt; Add</span>：建立「公開位址」物件，例如 Webserver-public 為 198.51.100.22；伺服器位址也可建成物件。</li>
+                <li><span class="tech-term">Policies &gt; NAT &gt; Add</span>：General 頁籤填名稱。</li>
+                <li>Original Packet 頁籤：Source Zone 選來源區域，Destination Zone 選公開位址所在區域，Destination Address 選公開位址物件。</li>
+                <li>Translated Packet 頁籤：Translation Type 選 Static IP，Translated Address 填內部伺服器位址。</li>
+                <li><span class="tech-term">Policies &gt; Security &gt; Add</span>：依上一節寫配套的安全規則（pre-NAT 位址、post-NAT 區域）。</li>
+                <li>Commit（第 4 章），再用外部主機實際連線測試，並以 <span class="tech-term">show session all</span> 確認位址轉換。</li>
+            </ol>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">用 FQDN 或位址群組做 Dynamic IP</h3>
+            <p class="text-sm text-gray-700 mb-2">
+                當內部伺服器的位址會變動（例如雲端或 DHCP 環境），改在 Translated Packet 頁籤把轉換型態選成 <span class="tech-term">Dynamic IP (with session distribution)</span>，
+                並替伺服器建立 Type 為 <strong>FQDN</strong> 的位址物件、確保 DNS 會跟著更新，再把它（或包含它的位址群組）選為 Translated Address。原廠建議 Dynamic IP 只用在以 FQDN 為基礎的動態位址；以 IP Netmask 建立的位址物件內容固定，不會跟著位址變動。
+                分配方式預設為 Round Robin，也可改選其他方式。
+            </p>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異：視窗長相與欄位名稱</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>教材的截圖與說明是勾選 <strong>Destination Address Translation</strong> 核取方塊後，直接填 Translated Address 與 Translated Port；其中 Dynamic IP 的投影片寫「把轉換型態設為 Dynamic IP」。</li>
+                    <li>較新版把它整理成 <strong>Translation Type</strong> 選單：None（預設）、Static IP、Dynamic IP (with session distribution)。Static IP 可輸入單一位址或位址範圍。</li>
+                    <li>各版本的實際視窗排版可能略有不同，請以你手上的版本為準；欄位的意義不變。PAN-OS 12.x 畫面本章未逐一比對。</li>
+                </ul>
+            </div>
+
+            <div class="highlight-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>NAT 規則由上往下比對</p>
+                <p class="text-gray-700 text-sm">防火牆依順序由上往下評估 NAT 規則，封包一旦符合其中一條，就不會再套用後面的 NAT 規則。
+                    所以規則順序會決定誰先生效，這一點在第五節的 U-Turn NAT 會變成關鍵。</p>
+            </div>
+        </div>
+
+        <!-- Topic 4 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Port</span>
+                四、連接埠轉送與連接埠轉換
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                公司通常只有<strong>一個公開位址</strong>，卻有好幾台伺服器要對外提供服務：郵件轉送、網站、收信。
+                做法是在 NAT 規則的 <strong>Service</strong> 欄位指定「哪些連接埠」，讓不同連接埠對應到不同的內部伺服器。
+                如果內部網站不聽標準的網頁埠，還可以同時用 <strong>Translated Port</strong> 換埠。
+                這個情境的兩個重點：<strong>用服務物件包住連接埠</strong>，以及<strong>配套寫兩條安全規則</strong>。
+            </p>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 520 582" width="100%" style="max-width:520px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c11d2-t" font-family="'Noto Sans TC', sans-serif" font-size="19"><title id="c11d2-t">連接埠轉送示意圖：外部用戶端連同一個公開位址，防火牆依連接埠把流量導到三台內部伺服器，其中網站流量轉成 TCP 8080</title><defs><marker id="c11d2-agray" viewBox="0 0 10 8" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,4 L0,8 z" fill="#4b5563"/></marker><marker id="c11d2-aorange" viewBox="0 0 10 8" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,4 L0,8 z" fill="#c2410c"/></marker></defs><rect x="20.0" y="10.0" width="330.0" height="46.0" rx="9.0" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/><text x="185.0" y="39.5" text-anchor="middle" fill="#1f2937" font-weight="700">外部用戶端</text><path d="M 185.0 56.0 L 185.0 96.0" fill="none" stroke="#4b5563" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#c11d2-agray)"/><rect x="20.0" y="96.0" width="330.0" height="72.0" rx="9.0" fill="#c2410c" stroke="#9a3412" stroke-width="2"/><text x="185.0" y="125.5" text-anchor="middle" fill="#ffffff" font-weight="700">公開位址 203.0.113.22</text><text x="185.0" y="151.5" text-anchor="middle" fill="#ffffff">Zone: Untrust-L3</text><rect x="196.0" y="196.0" width="316.0" height="372.0" rx="12" fill="#f0fdf4" fill-opacity="0.55" stroke="#16a34a" stroke-width="2" stroke-dasharray="7 5"/><text font-weight="700" x="208.0" y="221.5" text-anchor="start" fill="#374151">DMZ 區域（教材標為 Trust-L3）</text><text font-weight="700" x="208.0" y="247.5" text-anchor="start" fill="#374151">防火牆內側介面 192.168.10.1</text><rect x="208.0" y="260.0" width="292.0" height="72.0" rx="9.0" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/><text x="354.0" y="289.5" text-anchor="middle" fill="#1f2937" font-weight="700">SMTP Relay</text><text x="354.0" y="315.5" text-anchor="middle" fill="#1f2937">192.168.10.10</text><rect x="208.0" y="358.0" width="292.0" height="98.0" rx="9.0" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/><text x="354.0" y="387.5" text-anchor="middle" fill="#1f2937" font-weight="700">Web Server</text><text x="354.0" y="413.5" text-anchor="middle" fill="#1f2937">192.168.10.20</text><text x="354.0" y="439.5" text-anchor="middle" fill="#1f2937">聽 TCP 8080</text><rect x="208.0" y="482.0" width="292.0" height="72.0" rx="9.0" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/><text x="354.0" y="511.5" text-anchor="middle" fill="#1f2937" font-weight="700">POP3 與 IMAP</text><text x="354.0" y="537.5" text-anchor="middle" fill="#1f2937">192.168.10.30</text><path d="M 34.0 168.0 L 34.0 518.0" fill="none" stroke="#c2410c" stroke-width="2.4" stroke-linejoin="round"/><path d="M 34.0 296.0 L 208.0 296.0" fill="none" stroke="#c2410c" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#c11d2-aorange)"/><text x="46.0" y="286.5" text-anchor="start" fill="#1f2937">TCP 25</text><path d="M 34.0 407.0 L 208.0 407.0" fill="none" stroke="#c2410c" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#c11d2-aorange)"/><text x="46.0" y="397.5" text-anchor="start" fill="#1f2937">TCP 80 或 8080</text><text x="46.0" y="431.5" text-anchor="start" fill="#c2410c" font-weight="700">轉為 8080</text><path d="M 34.0 518.0 L 208.0 518.0" fill="none" stroke="#c2410c" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#c11d2-aorange)"/><text x="46.0" y="508.5" text-anchor="start" fill="#1f2937">TCP 110 與 143</text></svg>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">教材範例將伺服器所在區域標為 Trust-L3，本章為了與前後章一致，統一稱為 DMZ；區域名稱不影響原理。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">NAT 規則：三條規則共用一個公開位址</h3>
+            <p class="text-sm text-gray-600 mb-2">三條規則的 Source Zone 與 Destination Zone 都是 Untrust-L3，Destination Address 都是公開位址物件（203.0.113.22），差別在 <strong>Service</strong> 與<strong>轉換結果</strong>：</p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border">規則名稱</th>
+                            <th class="py-2 px-4 text-left border">Service（Original Packet）</th>
+                            <th class="py-2 px-4 text-left border">Translated Address</th>
+                            <th class="py-2 px-4 text-left border">Translated Port</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">SMTP-Relay</td><td class="py-2 px-4 border">TCP-25（自訂服務，TCP 25）</td><td class="py-2 px-4 border">192.168.10.10</td><td class="py-2 px-4 border">留空，埠不變</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Web Server</td><td class="py-2 px-4 border">service-http（預設服務，TCP 80、8080）</td><td class="py-2 px-4 border">192.168.10.20</td><td class="py-2 px-4 border bg-orange-50 font-bold">8080</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">POP and IMAP</td><td class="py-2 px-4 border">Mailbox-access（自訂服務，TCP 110、143）</td><td class="py-2 px-4 border">192.168.10.30</td><td class="py-2 px-4 border">留空，埠不變</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">服務物件在 <span class="tech-term">Objects &gt; Services</span> 建立；預設的 service-http 涵蓋 TCP 80 與 8080，教材的 Objects &gt; Services 截圖可看到。自訂服務 TCP-25、Mailbox-access 是教材範例自行建立的物件。</p>
+
+            <div class="highlight-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>什麼時候要填 Translated Port？</p>
+                <p class="text-gray-700 text-sm">只有伺服器「聽的埠」跟使用者連的埠不同才需要。範例中使用者連標準網頁埠，但內部網站實際聽 TCP 8080，所以 Translated Port 填 8080；
+                    SMTP 與收信伺服器聽的就是標準埠，Translated Port 留空即可。<strong>留空等於不改目的埠</strong>。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">配套的兩條安全規則</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border">名稱</th>
+                            <th class="py-2 px-4 text-left border">Source Zone</th>
+                            <th class="py-2 px-4 text-left border">Destination Zone</th>
+                            <th class="py-2 px-4 text-left border">Destination Address</th>
+                            <th class="py-2 px-4 text-left border">Application</th>
+                            <th class="py-2 px-4 text-left border">Service</th>
+                            <th class="py-2 px-4 text-left border">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">DMZ Access</td><td class="py-2 px-4 border">Untrust-L3</td><td class="py-2 px-4 border bg-green-50 font-bold">DMZ（post-NAT）</td><td class="py-2 px-4 border bg-orange-50 font-bold">203.0.113.22（pre-NAT）</td><td class="py-2 px-4 border">imap、pop3、smtp</td><td class="py-2 px-4 border">application-default</td><td class="py-2 px-4 border">Allow</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">web-browsing 8080</td><td class="py-2 px-4 border">Untrust-L3</td><td class="py-2 px-4 border bg-green-50 font-bold">DMZ（post-NAT）</td><td class="py-2 px-4 border bg-orange-50 font-bold">203.0.113.22（pre-NAT）</td><td class="py-2 px-4 border">web-browsing</td><td class="py-2 px-4 border">service-http</td><td class="py-2 px-4 border">Allow</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 mt-3 text-sm">
+                <li><strong>第一條</strong>放行三種郵件類應用程式，Service 用 application-default：每個應用程式只允許走它的預設連接埠。</li>
+                <li><strong>第二條</strong>放行網頁。教材的規則名稱是 web-browsing 8080，Service 選 service-http（TCP 80 與 8080 都在裡面），而不是 application-default。</li>
+                <li>兩條規則的目的位址都是<strong>公開位址</strong>，目的區域都是<strong>伺服器所在區域</strong>，與上一節的原則完全一致。</li>
+            </ul>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：換埠之後，安全規則的 Service 欄位該填哪個埠，務必實測</p>
+                <p class="text-gray-700 text-sm">安全規則的 Service 欄位比對的是轉換前還是轉換後的埠，原廠範例沒有明說；依「封包離開防火牆時才轉換位址與埠」推論，應為轉換前。
+                    教材的規則用涵蓋 TCP 80 與 8080 的 service-http，兩種情況都能放行。<strong>以實機為準</strong>：若想改回 application-default，請先用 Traffic 日誌實測，確認命中再決定。</p>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異：一台防火牆、多台伺服器的說法</p>
+                <p class="text-gray-700 text-sm">教材簡報把「一個公開位址依原始目的埠對應多台內部伺服器」寫成 Destination NAT 的選用功能（Optional port forwarding）。
+                    原廠現行文件則把「埠號不變」稱為 Port Forwarding，把「換成另一個埠」稱為 Port Translation（填 Translated Port）；而 NAT 規則的 Service 欄位，原廠文件對這個欄位的說明是「指定要轉換來源或目的位址的服務」。教材範例用 Service 欄位搭配多條規則達成分流，兩種說法描述的是同一組設定，只是分類方式不同。</p>
+            </div>
+        </div>
+
+        <!-- Topic 5 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">U-Turn</span>
+                五、三區域 U-Turn NAT：內部使用者連自己的公開伺服器
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                情境：公司網站放在 DMZ，對外的 DNS 把 www.example.com 解析成<strong>公開位址</strong>。
+                外部使用者連公開位址沒問題（前面四節已設定）。但<strong>內部使用者</strong>也會問到同一個公開位址，
+                封包從 Trust 區域進入防火牆，目的位址是公開位址。為了讓它連到 DMZ 伺服器，就要再加一條 Destination NAT 規則，
+                讓封包「進來又繞回內側」，所以稱為 <span class="tech-term">U-Turn NAT</span>（教材：When internal traffic needs to access DMZ resources using public IP addresses）。
+            </p>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 520 998" width="100%" style="max-width:520px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c11d3-t" font-family="'Noto Sans TC', sans-serif" font-size="19"><title id="c11d3-t">三區域 U-Turn NAT 示意圖：外部 DNS 回應公開位址，內部使用者連到公開位址，防火牆命中 U-Turn NAT 規則後把封包轉往 DMZ 的網站伺服器，回應再經防火牆返回使用者</title><defs><marker id="c11d3-ablue" viewBox="0 0 10 8" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,4 L0,8 z" fill="#3b82f6"/></marker><marker id="c11d3-aorange" viewBox="0 0 10 8" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,4 L0,8 z" fill="#c2410c"/></marker></defs><rect x="20.0" y="10.0" width="210.0" height="72.0" rx="9.0" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/><text x="125.0" y="39.5" text-anchor="middle" fill="#1f2937" font-weight="700">外部 DNS</text><text x="125.0" y="65.5" text-anchor="middle" fill="#1f2937">192.0.2.53</text><rect x="20.0" y="138.0" width="300.0" height="124.0" rx="12" fill="#f3f4f6" fill-opacity="0.55" stroke="#9ca3af" stroke-width="2" stroke-dasharray="7 5"/><text font-weight="700" x="76.0" y="163.5" text-anchor="start" fill="#374151">Trust-L3 區域</text><path d="M 60.0 82.0 L 60.0 176.0" fill="none" stroke="#3b82f6" stroke-width="2.4" stroke-linejoin="round" stroke-dasharray="6 5" marker-end="url(#c11d3-ablue)"/><rect x="72.0" y="95.2" width="193.4" height="28.5" rx="4" fill="#ffffff" fill-opacity="0.92"/><text x="76.0" y="116.5" text-anchor="start" fill="#1f2937">回應 203.0.113.22</text><rect x="36.0" y="176.0" width="268.0" height="72.0" rx="9.0" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/><text x="170.0" y="205.5" text-anchor="middle" fill="#1f2937" font-weight="700">內部使用者</text><text x="170.0" y="231.5" text-anchor="middle" fill="#1f2937">192.168.1.50</text><rect x="20.0" y="318.0" width="466.0" height="266.0" rx="12" fill="#fff7ed" fill-opacity="0.55" stroke="#fdba74" stroke-width="2" stroke-dasharray="7 5"/><text font-weight="700" x="32.0" y="343.5" text-anchor="start" fill="#374151">防火牆</text><rect x="36.0" y="356.0" width="268.0" height="72.0" rx="9.0" fill="#c2410c" stroke="#9a3412" stroke-width="2"/><text x="170.0" y="385.5" text-anchor="middle" fill="#ffffff" font-weight="700">Trust 介面</text><text x="170.0" y="411.5" text-anchor="middle" fill="#ffffff">192.168.1.1</text><rect x="36.0" y="498.0" width="268.0" height="72.0" rx="9.0" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/><text x="170.0" y="527.5" text-anchor="middle" fill="#1f2937" font-weight="700">DMZ 介面</text><text x="170.0" y="553.5" text-anchor="middle" fill="#1f2937">192.168.10.1</text><rect x="318.0" y="414.0" width="160.0" height="98.0" rx="9.0" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/><text x="398.0" y="443.5" text-anchor="middle" fill="#1f2937" font-weight="700">Untrust 介面</text><text x="398.0" y="469.5" text-anchor="middle" fill="#1f2937">公開位址</text><text x="398.0" y="495.5" text-anchor="middle" fill="#1f2937">203.0.113.22</text><path d="M 100.0 248.0 L 100.0 356.0" fill="none" stroke="#c2410c" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#c11d3-aorange)"/><circle cx="130.0" cy="293.0" r="14" fill="#c2410c"/><text x="130.0" y="299.5" text-anchor="middle" fill="#ffffff" font-weight="700">1</text><path d="M 100.0 428.0 L 100.0 498.0" fill="none" stroke="#c2410c" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#c11d3-aorange)"/><circle cx="126.0" cy="463.0" r="14" fill="#c2410c"/><text x="126.0" y="469.5" text-anchor="middle" fill="#ffffff" font-weight="700">2</text><text x="146.0" y="457.5" text-anchor="start" fill="#c2410c" font-weight="700">U-Turn NAT</text><text x="146.0" y="483.5" text-anchor="start" fill="#c2410c" font-weight="700">命中</text><rect x="20.0" y="640.0" width="300.0" height="150.0" rx="12" fill="#f0fdf4" fill-opacity="0.55" stroke="#16a34a" stroke-width="2" stroke-dasharray="7 5"/><text font-weight="700" x="116.0" y="665.5" text-anchor="start" fill="#374151">DMZ 區域</text><rect x="36.0" y="678.0" width="268.0" height="98.0" rx="9.0" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/><text x="170.0" y="707.5" text-anchor="middle" fill="#1f2937" font-weight="700">Web 伺服器</text><text x="170.0" y="733.5" text-anchor="middle" fill="#1f2937">www.example.com</text><text x="170.0" y="759.5" text-anchor="middle" fill="#1f2937">192.168.10.20</text><path d="M 100.0 570.0 L 100.0 678.0" fill="none" stroke="#c2410c" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#c11d3-aorange)"/><circle cx="130.0" cy="628.0" r="14" fill="#c2410c"/><text x="130.0" y="634.5" text-anchor="middle" fill="#ffffff" font-weight="700">3</text><path d="M 270.0 678.0 L 270.0 570.0" fill="none" stroke="#3b82f6" stroke-width="2.4" stroke-linejoin="round" stroke-dasharray="6 5" marker-end="url(#c11d3-ablue)"/><path d="M 270.0 498.0 L 270.0 428.0" fill="none" stroke="#3b82f6" stroke-width="2.4" stroke-linejoin="round" stroke-dasharray="6 5" marker-end="url(#c11d3-ablue)"/><path d="M 270.0 356.0 L 270.0 248.0" fill="none" stroke="#3b82f6" stroke-width="2.4" stroke-linejoin="round" stroke-dasharray="6 5" marker-end="url(#c11d3-ablue)"/><circle cx="296.0" cy="463.0" r="14" fill="#c2410c"/><text x="296.0" y="469.5" text-anchor="middle" fill="#ffffff" font-weight="700">4</text><circle cx="34.0" cy="827.0" r="14" fill="#c2410c"/><text x="34.0" y="833.5" text-anchor="middle" fill="#ffffff" font-weight="700">1</text><text x="58.0" y="833.5" text-anchor="start" fill="#1f2937">內部使用者連到 203.0.113.22</text><circle cx="34.0" cy="863.0" r="14" fill="#c2410c"/><text x="34.0" y="869.5" text-anchor="middle" fill="#ffffff" font-weight="700">2</text><text x="58.0" y="869.5" text-anchor="start" fill="#1f2937">U-Turn NAT 命中，目的改為 192.168.10.20，</text><text x="58.0" y="895.5" text-anchor="start" fill="#1f2937">埠改為 8080</text><circle cx="34.0" cy="925.0" r="14" fill="#c2410c"/><text x="34.0" y="931.5" text-anchor="middle" fill="#ffffff" font-weight="700">3</text><text x="58.0" y="931.5" text-anchor="start" fill="#1f2937">目的 192.168.10.20，埠 8080</text><circle cx="34.0" cy="961.0" r="14" fill="#c2410c"/><text x="34.0" y="967.5" text-anchor="middle" fill="#ffffff" font-weight="700">4</text><text x="58.0" y="967.5" text-anchor="start" fill="#1f2937">伺服器回應給 192.168.1.50，經防火牆返回</text></svg>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">位址取自教材的三區域示意圖；使用者位址 192.168.1.50 是本章為了說明而假設的主機，教材圖中只標示 Trust 介面 192.168.1.1。外部 DNS 的位址，教材用的是公用 DNS，這裡改用文件保留位址 192.0.2.53。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">NAT 規則：兩條，順序不能反</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border" rowspan="2">#</th>
+                            <th class="py-2 px-4 text-left border" rowspan="2">名稱</th>
+                            <th class="py-2 px-4 text-center border" colspan="5">Original Packet</th>
+                            <th class="py-2 px-4 text-center border" colspan="2">Translated Packet</th>
+                        </tr>
+                        <tr>
+                            <th class="py-2 px-4 text-left border">Source Zone</th>
+                            <th class="py-2 px-4 text-left border">Destination Zone</th>
+                            <th class="py-2 px-4 text-left border">Source Address</th>
+                            <th class="py-2 px-4 text-left border">Destination Address</th>
+                            <th class="py-2 px-4 text-left border">Service</th>
+                            <th class="py-2 px-4 text-left border">Source Translation</th>
+                            <th class="py-2 px-4 text-left border">Destination Translation</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr class="bg-orange-50"><td class="py-2 px-4 border font-bold">1</td><td class="py-2 px-4 border font-semibold">UTurn-NAT</td><td class="py-2 px-4 border">Trust-L3</td><td class="py-2 px-4 border">Untrust-L3</td><td class="py-2 px-4 border">any</td><td class="py-2 px-4 border">203.0.113.22</td><td class="py-2 px-4 border">service-http</td><td class="py-2 px-4 border">none</td><td class="py-2 px-4 border font-bold">192.168.10.20<br/>Translated Port 8080</td></tr>
+                        <tr><td class="py-2 px-4 border font-bold">2</td><td class="py-2 px-4 border font-semibold">Outbound NAT</td><td class="py-2 px-4 border">Trust-L3</td><td class="py-2 px-4 border">Untrust-L3</td><td class="py-2 px-4 border">any</td><td class="py-2 px-4 border">any</td><td class="py-2 px-4 border">any</td><td class="py-2 px-4 border">dynamic-ip-and-port，轉為 203.0.113.22</td><td class="py-2 px-4 border">none</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">規則 2 就是第 10 章的「一般上網」Source NAT（DIPP）。Destination Zone 填 Untrust-L3，是因為公開位址是往外部介面路由的。規則 1 的 Translated Port 填 8080，與第四節的網站設定一致（網站聽 TCP 8080）；若你的網站直接聽 TCP 80，這個欄位留空即可。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">為什麼順序不能反？</h3>
+            <p class="text-sm text-gray-700 mb-2">
+                內部使用者連公開位址時，這個封包<strong>同時符合</strong>規則 1 與規則 2（Trust 到 Untrust，目的位址 any 也包含公開位址）。
+                NAT 由上往下比對，第一條命中後就不再看後面的規則，所以誰在前面誰就決定結果：
+            </p>
+            <div class="diagram-container">
+                <svg viewBox="0 0 520 626" width="100%" style="max-width:520px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c11d4-t" font-family="'Noto Sans TC', sans-serif" font-size="19"><title id="c11d4-t">U-Turn NAT 規則順序比較圖：內部使用者連公開位址時，同時符合 UTurn-NAT 與 Outbound NAT 兩條規則，第一條命中的規則生效。UTurn-NAT 排在前面時，改目的位址與埠並停止比對，連線成功；Outbound NAT 排在前面時，只換來源，目的位址仍是公開位址，封包到不了 DMZ 伺服器</title><defs><marker id="c11d4-agray" viewBox="0 0 10 8" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,4 L0,8 z" fill="#4b5563"/></marker><marker id="c11d4-agreen" viewBox="0 0 10 8" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,4 L0,8 z" fill="#16a34a"/></marker><marker id="c11d4-ared" viewBox="0 0 10 8" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,4 L0,8 z" fill="#dc2626"/></marker></defs><rect x="100.0" y="10.0" width="320.0" height="98.0" rx="9.0" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/><text x="260.0" y="39.5" text-anchor="middle" fill="#1f2937">Trust 使用者連公開位址</text><text x="260.0" y="65.5" text-anchor="middle" fill="#1f2937">203.0.113.22　TCP 80</text><text x="260.0" y="91.5" text-anchor="middle" fill="#1f2937">同時符合規則 1 與規則 2</text><path d="M 125.0 108.0 L 125.0 148.0" fill="none" stroke-linejoin="round" stroke="#4b5563" stroke-width="2.4" marker-end="url(#c11d4-agray)"/><path d="M 395.0 108.0 L 395.0 148.0" fill="none" stroke-linejoin="round" stroke="#4b5563" stroke-width="2.4" marker-end="url(#c11d4-agray)"/><rect x="20.0" y="148.0" width="210.0" height="72.0" rx="9.0" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/><text x="125.0" y="177.5" text-anchor="middle" fill="#1f2937" font-weight="700">順序 A（正確）</text><text x="125.0" y="203.5" text-anchor="middle" fill="#1f2937">UTurn-NAT 在前</text><rect x="290.0" y="148.0" width="210.0" height="72.0" rx="9.0" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/><text x="395.0" y="177.5" text-anchor="middle" fill="#1f2937" font-weight="700">順序 B（錯誤）</text><text x="395.0" y="203.5" text-anchor="middle" fill="#1f2937">Outbound NAT 在前</text><path d="M 125.0 220.0 L 125.0 260.0" fill="none" stroke-linejoin="round" stroke="#4b5563" stroke-width="2.4" marker-end="url(#c11d4-agray)"/><path d="M 395.0 220.0 L 395.0 260.0" fill="none" stroke-linejoin="round" stroke="#4b5563" stroke-width="2.4" marker-end="url(#c11d4-agray)"/><rect x="20.0" y="260.0" width="210.0" height="72.0" rx="9.0" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/><text x="125.0" y="289.5" text-anchor="middle" fill="#1f2937" font-weight="700">UTurn-NAT</text><text x="125.0" y="315.5" text-anchor="middle" fill="#1f2937">先命中，不再看後面</text><rect x="290.0" y="260.0" width="210.0" height="72.0" rx="9.0" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/><text x="395.0" y="289.5" text-anchor="middle" fill="#1f2937" font-weight="700">Outbound NAT</text><text x="395.0" y="315.5" text-anchor="middle" fill="#1f2937">先命中，不再看後面</text><path d="M 125.0 332.0 L 125.0 372.0" fill="none" stroke-linejoin="round" stroke="#16a34a" stroke-width="2.4" marker-end="url(#c11d4-agreen)"/><path d="M 395.0 332.0 L 395.0 372.0" fill="none" stroke-linejoin="round" stroke="#dc2626" stroke-width="2.4" marker-end="url(#c11d4-ared)"/><rect x="20.0" y="372.0" width="210.0" height="98.0" rx="9.0" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/><text x="125.0" y="401.5" text-anchor="middle" fill="#1f2937">目的改為</text><text x="125.0" y="427.5" text-anchor="middle" fill="#1f2937">192.168.10.20</text><text x="125.0" y="453.5" text-anchor="middle" fill="#1f2937">埠改為 8080</text><rect x="290.0" y="372.0" width="210.0" height="150.0" rx="9.0" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/><text x="395.0" y="401.5" text-anchor="middle" fill="#1f2937">只換來源</text><text x="395.0" y="427.5" text-anchor="middle" fill="#1f2937">目的仍是</text><text x="395.0" y="453.5" text-anchor="middle" fill="#1f2937">203.0.113.22</text><text x="395.0" y="479.5" text-anchor="middle" fill="#1f2937">封包到不了</text><text x="395.0" y="505.5" text-anchor="middle" fill="#1f2937">DMZ 伺服器</text><path d="M 125.0 470.0 L 125.0 510.0" fill="none" stroke-linejoin="round" stroke="#16a34a" stroke-width="2.4" marker-end="url(#c11d4-agreen)"/><path d="M 395.0 522.0 L 395.0 562.0" fill="none" stroke-linejoin="round" stroke="#dc2626" stroke-width="2.4" marker-end="url(#c11d4-ared)"/><rect x="20.0" y="510.0" width="210.0" height="98.0" rx="9.0" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/><text x="125.0" y="539.5" text-anchor="middle" fill="#1f2937">封包轉往</text><text x="125.0" y="565.5" text-anchor="middle" fill="#1f2937">DMZ 伺服器</text><text x="125.0" y="591.5" text-anchor="middle" fill="#1f2937">連線成功</text><rect x="290.0" y="562.0" width="210.0" height="46.0" rx="9.0" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/><text x="395.0" y="591.5" text-anchor="middle" fill="#1f2937">連線不會成功</text></svg>
+            </div>
+            <div class="overflow-x-auto mt-4">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-56">規則順序</th><th class="py-2 px-4 text-left border">內部使用者連公開位址的結果</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">UTurn-NAT 在前（正確）</td><td class="py-2 px-4 border">命中規則 1，目的位址被改成伺服器位址，並停止比對。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Outbound NAT 在前（錯誤）</td><td class="py-2 px-4 border">命中規則 2，只套用來源轉換；目的位址仍是公開位址，沒有被送回 DMZ，連線不會成功。</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">安全規則：只需要一條</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border">名稱</th>
+                            <th class="py-2 px-4 text-left border">Source Zone</th>
+                            <th class="py-2 px-4 text-left border">Destination Zone</th>
+                            <th class="py-2 px-4 text-left border">Destination Address</th>
+                            <th class="py-2 px-4 text-left border">Service</th>
+                            <th class="py-2 px-4 text-left border">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">Internal access to web server</td><td class="py-2 px-4 border">Trust-L3、Untrust-L3</td><td class="py-2 px-4 border bg-green-50 font-bold">DMZ（post-NAT）</td><td class="py-2 px-4 border bg-orange-50 font-bold">203.0.113.22（pre-NAT）</td><td class="py-2 px-4 border">service-http</td><td class="py-2 px-4 border">Allow</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-sm text-gray-700 mt-3">
+                這條規則同時放行「內部使用者（Trust-L3）」與「外部使用者（Untrust-L3）」連到公開位址的流量，兩者轉換後都落在 DMZ，所以<strong>目的區域是 DMZ</strong>，目的位址是 <strong>pre-NAT 的公開位址</strong>。
+                也就是說，原則與第二節完全相同，只是來源區域多了一個 Trust-L3。
+            </p>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：U-Turn 規則放在「一般上網」規則之後</p>
+                <p class="text-gray-700 text-sm">這是 U-Turn NAT 最經典的錯誤。一般上網的 NAT 規則通常寫得很寬（Trust 到 Untrust、any 到 any），而內部使用者連公開位址，剛好也符合這個條件。
+                    若寬鬆規則排在前面，U-Turn 規則永遠輪不到，症狀是<strong>外部使用者連得上，內部使用者卻連不上</strong>。
+                    要養成習慣：<strong>越具體的 NAT 規則放越上面，越寬的放越下面</strong>。新增 U-Turn 規則後，別忘了檢查它是不是排在寬鬆規則之前。</p>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異：U-Turn 的轉換後位址可用 Dynamic IP</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>教材的三區域範例（Trust、Untrust、DMZ 各自獨立網段）只用一條 Destination NAT 規則，轉換後的伺服器位址是靜態位址。</li>
+                    <li>現行版本的轉換後位址除了 Static IP，也可選 <strong>Dynamic IP (with session distribution)</strong>，轉換後位址為位址物件或位址群組，可以是 IP 網段、IP 範圍或 FQDN。</li>
+                </ul>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">規則的寫法（Source Zone 選內部區域、Destination Zone 選外部區域、Destination Address 選公開位址物件）與教材一致。本章只教只轉換目的位址的三區域版；其他變化版本（例如同時轉換來源位址）未逐一查證，請依自己的網路架構評估。</p>
+        </div>
+
+        <!-- Quiz -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
+                隨堂測驗
+            </h2>
+            <p class="mb-6 text-gray-600">請點選您認為正確的選項，系統將會顯示解析。</p>
+            <div class="space-y-6" id="quiz-container"></div>
+        </div>
+
+    </main>
+
+    <footer class="footer-signature">
+        Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver.2026.10.29.11.12
+    </footer>
+
+
+    <script>
+        const quizData = [
+            {
+                question: "Q1. 外部使用者連公開位址 198.51.100.22，防火牆以 Destination NAT 轉給 DMZ 的伺服器 192.168.16.2。下列哪一條安全規則寫法正確？",
+                options: ["A. Destination Zone 填 Untrust-L3，Destination Address 填 192.168.16.2", "B. Destination Zone 填 DMZ，Destination Address 填 192.168.16.2", "C. Destination Zone 填 Untrust-L3，Destination Address 填 198.51.100.22", "D. Destination Zone 填 DMZ，Destination Address 填 198.51.100.22"],
+                correct: 3,
+                desc: "正解：D。安全政策比對時，位址用轉換前（pre-NAT）的公開位址 198.51.100.22；區域則用轉換後（post-NAT）伺服器所在的 DMZ。A、B 的位址寫成轉換後的內部位址，規則不會命中；C 的區域寫成公開位址所在的區域，也是錯的。"
+            },
+            {
+                question: "Q2. 內部網站實際聽 TCP 8080，使用者連的是標準網頁埠。要在 NAT 規則中完成這個轉換，應該怎麼做？",
+                options: ["A. 在 Original Packet 的 Service 指定使用者連的埠，並在 Translated Packet 的 Translated Port 填 8080", "B. 在安全規則的 Service 填 8080 就會自動換埠", "C. 把 Translation Type 改成 Dynamic IP，防火牆會自己找出正確的埠", "D. Translated Port 必須留空，防火牆會自動偵測伺服器聽哪個埠"],
+                correct: 0,
+                desc: "正解：A。連接埠轉換靠 Translated Packet 頁籤的 Translated Port（1 到 65535）；留空代表不改埠。安全規則只負責放不放行，不會換埠（B 錯）；Dynamic IP 是處理變動位址，與換埠無關（C 錯）；防火牆不會自動偵測伺服器聽的埠（D 錯）。"
+            },
+            {
+                question: "Q3. 內部伺服器的位址會變動（例如由 DHCP 發放），並以 FQDN 對應。依本章內容，Destination NAT 的轉換後位址應該怎麼設定？",
+                options: ["A. 選 Static IP，並每次位址改變時手動修改規則", "B. 選 Dynamic IP (with session distribution)，轉換後位址使用 FQDN 位址物件", "C. 在安全規則裡填 any，不需要 NAT 規則", "D. 選 Dynamic IP，轉換後位址使用 IP Netmask 類型的位址物件，位址變了它會自動跟著變"],
+                correct: 1,
+                desc: "正解：B。轉換後位址會變動時，用 Dynamic IP (with session distribution)，轉換後位址使用 FQDN 類型的位址物件（或包含它的位址群組），並確保 DNS 會跟著更新。Static IP 對應的是固定位址，伺服器位址一變，規則就失效，需要人工修改（A 不理想）；沒有 NAT 規則就不會換目的位址（C 錯）；以 IP Netmask 建立的位址物件內容是固定的，不會隨伺服器位址變動而更新（D 錯）。"
+            },
+            {
+                question: "Q4. 三區域 U-Turn NAT 中，內部使用者連公司網站的公開位址失敗，外部使用者卻正常。最可能的原因是什麼？",
+                options: ["A. 公開位址申請錯誤，因為外部使用者連得上就一定沒問題", "B. 一般上網的 Source NAT 規則排在 U-Turn 規則前面，內部流量先命中它，目的位址沒有被改", "C. 安全規則的目的區域應該填 Trust-L3", "D. U-Turn 的 NAT 規則 Destination Zone 必須填 DMZ"],
+                correct: 1,
+                desc: "正解：B。NAT 規則由上往下比對，第一條符合就停止。一般上網規則涵蓋面大，若排在前面，內部使用者連公開位址的流量會先命中它，目的位址不會被改成伺服器位址。U-Turn 規則必須放在一般上網規則之前。安全規則的目的區域應是伺服器所在的 DMZ（C 錯）；NAT 規則的目的區域是公開位址所在的 Untrust-L3，不是 DMZ（D 錯）。"
+            }
+        ];
+
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionBox = document.createElement('div');
+            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
+
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border mb-2 text-gray-700" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            questionBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
+                <div class="space-y-2 mb-4">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
+                    <p class="font-bold result-title"></p>
+                    <p class="text-sm text-gray-600 mt-1">${item.desc}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionBox);
+        });
+
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            if (element.parentElement.dataset.answered) return;
+            element.parentElement.dataset.answered = "true";
+
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+                opt.classList.add('disabled');
+            });
+
+            if (optIndex === data.correct) {
+                element.classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了！";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                element.classList.add('bg-red-100', 'border-red-500');
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了！";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+    </script>
+</body>
+</html>

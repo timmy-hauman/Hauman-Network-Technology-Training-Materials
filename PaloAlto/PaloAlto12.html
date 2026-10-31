@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palo Alto Networks NGFW 實戰課程 - App-ID 應用程式識別</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        /* 卡片主體樣式 (Palo Alto Orange) */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #fa582d;
+        }
+
+        /* 重點提示框 (橘) */
+        .highlight-box {
+            background-color: #fff7ed;
+            border-left: 4px solid #fa582d;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 技術名詞標記 */
+        .tech-term {
+            color: #c2410c;
+            font-weight: 700;
+            background-color: #fff1e6;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
+        }
+
+        /* 比喻說明框 (綠) */
+        .analogy-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 版本差異框 (紫) */
+        .version-box {
+            background-color: #faf5ff;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 常見踩坑框 (紅) */
+        .pitfall-box {
+            background-color: #fef2f2;
+            border-left: 4px solid #dc2626;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .diagram-container {
+            display: block;
+            background-color: #ffffff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 640px) {
+            .section-card { padding: 1.25rem 0.75rem; }
+            .diagram-container { padding: 0.25rem; }
+        }
+
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover:not(.disabled) {
+            background-color: #f3f4f6;
+        }
+
+        .footer-signature {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+            margin-top: 4rem;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-orange-600 to-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-fire-flame-curved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold">Palo Alto Networks NGFW 實戰課程</h1>
+                    <p class="text-orange-100 mt-1">威脅防護篇 - 單元 12：App-ID 應用程式識別</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <!-- Introduction -->
+        <div class="mb-8">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
+                <h2 class="text-xl font-bold text-blue-800 mb-2 flex items-center">
+                    <i class="fas fa-user-tie mr-2"></i>講師導言
+                </h2>
+                <p class="text-blue-900 leading-relaxed">
+                    前面的章節你已經會寫安全政策了，但規則裡那個 <strong>Application</strong> 欄位，到底是怎麼判斷出來的？
+                    這一章要拆開 <strong>App-ID</strong>：防火牆如何不看連接埠、直接認出「這是什麼應用程式」，
+                    為什麼同樣走 53 埠，<strong>DNS 和惡意程式的 C2 回連會被分開處理</strong>，
+                    以及當流量認不出來、或原廠推出新的 App-ID 時，你該怎麼處理才不會弄壞現有政策。
+                    威脅內容檢查（Content-ID）留到第 13 章，解密留到第 15 章，這一章只在需要時提到它們。
+                </p>
+            </div>
+        </div>
+
+        <!-- 學習目標 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-gray-100 text-gray-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Goals</span>
+                本章學習目標
+            </h2>
+            <ul class="list-disc pl-6 space-y-1 text-gray-700">
+                <li>說明什麼是「應用程式」，以及以應用程式為基礎的規則為何比以連接埠為基礎的規則更安全</li>
+                <li>列出 App-ID 使用的識別技術，並依序說出它的運作流程</li>
+                <li>解釋應用程式轉換（Application Shift），例如 web-browsing 轉成 facebook-base 再轉成 facebook-chat</li>
+                <li>分辨相依應用程式與隱含應用程式，並知道在 Objects &gt; Applications 查看</li>
+                <li>使用 Application Filter、Application Group 與巢狀組合簡化規則，並分辨 application-default 與自訂服務</li>
+                <li>以迭代方式辨識 unknown-tcp / unknown-udp 流量，並知道自訂應用程式與 Application Override 的取捨</li>
+                <li>設定 App-ID 內容更新排程，並用 Review Apps、Review Policies 預先分析新應用程式對政策的影響</li>
+            </ul>
+        </div>
+
+        <!-- Topic 1 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Concept</span>
+                一、為什麼要用應用程式判斷
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                在 App-ID 的定義裡，<strong>應用程式（Application）是一個特定的程式或功能，它的通訊可以被標記、監看與控制</strong>。
+                同樣是 Google 的服務，Gmail、Google Hangouts 與 Google Calendar 各自是不同的應用程式；Microsoft SQL、Skype、BitTorrent 也各是一個。
+                <span class="tech-term">App-ID</span> 就是用多種技術，依「應用程式」而不只是「連接埠」來標記流量，標記結果再交給安全政策決定放行或阻擋。
+            </p>
+
+            <div class="analogy-box">
+                <p class="font-bold mb-2 text-green-800">🪪 生活化比喻：看證件，而不是看人從哪個門進來</p>
+                <ul class="list-none space-y-2 pl-2 text-gray-700">
+                    <li class="flex items-start"><i class="fas fa-door-open text-red-500 mt-1 mr-3"></i><span><strong>以連接埠判斷</strong>：警衛只管「從 53 號門進來的人都放行」。壞人只要從 53 號門走進來，一樣暢行無阻。</span></li>
+                    <li class="flex items-start"><i class="fas fa-id-card text-green-600 mt-1 mr-3"></i><span><strong>以應用程式判斷</strong>：警衛檢查證件上寫的身分。證件寫「訪客 DNS」才放行，不管他走哪一扇門；冒牌的就攔下來。</span></li>
+                    <li class="flex items-start"><i class="fas fa-question text-blue-500 mt-1 mr-3"></i><span><strong>未知流量</strong>：沒有證件或證件看不懂的人，警衛會記下來，之後再決定怎麼處理。</span></li>
+                </ul>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">同樣是 53 埠：DNS 與 C2 回連</h3>
+            <p class="mb-2 text-gray-700">
+                教材用兩個例子對照傳統防火牆與 App-ID。第一個例子是 BitTorrent 偷走 53 埠；第二個更棘手：<strong>零時差惡意程式的 C2 回連也走 53 埠</strong>，連應用程式 IPS 都不一定認得。
+            </p>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 520 790" width="100%" style="max-width:520px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c12d1-t" font-family="'Noto Sans TC', sans-serif" font-size="19"><title id="c12d1-t">傳統防火牆與 App-ID 的差異：規則允許 53 埠時，DNS、BitTorrent、C2 回連全部放行；規則允許 dns 時，只有識別為 dns 的流量放行，其餘被阻擋並留下紀錄</title><defs><marker id="c12d1-agray" viewBox="0 0 10 8" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,4 L0,8 z" fill="#4b5563"/></marker><marker id="c12d1-agreen" viewBox="0 0 10 8" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,4 L0,8 z" fill="#16a34a"/></marker><marker id="c12d1-aorange" viewBox="0 0 10 8" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,4 L0,8 z" fill="#c2410c"/></marker><marker id="c12d1-ared" viewBox="0 0 10 8" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,4 L0,8 z" fill="#dc2626"/></marker></defs><rect x="10.0" y="10.0" width="500.0" height="328.0" rx="12" fill="#fef2f2" fill-opacity="0.55" stroke="#dc2626" stroke-width="2" stroke-dasharray="7 5"/><text font-weight="700" x="22.0" y="35.5" text-anchor="start" fill="#374151">傳統防火牆：規則是允許 53 埠</text><rect x="26.0" y="48.0" width="148.0" height="72.0" rx="9.0" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/><text x="100.0" y="77.5" text-anchor="middle" fill="#1f2937">DNS 查詢</text><text x="100.0" y="103.5" text-anchor="middle" fill="#1f2937">埠 53</text><rect x="186.0" y="48.0" width="148.0" height="72.0" rx="9.0" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/><text x="260.0" y="77.5" text-anchor="middle" fill="#1f2937">BitTorrent</text><text x="260.0" y="103.5" text-anchor="middle" fill="#1f2937">埠 53</text><rect x="346.0" y="48.0" width="148.0" height="72.0" rx="9.0" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/><text x="420.0" y="77.5" text-anchor="middle" fill="#1f2937">C2 回連</text><text x="420.0" y="103.5" text-anchor="middle" fill="#1f2937">埠 53</text><rect x="130.0" y="170.0" width="260.0" height="46.0" rx="9.0" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/><text x="260.0" y="199.5" text-anchor="middle" fill="#1f2937" font-weight="700">埠 53 比對成功</text><path d="M 100.0 120.0 L 204.0 170.0" fill="none" stroke="#4b5563" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#c12d1-agray)"/><path d="M 260.0 120.0 L 260.0 170.0" fill="none" stroke="#4b5563" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#c12d1-agray)"/><path d="M 420.0 120.0 L 316.0 170.0" fill="none" stroke="#4b5563" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#c12d1-agray)"/><path d="M 260.0 216.0 L 260.0 252.0" fill="none" stroke="#dc2626" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#c12d1-ared)"/><rect x="60.0" y="252.0" width="400.0" height="72.0" rx="9.0" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/><text x="260.0" y="281.5" text-anchor="middle" fill="#1f2937" font-weight="700">全部放行</text><text x="260.0" y="307.5" text-anchor="middle" fill="#1f2937">日誌只寫：埠 53 被允許</text><rect x="10.0" y="374.0" width="500.0" height="402.0" rx="12" fill="#f0fdf4" fill-opacity="0.55" stroke="#16a34a" stroke-width="2" stroke-dasharray="7 5"/><text font-weight="700" x="22.0" y="399.5" text-anchor="start" fill="#374151">App-ID：規則是允許 dns</text><rect x="26.0" y="412.0" width="148.0" height="72.0" rx="9.0" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/><text x="100.0" y="441.5" text-anchor="middle" fill="#1f2937">DNS 查詢</text><text x="100.0" y="467.5" text-anchor="middle" fill="#1f2937">埠 53</text><rect x="186.0" y="412.0" width="148.0" height="72.0" rx="9.0" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/><text x="260.0" y="441.5" text-anchor="middle" fill="#1f2937">BitTorrent</text><text x="260.0" y="467.5" text-anchor="middle" fill="#1f2937">埠 53</text><rect x="346.0" y="412.0" width="148.0" height="72.0" rx="9.0" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/><text x="420.0" y="441.5" text-anchor="middle" fill="#1f2937">C2 回連</text><text x="420.0" y="467.5" text-anchor="middle" fill="#1f2937">埠 53</text><polygon points="154.0,534.0 366.0,534.0 390.0,561.0 366.0,588.0 154.0,588.0 130.0,561.0" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/><text x="260.0" y="567.5" text-anchor="middle" fill="#1f2937" font-weight="700">識別結果是 dns？</text><path d="M 100.0 484.0 L 204.0 534.0" fill="none" stroke="#4b5563" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#c12d1-agray)"/><path d="M 260.0 484.0 L 260.0 534.0" fill="none" stroke="#4b5563" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#c12d1-agray)"/><path d="M 420.0 484.0 L 316.0 534.0" fill="none" stroke="#4b5563" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#c12d1-agray)"/><rect x="26.0" y="638.0" width="150.0" height="124.0" rx="9.0" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/><text x="101.0" y="706.5" text-anchor="middle" fill="#1f2937" font-weight="700">放行</text><rect x="196.0" y="638.0" width="298.0" height="124.0" rx="9.0" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text x="345.0" y="680.5" text-anchor="middle" fill="#1f2937" font-weight="700">阻擋</text><text x="345.0" y="706.5" text-anchor="middle" fill="#1f2937">日誌留下 BitTorrent</text><text x="345.0" y="732.5" text-anchor="middle" fill="#1f2937">或未知流量的紀錄</text><path d="M 190.0 588.0 L 101.0 638.0" fill="none" stroke="#16a34a" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#c12d1-agreen)"/><rect x="106.0" y="597.2" width="28.3" height="28.5" rx="4" fill="#ffffff" fill-opacity="0.92"/><text x="110.0" y="618.5" text-anchor="start" fill="#166534" font-weight="700">是</text><path d="M 330.0 588.0 L 345.0 638.0" fill="none" stroke="#c2410c" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#c12d1-aorange)"/><rect x="348.0" y="597.2" width="28.3" height="28.5" rx="4" fill="#ffffff" fill-opacity="0.92"/><text x="352.0" y="618.5" text-anchor="start" fill="#c2410c" font-weight="700">否</text></svg>
+            </div>
+
+            <div class="overflow-x-auto mt-4">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border w-40">比較項目</th>
+                            <th class="py-2 px-4 text-left border">以連接埠為基礎的規則</th>
+                            <th class="py-2 px-4 text-left border">以應用程式為基礎的規則（App-ID）</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">判斷依據</td><td class="py-2 px-4 border">協定與連接埠</td><td class="py-2 px-4 border">App-ID 識別出的應用程式（連接埠只是線索之一）</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">53 埠上的 BitTorrent</td><td class="py-2 px-4 border">埠對就放行</td><td class="py-2 px-4 border">BitTorrent 不是 DNS，被阻擋且留下紀錄</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">53 埠上的 C2 回連</td><td class="py-2 px-4 border">放行，管理員完全看不到</td><td class="py-2 px-4 border">C2 不是 DNS，被阻擋，且作為未知流量被偵測到</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">跑在非標準埠的應用程式</td><td class="py-2 px-4 border">看埠而定，容易漏判</td><td class="py-2 px-4 border">不論埠、協定或加密，都會嘗試識別</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">日誌可視性</td><td class="py-2 px-4 border">只知道「某個埠被允許」</td><td class="py-2 px-4 border">看得到實際的應用程式名稱</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">規則維護</td><td class="py-2 px-4 border">要自己研究並維護應用程式與埠的對應</td><td class="py-2 px-4 border">寫應用程式名稱即可，對應交給 App-ID</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="highlight-box mt-4">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>重點</p>
+                <p class="text-gray-700">App-ID 不是取代安全政策，而是替安全政策<strong>貼上更準確的標籤</strong>。規則怎麼寫仍然由你決定：標籤貼對了，規則才有意義（第 8、9 章的規則概念與 Application 頁籤仍然適用）。</p>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：規則的 Application 欄位留著 any</p>
+                <p class="text-gray-700 text-sm">如果規則的 Application 是 <span class="tech-term">any</span>，再搭配只看埠的服務設定，這條規則其實就退化成傳統的埠規則，App-ID 辛苦辨識出來的結果完全派不上用場。要享受應用程式識別的好處，規則的 Application 欄位要寫出具體的應用程式（或 Application Filter／Group）。</p>
+            </div>
+        </div>
+
+        <!-- Topic 2 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Operation</span>
+                二、App-ID 如何運作與應用程式轉換
+            </h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">識別技術：多管齊下</h3>
+            <p class="mb-3 text-gray-700">App-ID 不是只靠一種方法，而是把以下技術組合起來，直到得出結論：</p>
+            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-plug text-orange-500 mr-2"></i>連接埠與協定</h4>
+                    <p class="text-sm text-gray-700">第一步先取出 IP 與連接埠，只作為初步線索。安全政策此時先以 <code>application = any</code> 判斷這條連線是否允許進來。</p>
+                </div>
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-fingerprint text-orange-500 mr-2"></i>應用程式特徵碼（Signature）</h4>
+                    <p class="text-sm text-gray-700">依應用程式獨有的特性與交易特徵比對，同時能看出它用的是預設埠還是非標準埠。</p>
+                </div>
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-lock-open text-orange-500 mr-2"></i>SSL／SSH 解密</h4>
+                    <p class="text-sm text-gray-700">偵測到 SSL 或 SSH，且安全政策放行後，若有符合的解密政策才解密，再對解密後的內容重新套用特徵碼（解密設定見第 15 章）。</p>
+                </div>
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-code text-orange-500 mr-2"></i>協定解碼器（Protocol Decoder）</h4>
+                    <p class="text-sm text-gray-700">用情境式特徵碼找出藏在其他協定裡的應用程式（例如包在網頁連線裡的即時通訊），也檢查協定是否合規，並支援 NAT 穿越與 SIP、FTP 這類協定的動態開洞。</p>
+                </div>
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 md:col-span-2">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-chart-line text-orange-500 mr-2"></i>啟發式分析（Heuristics）</h4>
+                    <p class="text-sm text-gray-700">對特別會躲的應用程式，特徵碼與協定分析都認不出來時，改用行為分析來判定。</p>
+                </div>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">App-ID 運作流程</h3>
+            <div class="diagram-container">
+                <svg viewBox="0 0 520 1394" width="100%" style="max-width:520px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c12d2-t" font-family="'Noto Sans TC', sans-serif" font-size="19"><title id="c12d2-t">App-ID 運作流程圖：封包到達後先取出 IP 與連接埠並比對安全政策，允許才套用特徵碼；偵測到 SSL 或 SSH 且安全政策放行後，若有符合的解密政策才解密，再經協定解碼器與啟發式分析，得到應用程式後再比對一次安全政策才放行</title><defs><marker id="c12d2-agray" viewBox="0 0 10 8" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,4 L0,8 z" fill="#4b5563"/></marker><marker id="c12d2-agreen" viewBox="0 0 10 8" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,4 L0,8 z" fill="#16a34a"/></marker><marker id="c12d2-aorange" viewBox="0 0 10 8" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,4 L0,8 z" fill="#c2410c"/></marker><marker id="c12d2-ared" viewBox="0 0 10 8" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,4 L0,8 z" fill="#dc2626"/></marker></defs><rect x="65.0" y="10.0" width="200.0" height="46.0" rx="23.0" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/><text x="165.0" y="39.5" text-anchor="middle" fill="#1f2937">封包到達</text><rect x="20.0" y="86.0" width="290.0" height="46.0" rx="9.0" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/><text x="165.0" y="115.5" text-anchor="middle" fill="#1f2937">取出 IP 與連接埠</text><path d="M 165.0 56.0 L 165.0 86.0" fill="none" stroke-linejoin="round" stroke="#4b5563" stroke-width="2.4" marker-end="url(#c12d2-agray)"/><path d="M 165.0 132.0 L 165.0 162.0" fill="none" stroke-linejoin="round" stroke="#4b5563" stroke-width="2.4" marker-end="url(#c12d2-agray)"/><polygon points="44.0,162.0 286.0,162.0 310.0,215.0 286.0,268.0 44.0,268.0 20.0,215.0" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/><text x="165.0" y="195.5" text-anchor="middle" fill="#1f2937" font-weight="700">安全政策比對</text><text x="165.0" y="221.5" text-anchor="middle" fill="#1f2937">application = any</text><text x="165.0" y="247.5" text-anchor="middle" fill="#1f2937">允許嗎？</text><rect x="350.0" y="192.0" width="150.0" height="46.0" rx="9.0" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/><text x="425.0" y="221.5" text-anchor="middle" fill="#1f2937" font-weight="700">阻擋</text><path d="M 310.0 215.0 L 350.0 215.0" fill="none" stroke-linejoin="round" stroke="#dc2626" stroke-width="2.4" marker-end="url(#c12d2-ared)"/><text x="316.0" y="201.5" text-anchor="start" fill="#991b1b" font-weight="700">否</text><rect x="20.0" y="304.0" width="290.0" height="46.0" rx="9.0" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/><text x="165.0" y="333.5" text-anchor="middle" fill="#1f2937">套用應用程式特徵碼</text><path d="M 165.0 268.0 L 165.0 304.0" fill="none" stroke-linejoin="round" stroke="#4b5563" stroke-width="2.4" marker-end="url(#c12d2-agray)"/><text x="173.0" y="292.5" text-anchor="start" fill="#166534" font-weight="700">是</text><path d="M 165.0 350.0 L 165.0 386.0" fill="none" stroke-linejoin="round" stroke="#4b5563" stroke-width="2.4" marker-end="url(#c12d2-agray)"/><polygon points="44.0,386.0 286.0,386.0 310.0,426.0 286.0,466.0 44.0,466.0 20.0,426.0" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/><text x="165.0" y="419.5" text-anchor="middle" fill="#1f2937">偵測到 SSL 或 SSH</text><text x="165.0" y="445.5" text-anchor="middle" fill="#1f2937">加密嗎？</text><text x="316.0" y="412.5" text-anchor="start" fill="#1f2937" font-weight="700">否</text><path d="M 165.0 466.0 L 165.0 498.0" fill="none" stroke-linejoin="round" stroke="#c2410c" stroke-width="2.4" marker-end="url(#c12d2-aorange)"/><text x="173.0" y="489.0" text-anchor="start" fill="#c2410c" font-weight="700">是</text><polygon points="44.0,498.0 286.0,498.0 310.0,538.0 286.0,578.0 44.0,578.0 20.0,538.0" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/><text x="165.0" y="531.5" text-anchor="middle" fill="#1f2937">安全政策放行</text><text x="165.0" y="557.5" text-anchor="middle" fill="#1f2937">ssl/ssh 嗎？</text><rect x="350.0" y="515.0" width="150.0" height="46.0" rx="9.0" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/><text x="425.0" y="544.5" text-anchor="middle" fill="#1f2937" font-weight="700">阻擋</text><path d="M 310.0 538.0 L 350.0 538.0" fill="none" stroke-linejoin="round" stroke="#dc2626" stroke-width="2.4" marker-end="url(#c12d2-ared)"/><text x="316.0" y="524.5" text-anchor="start" fill="#991b1b" font-weight="700">否</text><path d="M 165.0 578.0 L 165.0 610.0" fill="none" stroke-linejoin="round" stroke="#c2410c" stroke-width="2.4" marker-end="url(#c12d2-aorange)"/><text x="173.0" y="601.0" text-anchor="start" fill="#c2410c" font-weight="700">是</text><polygon points="44.0,610.0 286.0,610.0 310.0,650.0 286.0,690.0 44.0,690.0 20.0,650.0" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/><text x="165.0" y="643.5" text-anchor="middle" fill="#1f2937">有符合的</text><text x="165.0" y="669.5" text-anchor="middle" fill="#1f2937">解密政策嗎？</text><text x="316.0" y="636.5" text-anchor="start" fill="#1f2937" font-weight="700">否</text><path d="M 165.0 690.0 L 165.0 722.0" fill="none" stroke-linejoin="round" stroke="#c2410c" stroke-width="2.4" marker-end="url(#c12d2-aorange)"/><text x="173.0" y="713.0" text-anchor="start" fill="#c2410c" font-weight="700">是</text><rect x="20.0" y="722.0" width="290.0" height="46.0" rx="9.0" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text x="165.0" y="751.5" text-anchor="middle" fill="#1f2937" font-weight="700">解密</text><path d="M 165.0 768.0 L 165.0 800.0" fill="none" stroke-linejoin="round" stroke="#c2410c" stroke-width="2.4" marker-end="url(#c12d2-aorange)"/><rect x="20.0" y="800.0" width="290.0" height="46.0" rx="9.0" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text x="165.0" y="829.5" text-anchor="middle" fill="#1f2937">對解密後的流量再套用特徵碼</text><path d="M 165.0 846.0 L 165.0 878.0" fill="none" stroke-linejoin="round" stroke="#c2410c" stroke-width="2.4" marker-end="url(#c12d2-aorange)"/><rect x="20.0" y="878.0" width="290.0" height="72.0" rx="9.0" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/><text x="165.0" y="907.5" text-anchor="middle" fill="#1f2937" font-weight="700">協定解碼器</text><text x="165.0" y="933.5" text-anchor="middle" fill="#1f2937">情境式特徵碼與協定驗證</text><path d="M 310.0 426.0 L 510.0 426.0 L 510.0 914.0 L 310.0 914.0" fill="none" stroke-linejoin="round" stroke="#4b5563" stroke-width="2.4" marker-end="url(#c12d2-agray)"/><path d="M 310.0 650.0 L 510.0 650.0" fill="none" stroke-linejoin="round" stroke="#4b5563" stroke-width="2.4"/><path d="M 165.0 950.0 L 165.0 986.0" fill="none" stroke-linejoin="round" stroke="#4b5563" stroke-width="2.4" marker-end="url(#c12d2-agray)"/><polygon points="44.0,986.0 286.0,986.0 310.0,1013.0 286.0,1040.0 44.0,1040.0 20.0,1013.0" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/><text x="165.0" y="1019.5" text-anchor="middle" fill="#1f2937">仍無法識別嗎？</text><rect x="350.0" y="990.0" width="150.0" height="46.0" rx="9.0" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text x="425.0" y="1019.5" text-anchor="middle" fill="#1f2937" font-weight="700">啟發式分析</text><path d="M 310.0 1013.0 L 350.0 1013.0" fill="none" stroke-linejoin="round" stroke="#c2410c" stroke-width="2.4" marker-end="url(#c12d2-aorange)"/><text x="316.0" y="999.5" text-anchor="start" fill="#c2410c" font-weight="700">是</text><rect x="9.0" y="1080.0" width="312.0" height="72.0" rx="9.0" fill="#fef9c3" stroke="#ca8a04" stroke-width="2"/><text x="165.0" y="1109.5" text-anchor="middle" fill="#1f2937" font-weight="700">得到應用程式，或標示為</text><text x="165.0" y="1135.5" text-anchor="middle" fill="#1f2937">unknown-tcp 或 unknown-udp</text><path d="M 165.0 1040.0 L 165.0 1080.0" fill="none" stroke-linejoin="round" stroke="#4b5563" stroke-width="2.4" marker-end="url(#c12d2-agray)"/><text x="173.0" y="1068.5" text-anchor="start" fill="#1f2937" font-weight="700">否</text><path d="M 425.0 1036.0 L 425.0 1116.0 L 321.0 1116.0" fill="none" stroke-linejoin="round" stroke="#c2410c" stroke-width="2.4" marker-end="url(#c12d2-aorange)"/><path d="M 165.0 1152.0 L 165.0 1188.0" fill="none" stroke-linejoin="round" stroke="#4b5563" stroke-width="2.4" marker-end="url(#c12d2-agray)"/><polygon points="44.0,1188.0 286.0,1188.0 310.0,1241.0 286.0,1294.0 44.0,1294.0 20.0,1241.0" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/><text x="165.0" y="1221.5" text-anchor="middle" fill="#1f2937" font-weight="700">以識別出的應用程式</text><text x="165.0" y="1247.5" text-anchor="middle" fill="#1f2937">再比對安全政策</text><text x="165.0" y="1273.5" text-anchor="middle" fill="#1f2937">允許嗎？</text><rect x="350.0" y="1218.0" width="150.0" height="46.0" rx="9.0" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/><text x="425.0" y="1247.5" text-anchor="middle" fill="#1f2937" font-weight="700">阻擋</text><path d="M 310.0 1241.0 L 350.0 1241.0" fill="none" stroke-linejoin="round" stroke="#dc2626" stroke-width="2.4" marker-end="url(#c12d2-ared)"/><text x="316.0" y="1227.5" text-anchor="start" fill="#991b1b" font-weight="700">否</text><path d="M 165.0 1294.0 L 165.0 1334.0" fill="none" stroke-linejoin="round" stroke="#16a34a" stroke-width="2.4" marker-end="url(#c12d2-agreen)"/><text x="173.0" y="1320.5" text-anchor="start" fill="#166534" font-weight="700">是</text><rect x="20.0" y="1334.0" width="290.0" height="46.0" rx="23.0" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/><text x="165.0" y="1363.5" text-anchor="middle" fill="#1f2937" font-weight="700">放行並套用安全設定檔</text></svg>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">簡化畫法，完整順序見第 1 章；實際封包處理在資料平面並行完成。</p>
+
+            <div class="highlight-box mt-4">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>流程中的兩次政策比對</p>
+                <p class="text-gray-700">第一次比對時應用程式還不知道，所以先以 application = any 判斷「這條連線有沒有任何一條規則可能允許它」；第二次是 App-ID 識別完成後，用真正的應用程式再比一次。遇到 SSL 或 SSH 時，這次比對看到的應用程式是 ssl 或 ssh，放行後才會比對解密政策；解密後若應用程式改變，會再比對一次安全政策（細節以實機為準）。App-ID 會先識別出應用程式；整體流量處理的先後順序請看第 1 章的流程圖，解密的部分見第 15 章。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">應用程式轉換（Application Shift）</h3>
+            <p class="mb-2 text-gray-700">
+                同一個工作階段裡，應用程式<strong>可以中途改變</strong>。典型例子：使用者先用瀏覽器連上 Facebook，再開啟聊天功能。
+                流量從 <span class="tech-term">web-browsing</span> 開始，識別為 <span class="tech-term">facebook-base</span>，再轉成 <span class="tech-term">facebook-chat</span>。防火牆會隨著識別結果更新標籤；應用程式若改變，會再比對一次安全政策（細節以實機為準）。
+            </p>
+            <div class="diagram-container">
+                <svg viewBox="0 0 520 476" width="100%" style="max-width:520px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c12d3-t" font-family="'Noto Sans TC', sans-serif" font-size="19"><title id="c12d3-t">應用程式轉換示意圖：同一個連線裡，應用程式從 web-browsing 轉成 facebook-base，再轉成 facebook-chat</title><defs><marker id="c12d3-agray" viewBox="0 0 10 8" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,4 L0,8 z" fill="#4b5563"/></marker><marker id="c12d3-aorange" viewBox="0 0 10 8" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,4 L0,8 z" fill="#c2410c"/></marker></defs><rect x="90.0" y="10.0" width="340.0" height="72.0" rx="9.0" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/><text x="260.0" y="39.5" text-anchor="middle" fill="#1f2937">TCP 三向交握</text><text x="260.0" y="65.5" text-anchor="middle" fill="#1f2937">syn 與 ack</text><path d="M 260.0 82.0 L 260.0 134.0" fill="none" stroke="#4b5563" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#c12d3-agray)"/><rect x="90.0" y="134.0" width="340.0" height="72.0" rx="9.0" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/><text x="260.0" y="163.5" text-anchor="middle" fill="#1f2937">HTTP GET</text><text x="260.0" y="189.5" text-anchor="middle" fill="#1f2937">識別為 web-browsing</text><path d="M 260.0 206.0 L 260.0 262.0" fill="none" stroke="#c2410c" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#c12d3-aorange)"/><text x="274.0" y="240.5" text-anchor="start" fill="#c2410c" font-weight="700">shift</text><rect x="90.0" y="262.0" width="340.0" height="72.0" rx="9.0" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text x="260.0" y="291.5" text-anchor="middle" fill="#1f2937">進入臉書頁面</text><text x="260.0" y="317.5" text-anchor="middle" fill="#1f2937">識別為 facebook-base</text><path d="M 260.0 334.0 L 260.0 390.0" fill="none" stroke="#c2410c" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#c12d3-aorange)"/><text x="274.0" y="368.5" text-anchor="start" fill="#c2410c" font-weight="700">shift</text><rect x="90.0" y="390.0" width="340.0" height="72.0" rx="9.0" fill="#c2410c" stroke="#9a3412" stroke-width="2"/><text x="260.0" y="419.5" text-anchor="middle" fill="#ffffff">開啟聊天</text><text x="260.0" y="445.5" text-anchor="middle" fill="#ffffff">識別為 facebook-chat</text></svg>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異：雲端交付的 App-ID（App-ID Cloud Engine）</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>教材（PAN-OS 8.0 時代）的 App-ID 只來自內容更新中的資料庫，沒有雲端取得 App-ID 的概念。</li>
+                    <li>現行原廠文件有 <strong>App-ID Cloud Engine（ACE）</strong>：防火牆或 Panorama 可以從雲端下載「尚未有預先定義 App-ID」的應用程式的 App-ID，目的是不必等每月的內容更新。</li>
+                    <li>使用條件：需要 SaaS Security Inline 訂閱（Prisma Access 授權則已包含）、每台設備要有有效的裝置憑證、PAN-OS 10.1 或更新版本。</li>
+                    <li>它適用於被歸類為 ssl 或 web-browsing 的流量，不涵蓋私有或自訂應用程式；雲端交付的 App-ID <strong>只能用在安全政策規則</strong>，其他類型的政策不能用。設定入口為 <span class="tech-term">Device &gt; Setup &gt; ACE</span>，並可搭配 Policy Optimizer 或 Application Filter 把它們納入政策。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Topic 3 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Dependency</span>
+                三、相依與隱含應用程式
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                很多應用程式不是單獨運作，會借用其他應用程式。這裡有兩個容易混淆的概念：
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h4 class="font-bold text-orange-800 mb-2"><i class="fas fa-link mr-1"></i>相依應用程式（Dependent）</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>該應用程式要正常運作，另外還需要其他應用程式。</li>
+                        <li>教材範例：<strong>office-on-demand</strong> 相依於 <strong>ms-office365-base</strong> 與 <strong>sharepoint-online</strong>。</li>
+                        <li><strong>你必須自己加規則</strong>放行這些相依的應用程式。</li>
+                    </ul>
+                </div>
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-2"><i class="fas fa-layer-group mr-1"></i>隱含應用程式（Implicit）</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>許多常見應用程式會「隱含允許」它的上層（parent）應用程式。</li>
+                        <li>教材範例：允許 <strong>facebook-base</strong>，就隱含允許 <strong>web-browsing</strong>。</li>
+                        <li><strong>不需要</strong>另外為上層應用程式寫規則。</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 520 488" width="100%" style="max-width:520px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c12d4-t" font-family="'Noto Sans TC', sans-serif" font-size="19"><title id="c12d4-t">相依與隱含應用程式對照圖：office-on-demand 依賴 ms-office365-base 與 sharepoint-online，必須自己補規則；facebook-base 隱含允許 web-browsing，不必另外寫規則</title><defs><marker id="c12d4-agray" viewBox="0 0 10 8" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,4 L0,8 z" fill="#4b5563"/></marker><marker id="c12d4-agreen" viewBox="0 0 10 8" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,4 L0,8 z" fill="#16a34a"/></marker></defs><rect x="10.0" y="10.0" width="500.0" height="214.0" rx="12" fill="#fef9c3" fill-opacity="0.55" stroke="#ca8a04" stroke-width="2" stroke-dasharray="7 5"/><text font-weight="700" x="22.0" y="35.5" text-anchor="start" fill="#374151">相依：要自己補規則</text><rect x="130.0" y="48.0" width="260.0" height="46.0" rx="9.0" fill="#c2410c" stroke="#9a3412" stroke-width="2"/><text x="260.0" y="77.5" text-anchor="middle" fill="#ffffff" font-weight="700">office-on-demand</text><rect x="24.0" y="164.0" width="230.0" height="46.0" rx="9.0" fill="#fef9c3" stroke="#ca8a04" stroke-width="2"/><text x="139.0" y="193.5" text-anchor="middle" fill="#1f2937">ms-office365-base</text><rect x="266.0" y="164.0" width="230.0" height="46.0" rx="9.0" fill="#fef9c3" stroke="#ca8a04" stroke-width="2"/><text x="381.0" y="193.5" text-anchor="middle" fill="#1f2937">sharepoint-online</text><path d="M 200.0 94.0 L 139.0 164.0" fill="none" stroke="#4b5563" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#c12d4-agray)"/><rect x="89.0" y="115.2" width="46.0" height="28.5" rx="4" fill="#ffffff" fill-opacity="0.92"/><text x="112.0" y="136.5" text-anchor="middle" fill="#1f2937">依賴</text><path d="M 320.0 94.0 L 381.0 164.0" fill="none" stroke="#4b5563" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#c12d4-agray)"/><rect x="385.0" y="115.2" width="46.0" height="28.5" rx="4" fill="#ffffff" fill-opacity="0.92"/><text x="408.0" y="136.5" text-anchor="middle" fill="#1f2937">依賴</text><rect x="10.0" y="260.0" width="500.0" height="214.0" rx="12" fill="#f0fdf4" fill-opacity="0.55" stroke="#16a34a" stroke-width="2" stroke-dasharray="7 5"/><text font-weight="700" x="22.0" y="285.5" text-anchor="start" fill="#374151">隱含：不必另外寫規則</text><rect x="130.0" y="298.0" width="260.0" height="46.0" rx="9.0" fill="#c2410c" stroke="#9a3412" stroke-width="2"/><text x="260.0" y="327.5" text-anchor="middle" fill="#ffffff" font-weight="700">facebook-base</text><rect x="130.0" y="414.0" width="260.0" height="46.0" rx="9.0" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/><text x="260.0" y="443.5" text-anchor="middle" fill="#1f2937">web-browsing</text><path d="M 260.0 344.0 L 260.0 414.0" fill="none" stroke="#16a34a" stroke-width="2.4" stroke-linejoin="round" stroke-dasharray="6 5" marker-end="url(#c12d4-agreen)"/><text x="276.0" y="385.5" text-anchor="start" fill="#166534" font-weight="700">隱含允許</text></svg>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">怎麼知道誰依賴誰？</h3>
+            <ol class="list-decimal pl-6 text-gray-700 space-y-1">
+                <li>到 <span class="tech-term">Objects &gt; Applications</span>，搜尋並點進該應用程式查看詳細資料。</li>
+                <li>在詳細資料中，找出它相依的應用程式（Depends on）與隱含使用的應用程式（Implicitly Uses）。</li>
+                <li>相依的應用程式，要確認有規則放行；隱含的則通常不必處理。</li>
+            </ol>
+            <p class="text-sm text-gray-600 mt-2">
+                現行文件另提供 Policy Optimizer、建立 Application Filter 與 Resolve Application Dependencies 等方式，在建立規則時協助辨識相依關係；Applipedia 也能查詢應用程式資料。
+            </p>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：只放行應用程式本身，忘了它相依的應用程式</p>
+                <p class="text-gray-700 text-sm">規則放行了 office-on-demand，使用者卻說「打不開」。原因通常是 ms-office365-base 或 sharepoint-online 沒有被放行。排查時看 Traffic 日誌是哪個應用程式被擋。另外別以為「隱含」可以放心不管：隱含支援並非涵蓋所有情況，如果防火牆來不及識別所依賴的應用程式，你仍然必須明確放行它。</p>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異：相依性的提示方式</p>
+                <p class="text-gray-700 text-sm">教材（PAN-OS 8.0）只告訴你「相依應用程式需要自己加規則」，要自己到 Objects &gt; Applications 查。PAN-OS 9.1 起新增「Resolve Application Dependencies」流程：建立規則選擇應用程式時，介面會顯示相依關係，可一併加入現有或目前的規則；Commit 時若有遺漏，會在 <span class="tech-term">App Dependency</span> 頁籤出現警告，點規則名稱就能補上。這個流程現行版本仍保留，實際畫面請以你的 PAN-OS 版本為準。</p>
+            </div>
+        </div>
+
+        <!-- Topic 4 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Objects</span>
+                四、Filter、Group 與未知流量
+            </h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">Application Filter、Application Group 與巢狀</h3>
+            <p class="mb-3 text-gray-700">應用程式動輒上千個，規則不可能一個個列。教材介紹兩種物件，都能用在安全、QoS 與 PBF 規則裡：</p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border w-44">物件</th>
+                            <th class="py-2 px-4 text-left border">做法</th>
+                            <th class="py-2 px-4 text-left border">特性</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr>
+                            <td class="py-2 px-4 border font-semibold">Application Filter<br/><span class="tech-term">Objects &gt; Application Filters &gt; Add</span></td>
+                            <td class="py-2 px-4 border">在 App-ID 資料庫中用條件篩選：依序是 category、subcategory、technology、risk、tags、characteristic</td>
+                            <td class="py-2 px-4 border"><strong>動態分組</strong>：之後新增、符合條件的應用程式會自動納入，所以用 Filter 放行時，新的 App-ID 也可能被一併放行</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 px-4 border font-semibold">Application Group<br/><span class="tech-term">Objects &gt; Application Groups &gt; Add</span></td>
+                            <td class="py-2 px-4 border">管理員自己挑選應用程式（以及其他 Group／Filter）放進來</td>
+                            <td class="py-2 px-4 border"><strong>靜態清單</strong>，內容由管理員決定</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-sm text-gray-600 mt-3">
+                Group 與 Filter 可以<strong>巢狀</strong>：Group 裡可以放 Filter，也可以放別的 Group，最後整組放進安全政策規則的 Application 欄位。
+                規則路徑：<span class="tech-term">Policies &gt; Security &gt; Add &gt; Application</span>，可選單一 Application、Application Filter 或 Application Group。
+            </p>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異：用標籤簡化規則</p>
+                <p class="text-gray-700 text-sm">教材沒有提到的是，現行版本介紹了 <strong>Streamlined App-ID Policy Rules</strong>：以內容更新中隨附的應用程式標籤（tags）撰寫規則，不必每次有新 App-ID 就改政策；並可建立使用 <strong>New App-ID</strong> 特性、只比對最新內容版本新增 App-ID 的規則，先確保關鍵類別（例如驗證、軟體開發）不被中斷。這也是第五節的主題。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">服務欄位：application-default 與自訂服務</h3>
+            <p class="mb-3 text-gray-700">
+                規則除了 Application，還有 Service 欄位（<span class="tech-term">Policies &gt; Security &gt; Add &gt; Service/URL Category</span>）決定「允許應用程式出現在哪些連接埠」：
+            </p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border w-52">Service 設定</th>
+                            <th class="py-2 px-4 text-left border">效果</th>
+                            <th class="py-2 px-4 text-left border">適用時機</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">application-default</td><td class="py-2 px-4 border">只允許該應用程式的預設連接埠；原廠建議搭配解密一起使用</td><td class="py-2 px-4 border">多數情況的首選</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">any</td><td class="py-2 px-4 border">應用程式在任何連接埠都符合，原廠提醒非標準埠上的應用程式可能代表有人在規避防護</td><td class="py-2 px-4 border">有明確理由時才用</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">自訂服務（Objects &gt; Services）</td><td class="py-2 px-4 border">只允許你定義的協定與連接埠</td><td class="py-2 px-4 border">內部應用程式刻意使用非預設埠</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-sm text-gray-600 mt-2">教材流程：先到 <span class="tech-term">Objects &gt; Services</span> 建立自訂服務，再到 <span class="tech-term">Policies &gt; Security</span> 的規則中選用它。</p>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：Service 欄位留 any，或沿用舊的 service-http／service-https</p>
+                <p class="text-gray-700 text-sm">從舊防火牆搬過來的 web-browsing 規則，Service 常是 service-http 與 service-https，兩個埠都得開才能涵蓋明文與加密。改用 application-default，明文網頁只在 80 埠、SSL 加密只在 443 埠成立，範圍更精準。反過來，若 Service 設成 any，應用程式可以出現在任何埠，等於放棄埠這一層的限制。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Application Block Page</h3>
+            <p class="mb-2 text-gray-700">
+                應用程式被安全政策規則阻擋時，網頁類的應用程式可以在使用者的瀏覽器顯示阻擋頁面，說明這次存取被擋的原因。
+                設定位置：<span class="tech-term">Device &gt; Response Pages &gt; Application Block Page</span>，可以選擇啟用或停用。
+            </p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">未知流量：unknown-tcp 與 unknown-udp</h3>
+            <p class="mb-2 text-gray-700">
+                被允許通過、但 App-ID 認不出來的流量，會顯示成 <span class="tech-term">unknown-tcp</span> 或 <span class="tech-term">unknown-udp</span>（能辨識的則是 ftp、smtp、web-browsing 等）。
+                這類流量通常是：尚未收錄在 App-ID 的商用應用程式、內部或自訂應用程式，或潛在的威脅。Traffic 日誌中也可能看到 incomplete（三向交握完成但逾時前沒有資料）或 insufficient-data（有資料但封包太少不足以識別）。
+            </p>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 520 639" width="100%" style="max-width:520px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c12d5-t" font-family="'Noto Sans TC', sans-serif" font-size="19"><title id="c12d5-t">迭代處理未知流量的流程圖：先建立已知應用程式的規則，再建暫時規則偵測未識別流量，到 Traffic 日誌查看 unknown-tcp 與 unknown-udp，能識別就建立明確規則，不能就擷取封包、建自訂應用程式或設定 Application Override，之後回到暫時規則再來一輪</title><defs><marker id="c12d5-agray" viewBox="0 0 10 8" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,4 L0,8 z" fill="#4b5563"/></marker><marker id="c12d5-agreen" viewBox="0 0 10 8" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,4 L0,8 z" fill="#16a34a"/></marker><marker id="c12d5-aorange" viewBox="0 0 10 8" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,4 L0,8 z" fill="#c2410c"/></marker></defs><rect x="52.0" y="10.0" width="418.0" height="72.0" rx="9.0" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/><text x="261.0" y="39.5" text-anchor="middle" fill="#1f2937">建立規則，允許或阻擋</text><text x="261.0" y="65.5" text-anchor="middle" fill="#1f2937">已知經過防火牆的應用程式</text><circle cx="30.0" cy="46.0" r="14" fill="#c2410c"/><text x="30.0" y="52.5" text-anchor="middle" fill="#ffffff" font-weight="700">1</text><path d="M 261.0 82.0 L 261.0 114.0" fill="none" stroke="#4b5563" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#c12d5-agray)"/><rect x="52.0" y="114.0" width="418.0" height="72.0" rx="9.0" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text x="261.0" y="143.5" text-anchor="middle" fill="#1f2937">建立一條暫時規則</text><text x="261.0" y="169.5" text-anchor="middle" fill="#1f2937">偵測未被識別的應用程式</text><circle cx="30.0" cy="150.0" r="14" fill="#c2410c"/><text x="30.0" y="156.5" text-anchor="middle" fill="#ffffff" font-weight="700">2</text><path d="M 261.0 186.0 L 261.0 218.0" fill="none" stroke="#4b5563" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#c12d5-agray)"/><rect x="52.0" y="218.0" width="418.0" height="72.0" rx="9.0" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/><text x="261.0" y="247.5" text-anchor="middle" fill="#1f2937">到 Monitor &gt; Logs &gt; Traffic</text><text x="261.0" y="273.5" text-anchor="middle" fill="#1f2937">查看 unknown-tcp 與 unknown-udp</text><circle cx="30.0" cy="254.0" r="14" fill="#c2410c"/><text x="30.0" y="260.5" text-anchor="middle" fill="#ffffff" font-weight="700">3</text><path d="M 261.0 290.0 L 261.0 322.0" fill="none" stroke="#4b5563" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#c12d5-agray)"/><polygon points="135.0,322.0 387.0,322.0 411.0,349.0 387.0,376.0 135.0,376.0 111.0,349.0" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/><text x="261.0" y="355.5" text-anchor="middle" fill="#1f2937" font-weight="700">能識別或歸類了嗎？</text><rect x="52.0" y="428.0" width="176.0" height="124.0" rx="9.0" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/><text x="140.0" y="483.5" text-anchor="middle" fill="#1f2937">為它建立明確的</text><text x="140.0" y="509.5" text-anchor="middle" fill="#1f2937">允許或阻擋規則</text><circle cx="30.0" cy="490.0" r="14" fill="#c2410c"/><text x="30.0" y="496.5" text-anchor="middle" fill="#ffffff" font-weight="700">4</text><rect x="240.0" y="428.0" width="236.0" height="124.0" rx="9.0" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text x="358.0" y="457.5" text-anchor="middle" fill="#1f2937">擷取封包送原廠，</text><text x="358.0" y="483.5" text-anchor="middle" fill="#1f2937">或建立自訂應用程式，</text><text x="358.0" y="509.5" text-anchor="middle" fill="#1f2937">或設定 Application</text><text x="358.0" y="535.5" text-anchor="middle" fill="#1f2937">Override</text><path d="M 161.0 376.0 L 140.0 428.0" fill="none" stroke="#16a34a" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#c12d5-agreen)"/><rect x="52.0" y="367.2" width="28.3" height="28.5" rx="4" fill="#ffffff" fill-opacity="0.92"/><text x="56.0" y="388.5" text-anchor="start" fill="#166534" font-weight="700">是</text><path d="M 361.0 376.0 L 358.0 428.0" fill="none" stroke="#c2410c" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#c12d5-aorange)"/><rect x="407.0" y="367.2" width="28.3" height="28.5" rx="4" fill="#ffffff" fill-opacity="0.92"/><text x="411.0" y="388.5" text-anchor="start" fill="#c2410c" font-weight="700">否</text><path d="M 140.0 552.0 L 140.0 582.0" fill="none" stroke="#4b5563" stroke-width="2.4" stroke-linejoin="round"/><path d="M 358.0 552.0 L 358.0 582.0" fill="none" stroke="#4b5563" stroke-width="2.4" stroke-linejoin="round"/><path d="M 140.0 582.0 L 500.0 582.0 L 500.0 150.0 L 470.0 150.0" fill="none" stroke="#4b5563" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#c12d5-agray)"/><text x="261.0" y="612.5" text-anchor="middle" fill="#1f2937" font-weight="700">回到步驟 2</text></svg>
+            </div>
+            <p class="text-sm text-gray-600 mt-2">日誌路徑：<span class="tech-term">Monitor &gt; Logs &gt; Traffic</span>，在 Application 欄查看 App-ID 識別的結果；規則則在 <span class="tech-term">Policies &gt; Security</span>。這是一個<strong>迭代的過程</strong>，不是設定一次就結束。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">控制未知應用程式的三種做法</h3>
+            <div class="grid md:grid-cols-3 gap-4 mb-4">
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h4 class="font-bold text-orange-800 mb-1">自訂應用程式＋自訂特徵碼</h4>
+                    <p class="text-sm text-gray-700"><span class="tech-term">Objects &gt; Applications &gt; Add</span>，替內部應用程式定義特徵碼，之後可以放進安全政策，通常仍會經過 App-ID 與內容檢查（以實機為準）。</p>
+                </div>
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1">Application Override 政策</h4>
+                    <p class="text-sm text-gray-700"><span class="tech-term">Policies &gt; Application Override</span>，以區域、位址、埠與協定直接指定它是哪個自訂應用程式。</p>
+                </div>
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1">安全規則直接阻擋 unknown-tcp／udp</h4>
+                    <p class="text-sm text-gray-700">最直接，但教材標註：<strong>可能阻擋比預期更多的流量</strong>。</p>
+                </div>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異：Application Override 的建議</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>教材把 Application Override 當成與自訂應用程式並列的控制手段之一。</li>
+                    <li>PAN-OS 10.1 起（含現行版本），原廠改為建議<strong>盡量避免</strong>：Override 會讓防火牆略過 App-ID 與第七層威脅檢查，改用較不安全的第四層狀態檢查。</li>
+                    <li>原廠建議的替代方式是建立帶特徵碼的自訂應用程式，或使用自訂逾時（custom timeouts），讓流量仍能在第七層被檢查；商用應用程式則向原廠要求新的 App-ID。</li>
+                    <li>10.0 以前的文件沒有這項警告，所以不同版本的說法不同，實務上請以你的版本與公司資安政策為準。</li>
+                </ul>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：看到 unknown 就全部阻擋，或用 Override 一勞永逸</p>
+                <p class="text-gray-700 text-sm">未知流量裡可能混著內部系統、新應用程式，直接全擋會誤傷。比較穩妥的順序：先用暫時規則觀察、判斷身分，再決定是補自訂應用程式、向原廠提交封包，還是阻擋。至於 Override，它能解決「認不出來」，但同時讓該流量失去第七層的檢查，要把風險算進去。</p>
+            </div>
+        </div>
+
+        <!-- Topic 5 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Update</span>
+                五、更新 App-ID 而不弄壞政策
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                App-ID 資料庫靠原廠的 <span class="tech-term">Dynamic Updates</span> 內容更新取得新特徵碼。問題在於：更新可能讓原本被某個大類別（例如 web-browsing 或 ssl）命中的流量，改被識別成一個新的應用程式，而那個新應用程式是否被允許，取決於你現有的規則。
+            </p>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-56">項目</th><th class="py-2 px-4 text-left border">說明</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">更新頻率</td><td class="py-2 px-4 border">新的威脅特徵碼與修改過的 App-ID 至少每週發布，常更頻繁；<strong>新的 App-ID 在每月第三個星期二發布</strong>（極少數情況會延後一兩天），讓管理員有可預期的時間窗口調整政策（頻率以原廠最新公告為準）</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">累積性</td><td class="py-2 px-4 border">最新的內容更新包含先前版本的所有特徵碼</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">授權</td><td class="py-2 px-4 border">只含應用程式的部分不需授權；同時含威脅特徵碼的完整 Applications and Threats 套件需要 Threat Prevention 授權（授權見第 3 章）</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">排程路徑</td><td class="py-2 px-4 border"><span class="tech-term">Device &gt; Dynamic Updates</span>，在 Schedule 設定檢查頻率與時間</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">更新動作</td><td class="py-2 px-4 border">教材列出三種選擇：排程只下載、排程下載並安裝、手動下載並安裝</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">等待門檻（Threshold）</td><td class="py-2 px-4 border">新內容須釋出達一段時間後才安裝，避免偶發的問題更新；Applications and Threats 還可針對「新增或修改應用程式」的更新設定較長的門檻，爭取檢視政策的時間</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異：更新頻率與新功能</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>教材畫的是「每週更新（Weekly updates）」。現行文件把它拆開：威脅特徵碼與修改過的 App-ID 至少每週，新的 App-ID 則是每月第三個星期二。</li>
+                    <li>較新的 12.1 版次另有 <strong>App-ID Update Safeguard</strong>（預設停用，在 <span class="tech-term">Device &gt; Setup &gt; Content-ID</span> 啟用）：新的或修改過的 App-ID 尚未寫進規則時，若它先前對應的 App-ID 全部被允許，就暫時沿用放行；只要有一個被擋，就維持阻擋。Previous App-ID 到下一次內容更新時就轉成新的 App-ID，不會一直沿用。是否有這個功能，請以你的版本為準。</li>
+                </ul>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">安裝前的預先分析流程</h3>
+            <div class="diagram-container">
+                <svg viewBox="0 0 520 644" width="100%" style="max-width:520px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c12d6-t" font-family="'Noto Sans TC', sans-serif" font-size="19"><title id="c12d6-t">安裝內容更新前的預先分析流程圖：內容更新發布後先下載，用 Review Apps 看新增與修改的應用程式，再用 Review Policies 看對現有規則的影響，可接受就安裝並觀察日誌，不可接受就調整規則或先停用該應用程式</title><defs><marker id="c12d6-agray" viewBox="0 0 10 8" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,4 L0,8 z" fill="#4b5563"/></marker><marker id="c12d6-agreen" viewBox="0 0 10 8" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,4 L0,8 z" fill="#16a34a"/></marker><marker id="c12d6-aorange" viewBox="0 0 10 8" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,4 L0,8 z" fill="#c2410c"/></marker></defs><rect x="40.0" y="10.0" width="320.0" height="72.0" rx="9.0" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/><text x="200.0" y="39.5" text-anchor="middle" fill="#1f2937">內容更新發布</text><text x="200.0" y="65.5" text-anchor="middle" fill="#1f2937">新 App-ID 為每月第三個星期二</text><path d="M 200.0 82.0 L 200.0 112.0" fill="none" stroke="#4b5563" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#c12d6-agray)"/><rect x="40.0" y="112.0" width="320.0" height="46.0" rx="9.0" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/><text x="200.0" y="141.5" text-anchor="middle" fill="#1f2937">下載內容更新</text><path d="M 200.0 158.0 L 200.0 188.0" fill="none" stroke="#4b5563" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#c12d6-agray)"/><rect x="40.0" y="188.0" width="320.0" height="72.0" rx="9.0" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text x="200.0" y="217.5" text-anchor="middle" fill="#1f2937" font-weight="700">Review Apps</text><text x="200.0" y="243.5" text-anchor="middle" fill="#1f2937">列出新增與修改的應用程式</text><path d="M 200.0 260.0 L 200.0 290.0" fill="none" stroke="#4b5563" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#c12d6-agray)"/><rect x="40.0" y="290.0" width="320.0" height="72.0" rx="9.0" fill="#c2410c" stroke="#9a3412" stroke-width="2"/><text x="200.0" y="319.5" text-anchor="middle" fill="#ffffff" font-weight="700">Review Policies</text><text x="200.0" y="345.5" text-anchor="middle" fill="#ffffff">哪些現有規則會比對到它們</text><path d="M 200.0 362.0 L 200.0 392.0" fill="none" stroke="#4b5563" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#c12d6-agray)"/><polygon points="94.0,392.0 306.0,392.0 330.0,419.0 306.0,446.0 94.0,446.0 70.0,419.0" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/><text x="200.0" y="425.5" text-anchor="middle" fill="#1f2937" font-weight="700">影響可以接受嗎？</text><rect x="382.0" y="370.0" width="128.0" height="98.0" rx="9.0" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text x="446.0" y="399.5" text-anchor="middle" fill="#1f2937">調整規則</text><text x="446.0" y="425.5" text-anchor="middle" fill="#1f2937">或先停用</text><text x="446.0" y="451.5" text-anchor="middle" fill="#1f2937">該應用程式</text><path d="M 330.0 419.0 L 382.0 419.0" fill="none" stroke="#c2410c" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#c12d6-aorange)"/><text x="336.0" y="403.5" text-anchor="start" fill="#c2410c" font-weight="700">否</text><path d="M 446.0 370.0 L 446.0 326.0 L 360.0 326.0" fill="none" stroke="#c2410c" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#c12d6-aorange)"/><path d="M 200.0 446.0 L 200.0 482.0" fill="none" stroke="#16a34a" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#c12d6-agreen)"/><text x="210.0" y="472.5" text-anchor="start" fill="#166534" font-weight="700">是</text><rect x="40.0" y="482.0" width="320.0" height="46.0" rx="9.0" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/><text x="200.0" y="511.5" text-anchor="middle" fill="#1f2937">安裝內容更新</text><path d="M 200.0 528.0 L 200.0 558.0" fill="none" stroke="#4b5563" stroke-width="2.4" stroke-linejoin="round" marker-end="url(#c12d6-agray)"/><rect x="40.0" y="558.0" width="320.0" height="72.0" rx="9.0" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/><text x="200.0" y="587.5" text-anchor="middle" fill="#1f2937">上線後觀察日誌</text><text x="200.0" y="613.5" text-anchor="middle" fill="#1f2937">確認重要應用程式未中斷</text></svg>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-4 mt-4">
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h4 class="font-bold text-orange-800 mb-2"><i class="fas fa-magnifying-glass mr-1"></i>Review Apps</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>位置：<span class="tech-term">Device &gt; Dynamic Updates</span> 的 Actions 欄（內容更新下載後即可使用）。</li>
+                        <li>新增與修改的 App-ID 分開列出，附完整細節。</li>
+                        <li>預期會影響整個網路的（例如 LDAP、IKE）會被標示，提醒你檢視政策。</li>
+                        <li>新 App-ID 有 <strong>Depends on</strong>（所依賴的特徵碼，被停用則連帶停用）與 <strong>Previously Identified As</strong>（安裝前這類流量被識別成什麼）。</li>
+                        <li>新 App-ID 安裝後預設啟用；想先不啟用，須在安裝前停用。</li>
+                    </ul>
+                </div>
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h4 class="font-bold text-orange-800 mb-2"><i class="fas fa-clipboard-check mr-1"></i>Review Policies</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>位置：<span class="tech-term">Device &gt; Dynamic Updates</span> 的 Actions 欄，也可以從 <span class="tech-term">Objects &gt; Applications</span>（教材畫面）開啟。</li>
+                        <li>顯示新應用程式特徵碼對現有安全政策的影響：哪些規則會比對到新的應用程式。</li>
+                        <li>可以把待處理的應用程式加入或移出安全政策規則。</li>
+                        <li>安裝新的 Applications and Threats 內容時，可勾選 <strong>Disable new apps in content update</strong>，先取得最新威脅防護，準備好政策再啟用新應用程式。</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="highlight-box mt-4">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>兩種部署取向</p>
+                <p class="text-gray-700 text-sm">原廠把組織分成<strong>安全優先（security-first）</strong>與<strong>任務關鍵（mission-critical）</strong>兩種取向，也可以依據點或部署類型混用。前者優先取得最新威脅特徵碼，後者優先維持應用程式可用。任務關鍵的環境，一般會把門檻設得較長，並為含新 App-ID 的內容另設較長的門檻，先在測試環境驗證再上線，給自己審查的空間。</p>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：排程直接下載並安裝，卻從不看 Review Apps／Review Policies</p>
+                <p class="text-gray-700 text-sm">某天某個重要應用程式突然連不上，往往是因為更新後它被識別成新的 App-ID，而你的規則只允許原本的舊標籤（例如 ssl 或 web-browsing）。排程只能解決「何時更新」，並不會替你檢查政策。更新排程設好之後，仍要持續處理每個內容版本帶來的新增與修改 App-ID。</p>
+            </div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
+                隨堂測驗
+            </h2>
+            <p class="mb-6 text-gray-600">請點選您認為正確的選項，系統將會顯示解析。</p>
+            <div class="space-y-6" id="quiz-container"></div>
+        </div>
+
+    </main>
+
+    <footer class="footer-signature">
+        Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver.2026.10.29.11.12
+    </footer>
+
+
+    <script>
+        const quizData = [
+            {
+                question: "Q1. 安全規則為「允許 dns」。有一個零時差惡意程式的 C2 回連走 53 埠，在沒有其他規則允許它的情況下，結果最可能是？",
+                options: ["A. 放行，因為它走的是 53 埠", "B. 阻擋，因為 App-ID 判斷它不是 dns，不符合這條規則", "C. 放行，因為 53 埠永遠被視為 DNS", "D. 規則無法判斷，一律交給管理員手動核准"],
+                correct: 1,
+                desc: "正解：B。以連接埠為基礎的規則只看到「53 埠」，會放行；App-ID 看的是識別出的應用程式。C2 不是 DNS，不符合「允許 dns」，因此被阻擋，並能作為未知流量被偵測。這就是以應用程式取代連接埠判斷的價值。"
+            },
+            {
+                question: "Q2. 規則已放行 office-on-demand，使用者仍無法使用完整功能。教材範例中最可能漏掉什麼？",
+                options: ["A. 沒有為它建立 Application Block Page", "B. 沒有放行它相依的 ms-office365-base 與 sharepoint-online", "C. 沒有把 Service 改成 any", "D. 沒有把它放進 Application Filter"],
+                correct: 1,
+                desc: "正解：B。相依應用程式需要你自己加規則放行。隱含應用程式（例如 facebook-base 隱含 web-browsing）才不必另外寫，但隱含支援不涵蓋所有情況，防火牆來不及識別時仍須明確放行。查詢位置為 Objects > Applications。"
+            },
+            {
+                question: "Q3. 在 Traffic 日誌看到大量 unknown-tcp，下列哪一種處理方式最符合教材建議的做法？",
+                options: ["A. 立刻在最上方新增規則阻擋所有 unknown-tcp 與 unknown-udp", "B. 一律用 Application Override 把它們指定成 web-browsing", "C. 以迭代方式：先用暫時規則偵測並觀察，識別出來後再建立明確的允許或阻擋規則，必要時用自訂應用程式", "D. 關閉 App-ID，改回只看連接埠"],
+                correct: 2,
+                desc: "正解：C。教材的流程是反覆迭代：先為已知應用程式建立規則，建暫時規則偵測未識別的流量，到 Monitor > Logs > Traffic 查看，識別後再建明確規則。直接全擋可能阻擋比預期更多的流量；現行原廠文件也建議盡量避免 Application Override，因為它會略過第七層檢查。"
+            },
+            {
+                question: "Q4. 你想在安裝新的 App-ID 內容更新之前，先知道哪些現有規則會比對到新增的應用程式，應該使用什麼？",
+                options: ["A. 直接安裝，再看日誌是否有異常", "B. 把更新排程改為每天安裝", "C. 先下載更新，用 Review Apps 看新增與修改的應用程式，再用 Review Policies 看對現有規則的影響", "D. 修改 Application Block Page 的內容"],
+                correct: 2,
+                desc: "正解：C。Review Apps 列出新增與修改的 App-ID，Review Policies 顯示哪些規則會比對到它們，且可在安裝前先停用不想立刻啟用的應用程式。Review Apps 在 Device > Dynamic Updates 的 Actions 欄；Review Policies 可從 Dynamic Updates 或 Objects > Applications 開啟。"
+            }
+        ];
+
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionBox = document.createElement('div');
+            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
+
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border mb-2 text-gray-700" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            questionBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
+                <div class="space-y-2 mb-4">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
+                    <p class="font-bold result-title"></p>
+                    <p class="text-sm text-gray-600 mt-1">${item.desc}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionBox);
+        });
+
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            if (element.parentElement.dataset.answered) return;
+            element.parentElement.dataset.answered = "true";
+
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+                opt.classList.add('disabled');
+            });
+
+            if (optIndex === data.correct) {
+                element.classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了！";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                element.classList.add('bg-red-100', 'border-red-500');
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了！";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+    </script>
+</body>
+</html>

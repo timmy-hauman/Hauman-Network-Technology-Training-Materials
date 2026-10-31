@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palo Alto Networks NGFW 實戰課程 - 管理網路與初始存取</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        /* 卡片主體樣式 (Palo Alto Orange) */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #fa582d;
+        }
+
+        /* 重點提示框 (橘) */
+        .highlight-box {
+            background-color: #fff7ed;
+            border-left: 4px solid #fa582d;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 技術名詞標記 */
+        .tech-term {
+            color: #c2410c;
+            font-weight: 700;
+            background-color: #fff1e6;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
+        }
+
+        /* 比喻說明框 (綠) */
+        .analogy-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 版本差異框 (紫) */
+        .version-box {
+            background-color: #faf5ff;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 常見踩坑框 (紅) */
+        .pitfall-box {
+            background-color: #fef2f2;
+            border-left: 4px solid #dc2626;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .diagram-container {
+            display: block;
+            background-color: #ffffff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 640px) {
+            main { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+            .section-card { padding: 1rem; }
+            .diagram-container { padding: 0.25rem; }
+        }
+
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover:not(.disabled) {
+            background-color: #f3f4f6;
+        }
+
+        .footer-signature {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+            margin-top: 4rem;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-orange-600 to-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-fire-flame-curved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold">Palo Alto Networks NGFW 實戰課程</h1>
+                    <p class="text-orange-100 mt-1">基礎篇 - 單元 2：管理網路與初始存取</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <!-- Introduction -->
+        <div class="mb-8">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
+                <h2 class="text-xl font-bold text-blue-800 mb-2 flex items-center">
+                    <i class="fas fa-user-tie mr-2"></i>講師導言
+                </h2>
+                <p class="text-blue-900 leading-relaxed">
+                    防火牆從箱子拿出來、插上電之後，<strong>你要怎麼第一次連得進去？</strong>這一章就是在回答這個問題。
+                    我們會從專用的管理埠 MGT 與 Console 線開始，完成首次登入、換掉預設密碼，再把管理位址、主機名稱、DNS、NTP 與 Service Route 一次設好。
+                    最後補上一個救命招：設定搞砸或要轉手設備時，怎麼把防火牆重置回預設狀態。
+                </p>
+            </div>
+        </div>
+
+        <!-- 學習目標 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-gray-100 text-gray-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Goals</span>
+                本章學習目標
+            </h2>
+            <ul class="list-disc pl-6 space-y-1 text-gray-700">
+                <li>說明專用管理埠 MGT 的特性，以及初始設定可用的兩種入口（MGT、Console）</li>
+                <li>說出出廠預設的管理位址與帳號，並知道首次登入必須變更 admin 密碼</li>
+                <li>在 Web 介面設定 MGT 介面、主機名稱、DNS 與 NTP</li>
+                <li>解釋 Service Route 的用途：讓防火牆改從資料埠連外部服務</li>
+                <li>分辨 <span class="tech-term">request system private-data-reset</span> 與維護模式（maintenance mode）出廠重置的差別</li>
+            </ul>
+        </div>
+
+        <!-- Topic 1 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Concept</span>
+                一、專用管理埠 MGT 與初始存取
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                Palo Alto 防火牆有一個專用的帶外（out-of-band）管理乙太網路埠，面板上標示為 <span class="tech-term">MGT</span>。
+                它只負責管理用的連線，<strong>不能當成一般的資料埠使用</strong>，直接連到第 1 章提到的管理平面。
+                第一次設定防火牆，只能從下面兩個入口擇一：
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h3 class="font-bold text-orange-800 mb-2"><i class="fas fa-ethernet mr-1"></i>入口一：MGT 乙太網路埠</h3>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>用網路線接電腦與 MGT 埠</li>
+                        <li>電腦網卡要設成與預設管理位址同網段</li>
+                        <li>用瀏覽器（HTTPS）或 SSH 連入</li>
+                    </ul>
+                </div>
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-terminal mr-1"></i>入口二：序列 Console 連線</h3>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>用終端機軟體連 Console 埠，參數 <strong>9600-8-N-1</strong></li>
+                        <li>不依賴任何 IP 設定，網路設錯時的最後一道門</li>
+                        <li>登入提示會顯示防火牆名稱（預設為機型名稱），例如 PA-440 login</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border w-44">項目</th>
+                            <th class="py-2 px-4 text-left border">出廠預設</th>
+                            <th class="py-2 px-4 text-left border">備註</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">MGT 管理位址</td><td class="py-2 px-4 border">192.168.1.1／24（網段 192.168.1.0/24）</td><td class="py-2 px-4 border">PA 系列硬體防火牆。電腦網卡可暫設成同網段的其他位址，例如 192.168.1.2</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">預設管理員</td><td class="py-2 px-4 border">帳號 admin／密碼 admin</td><td class="py-2 px-4 border">出廠時唯一預先建立的管理員帳號。首次登入必須變更密碼（下一節）</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Console 參數</td><td class="py-2 px-4 border">9600-8-N-1</td><td class="py-2 px-4 border">鮑率 9600、8 個資料位元、無同位檢查、1 個停止位元</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">VM-Series</td><td class="py-2 px-4 border">視平台而定</td><td class="py-2 px-4 border">沒有硬體上固定的預設位址，見下方說明</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="analogy-box">
+                <p class="font-bold mb-2 text-green-800">🏢 生活化比喻：大樓的管理員專用側門</p>
+                <ul class="list-none space-y-2 pl-2 text-gray-700">
+                    <li class="flex items-start"><i class="fas fa-door-open text-blue-500 mt-1 mr-3"></i><span><strong>資料埠</strong>：像大樓的正門，訪客（使用者流量）進進出出，由防火牆逐一檢查。</span></li>
+                    <li class="flex items-start"><i class="fas fa-key text-green-600 mt-1 mr-3"></i><span><strong>MGT 埠</strong>：像管理員專用的側門，只讓維運人員進出機房，跟正門的人潮完全分開。</span></li>
+                    <li class="flex items-start"><i class="fas fa-wrench text-orange-500 mt-1 mr-3"></i><span><strong>Console 線</strong>：像機房鑰匙孔，門禁系統壞了、網路設錯時，還能用它直接開門。</span></li>
+                </ul>
+            </div>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 440 357" width="100%" style="max-width:440px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c02d1-t c02d1-d" font-family="'Noto Sans TC', sans-serif"><title id="c02d1-t">MGT 埠、Console 埠與資料埠</title><desc id="c02d1-d">管理電腦用網路線（HTTPS 或 SSH）連到 MGT 埠，用序列線連到 Console 埠。MGT 埠接管理網路，資料埠接業務網路。</desc><defs><marker id="c02d1-ah" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#4b5563"/></marker></defs><rect x="6" y="127.5" width="428" height="144.4" rx="10" fill="#f3f4f6" stroke="#4b5563" stroke-width="1.5"/><rect x="133" y="6" width="170" height="41.5" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="218" y="32.7" font-size="17" fill="#1f2937" text-anchor="middle">管理電腦</text><text x="424" y="155.5" font-size="17" fill="#1f2937" text-anchor="end" font-weight="700">Palo Alto 防火牆</text><rect x="8" y="171.5" width="136" height="88.4" rx="8" fill="#c2410c" stroke="#7c2d12" stroke-width="2"/><text x="76" y="198.2" font-size="17" fill="#ffffff" text-anchor="middle">MGT 埠</text><text x="76" y="221.6" font-size="17" fill="#ffffff" text-anchor="middle">帶外管理</text><text x="76" y="245.1" font-size="17" fill="#ffffff" text-anchor="middle">只走管理連線</text><rect x="150" y="171.5" width="136" height="88.4" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="218" y="198.2" font-size="17" fill="#1f2937" text-anchor="middle">Console 埠</text><text x="218" y="221.6" font-size="17" fill="#1f2937" text-anchor="middle">9600-8-N-1</text><text x="218" y="245.1" font-size="17" fill="#1f2937" text-anchor="middle">序列連線</text><rect x="292" y="171.5" width="136" height="88.4" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="360" y="198.2" font-size="17" fill="#1f2937" text-anchor="middle">資料埠</text><text x="360" y="221.6" font-size="17" fill="#1f2937" text-anchor="middle">ethernet1/x</text><text x="360" y="245.1" font-size="17" fill="#1f2937" text-anchor="middle">轉送業務流量</text><polyline points="170,47.5 170,67.5 76,67.5 76,171.5" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c02d1-ah)"/><polyline points="218,47.5 218,171.5" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c02d1-ah)"/><text x="86" y="93.5" font-size="17" fill="#374151" text-anchor="start" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" paint-order="stroke">網路線</text><text x="86" y="115.5" font-size="17" fill="#374151" text-anchor="start" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" paint-order="stroke">HTTPS 或 SSH</text><text x="228" y="99.5" font-size="17" fill="#374151" text-anchor="start" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" paint-order="stroke">序列線</text><rect x="8" y="305.9" width="136" height="41.5" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/><text x="76" y="332.6" font-size="17" fill="#1e3a8a" text-anchor="middle">管理網路</text><rect x="292" y="305.9" width="136" height="41.5" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/><text x="360" y="332.6" font-size="17" fill="#14532d" text-anchor="middle">業務網路</text><polyline points="76,259.9 76,305.9" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c02d1-ah)"/><polyline points="360,259.9 360,305.9" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c02d1-ah)"/></svg>
+            </div>
+
+            <div class="highlight-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>VM-Series 與其他管理方式的補充</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>教材寫「VM-Series 的 MGT 為 DHCP client」。原廠文件說法不一：有的寫 VM-Series 管理介面預設以 DHCP 取得位址，有的寫預設關閉 DHCP（只有 AWS 與 Azure 例外）。部署 VM-Series 前，請看你那個平台的部署文件並在實機確認，不要假設一定拿得到位址，也不要假設一定拿不到。</li>
+                    <li>任何機型的 MGT 都可以自己改成 DHCP client 或靜態位址。</li>
+                    <li>除了本章這種「直接連 MGT」的方式，也可以在一般資料埠上開放管理服務，需搭配 Interface Mgmt 設定檔（第 6 章會用到）。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Topic 2 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Flow</span>
+                二、第一次登入 Web 介面
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                典型的第一次連線流程如下：先把管理電腦設到同網段，接上 MGT 埠，用預設帳號登入，<strong>立刻換掉 admin 密碼</strong>，再把 MGT 改成你網路裡真正要用的位址。
+            </p>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 440 473" width="100%" style="max-width:440px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c02d2-t c02d2-d" font-family="'Noto Sans TC', sans-serif"><title id="c02d2-t">第一次連線與登入的七個步驟</title><desc id="c02d2-d">依序：電腦網卡設成 192.168.1.0/24、網路線接 MGT 埠、用瀏覽器連到 192.168.1.1、以 admin 登入、變更預設密碼、在 Device &gt; Setup &gt; Interfaces &gt; Management 改成正式位址、改用新位址重新連入。</desc><defs><marker id="c02d2-ah" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#4b5563"/></marker></defs><rect x="20" y="6" width="400" height="41.5" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="220" y="32.7" font-size="17" fill="#1f2937" text-anchor="middle">1. 電腦網卡設成 192.168.1.0/24 網段</text><rect x="20" y="67.5" width="400" height="41.5" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="220" y="94.2" font-size="17" fill="#1f2937" text-anchor="middle">2. 網路線接上 MGT 埠</text><polyline points="220,47.5 220,67.5" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c02d2-ah)"/><rect x="20" y="129" width="400" height="41.5" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="220" y="155.7" font-size="17" fill="#1f2937" text-anchor="middle">3. 用瀏覽器 HTTPS 連到 192.168.1.1</text><polyline points="220,109 220,129" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c02d2-ah)"/><rect x="20" y="190.5" width="400" height="41.5" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="220" y="217.2" font-size="17" fill="#1f2937" text-anchor="middle">4. 以 admin 與 admin 登入</text><polyline points="220,170.5 220,190.5" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c02d2-ah)"/><rect x="20" y="252" width="400" height="41.5" rx="8" fill="#c2410c" stroke="#7c2d12" stroke-width="2"/><text x="220" y="278.7" font-size="17" fill="#ffffff" text-anchor="middle">5. 系統要求變更預設密碼</text><polyline points="220,232 220,252" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c02d2-ah)"/><rect x="20" y="313.5" width="400" height="88.4" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="220" y="340.2" font-size="17" fill="#1f2937" text-anchor="middle">6. 進入 Device &gt; Setup &gt;</text><text x="220" y="363.6" font-size="17" fill="#1f2937" text-anchor="middle">Interfaces &gt; Management，</text><text x="220" y="387.1" font-size="17" fill="#1f2937" text-anchor="middle">改成正式的位址、遮罩、預設閘道</text><polyline points="220,293.5 220,313.5" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c02d2-ah)"/><rect x="20" y="421.9" width="400" height="41.5" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="220" y="448.6" font-size="17" fill="#1f2937" text-anchor="middle">7. 改用新位址重新連入</text><polyline points="220,401.9 220,421.9" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c02d2-ah)"/></svg>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">預設 admin 的密碼規則</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-44">條件</th><th class="py-2 px-4 text-left border">要求</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">長度</td><td class="py-2 px-4 border">至少 8 個字元</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">大寫字母</td><td class="py-2 px-4 border">至少 1 個</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">小寫字母</td><td class="py-2 px-4 border">至少 1 個</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">數字或特殊字元</td><td class="py-2 px-4 border">至少 1 個</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-sm text-gray-600 mt-2">
+                教材說明：這組規則是針對預設 admin 帳號，無法調整，也不會套用到你之後建立的其他管理員；其他帳號的全域密碼規則可到
+                <span class="tech-term">Device &gt; Setup &gt; Management &gt; Minimum Password Complexity</span> 設定，
+                並可用 <span class="tech-term">Device &gt; Password Profiles</span> 針對個別帳號設定密碼有效期限。
+            </p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Web 介面的填寫提示</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li><strong>紅色底線或紅框的頁籤</strong>：該頁裡還有必填項目沒完成。</li>
+                <li><strong>紅色醒目的欄位</strong>：必填欄位；缺少必填資料或內容無效時，<strong>OK 按鈕無法按</strong>。</li>
+                <li>右下角的 <strong>Tasks</strong> 按鈕列出執行中與已完成的工作，確認設定變更是否真的跑完很好用。</li>
+                <li><strong>Help</strong> 按鈕會在新分頁開啟說明文件，視窗裡每個選項都有對應說明。</li>
+            </ul>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>教材寫「PAN-OS 9.0.3 起」強制變更預設密碼；現行原廠文件寫的是「PAN-OS 9.0.4 起，預設 admin 密碼必須在首次登入時變更」。兩者差一個小版號，以原廠現行文件為準。你現在遇到的 12.x 一定會要求變更。</li>
+                    <li>PAN-OS 10.2 起，管理員<strong>使用者名稱</strong>也有規定：至少包含一個英文字母或符號（底線、句點、連字號），不能只有數字，連字號不能放在開頭。這是教材（PAN-OS 9/10 年代）沒有的內容。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Topic 3 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Config</span>
+                三、設定 MGT 介面與基本資訊
+            </h2>
+
+            <p class="mb-3 text-gray-700">
+                路徑：<span class="tech-term">Device &gt; Setup &gt; Interfaces &gt; Management</span>。<strong>最少必填的是 IP 位址、遮罩（Netmask）、預設閘道（Default Gateway）</strong>。
+            </p>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-52">設定項目</th><th class="py-2 px-4 text-left border">說明</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">Type</td><td class="py-2 px-4 border">Static（靜態位址）或 DHCP Client。用 DHCP 時，建議在 DHCP 伺服器上為這台防火牆做 MAC 位址保留，重新開機後才會拿到同一個位址。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Speed</td><td class="py-2 px-4 border">預設自動協商（auto-negotiate），要與對端交換器的埠設定一致。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">MTU</td><td class="py-2 px-4 border">範圍 576 至 1500，預設 1500。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Administrative Management Services</td><td class="py-2 px-4 border">HTTP、HTTPS、Telnet、SSH。HTTP 與 Telnet 是明碼傳輸，建議只開 HTTPS 與 SSH。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Network Services</td><td class="py-2 px-4 border">Ping、SNMP、User-ID 等。Ping 建議開啟，方便檢查 MGT 連通性。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Permitted IP Addresses</td><td class="py-2 px-4 border">只允許這份清單內的位址來管理防火牆。<strong>清單留空（預設）等於任何位址都能連</strong>。</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">一般資訊（Device &gt; Setup &gt; Management）</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li><strong>Hostname 與 Domain</strong>：主機名稱預設為機型名稱；網域預設為空（教材內的說法不一：講師備註寫網域預設為空，投影片本文卻寫兩者都預設為機型名稱，以實機為準）。MGT 若使用 DHCP，才會出現「接受 DHCP 提供的主機名稱／網域」選項。</li>
+                <li><strong>Login Banner</strong>（選填）：登入頁面顯示的警語，例如提醒未經授權不得存取。</li>
+                <li><strong>Latitude 與 Longitude</strong>：用來把防火牆標到 ACC 與 Monitor 的地圖上，不影響轉送功能。</li>
+            </ul>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：改了 MGT 位址就連不上了</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>你正透過 MGT 連著 Web 介面時修改它的位址，目前這條連線就會斷。設定完要用<strong>新位址重新連入</strong>，電腦的網卡也要換到新網段。</li>
+                    <li>遮罩或閘道填錯，管理網路就進不去了，這時要靠 <strong>Console</strong> 救援，所以 Console 線和終端機軟體要先準備好。</li>
+                    <li>Permitted IP Addresses 留空，管理介面就對整個網路敞開；請只填管理員會使用的位址或網段。</li>
+                    <li>設定要執行 Commit 才會生效，Commit 與組態管理的細節在第 4 章。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Topic 4 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Config</span>
+                四、DNS、NTP 與 Service Route
+            </h2>
+
+            <p class="mb-3 text-gray-700">
+                路徑：<span class="tech-term">Device &gt; Setup &gt; Services</span>。兩種外部服務的重要性不一樣：
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h3 class="font-bold text-orange-800 mb-2"><i class="fas fa-globe mr-1"></i>DNS：必須設定</h3>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>防火牆要解析名稱、連到更新伺服器都靠它</li>
+                        <li>至少要手動設定一台 DNS 伺服器，防火牆不會自動借用其他來源（例如 ISP）的 DNS 設定</li>
+                        <li>型式可選 Servers（填 Primary、Secondary）或 DNS Proxy Object</li>
+                        <li>用途包括：找到更新伺服器、解析日誌中的 DNS 項目、解析 FQDN 型位址物件</li>
+                    </ul>
+                </div>
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-clock mr-1"></i>NTP：選填，但建議設定</h3>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>可設 Primary 與 Secondary 兩台，Primary 失聯時才有備援</li>
+                        <li>時間一致，排程工作才能準時執行，跨設備比對日誌時間也才對得上</li>
+                        <li>例如可用 pool.ntp.org 當作 Primary NTP Server</li>
+                        <li>驗證方式預設為 None，也可改用 Symmetric Key 或 Autokey</li>
+                    </ul>
+                </div>
+            </div>
+
+            <p class="text-sm text-gray-700 mb-2">
+                同一頁還有 <strong>Update Server</strong>，預設是 updates.paloaltonetworks.com，除非技術支援指示，否則不要更改；
+                勾選 <strong>Verify Update Server Identity</strong> 會驗證更新伺服器的 SSL 憑證是否由受信任單位簽發。
+                授權啟用與軟體更新的流程，留到第 3 章。
+            </p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Service Route：改變防火牆「從哪裡出去」</h3>
+            <p class="mb-3 text-gray-700">
+                預設情況下，防火牆是<strong>從 MGT 埠</strong>去連外部服務，例如 DNS、內容更新、授權取得、NTP。
+                如果不想讓管理網路直接上網，可以設定 <span class="tech-term">Service Route</span>，改由某個資料埠（in-band port）代為出去。
+            </p>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 440 366" width="100%" style="max-width:440px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c02d3-t c02d3-d" font-family="'Noto Sans TC', sans-serif"><title id="c02d3-t">預設路徑與設定 Service Route 後的路徑</title><desc id="c02d3-d">預設時防火牆從 MGT 埠經管理網路出口連到外部服務（DNS、更新、授權、NTP）。設定 Service Route 後，改由資料埠 ethernet1/x 經資料網路出口連到同樣的外部服務。</desc><defs><marker id="c02d3-ah" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#4b5563"/></marker></defs><rect x="4" y="4" width="212" height="237" rx="10" fill="#f3f4f6" stroke="#4b5563" stroke-width="1.5"/><rect x="224" y="4" width="212" height="237" rx="10" fill="#fff7ed" stroke="#fa582d" stroke-width="1.5"/><text x="110" y="30" font-size="17" fill="#1f2937" text-anchor="middle" font-weight="700">預設路徑</text><text x="330" y="30" font-size="17" fill="#7c2d12" text-anchor="middle" font-weight="700">設定 Service</text><text x="330" y="52" font-size="17" fill="#7c2d12" text-anchor="middle" font-weight="700">Route 後</text><rect x="35" y="70" width="150" height="41.5" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="110" y="96.7" font-size="17" fill="#1f2937" text-anchor="middle">防火牆</text><rect x="255" y="70" width="150" height="41.5" rx="8" fill="#c2410c" stroke="#7c2d12" stroke-width="2"/><text x="330" y="96.7" font-size="17" fill="#ffffff" text-anchor="middle">防火牆</text><rect x="15" y="185.5" width="190" height="41.5" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="110" y="212.2" font-size="17" fill="#1f2937" text-anchor="middle">管理網路出口</text><rect x="235" y="185.5" width="190" height="41.5" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="330" y="212.2" font-size="17" fill="#1f2937" text-anchor="middle">資料網路出口</text><polyline points="110,111.5 110,185.5" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c02d3-ah)"/><polyline points="330,111.5 330,185.5" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c02d3-ah)"/><text x="110" y="153.5" font-size="17" fill="#374151" text-anchor="middle" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" paint-order="stroke">MGT 埠</text><text x="330" y="153.5" font-size="17" fill="#374151" text-anchor="middle" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" paint-order="stroke">資料埠 ethernet1/x</text><rect x="20" y="291" width="400" height="64.9" rx="8" fill="#fff7ed" stroke="#fa582d" stroke-width="2"/><text x="220" y="317.7" font-size="17" fill="#7c2d12" text-anchor="middle">外部服務</text><text x="220" y="341.1" font-size="17" fill="#7c2d12" text-anchor="middle">DNS、更新、授權、NTP</text><polyline points="110,227 110,291" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c02d3-ah)"/><polyline points="330,227 330,291" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c02d3-ah)"/></svg>
+            </div>
+
+            <div class="analogy-box">
+                <p class="font-bold mb-2 text-green-800">📮 生活化比喻：公司寄信的窗口</p>
+                <p class="text-gray-700 text-sm">公司預設所有信件都交給總務室（MGT）寄出。Service Route 就像你告訴總務：「這幾種信，改交給業務部的窗口（資料埠）寄。」信的內容不變，只是出門的路不同。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-4 mb-2">設定步驟</h3>
+            <ol class="list-decimal pl-6 text-gray-700 space-y-1">
+                <li>進入 <span class="tech-term">Device &gt; Setup &gt; Services &gt; Service Route Configuration</span>（支援多虛擬系統的機型要先點 Global 分頁）。</li>
+                <li>選 <strong>Customize</strong>，勾選要改走資料埠的外部服務，按 <strong>Set Selected Service Routes</strong>（部分版本的按鈕文字是 Set Selected Routes，以畫面為準）。</li>
+                <li>在對話框選擇 <strong>Source Interface</strong> 與 <strong>Source Address</strong>（介面有多個位址時，可指定用哪一個）。</li>
+                <li>Commit 之後，防火牆才會改用該資料埠連這些服務。建議優先調整 DNS、Palo Alto Networks Services、URL Updates 與 AutoFocus 這幾項，授權與內容更新才會正常。</li>
+            </ol>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：沒設 DNS，或 Service Route 路徑不通</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li><strong>沒設 DNS</strong>：防火牆解析不了名稱，連更新伺服器都找不到，之後第 3 章的授權與更新會全部卡住。</li>
+                    <li><strong>Service Route 的來源位址不會跟著介面位址自動變</strong>：改了介面 IP 之後，若沒同步更新 Service Route，Commit 可能失敗（以實機為準）。</li>
+                    <li>作為 Service Route 來源的資料埠，必須設定靜態 IP 位址。</li>
+                    <li>改走資料埠後，該資料埠必須有路由與安全政策放行這些外部服務，否則更新與授權會斷。路由與政策分別在第 6、8 章。</li>
+                </ul>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>教材只有 DNS 伺服器與 NTP 伺服器的簡單欄位。現行 PAN-OS 12.x 的 Services 頁面在 NTP 驗證多了 SHA256 與 SHA512 演算法（較舊版本只列 MD5、SHA1）。</li>
+                    <li>PAN-OS 11.2.1 之後的 DNS 設定新增加密 DNS 連線選項（DoH 與 DoT）與退回非加密 DNS 的選項，預設為 None。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Topic 5 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Recovery</span>
+                五、重置為出廠設定
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                設定改到無法收拾，或設備要轉交給別人之前，你會需要把防火牆重置。要用哪一種方法，取決於<strong>你還記不記得 admin 密碼</strong>；知道密碼時，還要看你要的是「只清除設定與日誌」，還是「完整出廠重置」：
+            </p>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 440 825.8" width="100%" style="max-width:440px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c02d4-t c02d4-d" font-family="'Noto Sans TC', sans-serif"><title id="c02d4-t">重置為出廠設定的選擇</title><desc id="c02d4-d">先問是否知道 admin 密碼。知道的話，再看目的：只要清除日誌並讓設定回預設，就在 CLI 輸入 request system private-data-reset，日誌清除、設定回預設，防火牆重新開機且管理連線中斷，這不等於出廠重置；要完整出廠重置（例如設備退役），就在 CLI 輸入 debug system maintenance-mode，進入維護模式後選 Factory Reset。不知道的話，接上 Console，教材的做法是開機過程輸入 maint，進入維護模式後同樣選 Factory Reset。回到出廠狀態後，再依序還原設定與授權。</desc><defs><marker id="c02d4-ah" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#4b5563"/></marker></defs><polygon points="220,6 332,57.46 220,108.92 108,57.46" fill="#faf5ff" stroke="#7c3aed" stroke-width="2"/><text x="220" y="51.7" font-size="17" fill="#4c1d95" text-anchor="middle">知道 admin</text><text x="220" y="75.1" font-size="17" fill="#4c1d95" text-anchor="middle">密碼嗎？</text><rect x="4" y="119.46" width="208" height="64.9" rx="20" fill="#faf5ff" stroke="#7c3aed" stroke-width="2"/><text x="108" y="146.16" font-size="17" fill="#4c1d95" text-anchor="middle">要完整出廠重置嗎？</text><text x="108" y="169.61" font-size="17" fill="#4c1d95" text-anchor="middle">（如設備退役）</text><rect x="228" y="119.46" width="208" height="88.3" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="332" y="146.16" font-size="17" fill="#1f2937" text-anchor="middle">接上 Console</text><text x="332" y="169.61" font-size="17" fill="#1f2937" text-anchor="middle">開機過程輸入 maint</text><text x="332" y="193.06" font-size="17" fill="#1f2937" text-anchor="middle">（教材的做法）</text><polyline points="108,57.46 108,119.46" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c02d4-ah)"/><polyline points="332,57.46 332,119.46" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c02d4-ah)"/><text x="116" y="97.46" font-size="17" fill="#374151" text-anchor="start" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" paint-order="stroke">知道</text><text x="324" y="97.46" font-size="17" fill="#374151" text-anchor="end" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" paint-order="stroke">不知道</text><rect x="4" y="228.36" width="208" height="88.3" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="108" y="255.06" font-size="17" fill="#1f2937" text-anchor="middle">CLI 輸入</text><text x="108" y="278.51" font-size="17" fill="#1f2937" text-anchor="middle">request system</text><text x="108" y="301.96" font-size="17" fill="#1f2937" text-anchor="middle">private-data-reset</text><polyline points="108,184.36 108,228.36" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c02d4-ah)"/><text x="116" y="214.36" font-size="17" fill="#374151" text-anchor="start" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" paint-order="stroke">否</text><rect x="4" y="336.76" width="208" height="111.7" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="108" y="363.46" font-size="17" fill="#1f2937" text-anchor="middle">清除日誌、設定回預設</text><text x="108" y="386.91" font-size="17" fill="#1f2937" text-anchor="middle">防火牆重新開機</text><text x="108" y="410.36" font-size="17" fill="#1f2937" text-anchor="middle">管理連線中斷</text><text x="108" y="433.81" font-size="17" fill="#1f2937" text-anchor="middle">（不是出廠重置）</text><polyline points="108,316.76 108,336.76" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c02d4-ah)"/><rect x="120" y="470.56" width="200" height="88.3" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="220" y="497.26" font-size="17" fill="#1f2937" text-anchor="middle">CLI 輸入</text><text x="220" y="520.71" font-size="17" fill="#1f2937" text-anchor="middle">debug system</text><text x="220" y="544.16" font-size="17" fill="#1f2937" text-anchor="middle">maintenance-mode</text><polyline points="212,151.91 220,151.91 220,470.56" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c02d4-ah)"/><text x="214" y="214.36" font-size="17" fill="#374151" text-anchor="end" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" paint-order="stroke">是</text><rect x="120" y="580.96" width="200" height="41.5" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="220" y="607.66" font-size="17" fill="#1f2937" text-anchor="middle">進入維護模式</text><polyline points="220,558.96 220,580.96" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c02d4-ah)"/><polyline points="400,207.86 400,601.71 320,601.71" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c02d4-ah)"/><rect x="120" y="644.46" width="200" height="64.9" rx="8" fill="#c2410c" stroke="#7c2d12" stroke-width="2"/><text x="220" y="671.16" font-size="17" fill="#ffffff" text-anchor="middle">在維護模式選</text><text x="220" y="694.61" font-size="17" fill="#ffffff" text-anchor="middle">Factory Reset</text><polyline points="220,622.46 220,644.46" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c02d4-ah)"/><rect x="120" y="731.36" width="200" height="88.3" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="220" y="758.06" font-size="17" fill="#1f2937" text-anchor="middle">回到出廠狀態</text><text x="220" y="781.51" font-size="17" fill="#1f2937" text-anchor="middle">之後再依序還原</text><text x="220" y="804.96" font-size="17" fill="#1f2937" text-anchor="middle">設定與授權</text><polyline points="220,709.36 220,731.36" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c02d4-ah)"/></svg>
+            </div>
+
+            <div class="overflow-x-auto mt-4">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-44">方式</th><th class="py-2 px-4 text-left border">適用情境與效果</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">CLI：<br/>request system private-data-reset</td><td class="py-2 px-4 border">需要登入 CLI（知道 admin 密碼）。會清除所有日誌、將設定還原成預設值，並重新開機。教材提醒：包含 IP 位址在內的設定都會被重置，所以<strong>遠端操作時連線會斷</strong>。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">維護模式：<br/>Console 進入 Maintenance Mode</td><td class="py-2 px-4 border">需接 Console。知道密碼時：登入後執行 <code>debug system maintenance-mode</code>，防火牆會重新開機進入維護模式（要完整出廠重置，例如設備退役，就走這條路）。不知道密碼時：教材的做法是開機過程由 Console 輸入 maint 進入維護模式，實際提示依機型與版本而異，以實機為準。進入後選擇 Factory Reset（教材寫 Reset to Factory Default）。完成後若預設帳號一時登不進去，可能是自動 Commit 還沒跑完，稍候再試。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">改載入其他組態</td><td class="py-2 px-4 border">教材也提到可把另一份組態載入到執行中記憶體，不一定要整台重置；載入與還原組態是第 4 章的內容。</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：private-data-reset 不等於出廠重置</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>這個指令的效果<strong>不同於</strong>在維護模式做的出廠重置；它不做資料零化（zeroization），也不會抹除系統磁碟，理論上仍可能以位元層級的復原程序取回資料。設備要退役或轉手時，不要只靠它。</li>
+                    <li>已安裝的內容更新（content）與目前的 PAN-OS 版本會保留。</li>
+                    <li>執行前先匯出一份組態備份。防火牆會重新開機，管理位址也會回到預設，遠端連線一定會斷，請確認人在現場或有 Console 可用。</li>
+                    <li>重置之後若要重新上線，要把組態、授權與軟體、內容更新依序補回（授權與更新見第 3 章）。</li>
+                </ul>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異</p>
+                <p class="text-gray-700 text-sm">教材（PAN-OS 8.0 版簡報）列出這兩種做法。<span class="tech-term">request system private-data-reset</span> 目前找到的說明只標註適用 PAN-OS 9.1 至 11.0；現行 12.x 是否有任何行為變動，本章未逐一查證，實作前請以你機器上的 CLI 說明為準。</p>
+            </div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
+                隨堂測驗
+            </h2>
+            <p class="mb-6 text-gray-600">請點選您認為正確的選項，系統將會顯示解析。</p>
+            <div class="space-y-6" id="quiz-container"></div>
+        </div>
+
+    </main>
+
+    <footer class="footer-signature">
+        Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver.2026.10.29.11.19
+    </footer>
+
+
+    <script>
+        const quizData = [
+            {
+                question: "Q1. 下列哪一項最符合 Palo Alto 防火牆 MGT 埠的特性？",
+                options: ["A. 與資料埠共用，可隨時改設成一般的轉送介面", "B. 專用的帶外管理乙太網路埠，只走管理連線，不能當一般資料介面使用", "C. 只能用 Console 序列線連線，不支援網路線", "D. 一定要設靜態位址，不能使用 DHCP"],
+                correct: 1,
+                desc: "正解：B。MGT 是專用的帶外管理埠，直接連到管理平面，不能當成一般資料介面。A 錯在它不能轉送業務流量；C 錯在 MGT 本來就是網路埠，Console 是另一個入口；D 錯在任何機型的 MGT 都可以改成 DHCP client。"
+            },
+            {
+                question: "Q2. 第一次用預設帳號 admin 登入全新的防火牆，會發生什麼事？",
+                options: ["A. 直接進入 Dashboard，不需要任何額外動作", "B. 必須先向原廠註冊序號才能登入", "C. 系統要求先變更 admin 密碼；新密碼至少 8 個字元，且包含大寫、小寫與數字或特殊字元", "D. 只能透過 Panorama 變更密碼"],
+                correct: 2,
+                desc: "正解：C。預設 admin 密碼必須在首次登入時變更（原廠文件為 PAN-OS 9.0.4 起，教材寫 9.0.3），新密碼要符合：至少 8 字元、1 個大寫、1 個小寫、1 個數字或特殊字元。"
+            },
+            {
+                question: "Q3. 防火牆預設用哪個介面連線到 DNS、內容更新與授權伺服器？想改由資料埠出去，該怎麼做？",
+                options: ["A. 預設走 MGT 埠；在 Device > Setup > Services > Service Route Configuration 設定 Service Route", "B. 預設走第一個資料埠；在 Policies 建立 NAT 規則改路徑", "C. 預設走 Console 埠；在 CLI 切換成 in-band 模式", "D. 預設走任何有路由的介面，不能更改"],
+                correct: 0,
+                desc: "正解：A。預設是 MGT 埠對外連線。想改走資料埠（in-band port），就在 Service Route Configuration 選 Customize、勾選服務，指定 Source Interface 與 Source Address，Commit 後生效。"
+            },
+            {
+                question: "Q4. 你知道 admin 密碼，想清除日誌並讓設定回到預設值，下列敘述何者正確？",
+                options: ["A. 在 Web 介面按 Revert 就會達到同樣效果", "B. 執行 request system private-data-reset，且管理連線完全不受影響", "C. 只要把防火牆關機再開機即可", "D. 執行 request system private-data-reset 會清除日誌並將設定還原為預設，但它不等同維護模式的出廠重置，也不會抹除磁碟資料"],
+                correct: 3,
+                desc: "正解：D。private-data-reset 會清日誌、設定回預設並重新開機；教材提醒連 IP 設定也會被重置，遠端連線會中斷。它不同於維護模式的 Factory Reset，不做資料零化、也不抹除系統磁碟。"
+            }
+        ];
+
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionBox = document.createElement('div');
+            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
+
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border mb-2 text-gray-700" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            questionBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
+                <div class="space-y-2 mb-4">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
+                    <p class="font-bold result-title"></p>
+                    <p class="text-sm text-gray-600 mt-1">${item.desc}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionBox);
+        });
+
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            if (element.parentElement.dataset.answered) return;
+            element.parentElement.dataset.answered = "true";
+
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+                opt.classList.add('disabled');
+            });
+
+            if (optIndex === data.correct) {
+                element.classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了！";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                element.classList.add('bg-red-100', 'border-red-500');
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了！";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+    </script>
+</body>
+</html>

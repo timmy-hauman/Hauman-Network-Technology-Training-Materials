@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palo Alto Networks NGFW 實戰課程 - GlobalProtect 與 VPN</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        /* 卡片主體樣式 (Palo Alto Orange) */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #fa582d;
+        }
+
+        /* 重點提示框 (橘) */
+        .highlight-box {
+            background-color: #fff7ed;
+            border-left: 4px solid #fa582d;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 技術名詞標記 */
+        .tech-term {
+            color: #c2410c;
+            font-weight: 700;
+            background-color: #fff1e6;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
+        }
+
+        /* 比喻說明框 (綠) */
+        .analogy-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 版本差異框 (紫) */
+        .version-box {
+            background-color: #faf5ff;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 常見踩坑框 (紅) */
+        .pitfall-box {
+            background-color: #fef2f2;
+            border-left: 4px solid #dc2626;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 圖解容器 (自繪 SVG) */
+        .diagram-container {
+            background-color: #ffffff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-top: 1rem;
+        }
+
+        .diagram-container svg {
+            display: block;
+            margin: 0 auto;
+            height: auto;
+        }
+
+        @media (max-width: 640px) {
+            .section-card {
+                padding: 1rem;
+            }
+
+            .diagram-container {
+                margin-left: -1rem;
+                margin-right: -1rem;
+                padding: 0.25rem;
+                border-left: 0;
+                border-right: 0;
+                border-radius: 0;
+            }
+        }
+
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover:not(.disabled) {
+            background-color: #f3f4f6;
+        }
+
+        .footer-signature {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+            margin-top: 4rem;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-orange-600 to-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-fire-flame-curved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold">Palo Alto Networks NGFW 實戰課程</h1>
+                    <p class="text-orange-100 mt-1">進階篇 - 單元 16：GlobalProtect 與 VPN</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <!-- Introduction -->
+        <div class="mb-8">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
+                <h2 class="text-xl font-bold text-blue-800 mb-2 flex items-center">
+                    <i class="fas fa-user-tie mr-2"></i>講師導言
+                </h2>
+                <p class="text-blue-900 leading-relaxed">
+                    前面的章節處理的都是「已經走到防火牆面前」的流量。這一章要談的是另一件事：<strong>怎麼讓不在同一個網路裡的人與據點，安全地走進來</strong>。
+                    VPN 在防火牆上有兩種完全不同的情境：<strong>兩個據點之間的站對站 IPsec</strong>，以及<strong>個別使用者遠端連回公司的 GlobalProtect</strong>。
+                    前者像是把幾塊積木依序疊好（設定檔、Gateway、通道、介面、路由、政策），後者則是 Portal、Gateway、App 三個角色分工。
+                    學完這一章，你會知道每一塊要放在哪、彼此怎麼相依，也會知道通道一旦建好，VPN 流量是從哪個區域進入第 8 章的安全政策、又如何和第 14 章的 User-ID 接上。
+                </p>
+            </div>
+        </div>
+
+        <!-- 學習目標 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-gray-100 text-gray-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Goals</span>
+                本章學習目標
+            </h2>
+            <ul class="list-disc pl-6 space-y-1 text-gray-700">
+                <li>分辨站對站 IPsec VPN 與 GlobalProtect 遠端存取的使用情境與設定位置</li>
+                <li>說明 IKE 兩個階段，以及 IKE Crypto、IKE Gateway、IPsec Crypto、IPsec Tunnel、Tunnel Interface 的相依關係，並依順序完成設定</li>
+                <li>為通道介面指定區域與虛擬路由器，補上路由與安全政策，並說明 Proxy ID 何時需要</li>
+                <li>在 Network &gt; IPSec Tunnels 判讀三種狀態燈號，並用 CLI 與錯誤訊息縮小問題範圍</li>
+                <li>說明 GlobalProtect 的 Portal、Gateway、App 各自的職責，以及內部與外部 Gateway 的差別</li>
+                <li>說明 Agent 設定如何被挑選、全通道與分流的差異、HIP 檢查與授權的概況，以及 VPN 流量與 User-ID 的銜接</li>
+            </ul>
+        </div>
+
+        <!-- Topic 1 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Concept</span>
+                一、VPN 兩種情境
+            </h2>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border">比較項目</th>
+                            <th class="py-2 px-4 text-left border">站對站 IPsec VPN</th>
+                            <th class="py-2 px-4 text-left border">GlobalProtect 遠端存取</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">連線的兩端</td><td class="py-2 px-4 border">兩個網路（LAN）之間，可以是兩台 Palo Alto 防火牆，也可以是一台防火牆加第三方設備</td><td class="py-2 px-4 border">個別使用者的設備（App）連到防火牆上的 Gateway</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">誰在驗證</td><td class="py-2 px-4 border">兩個 VPN 對等端（peer）互相驗證，使用預共享金鑰或憑證</td><td class="py-2 px-4 border">使用者向 Portal 與 Gateway 驗證（本機、外部伺服器、憑證、雙因素等）</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">主要設定位置</td><td class="py-2 px-4 border"><span class="tech-term">Network &gt; IPSec Tunnels</span> 與 <span class="tech-term">Network &gt; Network Profiles</span></td><td class="py-2 px-4 border"><span class="tech-term">Network &gt; GlobalProtect &gt; Portals</span> 與 <span class="tech-term">Gateways</span></td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">授權</td><td class="py-2 px-4 border">PAN-OS 的站對站 VPN 不需授權</td><td class="py-2 px-4 border">基本的遠端存取 VPN 不需授權；HIP 檢查等進階功能需要 GlobalProtect Gateway 授權（見第四節）</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="analogy-box">
+                <p class="font-bold mb-2 text-green-800">🏢 生活化比喻：兩棟大樓的專用通道，與出差員工的訪客證</p>
+                <ul class="list-none space-y-2 pl-2 text-gray-700">
+                    <li class="flex items-start"><i class="fas fa-road text-blue-500 mt-1 mr-3"></i><span><strong>站對站 IPsec</strong>：兩棟辦公大樓之間蓋一條專用的封閉通道。兩邊的管理室要先對暗號（IKE 驗證），再談好貨物用什麼箱子、什麼鎖來運送（IPsec 參數）。通道蓋好之後，大樓裡的人不用知道通道怎麼運作，照一般路線走進去就行（路由）。</span></li>
+                    <li class="flex items-start"><i class="fas fa-id-badge text-orange-500 mt-1 mr-3"></i><span><strong>GlobalProtect</strong>：員工出差在外，先到總機（Portal）領取通行設定與可用的入口清單，再到合適的閘門（Gateway）刷證進入。進門之後看得到他是誰（User-ID），還能順便檢查他帶的設備狀況（HIP）。</span></li>
+                </ul>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">PAN-OS 的站對站 VPN 是「路由式」</h3>
+            <p class="mb-3 text-gray-700">
+                原廠說明：IPsec 會把原始封包再包進一個新的 IP 標頭（來源是本地 VPN 對等端、目的是遠端對等端），遠端防火牆收到後拆掉外層標頭，原始封包再繼續送往目的地。
+                防火牆是<strong>依目的 IP 做路由決定</strong>，被路由進通道的流量，就當成 VPN 流量處理。原廠只描述路由式（route-based）VPN，並說明防火牆能與第三方的政策式（policy-based）VPN 設備互通。
+            </p>
+
+            <div class="diagram-container">
+<svg viewBox="0 0 520 550" width="100%" style="max-width:520px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c16d1-t" font-family="'Noto Sans TC', sans-serif" font-size="18">
+<title id="c16d1-t">站對站 IPsec 範例拓樸：站點 A 內部主機接到防火牆 Peer A，外部介面 ethernet1/7，通道介面 tunnel.10 位於 vpn_tun 區域；站點 B 的防火牆 Peer B 外部介面 ethernet1/11，通道介面 tunnel.11 同樣位於 vpn_tun 區域；兩台防火牆經外部網路做 IKE 協商後建立 IPsec 通道</title>
+<defs><marker id="c16d1-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4b5563"/></marker><marker id="c16d1-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker></defs>
+<rect x="5" y="10" width="510" height="208" rx="10" fill="#f9fafb" stroke="#9ca3af" stroke-width="2" stroke-dasharray="6 4"/>
+<text x="17" y="32" text-anchor="start" fill="#4b5563" font-weight="700">站點 A</text>
+<rect x="110" y="46" width="300" height="44" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="260" y="74.3" text-anchor="middle" fill="#1f2937">站點 A 內部主機</text>
+<path d="M260,90 L260,122" fill="none" stroke="#4b5563" stroke-width="2" stroke-linejoin="round"/>
+<rect x="30" y="122" width="460" height="82" rx="8" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/>
+<text x="260" y="147.3" text-anchor="middle" fill="#7c2d12" font-weight="700">防火牆 Peer A</text><text x="260" y="169.3" text-anchor="middle" fill="#7c2d12">外部介面 ethernet1/7 位址 192.168.210.26</text><text x="260" y="191.3" text-anchor="middle" fill="#7c2d12">通道介面 tunnel.10 位於 vpn_tun 區域</text>
+<rect x="5" y="330" width="510" height="210" rx="10" fill="#f9fafb" stroke="#9ca3af" stroke-width="2" stroke-dasharray="6 4"/>
+<text x="17" y="352" text-anchor="start" fill="#4b5563" font-weight="700">站點 B</text>
+<rect x="30" y="368" width="460" height="82" rx="8" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/>
+<text x="260" y="393.3" text-anchor="middle" fill="#7c2d12" font-weight="700">防火牆 Peer B</text><text x="260" y="415.3" text-anchor="middle" fill="#7c2d12">外部介面 ethernet1/11 位址 192.168.210.120</text><text x="260" y="437.3" text-anchor="middle" fill="#7c2d12">通道介面 tunnel.11 位於 vpn_tun 區域</text>
+<path d="M260,450 L260,482" fill="none" stroke="#4b5563" stroke-width="2" stroke-linejoin="round"/>
+<rect x="110" y="482" width="300" height="44" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="260" y="510.3" text-anchor="middle" fill="#1f2937">站點 B 內部主機</text>
+<path d="M130,204 L130,368" fill="none" stroke="#c2410c" stroke-width="10" stroke-linecap="butt"/>
+<text x="150" y="258" text-anchor="start" fill="#7c2d12" font-weight="700" stroke="#ffffff" stroke-width="5" paint-order="stroke" stroke-linejoin="round">IKE 協商後建立 IPsec 通道</text>
+<text x="150" y="284" text-anchor="start" fill="#7c2d12" stroke="#ffffff" stroke-width="5" paint-order="stroke" stroke-linejoin="round">經由外部網路傳送</text>
+</svg>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">介面名稱、位址與區域名稱僅為示意，請換成你自己環境的值。</p>
+
+            <div class="highlight-box mt-4">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>承接前面的章節</p>
+                <p class="text-gray-700">通道介面（Tunnel Interface）、Layer 3 區域（建議另建一個 VPN 專用區域）、虛擬路由器，第 5、6 章已經介紹過基本概念。這一章不重講，而是把它們<strong>接到 VPN 的積木鏈上</strong>：通道介面就是路由與安全政策看到 VPN 的那個「門」。</p>
+                <p class="text-gray-700 text-sm mt-2">注意：區域類型裡的 Tunnel 是給通道內容檢查（Tunnel Content Inspection）用的，不是拿來放 IPsec 通道介面的區域；通道介面所屬的區域，請建立 Layer 3 類型（實際選項以實機為準）。</p>
+            </div>
+        </div>
+
+        <!-- Topic 2 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Building Blocks</span>
+                二、站對站 IPsec 的積木
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                要建立 VPN 通道，兩端要先<strong>互相驗證</strong>，驗證成功之後才<strong>協商資料要怎麼加密</strong>。在 PAN-OS 裡，這兩個階段各有一份設定檔：
+                <span class="tech-term">IKE Crypto</span> 設定檔管第一階段（IKE phase 1，驗證對方並交換金鑰），<span class="tech-term">IPsec Crypto</span> 設定檔管第二階段（IPsec，也就是資料通道本身）。
+            </p>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border w-40">積木</th>
+                            <th class="py-2 px-4 text-left border">選單路徑</th>
+                            <th class="py-2 px-4 text-left border">負責什麼</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">IKE Crypto 設定檔</td><td class="py-2 px-4 border"><span class="tech-term">Network &gt; Network Profiles &gt; IKE Crypto</span></td><td class="py-2 px-4 border">第一階段參數：DH Group、Authentication（雜湊）、Encryption、Key Lifetime（預設 8 小時）</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">IKE Gateway</td><td class="py-2 px-4 border"><span class="tech-term">Network &gt; Network Profiles &gt; IKE Gateways</span></td><td class="py-2 px-4 border">通道兩端的身分：本地介面與位址、對方位址、驗證方式；並在進階選項中掛上 IKE Crypto 設定檔</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">IPsec Crypto 設定檔</td><td class="py-2 px-4 border"><span class="tech-term">Network &gt; Network Profiles &gt; IPSec Crypto</span></td><td class="py-2 px-4 border">第二階段參數：IPSec Protocol（ESP 或 AH）、Encryption、Authentication、DH Group（PFS）、Lifetime</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Tunnel Interface</td><td class="py-2 px-4 border"><span class="tech-term">Network &gt; Interfaces &gt; Tunnel</span></td><td class="py-2 px-4 border">邏輯介面；放進區域、掛上虛擬路由器，路由與安全政策都靠它看見通道</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">IPsec Tunnel</td><td class="py-2 px-4 border"><span class="tech-term">Network &gt; IPSec Tunnels</span></td><td class="py-2 px-4 border">把上面幾塊接起來：選 Tunnel Interface、Type（Auto Key）、IKE Gateway、IPSec Crypto 設定檔；另有 Tunnel Monitor 與 Proxy IDs</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="diagram-container">
+<svg viewBox="0 0 520 300" width="100%" style="max-width:520px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c16d2-t" font-family="'Noto Sans TC', sans-serif" font-size="18">
+<title id="c16d2-t">站對站 IPsec 的積木相依關係：IKE Crypto 設定檔交給 IKE Gateway，IKE Gateway、IPsec Crypto 設定檔與 Tunnel Interface 三者匯入 IPsec Tunnel；路由與安全政策引用的是 Tunnel Interface，所以 Tunnel Interface 另有一支箭頭指向路由與安全政策；箭頭由被引用者指向引用者</title>
+<defs><marker id="c16d2-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4b5563"/></marker><marker id="c16d2-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker></defs>
+<rect x="10" y="10" width="230" height="64" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="125" y="37.3" text-anchor="middle" fill="#1f2937">IKE Crypto 設定檔</text><text x="125" y="59.3" text-anchor="middle" fill="#1f2937">第一階段參數</text>
+<rect x="280" y="10" width="230" height="64" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="395" y="37.3" text-anchor="middle" fill="#1f2937">Tunnel Interface</text><text x="395" y="59.3" text-anchor="middle" fill="#1f2937">區域、虛擬路由器</text>
+<rect x="10" y="110" width="230" height="64" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="125" y="137.3" text-anchor="middle" fill="#1f2937">IKE Gateway</text><text x="125" y="159.3" text-anchor="middle" fill="#1f2937">兩端位址、驗證方式</text>
+<rect x="280" y="110" width="230" height="64" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="395" y="137.3" text-anchor="middle" fill="#1f2937">路由與安全政策</text><text x="395" y="159.3" text-anchor="middle" fill="#1f2937">讓流量進出通道</text>
+<rect x="10" y="224" width="230" height="64" rx="8" fill="#c2410c" stroke="#9a3412" stroke-width="2"/>
+<text x="125" y="251.3" text-anchor="middle" fill="#ffffff">IPsec Tunnel</text><text x="125" y="273.3" text-anchor="middle" fill="#ffffff">Type 選 Auto Key</text>
+<rect x="280" y="224" width="230" height="64" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="395" y="251.3" text-anchor="middle" fill="#1f2937">IPsec Crypto 設定檔</text><text x="395" y="273.3" text-anchor="middle" fill="#1f2937">第二階段參數</text>
+<path d="M125,74 L125,110" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c16d2-ah)" stroke-linejoin="round"/>
+<path d="M125,174 L125,224" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c16d2-ah)" stroke-linejoin="round"/>
+<path d="M395,74 L395,110" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c16d2-ah)" stroke-linejoin="round"/>
+<path d="M280,42 L260,42 L260,199 L190,199 L190,224" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c16d2-ah)" stroke-linejoin="round"/>
+<path d="M280,256 L240,256" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c16d2-ah)" stroke-linejoin="round"/>
+</svg>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">箭頭由被引用者指向引用者：箭頭起點的積木要先建好，終點才能選到它。這也決定了建置的先後順序。路由與安全政策引用的是 Tunnel Interface（靜態路由選它當出口介面，安全政策看它所屬的區域），所以 Tunnel Interface 有兩支箭頭：一支指向 IPsec Tunnel，一支指向路由與安全政策。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">IKE Gateway 要設定哪些東西</h3>
+            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-code-compare text-orange-500 mr-2"></i>Version</h4>
+                    <p class="text-sm text-gray-700">IKEv1 only、IKEv2 only，或 IKEv2 preferred（對方不支援 IKEv2 時退回 IKEv1）。所選版本會決定進階選項頁籤出現哪些項目。</p>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-location-dot text-orange-500 mr-2"></i>本地端點</h4>
+                    <p class="text-sm text-gray-700">選 Address Type（IPv4 或 IPv6）、對外的實體 Interface，以及作為通道端點、可從外部路由到的 Local IP Address。</p>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-crosshairs text-orange-500 mr-2"></i>Peer IP Address Type</h4>
+                    <p class="text-sm text-gray-700">IP、FQDN 或 Dynamic。對方位址會變動時，用 FQDN 可以免去逐次改位址；Dynamic 用於不知道對方位址、由對方主動發起協商。</p>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-key text-orange-500 mr-2"></i>Authentication</h4>
+                    <p class="text-sm text-gray-700">Pre-Shared Key（最多 255 個字元，原廠建議用難以被字典攻擊破解的金鑰）或 Certificate。還有 Local / Peer Identification，留白時以本地、對方的 IP 位址作為身分。</p>
+                </div>
+            </div>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 text-sm">
+                <li><strong>Passive Mode</strong>：啟用後，防火牆只回應 IKE 連線要求、不主動發起。</li>
+                <li><strong>NAT Traversal</strong>：兩個 Gateway 中間有設備做 NAT 時啟用，用 UDP 封裝讓通道穿過 NAT 設備。</li>
+                <li>IKEv1 專屬：Exchange Mode（auto、aggressive、main），不選 auto 時兩邊必須一致；Dead Peer Detection（Interval 2 到 100 秒、Retry 2 到 100）。</li>
+                <li>IKEv2 專屬：Liveness Check（Interval 預設 5 秒）。</li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">加密演算法怎麼選：原廠的建議</h3>
+            <div class="highlight-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-shield-halved mr-1"></i>以下為原廠對 IKE Crypto 與 IPSec Crypto 設定檔的建議大意</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>選<strong>對方能支援的最強</strong>驗證與加密演算法；不確定對方支援什麼時，可以依「由強到弱」的順序放入多個演算法，雙方會協商出共同支援的最強者。</li>
+                    <li>驗證（雜湊）演算法用 SHA-256 以上，長時間存在的連線偏好 SHA-384 以上；<strong>不要用 SHA-1 與 MD5</strong>。</li>
+                    <li>加密演算法用 AES；DES 與 3DES 屬於弱演算法。</li>
+                    <li>IPsec 協定方面，原廠最佳實務是選 ESP 而不是 AH。</li>
+                    <li>DH Group：為了最高安全性，選編號最高的群組。</li>
+                </ul>
+                <p class="text-xs text-gray-500 mt-2">本課程不另外列出「推薦組合」，實際選擇請對照你這台防火牆的版本與對方設備支援的清單。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">設定順序檢查清單</h3>
+            <p class="text-sm text-gray-600 mb-2">建議的設定先後順序如下，兩端防火牆各做一遍。</p>
+            <ol class="list-none space-y-2 text-gray-700 text-sm">
+                <li class="flex items-start"><i class="far fa-square-check text-green-600 mt-1 mr-3"></i><span><strong>1. 對外的 Layer 3 介面</strong>：作為 IKE 第一階段端點，放進外部區域、指定虛擬路由器與位址。<span class="tech-term">Network &gt; Interfaces &gt; Ethernet</span></span></li>
+                <li class="flex items-start"><i class="far fa-square-check text-green-600 mt-1 mr-3"></i><span><strong>2. 通道介面</strong>：新增 tunnel 介面，放進專屬的 VPN 區域（Layer 3 類型），指定虛擬路由器；若要做通道監控或動態路由，要給它位址。<span class="tech-term">Network &gt; Interfaces &gt; Tunnel</span></span></li>
+                <li class="flex items-start"><i class="far fa-square-check text-green-600 mt-1 mr-3"></i><span><strong>3. 路由</strong>：靜態路由把對方網段指向通道介面，或使用動態路由。<span class="tech-term">Network &gt; Virtual Routers</span></span></li>
+                <li class="flex items-start"><i class="far fa-square-check text-green-600 mt-1 mr-3"></i><span><strong>4. IKE Crypto 與 IPsec Crypto 設定檔</strong>：兩端的值必須相容。<span class="tech-term">Network &gt; Network Profiles</span></span></li>
+                <li class="flex items-start"><i class="far fa-square-check text-green-600 mt-1 mr-3"></i><span><strong>5. IKE Gateway</strong>：介面、本地位址、對方位址、金鑰或憑證，並在進階選項掛上 IKE Crypto 設定檔。</span></li>
+                <li class="flex items-start"><i class="far fa-square-check text-green-600 mt-1 mr-3"></i><span><strong>6. IPsec Tunnel</strong>：選 Tunnel Interface、Auto Key、IKE Gateway、IPSec Crypto 設定檔；視需要加 Tunnel Monitor 與 Proxy IDs。</span></li>
+                <li class="flex items-start"><i class="far fa-square-check text-green-600 mt-1 mr-3"></i><span><strong>7. 安全政策</strong>：範例放行外部區域與 VPN 區域之間所需的流量；兩端 LAN 互通的流量，還要放行 VPN 區域與內部區域之間（講師補充）。<span class="tech-term">Policies &gt; Security</span></span></li>
+                <li class="flex items-start"><i class="far fa-square-check text-green-600 mt-1 mr-3"></i><span><strong>8. Commit 並驗證</strong>：到 <span class="tech-term">Network &gt; IPSec Tunnels</span> 看狀態燈號。</span></li>
+            </ol>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>最常見的踩坑：兩邊的提案對不上</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>IKE 要成功，兩端必須交換<strong>相容的 IKE 參數</strong>；第二階段也一樣要有相容的 IPsec 參數。IKE Crypto 設定檔中，兩邊要至少有一組共同的 Encryption、Authentication 與 DH Group，否則會看到 no proposal chosen 或 Unable to process peer's SA payload 這類訊息。</li>
+                    <li><strong>PFS 設定</strong>要兩邊一致（同時啟用或同時停用，DH Group 也要有交集）。原廠特別提醒：PFS 不會在初次建立通道時協商，所以不一致的問題要等到<strong>第一次 rekey 才會讓通道失敗</strong>，建置時就要在兩邊逐一核對。</li>
+                    <li>Pre-shared Key 兩邊要一模一樣；Local / Peer Identification 若有指定，兩邊也要彼此對應。</li>
+                </ul>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>IKE Crypto 設定檔的 DH Group 21、16、15，以及 IPsec Crypto 的 group15、16、21，需要 PAN-OS 10.2.0 以上；其中 IKE 這三個群組僅限 IKEv2 only 模式。</li>
+                    <li>IKE Crypto 的 AES-GCM（aes-128-gcm、aes-256-gcm）自 PAN-OS 10.0.3 起提供，需 IKEv2，且 Authentication 必須選 non-auth，否則 Commit 會失敗。</li>
+                    <li>IKE Gateway 的 Interface 欄位，自 PAN-OS 11.1.5 起可選用 DHCPv6、PPPoEv6 或 5G 數據機設定的介面。</li>
+                    <li>後量子密碼的 IKEv2 VPN 設定（Quantum Resistant IKEv2 VPN）不在本課程範圍。Strata Cloud Manager 與 Prisma Access 的欄位清單與 PAN-OS 不完全相同，本章只談 PAN-OS。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Topic 3 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Routing &amp; Policy</span>
+                三、通道介面、路由與政策
+            </h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">通道介面：區域與虛擬路由器</h3>
+            <p class="mb-3 text-gray-700">
+                新增通道介面時，在 <span class="tech-term">Network &gt; Interfaces &gt; Tunnel</span> 輸入介面編號尾碼（例如 .2），在 Config 頁籤指定<strong>Security Zone</strong>與<strong>Virtual Router</strong>。
+                區域可以直接用內部的 trust 區域，但原廠建議<strong>另建一個專屬的 VPN 區域</strong>（名稱自訂，例如 vpn_tun），這樣才能用安全政策精確管控 VPN 進出的流量。IP 位址則是選填，但<strong>要做通道監控或動態路由時就需要</strong>。
+            </p>
+
+            <div class="diagram-container">
+<svg viewBox="0 0 520 618" width="100%" style="max-width:520px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c16d3-t" font-family="'Noto Sans TC', sans-serif" font-size="18">
+<title id="c16d3-t">站對站 VPN 封包路徑：來源是站點 A 主機，先進入入口介面所在的 trust 區域，路由查詢把目的網段指向 tunnel.10，出口為通道介面所以目的區域是 vpn_tun，接著比對 trust 到 vpn_tun 的安全政策，再進入 IPsec 通道，外層加上新的 IP 標頭，由外部介面 ethernet1/7 送往 Peer B</title>
+<defs><marker id="c16d3-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4b5563"/></marker><marker id="c16d3-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker></defs>
+<rect x="80" y="10" width="360" height="44" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="260" y="38.3" text-anchor="middle" fill="#1f2937">來源：站點 A 主機</text>
+<rect x="80" y="82" width="360" height="62" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="260" y="108.3" text-anchor="middle" fill="#1f2937">入口介面所在區域</text><text x="260" y="130.3" text-anchor="middle" fill="#1f2937">trust</text>
+<path d="M260,54 L260,82" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c16d3-ah)" stroke-linejoin="round"/>
+<rect x="80" y="172" width="360" height="62" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="260" y="198.3" text-anchor="middle" fill="#1f2937">路由查詢</text><text x="260" y="220.3" text-anchor="middle" fill="#1f2937">目的網段指向 tunnel.10</text>
+<path d="M260,144 L260,172" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c16d3-ah)" stroke-linejoin="round"/>
+<rect x="80" y="262" width="360" height="62" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="260" y="288.3" text-anchor="middle" fill="#1f2937">出口為通道介面</text><text x="260" y="310.3" text-anchor="middle" fill="#1f2937">目的區域 vpn_tun</text>
+<path d="M260,234 L260,262" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c16d3-ah)" stroke-linejoin="round"/>
+<rect x="80" y="352" width="360" height="62" rx="8" fill="#c2410c" stroke="#9a3412" stroke-width="2"/>
+<text x="260" y="378.3" text-anchor="middle" fill="#ffffff">安全政策比對</text><text x="260" y="400.3" text-anchor="middle" fill="#ffffff">trust 到 vpn_tun</text>
+<path d="M260,324 L260,352" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c16d3-ah)" stroke-linejoin="round"/>
+<rect x="80" y="442" width="360" height="62" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="260" y="468.3" text-anchor="middle" fill="#1f2937">進入 IPsec 通道</text><text x="260" y="490.3" text-anchor="middle" fill="#1f2937">外層加上新的 IP 標頭</text>
+<path d="M260,414 L260,442" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c16d3-ah)" stroke-linejoin="round"/>
+<rect x="80" y="532" width="360" height="62" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="260" y="558.3" text-anchor="middle" fill="#1f2937">由外部介面 ethernet1/7</text><text x="260" y="580.3" text-anchor="middle" fill="#1f2937">送往 Peer B</text>
+<path d="M260,504 L260,532" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c16d3-ah)" stroke-linejoin="round"/>
+</svg>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">示意圖。把第 1 章的「查來源區域、查路由決定目的區域、比對安全政策」套在 VPN 上：通道介面所屬的區域，就是安全政策裡的來源或目的區域。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">站對站與 GlobalProtect 的通道介面不一樣</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border">項目</th><th class="py-2 px-4 text-left border">站對站 IPsec 通道介面</th><th class="py-2 px-4 text-left border">GlobalProtect 外部 Gateway 通道介面</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">Virtual Router</td><td class="py-2 px-4 border">範例指定為 default（要掛上虛擬路由器，靜態路由才能指向它）</td><td class="py-2 px-4 border">原廠建議將 Virtual Router 設為 None</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">IP 位址</td><td class="py-2 px-4 border">選填；要做通道監控或動態路由時需要</td><td class="py-2 px-4 border">除非用動態路由，否則不需要；可作為疑難排解之用</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">區域</td><td class="py-2 px-4 border">建議專屬 VPN 區域</td><td class="py-2 px-4 border">建議專屬區域（例如 corp-vpn）並啟用 User Identification</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">路由：靜態或動態</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li><strong>靜態路由</strong>：到 <span class="tech-term">Network &gt; Virtual Routers</span>，選擇通道介面所在的虛擬路由器，在 Static Route 新增「對方網段，介面選通道介面」。原廠範例：Peer A 把 192.168.69.0/24 指向 tunnel.10。</li>
+                <li><strong>動態路由</strong>：原廠範例使用 <strong>OSPF</strong>（IPv6 用 OSPFv3），範例同時有靜態與動態路由，並要求<strong>每個通道介面都有固定 IP 位址</strong>。</li>
+                <li>在這個範例中，Peer B 同時跑靜態路由和 OSPF，所以需要<strong>重新分發設定檔（Redistribution Profile）</strong>把靜態路由匯入 OSPF，否則兩種路由協定在同一個虛擬路由器上不會互通路由資訊。</li>
+                <li>驗證 OSPF 時，原廠範例用 <code>show routing protocol ospf neighbor</code> 與 <code>show routing route</code>。</li>
+                <li>以上路徑與指令以傳統路由引擎為準；若啟用 Advanced Routing Engine，路由改在 Logical Router 設定（見第 6 章）。</li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">安全政策：通道區域也要放行</h3>
+            <p class="mb-3 text-gray-700">
+                通道建好、路由也有了，流量還是要通過<strong>安全政策</strong>。到 <span class="tech-term">Policies &gt; Security</span>，原廠範例建立的是外部（untrust）區域與 VPN 區域之間、兩個方向的規則。
+                實務上，兩端 LAN 互通的流量要通過 VPN 區域與內部（trust）區域之間的規則，這一條一定要有（講師補充）。
+                使用專屬 VPN 區域的好處，就是這些規則的範圍可以只針對 VPN 流量寫，寫法與第 8、9 章完全相同。
+            </p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Proxy ID：只有對方是政策式設備時才需要</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>在 <span class="tech-term">Network &gt; IPSec Tunnels &gt; Proxy IDs</span> 頁籤，可新增 Proxy ID：名稱、Local、Remote 網段，以及 Protocol（Number、Any、TCP、UDP）。</li>
+                <li>原廠寫明「<strong>只有在 VPN 對方使用政策式 VPN 時才需要</strong>」。沒有設定時，防火牆預設 Proxy ID 是來源 0.0.0.0/0、目的 0.0.0.0/0、應用程式 any（預設值以實機為準），與政策式對方交換時會導致 VPN 建立失敗。</li>
+                <li>Proxy ID 兩端必須<strong>互為鏡像</strong>。例如（範例位址）這邊 local 是 192.0.2.0/24、peer 是 198.51.100.0/24，另一邊就必須 local 198.51.100.0/24、peer 192.0.2.0/24；子網路遮罩不同（例如一邊 /32、一邊 /16）也會讓通道建不起來。</li>
+                <li>Proxy ID 有數量上限；超過時 Commit 會出現 tunnel binding 上限錯誤。原廠的處理是再建一條使用相同第一、二階段設定的通道，並把 Proxy ID 的位址合併成超網路（supernet）來減少項目。</li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">通道監控與狀態燈號</h3>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-heart-pulse text-orange-500 mr-2"></i>Tunnel Monitor</h4>
+                    <p class="text-sm text-gray-700 mb-1">在 IPsec Tunnel 的 Show Advanced Options 勾選 Tunnel Monitor，輸入通道對端的 Destination IP，選一個監控設定檔。<strong>通道介面必須有 IP 位址</strong>才能監控。</p>
+                    <p class="text-sm text-gray-700">設定檔在 <span class="tech-term">Network &gt; Network Profiles &gt; Monitor</span>：Action 可選 <strong>Wait Recover</strong>（仍把通道介面當成存在）或 <strong>Fail Over</strong>（停用通道介面及其路由，讓流量改走備援路徑）；Interval 預設 3 秒，Threshold 預設 5 次。</p>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-traffic-light text-orange-500 mr-2"></i>Network &gt; IPSec Tunnels 的三種狀態</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li><strong>Tunnel Status</strong>：綠色代表有有效的 IPsec SA（第二階段），紅色代表不存在或已過期。</li>
+                        <li><strong>IKE Gateway Status</strong>：綠色代表有有效的第一階段 SA，紅色代表不存在或已過期。</li>
+                        <li><strong>Tunnel Interface Status</strong>：綠色代表介面是 up；紅色是啟用通道監控、且監控狀態為 down 而讓介面 down。</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>常見踩坑：通道是綠的，流量卻不通</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li><strong>沒有指向通道介面的路由</strong>：封包根本不會被送進通道，IKE 與 IPsec 狀態再漂亮也沒用。</li>
+                    <li><strong>漏了通道區域的安全政策</strong>：用專屬 VPN 區域時，必須明確寫出 VPN 區域與內部區域（以及外部區域）之間的規則；否則流量會被擋在政策這一關。</li>
+                    <li><strong>與其他廠牌設備對接時 Proxy ID 對不上</strong>：對方是政策式時，要把對方定義的本地、遠端網段與協定，鏡像填進 Proxy ID，連遮罩都要一致。</li>
+                    <li>靜態與動態路由混用時，忘了做重新分發，會造成其中一邊學不到對方網段。</li>
+                </ul>
+            </div>
+
+            <div class="highlight-box mt-4">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>原廠文件說法不一：Tunnel Interface Status</p>
+                <p class="text-gray-700 text-sm">有的說明只寫「紅色代表啟用通道監控且狀態為 down」；有的則補充：沒有啟用通道監控時，介面也顯示綠色。不同說明的描述詳略不一，實際燈號請以實機為準。</p>
+            </div>
+        </div>
+
+        <!-- Topic 4 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Components</span>
+                四、GlobalProtect 元件
+            </h2>
+
+            <div class="grid md:grid-cols-3 gap-4 mb-4">
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h3 class="font-bold text-orange-800 mb-2"><i class="fas fa-door-open mr-1"></i>Portal</h3>
+                    <p class="text-sm text-gray-700">管理中心：把設定下發給終端，包含可用的 Gateway 清單與連線所需的客戶端憑證；控制 App 的行為與散布方式；若使用 HIP，也定義要收集哪些主機資料。</p>
+                </div>
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-shield-halved mr-1"></i>Gateway</h3>
+                    <p class="text-sm text-gray-700">對來自 App 的流量執行安全政策；可提供遠端使用者 VPN 通道，也可以只對內部資源套用政策。啟用 HIP 時，由主機回報的資料產生 HIP 報告，並用於政策判斷。</p>
+                </div>
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h3 class="font-bold text-blue-800 mb-2"><i class="fas fa-laptop mr-1"></i>App（Agent）</h3>
+                    <p class="text-sm text-gray-700">安裝在終端上的程式，經由 Portal 與 Gateway 存取網路資源。Windows、macOS 的 App 由 Portal 散布；行動版 App 來自官方應用程式商店，或經由 MDM 部署。</p>
+                </div>
+            </div>
+            <p class="text-sm text-gray-600 mb-4">Portal 與 Gateway 可以放在同一台防火牆上，也可以把多個 Gateway 分散部署。兩者都能設定在任何 Palo Alto Networks NGFW 的介面上。</p>
+
+            <div class="analogy-box">
+                <p class="font-bold mb-2 text-green-800">🏨 生活化比喻：飯店櫃檯與房門</p>
+                <ul class="list-none space-y-2 pl-2 text-gray-700">
+                    <li class="flex items-start"><i class="fas fa-bell-concierge text-orange-500 mt-1 mr-3"></i><span><strong>Portal</strong>：大廳櫃檯。先在這裡確認身分，領到房卡規則與可用的樓層清單。</span></li>
+                    <li class="flex items-start"><i class="fas fa-door-closed text-blue-500 mt-1 mr-3"></i><span><strong>Gateway</strong>：各樓層的門禁。再次確認身分，並決定你這張卡能進哪些房間（安全政策），必要時還看你的行李是否合規（HIP）。</span></li>
+                    <li class="flex items-start"><i class="fas fa-id-card text-green-600 mt-1 mr-3"></i><span><strong>App</strong>：你手上的房卡。刷卡的方式、能不能自己停用，都是櫃檯在設定裡事先決定的。</span></li>
+                </ul>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Portal 與 Gateway 的設定位置</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-44">項目</th><th class="py-2 px-4 text-left border">Portal：<span class="tech-term">Network &gt; GlobalProtect &gt; Portals</span></th><th class="py-2 px-4 text-left border">Gateway：<span class="tech-term">Network &gt; GlobalProtect &gt; Gateways</span></th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">General</td><td class="py-2 px-4 border">Interface 與 IP Address（Portal 網頁服務所在的位址）、登入頁面等外觀設定</td><td class="py-2 px-4 border">Interface 與 IP Address（遠端終端的入口介面）</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Authentication</td><td class="py-2 px-4 border">SSL/TLS Service Profile（伺服器端憑證）與 Client Authentication（依 OS 區分的驗證設定）</td><td class="py-2 px-4 border">Gateway 自己的客戶端驗證設定</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Agent</td><td class="py-2 px-4 border">客戶端設定清單：Authentication、Config Selection Criteria、Internal、External、App、HIP Data Collection</td><td class="py-2 px-4 border">Tunnel Settings、Client Settings、Client IP Pool、Network Services、Connection Settings、Video Traffic、HIP Notification</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：不要把管理服務暴露在 GlobalProtect 介面</p>
+                <p class="text-gray-700 text-sm">原廠明確警告：不要在 Portal 或 Gateway 的介面上掛上允許 Telnet、SSH、HTTP、HTTPS 的 Interface Management Profile，否則等於把管理介面暴露到網際網路。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">內部與外部 Gateway</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border">種類</th><th class="py-2 px-4 text-left border">位置與用途</th><th class="py-2 px-4 text-left border">App 如何選用</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">內部 Gateway</td><td class="py-2 px-4 border">設定在內部網路的介面上，對內部資源套用安全政策；可搭配 User-ID 與 HIP 檢查，通道模式或非通道模式均可</td><td class="py-2 px-4 border">App 先做<strong>內部主機偵測</strong>（對 Portal 設定中指定的內部主機做反向 DNS 查詢）判斷自己是否在內網；偵測成功就連內部 Gateway</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">外部 Gateway（自動探索）</td><td class="py-2 px-4 border">位於企業網路之外，提供安全強制與／或 VPN 存取</td><td class="py-2 px-4 border">預設連到最佳的一台，依 Gateway 的優先順序、來源區域與回應時間判斷</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">外部 Gateway（手動）</td><td class="py-2 px-4 border">同樣位於外部，可以有不同的驗證要求</td><td class="py-2 px-4 border">只在使用者主動發起時才連線；需在 App 設定中標示為 Manual</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">只有內部 Gateway 的部署，所有終端都必須設為 User-logon（Always On），不支援 On-Demand。內部主機偵測對 Portal 的 Internal 頁籤另有 Source Address 欄位：只有 IP 位址落在該位址範圍內的 App，才能向該內部 Gateway 驗證與回報 HIP。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">使用者驗證</h3>
+            <p class="mb-2 text-gray-700">App 第一次連線時先向 Portal 驗證，成功後 Portal 下發設定（含 Gateway 清單，必要時有客戶端憑證），App 再連到 Gateway，Gateway 同樣要驗證。可用的方式：</p>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 text-sm">
+                <li><strong>本機（Local）</strong>：帳號建在防火牆上，原廠說明僅適合小型部署。</li>
+                <li><strong>外部驗證</strong>：LDAP、Kerberos、TACACS+、SAML、RADIUS，包含 OTP 等雙因素。Portal 與各 Gateway 可以各用不同的 Authentication Profile。</li>
+                <li><strong>客戶端憑證</strong>：由憑證取得使用者名稱並驗證；智慧卡也透過 Certificate Profile 處理。</li>
+                <li><strong>雙因素</strong>：同時設定憑證設定檔與驗證設定檔。</li>
+                <li><strong>單一登入（SSO）</strong>：Windows 與 macOS 上預設啟用，使用作業系統登入憑證（SAML SSO 在 macOS 不支援）。</li>
+                <li>原廠另提醒：GlobalProtect 不支援 802.1X；若要依 AD 群組寫政策，改用 User-ID 加群組對應。</li>
+            </ul>
+            <p class="text-sm text-gray-600 mt-2">Portal 的 Authentication 頁籤可以依 OS 建立多組 Client Authentication，同一個 OS 有多組時，防火牆一律採用清單最上面的那一組。「Allow Authentication with User Credentials OR Client Certificate」選 No 時，使用者必須同時提供帳密與客戶端憑證，這時 Certificate Profile 為必填。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">客戶端設定如何被挑選</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li><strong>Portal 端</strong>：Agent 頁籤裡有一份設定清單，Portal 依<strong>使用者或群組名稱與用戶端 OS</strong> 挑選要下發哪一份，並<strong>由清單最上方開始比對</strong>。比對條件在 Config Selection Criteria 頁籤：OS、User/User Group（需先設定群組對應；可選 any 或 pre-logon），另有 Device Checks 與 Custom Checks（Windows 登錄檔、macOS plist）。<strong>特定使用者或特定 OS 的設定要放在較一般的設定上面</strong>，可用 Move Up、Move Down 調整。</li>
+                <li><strong>Gateway 端</strong>：Agent &gt; Client Settings 也有一組條件：Source User、OS、Source Address。使用者、OS、來源位址三者同時符合，該設定才會下發。</li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">連線方式（Connect Method）</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-48">方式</th><th class="py-2 px-4 text-left border">行為</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">On-demand</td><td class="py-2 px-4 border">使用者手動啟動 App 並連到 Portal；原廠說明主要用於遠端存取</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">User-logon (Always On)</td><td class="py-2 px-4 border">使用者登入作業系統後，App 自動連到 Portal 取得設定，再與 Gateway 建立通道</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Pre-logon (Always On)</td><td class="py-2 px-4 border">使用者登入前就先連線，以預先安裝的機器憑證驗證，登入後自動維持連線</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Pre-logon then On-demand</td><td class="py-2 px-4 border">登入前先連線，登入後使用者需手動啟動連線</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">設定位置：<span class="tech-term">Network &gt; GlobalProtect &gt; Portals</span> &gt; 選擇 Portal &gt; Agent &gt; 選擇設定 &gt; App，欄位為 Connect Method。行動裝置不支援 pre-logon，會自動退回對應的方式。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">全通道與分流（Split Tunnel）</h3>
+            <p class="mb-3 text-gray-700">
+                沒有設定分流時，<strong>所有流量都走進 VPN 通道</strong>（全通道）。分流則讓部分流量不進通道。設定位置：<span class="tech-term">Network &gt; GlobalProtect &gt; Gateways</span> &gt; 選擇 Gateway &gt; Agent &gt; Client Settings &gt; 選擇設定 &gt; Split Tunnel。
+            </p>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h4 class="font-bold text-orange-800 mb-1"><i class="fas fa-route mr-1"></i>Access Route（依網段）</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li><strong>Include</strong>：要走通道的網段；放入 0.0.0.0/0 與 ::/0 代表全部。</li>
+                        <li><strong>Exclude</strong>：不走通道、使用實體網卡的網段；Exclude 的網段應該比 Include 更具體，否則可能排除到超出預期的範圍。</li>
+                        <li><strong>No direct access to local network</strong>：連線期間封鎖對本地網路資源（如印表機）的直接存取，原廠建議用於不受信任的網路。</li>
+                    </ul>
+                </div>
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-globe mr-1"></i>Domain and Application</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>Include / Exclude <strong>Domain</strong>（可加連接埠，例如 *.office365.com），各最多 200 筆。</li>
+                        <li>Include / Exclude <strong>Client Application Process Name</strong>（程序完整路徑），各最多 200 筆。</li>
+                        <li>Linux 終端僅支援網域與網段型分流，不支援應用程式型。</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：走分流的流量，防火牆看不到</p>
+                <p class="text-gray-700 text-sm">原廠明確說明：走分流的流量<strong>不會經過 Gateway 防火牆檢查</strong>，也就拿不到 Palo Alto Networks 的威脅防護。決定要把哪些流量排除之前，要想清楚這是風險取捨。原廠列出適合分流的情境，例如：延遲敏感的 VoIP、影音串流，以及 Microsoft 365 的特定最佳化網段。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">HIP（主機資訊檢查）概觀</h3>
+            <div class="diagram-container">
+<svg viewBox="0 0 520 548" width="100%" style="max-width:520px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c16d4-t" font-family="'Noto Sans TC', sans-serif" font-size="18">
+<title id="c16d4-t">HIP 檢查流程：Portal 的 HIP Data Collection 決定要收集哪些資料，App 回報原始主機資料，Gateway 產生 HIP 報告，再用 HIP Objects 比對條件，以 AND、OR、NOT 組成 HIP Profiles，最後掛在安全政策規則上，符合才套用該規則</title>
+<defs><marker id="c16d4-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4b5563"/></marker><marker id="c16d4-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker></defs>
+<rect x="50" y="10" width="420" height="62" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="260" y="36.3" text-anchor="middle" fill="#1f2937">Portal 的 HIP Data Collection</text><text x="260" y="58.3" text-anchor="middle" fill="#1f2937">決定要收集哪些資料</text>
+<rect x="50" y="100" width="420" height="44" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="260" y="128.3" text-anchor="middle" fill="#1f2937">App 回報原始主機資料</text>
+<path d="M260,72 L260,100" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c16d4-ah)" stroke-linejoin="round"/>
+<rect x="50" y="172" width="420" height="44" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="260" y="200.3" text-anchor="middle" fill="#1f2937">Gateway 產生 HIP 報告</text>
+<path d="M260,144 L260,172" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c16d4-ah)" stroke-linejoin="round"/>
+<rect x="50" y="244" width="420" height="62" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="260" y="270.3" text-anchor="middle" fill="#1f2937">HIP Objects</text><text x="260" y="292.3" text-anchor="middle" fill="#1f2937">比對條件，例如修補程式、磁碟加密</text>
+<path d="M260,216 L260,244" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c16d4-ah)" stroke-linejoin="round"/>
+<rect x="50" y="334" width="420" height="62" rx="8" fill="#c2410c" stroke="#9a3412" stroke-width="2"/>
+<text x="260" y="360.3" text-anchor="middle" fill="#ffffff">HIP Profiles</text><text x="260" y="382.3" text-anchor="middle" fill="#ffffff">以 AND、OR、NOT 組合</text>
+<path d="M260,306 L260,334" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c16d4-ah)" stroke-linejoin="round"/>
+<rect x="50" y="424" width="420" height="62" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="260" y="450.3" text-anchor="middle" fill="#1f2937">安全政策規則</text><text x="260" y="472.3" text-anchor="middle" fill="#1f2937">符合才套用該規則</text>
+<path d="M260,396 L260,424" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c16d4-ah)" stroke-linejoin="round"/>
+</svg>
+            </div>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 mt-3 text-sm">
+                <li>HIP Objects 是用來過濾 App 回報之原始資料的比對條件；HIP Profiles 是 HIP Objects 的集合，可用 AND、OR、NOT 與括號組合。路徑：<span class="tech-term">Objects &gt; GlobalProtect &gt; HIP Objects</span> 與 <span class="tech-term">HIP Profiles</span>。</li>
+                <li>HIP Profile 掛在安全政策規則上；流量符合該 HIP Profile 就套用這條規則，不符合則繼續比對下一條。原廠內部 Gateway 範例，就是用「缺少修補程式」的 HIP Profile 搭配使用者或群組。</li>
+                <li>原廠建議 HIP Objects 保持單純，每個只比對一件事（例如某個必要軟體、網域成員資格、OS）。</li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">授權概觀</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-44">授權</th><th class="py-2 px-4 text-left border">情形</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">不需要 GlobalProtect 授權</td><td class="py-2 px-4 border">以單一或多個內部／外部 Gateway 提供遠端存取 VPN，以及 Windows、macOS 的 App，原廠寫明不需要任何 GlobalProtect 授權</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">需要 GlobalProtect Gateway 授權（年度）</td><td class="py-2 px-4 border">需裝在每一台執行 Gateway 的防火牆上，用於：HIP 檢查、行動版 App、Linux 版 App、IoT 版 App、外部 Gateway 的 IPv6 連線（內部 Gateway 自 App 4.1.3 起不需授權，細節以實際授權為準）、依網域／應用程式程序名稱／影音串流分流、加入隔離清單、以終端序號辨識受管設備、含 FQDN 排除的強制連線；以及擔任 HIP 重新分發的 agent 或 client-and-collector（Panorama 除外）</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Prisma Access</td><td class="py-2 px-4 border">行動使用者需要 Prisma Access 授權與 Strata Logging Service 授權（不在本課程範圍）</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">Clientless VPN 不在本課程範圍，只在授權頁中另外提到需要 Gateway 授權。</p>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>原廠文件現在稱終端程式為「GlobalProtect <strong>app</strong>」，但 Portal 設定畫面的頁籤仍叫 <strong>Agent</strong>（Agent Config Selection Criteria、Agent App 等），舊教材與現行介面兩種用語會並存。</li>
+                    <li>GlobalProtect 現行的 App 版本線為 6.x（目前可見 6.3、6.2、6.1、6.0）。部分功能與 App 版本綁定，例如應用程式路徑可用萬用字元（*）設定分流，自 App 6.3.1 起提供，Intelligent Internal Host Detection 也需要 App 6.3.1 以上；實際可用功能要同時看 PAN-OS 與 App 版本。</li>
+                    <li>Portal、Gateway 欄位以 PAN-OS 12.1、12.2 為準，兩版在 Connect Method 與 Tunnel Settings 的描述一致；12.2 的 Tunnel Settings 把 IKEv2 only 與 IKEv2 preferred 的標籤寫成相同文字，疑似原廠筆誤，操作時以畫面為準。</li>
+                    <li>在 Tunnel Settings 勾選 Enable IPSec 後，IPsec 成為主要通道方式、SSL-VPN 為備援。GlobalProtect 有自己專用的 IPSec Crypto 設定檔，與前面站對站的 IPsec Crypto 設定檔不同；原廠建議把加密順序調整為 aes-256-gcm、aes-128-gcm、aes-128-cbc，驗證選項目前只有 sha1，預設內容以實機為準。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Topic 5 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Flow</span>
+                五、連線流程與疑難排解
+            </h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">GlobalProtect 的連線流程</h3>
+            <p class="mb-3 text-gray-700">原廠對 Always On 的描述是：App 先連 Portal，送出使用者與主機資訊並取得客戶端設定，接著依設定連到 Gateway。若 Portal 設定了內部主機偵測，App 會先判斷自己在內網還是外網。</p>
+
+            <div class="diagram-container">
+<svg viewBox="0 0 520 700" width="100%" style="max-width:520px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c16d5-t" font-family="'Noto Sans TC', sans-serif" font-size="18">
+<title id="c16d5-t">GlobalProtect 連線流程：使用者登入或手動啟動 App，App 連到 Portal 送出使用者與主機資訊並驗證，Portal 下發 Agent 設定；App 做內部主機偵測，成功代表位於內網就連內部 Gateway，否則位於外網就連外部 Gateway 並建立 VPN 通道；Gateway 取得 HIP 報告後，依區域、使用者與 HIP 設定檔比對安全政策</title>
+<defs><marker id="c16d5-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4b5563"/></marker><marker id="c16d5-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker></defs>
+<rect x="60" y="10" width="400" height="44" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="260" y="38.3" text-anchor="middle" fill="#1f2937">使用者登入或手動啟動 App</text>
+<path d="M260,54 L260,80" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c16d5-ah)" stroke-linejoin="round"/>
+<rect x="60" y="80" width="400" height="62" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="260" y="106.3" text-anchor="middle" fill="#1f2937">App 連到 Portal</text><text x="260" y="128.3" text-anchor="middle" fill="#1f2937">送出使用者與主機資訊並驗證</text>
+<path d="M260,142 L260,168" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c16d5-ah)" stroke-linejoin="round"/>
+<rect x="60" y="168" width="400" height="62" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="260" y="194.3" text-anchor="middle" fill="#1f2937">Portal 下發 Agent 設定</text><text x="260" y="216.3" text-anchor="middle" fill="#1f2937">含 Gateway 清單與憑證</text>
+<path d="M260,230 L260,256" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c16d5-ah)" stroke-linejoin="round"/>
+<polygon points="260,256 380,304 260,352 140,304" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="260" y="299.3" text-anchor="middle" fill="#1f2937">內部主機偵測</text><text x="260" y="321.3" text-anchor="middle" fill="#1f2937">成功？</text>
+<path d="M140,304 L130,304 L130,410" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c16d5-ah)" stroke-linejoin="round"/>
+<text x="134" y="292" text-anchor="end" fill="#1f2937" stroke="#ffffff" stroke-width="5" paint-order="stroke" stroke-linejoin="round">是：位於內網</text>
+<path d="M380,304 L390,304 L390,410" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c16d5-ah)" stroke-linejoin="round"/>
+<text x="386" y="292" text-anchor="start" fill="#1f2937" stroke="#ffffff" stroke-width="5" paint-order="stroke" stroke-linejoin="round">否：位於外網</text>
+<rect x="10" y="410" width="240" height="82" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+<text x="130" y="446.3" text-anchor="middle" fill="#14532d">連到內部 Gateway</text><text x="130" y="468.3" text-anchor="middle" fill="#14532d">搭配 User-ID 與 HIP</text>
+<rect x="270" y="410" width="240" height="82" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+<text x="390" y="446.3" text-anchor="middle" fill="#1e3a8a">連到外部 Gateway</text><text x="390" y="468.3" text-anchor="middle" fill="#1e3a8a">驗證後建立 VPN 通道</text>
+<path d="M130,492 L130,516 L230,516 L230,540" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c16d5-ah)" stroke-linejoin="round"/>
+<path d="M390,492 L390,516 L290,516 L290,540" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c16d5-ah)" stroke-linejoin="round"/>
+<rect x="60" y="540" width="400" height="44" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="260" y="568.3" text-anchor="middle" fill="#1f2937">Gateway 取得 HIP 報告</text>
+<path d="M260,584 L260,612" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c16d5-ah)" stroke-linejoin="round"/>
+<rect x="60" y="612" width="400" height="62" rx="8" fill="#c2410c" stroke="#9a3412" stroke-width="2"/>
+<text x="260" y="638.3" text-anchor="middle" fill="#ffffff">安全政策比對</text><text x="260" y="660.3" text-anchor="middle" fill="#ffffff">區域、使用者、HIP 設定檔</text>
+</svg>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">若設定中有多個外部 Gateway，App 會嘗試連線到清單中所有 Gateway，依優先順序和回應時間挑選。現行 App（4.0.3 起）會先嘗試 Highest、High、Medium 優先順序的 Gateway，不論回應時間；同一優先順序才比較回應時間。App 6.3.1 起，Portal 可設定 Best Gateway Selection 的挑選準則。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">VPN 流量從哪裡進入處理流程</h3>
+            <div class="diagram-container">
+<svg viewBox="0 0 520 640" width="100%" style="max-width:520px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c16d6-t" font-family="'Noto Sans TC', sans-serif" font-size="18">
+<title id="c16d6-t">VPN 流量進入處理流程的位置：遠端使用者的 App 連到 Gateway 實體介面所在的 untrust 外部區域，流量進入通道介面 tunnel.N 所在的 corp-vpn 區域並啟用 User Identification，GlobalProtect 直接提供使用者與位址的對應給 User-ID 對應表，安全政策再以來源區域 corp-vpn 加使用者與 HIP 設定檔比對，放行後到 trust 區域的內部資源</title>
+<defs><marker id="c16d6-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4b5563"/></marker><marker id="c16d6-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker></defs>
+<rect x="60" y="10" width="400" height="44" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="260" y="38.3" text-anchor="middle" fill="#1f2937">遠端使用者的 App</text>
+<rect x="60" y="82" width="400" height="62" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="260" y="108.3" text-anchor="middle" fill="#1f2937">Gateway 實體介面</text><text x="260" y="130.3" text-anchor="middle" fill="#1f2937">外部區域 untrust</text>
+<path d="M260,54 L260,82" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c16d6-ah)" stroke-linejoin="round"/>
+<rect x="60" y="172" width="400" height="84" rx="8" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/>
+<text x="260" y="198.3" text-anchor="middle" fill="#7c2d12">通道介面 tunnel.N</text><text x="260" y="220.3" text-anchor="middle" fill="#7c2d12">區域 corp-vpn</text><text x="260" y="242.3" text-anchor="middle" fill="#7c2d12">已啟用 User Identification</text>
+<path d="M260,144 L260,172" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c16d6-ah)" stroke-linejoin="round"/>
+<rect x="60" y="284" width="400" height="84" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="260" y="310.3" text-anchor="middle" fill="#1f2937">User-ID 對應表</text><text x="260" y="332.3" text-anchor="middle" fill="#1f2937">GlobalProtect 直接提供</text><text x="260" y="354.3" text-anchor="middle" fill="#1f2937">使用者與位址的對應</text>
+<path d="M260,256 L260,284" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c16d6-ah)" stroke-linejoin="round"/>
+<rect x="60" y="396" width="400" height="84" rx="8" fill="#c2410c" stroke="#9a3412" stroke-width="2"/>
+<text x="260" y="422.3" text-anchor="middle" fill="#ffffff">安全政策</text><text x="260" y="444.3" text-anchor="middle" fill="#ffffff">來源區域 corp-vpn</text><text x="260" y="466.3" text-anchor="middle" fill="#ffffff">加使用者與 HIP 設定檔</text>
+<path d="M260,368 L260,396" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c16d6-ah)" stroke-linejoin="round"/>
+<rect x="60" y="508" width="400" height="44" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="260" y="536.3" text-anchor="middle" fill="#1f2937">trust 區域的內部資源</text>
+<path d="M260,480 L260,508" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c16d6-ah)" stroke-linejoin="round"/>
+</svg>
+            </div>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 mt-3">
+                <li>通道終止的那個<strong>區域</strong>，就是安全政策裡看到的來源區域；原廠建議建立專屬區域（如 corp-vpn），並<strong>在該區域啟用 User Identification</strong>。使用獨立通道區域時，必須另寫安全政策允許它與 trust 區域之間的流量。</li>
+                <li><strong>與第 14 章 User-ID 的銜接</strong>：原廠指出，對行動與遠端使用者，GlobalProtect 終端會把使用者對應資訊直接提供給防火牆；每位使用者都要輸入帳密才能 VPN，所以位址與使用者名稱的對應是確切已知的。原廠也建議以 GlobalProtect 作為使用者對應的來源，因為它能確保使用者對應準確。</li>
+                <li>因此在 VPN 區域的規則裡，可以直接用使用者或群組、再加 HIP 設定檔當條件，不必再靠 IP 位址去猜人。</li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">站對站疑難排解：CLI 與錯誤訊息</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border">步驟</th><th class="py-2 px-4 text-left border">指令</th><th class="py-2 px-4 text-left border">作用</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border">啟動第一階段</td><td class="py-2 px-4 border"><code>test vpn ike-sa gateway &lt;gateway_name&gt;</code></td><td class="py-2 px-4 border">開始與該 Gateway 做 IKE 協商（也可以由通道內 ping 觸發）</td></tr>
+                        <tr><td class="py-2 px-4 border">確認第一階段</td><td class="py-2 px-4 border"><code>show vpn ike-sa gateway &lt;gateway_name&gt;</code></td><td class="py-2 px-4 border">沒有看到 SA 時，到系統日誌查失敗原因</td></tr>
+                        <tr><td class="py-2 px-4 border">啟動第二階段</td><td class="py-2 px-4 border"><code>test vpn ipsec-sa tunnel &lt;tunnel_name&gt;</code></td><td class="py-2 px-4 border">開始該通道的 IPsec 協商</td></tr>
+                        <tr><td class="py-2 px-4 border">確認第二階段</td><td class="py-2 px-4 border"><code>show vpn ipsec-sa tunnel &lt;tunnel_name&gt;</code></td><td class="py-2 px-4 border">確認第二階段 SA 出現</td></tr>
+                        <tr><td class="py-2 px-4 border">看整體流量</td><td class="py-2 px-4 border"><code>show vpn flow</code></td><td class="py-2 px-4 border">顯示各通道名稱、狀態、本地與對方 IP、通道介面等</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">其他原廠列出的指令包含 <code>show vpn ike-sa</code>、<code>show vpn ipsec-sa</code>、<code>show vpn gateway</code>、<code>show vpn tunnel</code>、<code>clear vpn ike-sa gateway &lt;gateway&gt;</code> 等。clear 與 IKE Gateway、IPSec Tunnel 的重啟（restart）會中斷既有連線，操作前先確認時機。</p>
+
+            <div class="overflow-x-auto mt-4">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border">症狀</th><th class="py-2 px-4 text-left border">原廠建議的檢查方向</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border">第一階段逾時，或找不到該對方位址的設定</td><td class="py-2 px-4 border">確認 IKE Gateway 裡兩端的公開 IP 正確；確認兩端能互相 ping、路由沒問題</td></tr>
+                        <tr><td class="py-2 px-4 border">no proposal chosen／Unable to process peer's SA payload</td><td class="py-2 px-4 border">檢查 IKE Crypto 設定檔，兩邊要有共同的 Encryption、Authentication 與 DH Group</td></tr>
+                        <tr><td class="py-2 px-4 border">第二階段 PFS 或 DH 群組不一致</td><td class="py-2 px-4 border">兩邊 PFS 同為啟用或同為停用，且 DH Group 要相符</td></tr>
+                        <tr><td class="py-2 px-4 border">對方是政策式 VPN，Proxy ID 失敗</td><td class="py-2 px-4 border">在 Palo Alto 防火牆設定 Proxy ID，並確認兩端互為鏡像</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">GlobalProtect 疑難排解：先看哪裡</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 text-sm">
+                <li><strong>終端紀錄檔</strong>：原廠分流驗證步驟以終端上的 <code>PanGPS.log</code> 確認 Gateway 是否下發了排除路由；Windows 可用 <code>route print</code> 確認被排除的網段是否改走實體網卡。</li>
+                <li><strong>設定挑選順序</strong>：使用者拿到的設定不如預期，先檢查 Portal Agent 清單的順序，特定設定是否放在一般設定上方。</li>
+                <li><strong>憑證與位址</strong>：Portal 的 SSL/TLS Service Profile 所用憑證，其 CN 與 SAN 必須符合 General 頁籤所選介面的 IP 位址或 FQDN；Portal 與 Gateway 共用同一個介面時，需使用 CN 符合該介面 FQDN 的同一份伺服器憑證。</li>
+                <li><strong>HIP 比對</strong>：Gateway 收到 App 回報的 HIP 資料後，只要符合你定義的 HIP Object 或 HIP Profile，就會寫一筆 HIP Match 日誌；沒有符合任何物件就不會有紀錄。</li>
+                <li><strong>通道區域</strong>：政策看不到使用者，先確認通道終止的區域是否已啟用 User Identification；流量被擋，先確認該 VPN 區域與內部區域之間有沒有寫規則。</li>
+            </ul>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異</p>
+                <p class="text-gray-700 text-sm">本節的 CLI 指令與錯誤訊息表，整理自原廠的排錯建議。實際輸出內容與記錄訊息的文字，會因 PAN-OS 版本而不同，請以你的設備為準。</p>
+            </div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
+                隨堂測驗
+            </h2>
+            <p class="mb-6 text-gray-600">請點選您認為正確的選項，系統將會顯示解析。</p>
+            <div class="space-y-6" id="quiz-container"></div>
+        </div>
+
+    </main>
+
+    <footer class="footer-signature">
+        Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver.2026.10.29.11.12
+    </footer>
+
+
+    <script>
+        const quizData = [
+            {
+                question: "Q1. 在 PAN-OS 的站對站 IPsec VPN 中，負責 IKE 第一階段（驗證對方並交換金鑰）參數的是哪一項？",
+                options: ["A. IPsec Crypto 設定檔", "B. IKE Crypto 設定檔", "C. Tunnel Monitoring 設定檔", "D. Proxy ID"],
+                correct: 1,
+                desc: "正解：B。IKE Crypto 設定檔管第一階段（DH Group、驗證、加密、金鑰有效期），再由 IKE Gateway 引用；IPsec Crypto 設定檔管第二階段的資料通道參數。Proxy ID 只在對方是政策式 VPN 時才需要。"
+            },
+            {
+                question: "Q2. Network > IPSec Tunnels 的三個狀態燈號都是綠色，但兩端主機互相 ping 不通。依本章的設定順序，最值得先檢查的是什麼？",
+                options: ["A. 把 IKE Gateway 的 Version 改成 IKEv1 only", "B. 有沒有指向通道介面的路由，以及通道區域的安全政策是否放行", "C. 清除 Pre-shared Key 後重新輸入", "D. 把 Tunnel Interface 的 Virtual Router 改成 None"],
+                correct: 1,
+                desc: "正解：B。燈號綠色代表 IKE 與 IPsec SA 都已建立，問題多半出在通道之外：沒有把對方網段路由到通道介面，或沒有為通道所在區域寫安全政策。站對站的通道介面要掛虛擬路由器，靜態路由才能指向它，所以 D 反而會出問題；A、C 與已經建立的 SA 無關。"
+            },
+            {
+                question: "Q3. Portal 的 Agent 頁籤有兩份設定：一份適用「所有使用者」，另一份適用「財務群組」。要讓財務群組使用者拿到專屬設定，應該怎麼擺？",
+                options: ["A. 把「財務群組」那份放在「所有使用者」那份的上方", "B. 把「所有使用者」那份放在上方，系統會自動挑最精確的", "C. 順序不重要，Portal 會同時套用兩份", "D. 必須為財務群組另外建立一個 Portal"],
+                correct: 0,
+                desc: "正解：A。Portal 依使用者或群組名稱與 OS，由清單最上方開始比對，原廠建議特定使用者或特定 OS 的設定要放在較一般的設定上面。若一般設定在上方，會先被它比對到。"
+            },
+            {
+                question: "Q4. 管理員設定分流，把某個影音網站排除在 VPN 之外。關於這段被排除的流量，下列何者正確？",
+                options: ["A. 仍會經過 Gateway，並套用威脅防護", "B. 不會進入 VPN 通道，也不會經過 Gateway 防火牆檢查", "C. 會被 Gateway 自動封鎖", "D. 只有 HTTPS 流量才會被排除"],
+                correct: 1,
+                desc: "正解：B。原廠明確指出，走分流的流量不會經過防火牆檢查，也就得不到威脅防護。因此分流要在效能與可視性、安全性之間做取捨，並只排除確實需要的流量。"
+            }
+        ];
+
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionBox = document.createElement('div');
+            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
+
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border mb-2 text-gray-700" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            questionBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
+                <div class="space-y-2 mb-4">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
+                    <p class="font-bold result-title"></p>
+                    <p class="text-sm text-gray-600 mt-1">${item.desc}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionBox);
+        });
+
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            if (element.parentElement.dataset.answered) return;
+            element.parentElement.dataset.answered = "true";
+
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+                opt.classList.add('disabled');
+            });
+
+            if (optIndex === data.correct) {
+                element.classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了！";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                element.classList.add('bg-red-100', 'border-red-500');
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了！";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+    </script>
+</body>
+</html>

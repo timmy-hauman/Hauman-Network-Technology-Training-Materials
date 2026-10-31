@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palo Alto Networks NGFW 實戰課程 - 安全政策概念與規則比對</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        /* 卡片主體樣式 (Palo Alto Orange) */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #fa582d;
+        }
+
+        /* 重點提示框 (橘) */
+        .highlight-box {
+            background-color: #fff7ed;
+            border-left: 4px solid #fa582d;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 技術名詞標記 */
+        .tech-term {
+            color: #c2410c;
+            font-weight: 700;
+            background-color: #fff1e6;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
+        }
+
+        /* 比喻說明框 (綠) */
+        .analogy-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 版本差異框 (紫) */
+        .version-box {
+            background-color: #faf5ff;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 常見踩坑框 (紅) */
+        .pitfall-box {
+            background-color: #fef2f2;
+            border-left: 4px solid #dc2626;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .diagram-container {
+            display: flex;
+            justify-content: center;
+            background-color: #ffffff;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-top: 1rem;
+            overflow-x: auto;
+        }
+
+
+        .diagram-container svg {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+
+        @media (max-width: 640px) {
+            .section-card { padding: 1rem 0.75rem; }
+            .diagram-container { padding: 0.5rem 0.25rem; }
+        }
+
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover:not(.disabled) {
+            background-color: #f3f4f6;
+        }
+
+        .footer-signature {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+            margin-top: 4rem;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-orange-600 to-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-fire-flame-curved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold">Palo Alto Networks NGFW 實戰課程</h1>
+                    <p class="text-orange-100 mt-1">政策篇 - 單元 8：安全政策概念與規則比對</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <!-- Introduction -->
+        <div class="mb-8">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
+                <h2 class="text-xl font-bold text-blue-800 mb-2 flex items-center">
+                    <i class="fas fa-user-tie mr-2"></i>講師導言
+                </h2>
+                <p class="text-blue-900 leading-relaxed">
+                    前面七章把防火牆接進了網路：區域、介面、路由都就位了，但流量要不要放行，還沒有人決定。
+                    這一章進入政策篇的第一站：<strong>安全政策（Security Policy）</strong>。我們先不急著一個欄位一個欄位填，而是弄懂三件事：
+                    規則<strong>比對的依據</strong>是什麼、規則<strong>怎麼由上而下比對</strong>，以及<strong>預設規則</strong>在背後默默做了什麼。
+                    搞懂這些，下一章（第 9 章）逐頁籤設定規則時，你才知道每個欄位為什麼存在。
+                </p>
+            </div>
+        </div>
+
+        <!-- 學習目標 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-gray-100 text-gray-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Goals</span>
+                本章學習目標
+            </h2>
+            <ul class="list-disc pl-6 space-y-1 text-gray-700">
+                <li>說明安全政策在流量處理流程中的位置，以及兩次比對（先忽略應用程式、辨識後再比對）的差別</li>
+                <li>列出規則的比對條件，並說明工作階段（Session）與流（Flow）的關係</li>
+                <li>在 Web 介面檢視與管理規則表（新增、複製、停用、移動、Override）</li>
+                <li>分辨 Universal、Intrazone、Interzone 三種規則類型，以及兩條預設規則的動作與日誌行為</li>
+                <li>說明「由上而下、第一條符合就停止」的比對原則，辨識並排除規則遮蔽（Rule Shadowing）</li>
+                <li>使用規則命中次數（Hit Count）與流量日誌（Traffic Log）驗證規則是否如預期運作</li>
+            </ul>
+        </div>
+
+        <!-- Topic 1 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Concept</span>
+                一、安全政策怎麼運作？流程位置與比對條件
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                安全政策是一份「條件清單」：封包的資訊跟某條規則的條件全部吻合，就照該規則的動作處理（放行或阻擋）。
+                比對的條件分成兩層，由寬到細：
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h3 class="font-bold text-orange-800 mb-2"><i class="fas fa-layer-group mr-1"></i>基本條件</h3>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li><strong>Source zone</strong>（來源區域）</li>
+                        <li><strong>Destination zone</strong>（目的區域）</li>
+                    </ul>
+                    <p class="text-xs text-gray-500 mt-2">區域怎麼來的，回頭看第 5 章。</p>
+                </div>
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-filter mr-1"></i>更細的條件</h3>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>Source address／Destination address</li>
+                        <li>Port（服務）</li>
+                        <li>Application（應用程式）</li>
+                        <li>URL category</li>
+                        <li>Source user（使用者）</li>
+                        <li>HIP Profile（終端點狀態）</li>
+                    </ul>
+                </div>
+            </div>
+
+            <p class="text-sm text-gray-600">
+                這些條件在規則視窗裡各有一個頁籤，逐一設定的方法放在第 9 章；使用者、應用程式的來源機制分別在第 14、12 章。
+            </p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">安全政策在流程中的位置：比對兩次</h3>
+            <p class="mb-3 text-gray-700">
+                第 1 章的封包流程圖已經帶過安全政策的位置，這裡補上它的細節。安全政策其實會比對<strong>兩次</strong>：
+            </p>
+
+            <div class="diagram-container">
+                <svg id="c08d1" viewBox="0 0 480 672" width="100%" style="max-width:480px;height:auto;display:block;margin:0 auto;font-family:'Noto Sans TC',sans-serif" role="img" aria-labelledby="c08d1-t c08d1-d"><title id="c08d1-t">安全政策比對兩次：工作階段建立階段先用 application any 做第一次比對，找不到符合的規則就拒絕；App-ID 辨識出應用程式後，再用辨識出的應用程式做第二次比對</title><desc id="c08d1-d">工作階段建立階段：來源區域、轉送查詢、目的區域，第一次安全政策比對（應用程式視為 any），指派 Session ID；找不到符合的規則時流量被拒絕。檢查與強制執行階段：App-ID 辨識出應用程式，第二次安全政策比對，再套用安全設定檔 Content-ID。</desc><defs><marker id="c08d1-ar-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#4b5563"/></marker><marker id="c08d1-ar-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#c2410c"/></marker><marker id="c08d1-ar-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker><marker id="c08d1-ar-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#16a34a"/></marker><marker id="c08d1-ar-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b82f6"/></marker></defs><rect x="8" y="10" width="464" height="300" rx="10" fill="none" stroke="#fdba74" stroke-width="2" stroke-dasharray="8 5"/><text x="22" y="36" text-anchor="start" font-size="18" fill="#9a3412" font-weight="700">工作階段建立階段 Session Setup</text><rect x="25" y="52" width="210" height="68" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/><text x="130" y="79.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">來源區域 / 轉送查詢</text><text x="130" y="103.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">目的區域</text><path d="M130,120 L130,150" fill="none" stroke="#4b5563" stroke-width="2.5" marker-end="url(#c08d1-ar-gray)"/><rect x="25" y="150" width="210" height="68" rx="8" fill="#c2410c" stroke="#9a3412" stroke-width="2"/><text x="130" y="177.76" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="700">第一次安全政策比對</text><text x="130" y="201.76" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="700">應用程式視為 any</text><path d="M130,218 L130,248" fill="none" stroke="#4b5563" stroke-width="2.5" marker-end="url(#c08d1-ar-gray)"/><rect x="25" y="248" width="210" height="44" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/><text x="130" y="275.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">指派 Session ID</text><path d="M235,184 L275,184" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-dasharray="7 5" marker-end="url(#c08d1-ar-red)"/><rect x="275" y="140" width="185" height="88" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/><text x="367.5" y="177.76" text-anchor="middle" font-size="18" fill="#991b1b">找不到符合的規則</text><text x="367.5" y="201.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">流量被拒絕</text><path d="M240,310 L240,350" fill="none" stroke="#4b5563" stroke-width="2.5" marker-end="url(#c08d1-ar-gray)"/><rect x="8" y="350" width="464" height="312" rx="10" fill="none" stroke="#fdba74" stroke-width="2" stroke-dasharray="8 5"/><text x="22" y="376" text-anchor="start" font-size="18" fill="#9a3412" font-weight="700">檢查與強制執行階段</text><rect x="25" y="392" width="210" height="68" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/><text x="130" y="419.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">App-ID 辨識出</text><text x="130" y="443.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">應用程式</text><path d="M130,460 L130,484" fill="none" stroke="#4b5563" stroke-width="2.5" marker-end="url(#c08d1-ar-gray)"/><rect x="25" y="484" width="210" height="68" rx="8" fill="#c2410c" stroke="#9a3412" stroke-width="2"/><text x="130" y="511.76" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="700">第二次安全政策比對</text><text x="130" y="535.76" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="700">用辨識出的應用程式</text><path d="M130,552 L130,576" fill="none" stroke="#4b5563" stroke-width="2.5" marker-end="url(#c08d1-ar-gray)"/><rect x="25" y="576" width="210" height="68" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/><text x="130" y="603.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">安全設定檔</text><text x="130" y="627.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">Content-ID</text></svg>
+            </div>
+
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 mt-4">
+                <li><strong>第一次</strong>：封包剛進來，應用程式還沒被辨識，簡報圖上標註「App-ID ignored」，也就是用 <span class="tech-term">application any</span> 查詢。找不到任何符合的規則就拒絕。</li>
+                <li><strong>第二次</strong>：App-ID 辨識出真正的應用程式後，再用它與其他欄位（位址、連接埠、區域、使用者、URL 分類）重新比對一次。</li>
+                <li>辨識後若應用程式在檢查過程中又改變（例如發現流量其實是通道），防火牆會再查一次安全政策，確認工作階段是否仍被允許。</li>
+            </ul>
+
+            <div class="highlight-box mt-4">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>重點</p>
+                <p class="text-gray-700">兩次比對用的位址，都是<strong>位址轉換（NAT）之前</strong>的位址；目的<strong>區域</strong>則看轉換之後。這個先後關係第 1 章已經講過，第 10、11 章寫 NAT 對應的安全規則時會再練一次。</p>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異：流程圖的詳細程度</p>
+                <p class="text-gray-700 text-sm">較新的訓練簡報（2017-2020）把第一次比對畫成「Security Policy Check（App-ID ignored）」；較舊的簡報（PAN-OS 8.0）則拆成更多小方塊，包括「Check Allowed Ports」與「Application Override Policy」等階段。兩者的先後順序一致，「App-ID ignored」與「application any」是同一件事，只是表達方式不同。Application Override 屬於進階主題，本課程不展開。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">工作階段（Session）與流（Flow）</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>每個封包會對應到一個工作階段，每個工作階段再對應到一條安全政策規則。</li>
+                <li>一個工作階段有一或兩條流：TCP 是兩條（去程 c2s、回程 s2c），多播這類單向流量只有一條。</li>
+                <li><strong>去程（c2s）必須有規則允許；回程（s2c）自動放行</strong>，所以你只需要寫「誰可以主動發起連線」的規則。</li>
+                <li>防火牆說的「伺服器」是<strong>回應流量的一方</strong>，不是主機有沒有提供服務。</li>
+            </ul>
+        </div>
+
+        <!-- Topic 2 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Rule Set</span>
+                二、檢視與管理規則表
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                規則集中在 <span class="tech-term">Policies &gt; Security</span>。這裡就是你每天會打開的畫面：
+            </p>
+
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 mb-4">
+                <li>點任一欄位標題的下拉箭頭，可以增減顯示的欄位；欄位的選擇是<strong>每位管理員各自一份</strong>，不會影響別人。</li>
+                <li>規則由上往下排列，這個順序就是比對順序。</li>
+            </ul>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-40">操作</th><th class="py-2 px-4 text-left border">用途</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">Add</td><td class="py-2 px-4 border">新增規則（各頁籤的內容在第 9 章）</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Delete</td><td class="py-2 px-4 border">刪除規則</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Clone</td><td class="py-2 px-4 border">複製既有規則，當作新規則的起點</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Enable / Disable</td><td class="py-2 px-4 border">停用規則時，條目保留在表裡但不再運作；停用的規則以<strong>斜體</strong>顯示</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Move</td><td class="py-2 px-4 border">調整順序，可用 Move 選項或直接拖曳</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Override / Revert</td><td class="py-2 px-4 border">主要用在預設規則：Override 取得可編輯的副本，Revert 還原為預先定義的設定（下一節說明）</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="highlight-box mt-4">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>行號只是位置編號</p>
+                <p class="text-gray-700 text-sm">規則左邊的行號是依位置排列的，規則被搬動時，<strong>行號不會跟著規則走</strong>。所以跟同事溝通時，請講規則「名稱」，不要講「第幾條」。</p>
+            </div>
+        </div>
+
+        <!-- Topic 3 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Rule Type</span>
+                三、三種規則類型與預設規則
+            </h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">三種規則類型</h3>
+            <p class="mb-3 text-gray-700">
+                新增規則時要選規則類型（Rule Type，視窗各頁籤的細節見第 9 章），它決定這條規則管的是「區域內」、「區域之間」，還是兩者都管。
+            </p>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border w-32">類型</th>
+                            <th class="py-2 px-4 text-left border">套用範圍</th>
+                            <th class="py-2 px-4 text-left border">以 Zone A、Zone B 為例，涵蓋的流向</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold"><span class="tech-term">universal</span><br><span class="text-xs text-gray-500">預設類型</span></td><td class="py-2 px-4 border">同時涵蓋指定來源與目的區域之間的區域內與區域之間流量</td><td class="py-2 px-4 border">A→A、B→B、A→B、B→A</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold"><span class="tech-term">intrazone</span></td><td class="py-2 px-4 border">只管同一個區域內的流量；只能指定來源區域，不能指定目的區域</td><td class="py-2 px-4 border">A→A、B→B</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold"><span class="tech-term">interzone</span></td><td class="py-2 px-4 border">只管不同區域之間的流量</td><td class="py-2 px-4 border">A→B、B→A</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">兩條預設規則（Default Rules）</h3>
+            <p class="mb-3 text-gray-700">
+                規則表的最下方永遠有兩條預先定義好的規則。即使你一條規則都沒寫，防火牆也有明確的預設行為：
+                <strong>同一區域內允許，不同區域之間拒絕</strong>。
+            </p>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border">規則名稱</th>
+                            <th class="py-2 px-4 text-left border">適用流量</th>
+                            <th class="py-2 px-4 text-left border">預設動作</th>
+                            <th class="py-2 px-4 text-left border">預設日誌（教材說法）</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold"><span class="tech-term">intrazone-default</span></td><td class="py-2 px-4 border">同一區域內</td><td class="py-2 px-4 border text-green-700 font-semibold">Allow</td><td class="py-2 px-4 border">不記錄</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold"><span class="tech-term">interzone-default</span></td><td class="py-2 px-4 border">不同區域之間</td><td class="py-2 px-4 border text-red-700 font-semibold">Deny</td><td class="py-2 px-4 border">不記錄</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 mt-4">
+                <li>預設規則一開始是<strong>唯讀</strong>的；要調整時，先對它按 <strong>Override</strong>，才能編輯有限的幾項設定：標籤、動作（Allow／Deny）、日誌設定與安全設定檔。</li>
+                <li>自己新增的規則<strong>預設會記錄</strong>日誌（預設在工作階段結束時記錄）。教材寫預設規則預設不記錄日誌；現行原廠文件寫 Override 後 Log at Session Start 預設勾選、Session End 預設不勾選，說法不一，以實機畫面為準。</li>
+                <li>想知道有哪些跨區流量被預設規則擋掉，就要先對預設規則（兩條都可以）Override，才能改它的日誌設定。怎麼開啟見第 9 章。</li>
+            </ul>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異：同一件事，三種叫法</p>
+                <p class="text-gray-700 text-sm">較舊的簡報（PAN-OS 8.0）稱這兩條為 Implicit rules，自己建的叫 Explicit rules；較新的簡報（2017-2020）改稱 Predefined rules 與 Custom rules；現行 PAN-OS 12.x 稱為「預先定義的 interzone 與 intrazone 規則（default rules）」。三者指的是同一件事：行為（區域內允許、區域之間拒絕）沒有改變。看到不同名稱時不必困惑。預設日誌的說法不一，見上方的說明，請在實機上確認核取方塊的狀態。</p>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：自己在最下面加「全部拒絕」</p>
+                <p class="text-gray-700 text-sm">有人習慣在規則表最下面補一條「any → any、Deny」的 Universal 規則。因為 Universal 類型也涵蓋<strong>區域內</strong>流量，而且它排在 intrazone-default 的前面，原本預設允許的同區域流量（例如 Trust 到 Trust）就會被它搶先擋掉。想要看到被擋的流量，比較好的做法是 Override 預設規則並打開日誌，而不是自己疊一條規則。</p>
+            </div>
+        </div>
+
+        <!-- Topic 4 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Match</span>
+                四、由上而下比對與規則遮蔽
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                比對的原則只有一句話：<strong>從最上面一條開始往下看，遇到第一條符合的規則就採用它，後面的規則不再評估</strong>。
+                所以規則的「順序」本身就是政策的一部分。
+            </p>
+
+            <div class="diagram-container">
+                <svg id="c08d2" viewBox="0 0 480 736" width="100%" style="max-width:480px;height:auto;display:block;margin:0 auto;font-family:'Noto Sans TC',sans-serif" role="img" aria-labelledby="c08d2-t c08d2-d"><title id="c08d2-t">由上而下比對：從規則 1 開始往下看，遇到第一條符合的規則就執行它的動作，後面不再檢查；都不符合時，同一個區域內由 intrazone-default 允許，不同區域之間由 interzone-default 拒絕</title><desc id="c08d2-d">封包進入，已知來源與目的區域。依序判斷規則 1、規則 2，直到最後一條自訂規則；符合就執行該規則的動作。都不符合時，來源與目的是同一個區域，套用 intrazone-default：允許；否則是區域之間，套用 interzone-default：拒絕。</desc><defs><marker id="c08d2-ar-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#4b5563"/></marker><marker id="c08d2-ar-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#c2410c"/></marker><marker id="c08d2-ar-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker><marker id="c08d2-ar-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#16a34a"/></marker><marker id="c08d2-ar-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b82f6"/></marker></defs><rect x="8" y="10" width="240" height="68" rx="22" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/><text x="128" y="37.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">封包進入，</text><text x="128" y="61.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">已知來源與目的區域</text><path d="M128,78 L128,118" fill="none" stroke="#4b5563" stroke-width="2.5" marker-end="url(#c08d2-ar-gray)"/><polygon points="36,118 220,118 248,156 220,194 36,194 8,156" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text x="128" y="161.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">符合規則 1 的條件？</text><path d="M248,156 L288,156" fill="none" stroke="#c2410c" stroke-width="2.5" marker-end="url(#c08d2-ar-orange)"/><rect x="256" y="130.24" width="24" height="22" fill="#ffffff" fill-opacity="0.92"/><text x="268" y="148" text-anchor="middle" font-size="18" fill="#c2410c" font-weight="700">是</text><rect x="288" y="122" width="190" height="68" rx="8" fill="#c2410c" stroke="#9a3412" stroke-width="2"/><text x="383" y="149.76" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="700">執行規則 1 的動作</text><text x="383" y="173.76" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="700">後面的規則不再檢查</text><path d="M128,194 L128,234" fill="none" stroke="#4b5563" stroke-width="2.5" marker-end="url(#c08d2-ar-gray)"/><rect x="137" y="202.24" width="24" height="22" fill="#ffffff" fill-opacity="0.92"/><text x="140" y="220" text-anchor="start" font-size="18" fill="#4b5563" font-weight="700">否</text><polygon points="36,234 220,234 248,272 220,310 36,310 8,272" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text x="128" y="277.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">符合規則 2 的條件？</text><path d="M248,272 L288,272" fill="none" stroke="#c2410c" stroke-width="2.5" marker-end="url(#c08d2-ar-orange)"/><rect x="256" y="246.24" width="24" height="22" fill="#ffffff" fill-opacity="0.92"/><text x="268" y="264" text-anchor="middle" font-size="18" fill="#c2410c" font-weight="700">是</text><rect x="288" y="250" width="190" height="44" rx="8" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text x="383" y="277.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">執行規則 2 的動作</text><path d="M128,310 L128,350" fill="none" stroke="#4b5563" stroke-width="2.5" marker-end="url(#c08d2-ar-gray)"/><rect x="137" y="318.24" width="24" height="22" fill="#ffffff" fill-opacity="0.92"/><text x="140" y="336" text-anchor="start" font-size="18" fill="#4b5563" font-weight="700">否</text><polygon points="36,350 220,350 248,400 220,450 36,450 8,400" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text x="128" y="393.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">繼續往下，直到</text><text x="128" y="417.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">最後一條自訂規則</text><path d="M248,400 L288,400" fill="none" stroke="#c2410c" stroke-width="2.5" marker-end="url(#c08d2-ar-orange)"/><rect x="247" y="374.24" width="42" height="22" fill="#ffffff" fill-opacity="0.92"/><text x="268" y="392" text-anchor="middle" font-size="18" fill="#c2410c" font-weight="700">符合</text><rect x="288" y="378" width="190" height="44" rx="8" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text x="383" y="405.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">執行該規則的動作</text><path d="M128,450 L128,490" fill="none" stroke="#4b5563" stroke-width="2.5" marker-end="url(#c08d2-ar-gray)"/><rect x="137" y="458.24" width="78" height="22" fill="#ffffff" fill-opacity="0.92"/><text x="140" y="476" text-anchor="start" font-size="18" fill="#4b5563" font-weight="700">都不符合</text><polygon points="36,490 220,490 248,540 220,590 36,590 8,540" fill="#faf5ff" stroke="#7c3aed" stroke-width="2"/><text x="128" y="533.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">來源與目的是</text><text x="128" y="557.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">同一個區域？</text><path d="M248,540 L288,540" fill="none" stroke="#16a34a" stroke-width="2.5" marker-end="url(#c08d2-ar-green)"/><rect x="256" y="514.24" width="24" height="22" fill="#ffffff" fill-opacity="0.92"/><text x="268" y="532" text-anchor="middle" font-size="18" fill="#166534" font-weight="700">是</text><rect x="288" y="494" width="190" height="92" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/><text x="383" y="521.76" text-anchor="middle" font-size="18" fill="#166534">是，區域內</text><text x="383" y="545.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">intrazone-default</text><text x="383" y="569.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">允許</text><path d="M128,590 L128,634" fill="none" stroke="#dc2626" stroke-width="2.5" marker-end="url(#c08d2-ar-red)"/><rect x="137" y="600.24" width="24" height="22" fill="#ffffff" fill-opacity="0.92"/><text x="140" y="618" text-anchor="start" font-size="18" fill="#991b1b" font-weight="700">否</text><rect x="8" y="634" width="240" height="92" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/><text x="128" y="661.76" text-anchor="middle" font-size="18" fill="#991b1b">否，區域之間</text><text x="128" y="685.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">interzone-default</text><text x="128" y="709.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">拒絕</text></svg>
+            </div>
+
+            <div class="analogy-box">
+                <p class="font-bold mb-2 text-green-800">🏢 生活化比喻：大樓警衛的門禁清單</p>
+                <ul class="list-none space-y-2 pl-2 text-gray-700">
+                    <li class="flex items-start"><i class="fas fa-clipboard-list text-gray-500 mt-1 mr-3"></i><span><strong>規則表</strong>：警衛手上的一張門禁清單，每一行寫著「誰、從哪裡、去哪裡、可不可以」。</span></li>
+                    <li class="flex items-start"><i class="fas fa-arrow-down text-blue-500 mt-1 mr-3"></i><span><strong>由上而下比對</strong>：警衛從第一行開始對照，找到第一行說得通的就照辦，不會再往下看。</span></li>
+                    <li class="flex items-start"><i class="fas fa-ban text-red-500 mt-1 mr-3"></i><span><strong>規則遮蔽</strong>：清單上方寫「訪客一律不准進入」，下方又寫了「訪客可以進大廳」。警衛永遠讀不到下面那一行，它等於沒寫。</span></li>
+                    <li class="flex items-start"><i class="fas fa-building text-green-600 mt-1 mr-3"></i><span><strong>預設規則</strong>：大樓的基本規矩。同一個樓層的人互相走動不管（區域內允許），要去別的樓層而清單上沒寫，一律擋下（區域之間拒絕）。</span></li>
+                </ul>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">能不能把兩條規則合併？</h3>
+            <p class="mb-2 text-gray-700">
+                假設規則 A 是 Inside → Outside，規則 B 是 Guest → Outside，其他條件與動作完全相同。這時不必寫兩條：
+                把 <strong>Inside 與 Guest 一起放進來源區域</strong>，目的區域維持 Outside，一條規則就夠了。規則越少，越容易維護，也越不容易互相遮蔽。
+            </p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">什麼是規則遮蔽（Rule Shadowing）？</h3>
+            <p class="mb-3 text-gray-700">
+                同一筆流量可能符合好幾條規則。<strong>排在前面的規則像影子一樣蓋住後面的規則</strong>，後面的規則被完整遮蔽時，就永遠不會被命中。
+                下面用一個小例子說明。四個區域：Inside（內網）、Guest（訪客）、DMZ、Outside（外部）。
+            </p>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-3 text-left border">順序</th>
+                            <th class="py-2 px-3 text-left border">規則名稱</th>
+                            <th class="py-2 px-3 text-left border">來源區域</th>
+                            <th class="py-2 px-3 text-left border">目的區域</th>
+                            <th class="py-2 px-3 text-left border">應用程式</th>
+                            <th class="py-2 px-3 text-left border">動作</th>
+                            <th class="py-2 px-3 text-left border">命中次數（示意）</th>
+                            <th class="py-2 px-3 text-left border">判讀</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-3 border">1</td><td class="py-2 px-3 border font-semibold">Allow-Inside-Out</td><td class="py-2 px-3 border">Inside</td><td class="py-2 px-3 border">Outside</td><td class="py-2 px-3 border">web-browsing, ssl, dns</td><td class="py-2 px-3 border text-green-700 font-semibold">Allow</td><td class="py-2 px-3 border">1,204</td><td class="py-2 px-3 border">正常</td></tr>
+                        <tr class="bg-orange-50"><td class="py-2 px-3 border">2</td><td class="py-2 px-3 border font-semibold">Block-Guest-Out</td><td class="py-2 px-3 border">Guest</td><td class="py-2 px-3 border">Outside</td><td class="py-2 px-3 border">any</td><td class="py-2 px-3 border text-red-700 font-semibold">Deny</td><td class="py-2 px-3 border">87</td><td class="py-2 px-3 border"><strong>遮蔽者</strong>：Guest 去 Outside 的任何流量都先被它拒絕</td></tr>
+                        <tr><td class="py-2 px-3 border">3</td><td class="py-2 px-3 border font-semibold">Allow-DMZ-Updates</td><td class="py-2 px-3 border">DMZ</td><td class="py-2 px-3 border">Outside</td><td class="py-2 px-3 border">ssl, web-browsing</td><td class="py-2 px-3 border text-green-700 font-semibold">Allow</td><td class="py-2 px-3 border">35</td><td class="py-2 px-3 border">正常</td></tr>
+                        <tr class="bg-gray-100 text-gray-500"><td class="py-2 px-3 border">4</td><td class="py-2 px-3 border font-semibold">Allow-Guest-Web</td><td class="py-2 px-3 border">Guest</td><td class="py-2 px-3 border">Outside</td><td class="py-2 px-3 border">web-browsing, ssl</td><td class="py-2 px-3 border font-semibold">Allow</td><td class="py-2 px-3 border">0</td><td class="py-2 px-3 border"><strong>被規則 2 遮蔽</strong>：永遠不會被命中</td></tr>
+                        <tr><td class="py-2 px-3 border">預設</td><td class="py-2 px-3 border font-semibold">interzone-default</td><td class="py-2 px-3 border">any</td><td class="py-2 px-3 border">any</td><td class="py-2 px-3 border">any</td><td class="py-2 px-3 border text-red-700 font-semibold">Deny</td><td class="py-2 px-3 border">（預設規則）</td><td class="py-2 px-3 border">其他沒有被規則涵蓋的跨區流量落到這裡</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">表中的規則名稱、次數與數字都是教學用的示意，不是真實設備的輸出。</p>
+
+            <div class="diagram-container">
+                <svg id="c08d3" viewBox="0 0 480 522" width="100%" style="max-width:480px;height:auto;display:block;margin:0 auto;font-family:'Noto Sans TC',sans-serif" role="img" aria-labelledby="c08d3-t c08d3-d"><title id="c08d3-t">規則遮蔽的例子：Guest 到 Outside 的網頁流量先被規則 2 的 Deny 擋下，比對到此結束，後面的規則 4 Allow-Guest-Web 永遠不會被評估</title><desc id="c08d3-d">Guest 使用者開網頁（Guest 到 Outside）。規則 1 Allow-Inside-Out 來源是 Inside，不符合。規則 2 Block-Guest-Out 是 Guest 到 Outside 任何應用程式，符合，動作 Deny，比對到此結束。規則 4 Allow-Guest-Web 沒有機會被評估。</desc><defs><marker id="c08d3-ar-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#4b5563"/></marker><marker id="c08d3-ar-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#c2410c"/></marker><marker id="c08d3-ar-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker><marker id="c08d3-ar-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#16a34a"/></marker><marker id="c08d3-ar-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b82f6"/></marker></defs><rect x="16" y="10" width="320" height="68" rx="22" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/><text x="176" y="37.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">Guest 使用者開網頁</text><text x="176" y="61.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">Guest 到 Outside</text><path d="M176,78 L176,106" fill="none" stroke="#4b5563" stroke-width="2.5" marker-end="url(#c08d3-ar-gray)"/><rect x="16" y="106" width="320" height="68" rx="8" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/><text x="176" y="133.76" text-anchor="middle" font-size="18" fill="#4b5563">規則 1 Allow-Inside-Out</text><text x="176" y="157.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">來源是 Inside：不符合</text><path d="M176,174 L176,202" fill="none" stroke="#4b5563" stroke-width="2.5" marker-end="url(#c08d3-ar-gray)"/><rect x="16" y="202" width="320" height="92" rx="8" fill="#c2410c" stroke="#9a3412" stroke-width="2"/><text x="176" y="229.76" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="700">規則 2 Block-Guest-Out</text><text x="176" y="253.76" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="700">Guest 到 Outside</text><text x="176" y="277.76" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="700">任何應用程式：符合</text><path d="M176,294 L176,326" fill="none" stroke="#dc2626" stroke-width="2.5" marker-end="url(#c08d3-ar-red)"/><rect x="16" y="326" width="320" height="68" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/><text x="176" y="353.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">動作 Deny</text><text x="176" y="377.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">比對到此結束</text><path d="M336,248 L432,248 L432,478 L338,478" fill="none" stroke="#4b5563" stroke-width="2.5" stroke-dasharray="7 5" marker-end="url(#c08d3-ar-gray)"/><rect x="341" y="214.24" width="114" height="22" fill="#ffffff" fill-opacity="0.92"/><text x="344" y="232" text-anchor="start" font-size="18" fill="#4b5563" font-weight="700">沒有機會往下</text><rect x="16" y="444" width="320" height="68" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2" stroke-dasharray="6 4"/><text x="176" y="471.76" text-anchor="middle" font-size="18" fill="#4b5563">規則 4 Allow-Guest-Web</text><text x="176" y="495.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">永遠不會被評估</text></svg>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">怎麼發現遮蔽？怎麼修？</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>教材說明：提交（Commit）設定時，Commit Status 視窗的 <span class="tech-term">Rule Shadow</span> 頁籤會列出被遮蔽的規則；可點選顯示被遮蔽的規則，也能直接點進去編輯。</li>
+                <li>另一個側面證據是<strong>命中次數</strong>：被完整遮蔽的規則，命中次數會一直是 0（下一節）。</li>
+                <li>修正方式有兩種：<strong>調整順序</strong>（上例把規則 4 移到規則 2 之上，Guest 的網頁流量就會被允許，其他 Guest 流量仍被規則 2 擋下），或<strong>把前面的規則寫得更精確</strong>。</li>
+                <li>一般原則：<strong>越具體的規則放越上面，越籠統的放越下面</strong>。</li>
+            </ul>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異：Rule Shadow 的提示在哪裡看？</p>
+                <p class="text-gray-700 text-sm">教材（較新的簡報）寫的是在 Commit Status 視窗看到 Rule Shadow 頁籤。但原廠文件另有說法：<strong>自 PAN-OS 9.1 起，提交時不再跳出遮蔽警告</strong>，也沒有說明改在哪裡查看。兩種說法看起來不一致，而 PAN-OS 12.x 實際會在哪裡顯示，目前沒有明確說明，所以請以你手上設備的實際畫面為準；本課程不假設某個固定位置，只要求你知道「遮蔽」是什麼、為什麼會發生、怎麼修。</p>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：新增規則卻沒確認它排在哪裡</p>
+                <p class="text-gray-700 text-sm">如果新規則的前面已經有一條範圍較大的規則（來源 any、應用程式 any 之類），你新加的細部規則就會被遮蔽，測試時永遠不會生效，還會讓人誤以為是設定寫錯。<strong>新增規則後，請先確認它該站的位置</strong>，再用命中次數和流量日誌驗證它真的被命中。</p>
+            </div>
+        </div>
+
+        <!-- Topic 5 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Verify</span>
+                五、命中次數與流量日誌：驗證規則有沒有生效
+            </h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">規則命中次數（Policy Rule Hit Count）</h3>
+            <p class="mb-3 text-gray-700">
+                在規則表的欄位裡，可以顯示每條規則的使用情形，用途包括：
+            </p>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 mb-3">
+                <li>找出經常使用或很少使用的規則。</li>
+                <li>知道規則<strong>第一次</strong>與<strong>最後一次</strong>被命中的時間（Hit Count、First Hit、Last Hit）。</li>
+                <li>這條規則看過幾種應用程式（Apps Seen）。</li>
+                <li>修改設定之後，用它來驗證規則是否如預期被命中。</li>
+            </ul>
+            <p class="text-sm text-gray-600 mb-2">
+                使用前先確認功能已啟用：<span class="tech-term">Device &gt; Setup &gt; Management &gt; Policy Rulebase Settings</span> 內的 Policy Rule Hit Count。
+            </p>
+
+            <div class="highlight-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>使用時要知道的幾件事</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>重新開機、資料平面重啟或升級後，統計仍會保留；只有你<strong>手動重設</strong>（教材實作單元有「Reset the Rule Hit Counter」）或<strong>修改規則名稱</strong>時才會清除。</li>
+                    <li>重設之後，原先的資料就找不回來了。</li>
+                    <li>HA 的兩台設備<strong>不會互相同步</strong>命中次數，要分別查看，或透過 Panorama 檢視（HA 見第 17 章，Panorama 見第 18 章）。</li>
+                    <li>被遮蔽的規則，命中次數通常一直是 0，這是檢查遮蔽的好線索。</li>
+                </ul>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異：命中資料的保存與載入</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>教材另一頁（第 9 章會用到）說防火牆追蹤的是「自上次資料平面重啟後」未使用的規則；現行版本則是命中次數在重新開機、資料平面重啟與升級後都會保留。<strong>以現行版本為準</strong>：兩種說法並列時，請用現行的說法來判斷「未使用」，不要誤以為重啟後就歸零。</li>
+                    <li>PAN-OS 12.1.2 起，Rule Usage 欄位改為<strong>需要時才即時擷取</strong>，建議只在需要時才把這個欄位顯示出來，避免畫面變慢。</li>
+                </ul>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">流量日誌（Traffic Log）</h3>
+            <p class="mb-3 text-gray-700">
+                路徑：<span class="tech-term">Monitor &gt; Logs &gt; Traffic</span>。每筆日誌會記錄比對到哪一條規則，所以它是命中次數之外，最直接驗證規則的工具。
+            </p>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border w-52">規則的日誌設定</th>
+                            <th class="py-2 px-4 text-left border">意義</th>
+                            <th class="py-2 px-4 text-left border w-32">預設</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold"><span class="tech-term">Log at Session End</span></td><td class="py-2 px-4 border">工作階段結束時產生一筆日誌；負擔較小，一般用這個</td><td class="py-2 px-4 border text-green-700 font-semibold">啟用</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold"><span class="tech-term">Log at Session Start</span></td><td class="py-2 px-4 border">工作階段開始時就產生一筆；建議只在疑難排解時暫時加上</td><td class="py-2 px-4 border text-gray-600 font-semibold">停用</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">以上兩個選項在規則的 Actions 頁籤，完整設定在第 9 章；日誌的轉送（Log Forwarding 設定檔）與預設規則的日誌步驟，也在第 9 章。</p>
+
+            <div class="highlight-box mt-4">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>把前面幾節串起來</p>
+                <p class="text-gray-700 text-sm">教材寫預設規則預設不記錄日誌；現行原廠文件寫 Override 後 Log at Session Start 預設勾選、Session End 預設不勾選，說法不一，以實機畫面為準。依教材的說法，被 interzone-default 擋下的流量在 Traffic 日誌裡<strong>什麼都看不到</strong>；要留下紀錄，得先對預設規則 Override 再調整日誌設定（怎麼開啟見第 9 章）。常見的排錯流程是：用日誌找出是哪條規則被命中，再用命中次數與順序判斷規則有沒有被遮蔽。</p>
+            </div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
+                隨堂測驗
+            </h2>
+            <p class="mb-6 text-gray-600">請點選您認為正確的選項，系統將會顯示解析。</p>
+            <div class="space-y-6" id="quiz-container"></div>
+        </div>
+
+    </main>
+
+    <footer class="footer-signature">
+        Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver.2026.10.29.09.26
+    </footer>
+
+
+    <script>
+        const quizData = [
+            {
+                question: "Q1. 下列哪一種規則類型「只能指定來源區域，不能指定目的區域」？",
+                options: ["A. Universal", "B. Interzone", "C. Intrazone", "D. 以上皆可指定目的區域"],
+                correct: 2,
+                desc: "正解：C。Intrazone 規則只管同一個區域內的流量，來源與目的本來就是同一個區域，所以不能另外指定目的區域。Universal（預設類型）涵蓋區域內與區域之間，Interzone 則只管不同區域之間。"
+            },
+            {
+                question: "Q2. 一個 TCP 連線建立後，工作階段裡有去程（c2s）與回程（s2c）兩條流。關於安全政策規則與這兩條流，下列敘述何者正確？",
+                options: ["A. 去程與回程各需要一條規則允許，少一條就不通", "B. 只有發起連線的方向（c2s）需要規則允許，回程（s2c）自動放行", "C. 回程（s2c）需要規則允許，去程自動放行", "D. 防火牆說的「伺服器」，指的是主機有沒有提供服務，與誰回應流量無關"],
+                correct: 1,
+                desc: "正解：B。每個封包屬於一個工作階段，每個工作階段對應一條規則；TCP 的工作階段有 c2s 與 s2c 兩條流，只有發起的方向要寫規則，回程自動放行，所以你只需要寫「誰可以主動發起連線」的規則（A、C 錯）。防火牆說的「伺服器」是回應流量的一方，不是主機有沒有提供服務（D 錯）。"
+            },
+            {
+                question: "Q3. 規則 2 是「Guest → Outside、any 應用程式、Deny」，排在規則 4「Guest → Outside、web-browsing、Allow」之前。Guest 使用者瀏覽網頁時，會發生什麼事？",
+                options: ["A. 規則 2 先符合而被拒絕，規則 4 被遮蔽，不會被評估", "B. 規則 4 比較精確，所以優先採用而被允許", "C. 防火牆會自動挑選條件最精確的規則", "D. 兩條規則都會生效，結果由動作較嚴格的一方決定"],
+                correct: 0,
+                desc: "正解：A。安全政策由上往下比對，第一條符合的規則生效，後面的不再評估；防火牆不會自動挑選最精確的規則。這就是規則遮蔽，修正方法是把規則 4 移到規則 2 之上，或是把規則 2 的條件寫得更精確。"
+            },
+            {
+                question: "Q4. 工作階段剛建立、應用程式還沒被辨識時，防火牆怎麼處理安全政策比對？",
+                options: ["A. 沒有辨識出應用程式就無法比對，先放行所有封包", "B. 直接依連接埠決定，之後不再比對", "C. 只比對一次，使用者設定的應用程式條件在這次比對中就必須符合", "D. 第一次比對先忽略應用程式（application any），辨識出應用程式後，再用真正的應用程式比對一次"],
+                correct: 3,
+                desc: "正解：D。第一次比對在工作階段建立階段，這時應用程式還未辨識，所以先以 application any 查詢；找不到符合的規則就拒絕。App-ID 辨識之後，會用實際的應用程式再比對一次，應用程式在檢查中改變時還會再確認。"
+            }
+        ];
+
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionBox = document.createElement('div');
+            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
+
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border mb-2 text-gray-700" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            questionBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
+                <div class="space-y-2 mb-4">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
+                    <p class="font-bold result-title"></p>
+                    <p class="text-sm text-gray-600 mt-1">${item.desc}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionBox);
+        });
+
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            if (element.parentElement.dataset.answered) return;
+            element.parentElement.dataset.answered = "true";
+
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+                opt.classList.add('disabled');
+            });
+
+            if (optIndex === data.correct) {
+                element.classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了！";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                element.classList.add('bg-red-100', 'border-red-500');
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了！";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+    </script>
+</body>
+</html>

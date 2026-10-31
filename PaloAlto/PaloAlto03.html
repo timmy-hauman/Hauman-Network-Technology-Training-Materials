@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palo Alto Networks NGFW 實戰課程 - 授權、更新與最佳實務範本</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        /* 卡片主體樣式 (Palo Alto Orange) */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #fa582d;
+        }
+
+        /* 重點提示框 (橘) */
+        .highlight-box {
+            background-color: #fff7ed;
+            border-left: 4px solid #fa582d;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 技術名詞標記 */
+        .tech-term {
+            color: #c2410c;
+            font-weight: 700;
+            background-color: #fff1e6;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
+        }
+
+        /* 比喻說明框 (綠) */
+        .analogy-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 版本差異框 (紫) */
+        .version-box {
+            background-color: #faf5ff;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 常見踩坑框 (紅) */
+        .pitfall-box {
+            background-color: #fef2f2;
+            border-left: 4px solid #dc2626;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .diagram-container {
+            display: block;
+            background-color: #ffffff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 640px) {
+            main { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+            .section-card { padding: 1rem; }
+            .diagram-container { padding: 0.25rem; }
+        }
+
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover:not(.disabled) {
+            background-color: #f3f4f6;
+        }
+
+        .footer-signature {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+            margin-top: 4rem;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-orange-600 to-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-fire-flame-curved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold">Palo Alto Networks NGFW 實戰課程</h1>
+                    <p class="text-orange-100 mt-1">基礎篇 - 單元 3：授權、更新與最佳實務範本</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <!-- Introduction -->
+        <div class="mb-8">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
+                <h2 class="text-xl font-bold text-blue-800 mb-2 flex items-center">
+                    <i class="fas fa-user-tie mr-2"></i>講師導言
+                </h2>
+                <p class="text-blue-900 leading-relaxed">
+                    防火牆接上管理網路之後，下一步不是急著寫規則，而是先讓它「有資格運作」：<strong>啟用授權、把軟體與內容更新到位，再了解原廠公開的最佳實務範本</strong>。
+                    這三件事做不好，後面的威脅防護、URL 過濾、DNS 防護都可能只是看起來有開、實際沒生效。
+                    這一章也是教材跟現行原廠文件落差最大的地方：<strong>訂閱服務多了更高一級的進階版，組合也不同了</strong>，上課時請把「教材寫法」與「現行寫法」對照著看。
+                </p>
+            </div>
+        </div>
+
+        <!-- 學習目標 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-gray-100 text-gray-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Goals</span>
+                本章學習目標
+            </h2>
+            <ul class="list-disc pl-6 space-y-1 text-gray-700">
+                <li>依序說出啟用一台新防火牆的步驟，並分辨硬體機型與 VM-Series 的差別</li>
+                <li>說明 Device &gt; Licenses 的三種授權啟用方式，以及什麼情況該用哪一種</li>
+                <li>認得現行訂閱服務的名稱（Advanced 系列），並指出彼此的相依關係</li>
+                <li>完成 PAN-OS 軟體更新的基本流程，並說明升級路徑的注意事項</li>
+                <li>區分軟體更新與內容更新（Dynamic Updates），知道新應用程式簽章進來前要先預覽影響（操作細節見第 12 章）</li>
+                <li>說明 IronSkillet 是什麼、載入前要注意哪些事，以及它對現行版本的適用範圍</li>
+            </ul>
+        </div>
+
+        <!-- Topic 1 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Flow</span>
+                一、啟用防火牆與授權
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                新設備到貨後，先到原廠的 <span class="tech-term">Customer Support Portal</span> 註冊，再回到防火牆啟用授權。
+                硬體機型用<strong>序號</strong>，VM-Series 用<strong>寄來的授權碼（auth code）與訂單編號</strong>（現行授權方案的實際流程以入口網站為準）。
+                啟用動作在 <span class="tech-term">Device &gt; Licenses</span> 進行。
+            </p>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border">步驟</th>
+                            <th class="py-2 px-4 text-left border">硬體防火牆</th>
+                            <th class="py-2 px-4 text-left border">VM 防火牆（VM-Series）</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">1. 向原廠支援註冊</td><td class="py-2 px-4 border">使用 Dashboard 上顯示的序號</td><td class="py-2 px-4 border">使用 email 收到的授權碼與購買／訂單編號</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">2. 啟用授權</td><td class="py-2 px-4 border" colspan="2">在 <span class="tech-term">Device &gt; Licenses</span> 取回授權金鑰，或用授權碼啟用</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">3. 確認更新與 DNS 伺服器</td><td class="py-2 px-4 border" colspan="2">在 <span class="tech-term">Device &gt; Setup &gt; Services</span> 設定正確的更新伺服器與 DNS 伺服器（第 2 章已設定）</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">4. 管理內容更新</td><td class="py-2 px-4 border" colspan="2">取得最新的應用程式與威脅、防毒、WildFire 等內容更新（教材另列 URL 過濾資料庫；現行 URL 分類主要由 Advanced URL Filtering 在雲端查詢，是否仍需下載資料庫以實機為準）</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">5. 安裝軟體更新</td><td class="py-2 px-4 border" colspan="2">確認 OS 版本，安裝建議的版本</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2"><span class="tech-term">Device &gt; Licenses</span> 的三種啟用方式</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-72">選項（UI 原文）</th><th class="py-2 px-4 text-left border">適用情境</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">Retrieve license keys from license server</td><td class="py-2 px-4 border">授權已經在 Customer Support Portal 啟用過，防火牆從授權伺服器把金鑰取回來</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Activate feature using authorization code</td><td class="py-2 px-4 border">授權還沒在入口網站啟用，直接在防火牆上輸入授權碼</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Manually upload license key</td><td class="py-2 px-4 border">防火牆連不到入口網站（例如離線環境）：先在有網路的電腦下載金鑰檔，再上傳到防火牆</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 440 734" width="100%" style="max-width:440px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c03d1-t c03d1-d" font-family="'Noto Sans TC', sans-serif"><title id="c03d1-t">授權啟用流程</title><desc id="c03d1-d">先在 Customer Support Portal 註冊，取得序號或授權碼，確認 DNS 與更新伺服器設定。再看防火牆能否連到授權伺服器：能且已在入口網站啟用，用 Retrieve license keys from license server；能但尚未啟用，用 Activate feature using authorization code；不能，用 Manually upload license key。最後回到授權頁面確認狀態，部分服務需 Commit 後才開始處理流量。</desc><defs><marker id="c03d1-ah" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#4b5563"/></marker></defs><rect x="20" y="6" width="400" height="41.5" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="220" y="32.7" font-size="17" fill="#1f2937" text-anchor="middle">在 Customer Support Portal 註冊</text><rect x="20" y="67.5" width="400" height="41.5" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="220" y="94.2" font-size="17" fill="#1f2937" text-anchor="middle">取得序號或授權碼</text><polyline points="220,47.5 220,67.5" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c03d1-ah)"/><rect x="20" y="129" width="400" height="41.5" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="220" y="155.7" font-size="17" fill="#1f2937" text-anchor="middle">確認 DNS 與更新伺服器設定</text><polyline points="220,109 220,129" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c03d1-ah)"/><rect x="20" y="190.5" width="400" height="41.5" rx="8" fill="#faf5ff" stroke="#7c3aed" stroke-width="2"/><text x="220" y="217.2" font-size="17" fill="#4c1d95" text-anchor="middle" font-weight="700">防火牆能連到授權伺服器？</text><polyline points="220,170.5 220,190.5" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c03d1-ah)"/><rect x="46" y="256" width="352" height="88.4" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="222" y="282.7" font-size="17" fill="#1f2937" text-anchor="middle" font-weight="700">能連，已在入口網站啟用</text><text x="222" y="306.1" font-size="17" fill="#1f2937" text-anchor="middle">Retrieve license keys</text><text x="222" y="329.6" font-size="17" fill="#1f2937" text-anchor="middle">from license server</text><rect x="46" y="358.4" width="352" height="88.4" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="222" y="385.1" font-size="17" fill="#1f2937" text-anchor="middle" font-weight="700">能連，尚未啟用</text><text x="222" y="408.5" font-size="17" fill="#1f2937" text-anchor="middle">Activate feature using</text><text x="222" y="432" font-size="17" fill="#1f2937" text-anchor="middle">authorization code</text><rect x="46" y="460.8" width="352" height="88.4" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="222" y="487.5" font-size="17" fill="#1f2937" text-anchor="middle" font-weight="700">不能連</text><text x="222" y="510.9" font-size="17" fill="#1f2937" text-anchor="middle">Manually upload</text><text x="222" y="534.4" font-size="17" fill="#1f2937" text-anchor="middle">license key</text><polyline points="20,211.25 16,211.25 16,300.2 46,300.2" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c03d1-ah)"/><polyline points="20,211.25 16,211.25 16,402.6 46,402.6" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c03d1-ah)"/><polyline points="20,211.25 16,211.25 16,505 46,505" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c03d1-ah)"/><rect x="46" y="593.2" width="352" height="41.5" rx="8" fill="#c2410c" stroke="#7c2d12" stroke-width="2"/><text x="222" y="619.9" font-size="17" fill="#ffffff" text-anchor="middle">回到授權頁面確認狀態</text><polyline points="398,300.2 424,300.2 424,613.95" fill="none" stroke="#4b5563" stroke-width="2"/><polyline points="398,402.6 424,402.6 424,613.95" fill="none" stroke="#4b5563" stroke-width="2"/><polyline points="398,505 424,505 424,613.95" fill="none" stroke="#4b5563" stroke-width="2"/><polyline points="424,613.95 398,613.95" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c03d1-ah)"/><rect x="46" y="658.7" width="352" height="64.9" rx="8" fill="#fff7ed" stroke="#fa582d" stroke-width="2"/><text x="222" y="685.4" font-size="17" fill="#7c2d12" text-anchor="middle">部分服務需 Commit 後</text><text x="222" y="708.8" font-size="17" fill="#7c2d12" text-anchor="middle">才開始處理流量</text><polyline points="222,634.7 222,658.7" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c03d1-ah)"/></svg>
+            </div>
+
+            <div class="analogy-box">
+                <p class="font-bold mb-2 text-green-800">🎫 生活化比喻：買了票還要劃位</p>
+                <p class="text-gray-700 text-sm">買訂閱服務就像買了音樂節的票：票號（授權碼）要先到售票系統登記，現場閘門（防火牆）還得能連回售票系統確認，才放你進去。連不上系統的場地，就只能拿事先印好的紙本票券（手動上傳金鑰檔）。</p>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：授權啟用失敗，先查連線，不要急著重打授權碼</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>透過授權伺服器取回金鑰或用授權碼啟用，都需要<strong>防火牆能連到授權伺服器</strong>；DNS 伺服器設錯或沒設，是最常見的原因（第 2 章的 <span class="tech-term">Device &gt; Setup &gt; Services</span>）。</li>
+                    <li>沒有有效的 Support 授權，就<strong>無法更新 PAN-OS 軟體</strong>。</li>
+                    <li>啟用 WildFire、Advanced URL Filtering、DNS Security 之後，需要 Commit 讓防火牆開始處理相關流量；若沒有待提交的變更，做法是用 CLI 的 <code>commit force</code>（Commit 概念見第 4 章）。</li>
+                </ul>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異</p>
+                <p class="text-gray-700 text-sm">教材（PAN-OS 9 / 10 時代）的內文只寫到「在 Device &gt; Licenses 取回金鑰或用授權碼啟用」，講師備註則提到要先在 <span class="tech-term">Device &gt; Support</span> 啟用 Support 授權。現行文件另列了 <strong>Manually upload license key</strong>（防火牆連不到授權伺服器時使用），並要求先安裝 NGFW 的<strong>裝置憑證（device certificate）</strong>，才能使用原廠雲端服務。管理介面與初始設定請回頭參考第 2 章。</p>
+            </div>
+        </div>
+
+        <!-- Topic 2 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Concept</span>
+                二、訂閱服務：名稱與相依關係
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                授權分成兩類：一類是<strong>設備本身</strong>（Support、VM 容量等），另一類是<strong>訂閱服務</strong>，由原廠雲端持續提供簽章與分析。
+                原廠現在把其中多項歸類為「雲端交付安全服務（Cloud-Delivered Security Services）」。以下是現行文件列出的主要安全類訂閱：左欄是基礎版，中欄是更高一級的進階版。進階版是另外訂閱的服務，不是基礎版改名：
+            </p>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border w-52">基礎版</th>
+                            <th class="py-2 px-4 text-left border w-52">進階版（另行訂閱）</th>
+                            <th class="py-2 px-4 text-left border">差異與相依</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">Threat Prevention</td><td class="py-2 px-4 border font-semibold">Advanced Threat Prevention</td><td class="py-2 px-4 border">基礎版含防毒、反間諜、弱點防護等；進階版加上雲端的深度學習引擎，偵測規避型 C2 威脅，並包含基礎版全部功能（第 13 章）</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">DNS Security</td><td class="py-2 px-4 border font-semibold">Advanced DNS Security</td><td class="py-2 px-4 border">DNS Security 要<strong>先有 Threat Prevention</strong>；進階版加上雲端引擎即時偵測遭劫持與設定錯誤的網域，並包含 DNS Security 全部功能</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">URL Filtering</td><td class="py-2 px-4 border font-semibold">Advanced URL Filtering</td><td class="py-2 px-4 border">URL Filtering <strong>已不單獨販售</strong>，功能都包含在進階版；進階版以機器學習做即時網頁檢查</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">WildFire</td><td class="py-2 px-4 border font-semibold">Advanced WildFire</td><td class="py-2 px-4 border">WildFire 分三級：基本 WildFire 內含在防火牆中，簽章要透過防毒或 Threat Prevention 更新取得；WildFire 訂閱加快簽章更新並支援更多檔案類型；Advanced WildFire 是另外加購的更高一級訂閱，不是 WildFire 改名，並包含 WildFire 訂閱的全部功能，再加上雲端執行期記憶體分析，偵測規避型惡意程式</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">其他常見授權</h3>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-globe text-orange-500 mr-2"></i>GlobalProtect Gateway</h4>
+                    <p class="text-sm text-gray-700">基本部署不需授權；進階功能（如 HIP 檢查、行動 App、外部 Gateway 的 IPv6、無用戶端 VPN）才需要，依 Gateway 計；內部 Gateway 的 IPv6 自 App 4.1.3 起不需授權，細節以實際授權為準（第 16 章）。</p>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-cubes text-orange-500 mr-2"></i>Virtual Systems</h4>
+                    <p class="text-sm text-gray-700">永久授權，用於多個虛擬系統。部分機型必須有，其餘機型要超過預設數量才需要。</p>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-database text-orange-500 mr-2"></i>Strata Logging Service</h4>
+                    <p class="text-sm text-gray-700">雲端集中儲存與彙整日誌。</p>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-shield-halved text-orange-500 mr-2"></i>其他</h4>
+                    <p class="text-sm text-gray-700">原廠文件另列 Enterprise DLP、SaaS Security Inline、Device Security、SD-WAN、AutoFocus、Strata Cloud Manager 等，本課程不展開。</p>
+                </div>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>教材投影片（約 2017～2020 年）談到的授權，是以當時的 Threat Prevention、WildFire、URL Filtering（PAN-DB）為主。現行原廠文件已經多了 <strong>Advanced Threat Prevention、Advanced WildFire、Advanced URL Filtering、Advanced DNS Security</strong>。</li>
+                    <li>「<strong>URL Filtering 不再單獨販售</strong>」是教材沒有的新事實；舊文件裡看到的 PAN-DB URL Filtering 訂閱，在新採購時要改看 Advanced URL Filtering。</li>
+                    <li>名稱會隨原廠產品策略調整（例如日誌服務現行文件名為 Strata Logging Service）。實際採購與續約內容，請以原廠或代理商報價單為準。</li>
+                </ul>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：只買了 DNS Security，沒有 Threat Prevention</p>
+                <p class="text-gray-700 text-sm">DNS Security 要<strong>先購買並安裝 Threat Prevention 授權</strong>。盤點授權清單時，要看的是「相依關係有沒有齊」，不是單看有沒有那一項。另外，不論訂閱服務有沒有啟用，<strong>設定檔（Profile）有沒有套進安全政策規則</strong>才決定流量有沒有被檢查（第 9、13 章）。</p>
+            </div>
+        </div>
+
+        <!-- Topic 3 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Config</span>
+                三、PAN-OS 軟體更新
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                軟體更新在 <span class="tech-term">Device &gt; Software</span>。基本三步：<strong>Check Now</strong> 列出新版本 → <strong>下載</strong>（從更新伺服器 Download，或從本機 Upload）→ <strong>Install</strong>。
+                安裝完需要重新開機才會切換到新版本。
+            </p>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 440 472" width="100%" style="max-width:440px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c03d2-t c03d2-d" font-family="'Noto Sans TC', sans-serif"><title id="c03d2-t">PAN-OS 軟體更新流程</title><desc id="c03d2-d">按 Check Now 列出新版本，依映像檔來源選擇：從更新伺服器 Download，或從本機檔案 Upload；接著 Install，重新開機，最後確認版本並檢查系統。</desc><defs><marker id="c03d2-ah" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#4b5563"/></marker></defs><rect x="40" y="6" width="360" height="64.9" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="220" y="32.7" font-size="17" fill="#1f2937" text-anchor="middle">Check Now</text><text x="220" y="56.1" font-size="17" fill="#1f2937" text-anchor="middle">列出新版本</text><rect x="40" y="94.9" width="360" height="41.5" rx="8" fill="#faf5ff" stroke="#7c3aed" stroke-width="2"/><text x="220" y="121.6" font-size="17" fill="#4c1d95" text-anchor="middle" font-weight="700">取得映像檔的方式</text><polyline points="220,70.9 220,94.9" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c03d2-ah)"/><rect x="17" y="180.4" width="190" height="64.9" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="112" y="207.1" font-size="17" fill="#1f2937" text-anchor="middle">更新伺服器</text><text x="112" y="230.5" font-size="17" fill="#1f2937" text-anchor="middle">Download</text><rect x="233" y="180.4" width="190" height="64.9" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="328" y="207.1" font-size="17" fill="#1f2937" text-anchor="middle">本機檔案</text><text x="328" y="230.5" font-size="17" fill="#1f2937" text-anchor="middle">Upload</text><polyline points="220,136.4 220,152.4 112,152.4 112,180.4" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c03d2-ah)"/><polyline points="220,136.4 220,152.4 328,152.4 328,180.4" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c03d2-ah)"/><rect x="40" y="289.3" width="360" height="41.5" rx="8" fill="#c2410c" stroke="#7c2d12" stroke-width="2"/><text x="220" y="316" font-size="17" fill="#ffffff" text-anchor="middle">Install</text><polyline points="328,245.3 328,267.3 220,267.3" fill="none" stroke="#4b5563" stroke-width="2"/><polyline points="112,245.3 112,267.3 220,267.3 220,289.3" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c03d2-ah)"/><rect x="40" y="354.8" width="360" height="41.5" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="220" y="381.5" font-size="17" fill="#1f2937" text-anchor="middle">重新開機</text><polyline points="220,330.8 220,354.8" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c03d2-ah)"/><rect x="40" y="420.3" width="360" height="41.5" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="220" y="447" font-size="17" fill="#1f2937" text-anchor="middle">確認版本並檢查系統</text><polyline points="220,396.3 220,420.3" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c03d2-ah)"/></svg>
+            </div>
+
+            <div class="overflow-x-auto mt-4">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-44">Action 欄位</th><th class="py-2 px-4 text-left border">意思</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">Validate</td><td class="py-2 px-4 border">該版本在原廠更新伺服器上，可以下載</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Install</td><td class="py-2 px-4 border">該版本已在防火牆上，可以安裝（需要重新開機）</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Reinstall</td><td class="py-2 px-4 border">曾經安裝過，可以再安裝一次</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">升級路徑要先看</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 text-sm">
+                <li>PAN-OS 版本編號分<strong>大版本（feature release）</strong>與<strong>維護版本（maintenance release）</strong>；每個大版本會先有一個 base image（基底映像檔）。</li>
+                <li><strong>不要安裝非目標版本的 base image</strong>，也就是只有當某個大版本就是你的升級目標時，才安裝它的 base image。</li>
+                <li>手動升級時，原廠建議<strong>從每個版本最新的維護版本開始</strong>往上走。</li>
+                <li>升級 PAN-OS 前，先把內容更新（見下一節）更新好；每個 PAN-OS 版本都有最低支援的內容版本。</li>
+            </ul>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異</p>
+                <p class="text-gray-700 text-sm">早期的規則是「<strong>大版本不能跳著升</strong>，每個大版本都要裝過」；教材講師備註的例子是從 8.1 升到 9.1，要先安裝 9.0.0 再安裝 9.1.0。後來原廠提供 <strong>Skip Software Version</strong> 功能（從 PAN-OS 10.1 或更新的版本升級時可用）：例如從 11.0.x、11.1.x、11.2.x 可直接升到 12.1，已在 12.1 的可直接升到更後面的版本。<strong>但可略過的範圍因來源版本而異</strong>（例如 10.2.x 的直升目標是 11.2），動手前請依原廠升級路徑表確認，不要憑印象。</p>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：升級路徑沒查就動手</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>把中間版本的 base image 也安裝進去，或沒看來源版本能否直升，會讓升級卡關，甚至要回頭重做。</li>
+                    <li>沒有有效的 Support 授權就無法下載更新（見第一節）。</li>
+                    <li>HA 成對設備可以用 Device &gt; Software 的 <strong>Sync To Peer</strong> 把上傳的映像檔推給對端；實際的升級順序屬於第 17 章，集中管理多台設備的升級則在第 18 章（Panorama）。正式環境升級前，先匯出並備份設定（第 4 章）。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Topic 4 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Config</span>
+                四、內容更新：Dynamic Updates
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                軟體更新換的是「作業系統」，<strong>內容更新換的是簽章與資料庫</strong>，兩者獨立管理。
+                選單是 <span class="tech-term">Device &gt; Dynamic Updates</span>：可以<strong>排程檢查</strong>新內容並自動下載，或下載並安裝；也可以手動下載、安裝，或<strong>還原（Revert）</strong>到先前版本。
+            </p>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border w-52">內容類型</th>
+                            <th class="py-2 px-4 text-left border">內容與授權需求</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">Applications and Threats</td><td class="py-2 px-4 border">應用程式（App-ID）與威脅簽章，需要 Threat Prevention 授權。對有授權的設備，它取代單純的 Applications 更新（第 12、13 章）</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Antivirus</td><td class="py-2 px-4 border">防毒簽章，原廠約每 24 小時發布；沒有 WildFire 訂閱時，WildFire 簽章要至少延遲 24 小時才會經由防毒更新送達（此節奏來自較舊版本的說明，12.x 以實機為準）</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">WildFire</td><td class="py-2 px-4 border">WildFire 訂閱可即時（real-time）取得 WildFire 雲端產生的簽章，也可改用排程定期檢查，排程選項以實機為準。教材寫的是約每五分鐘發布一次、最快每分鐘檢查一次，現行版本多了即時取得的選項。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">GlobalProtect Data File</td><td class="py-2 px-4 border">放廠商相關的 HIP 資料，需要 GlobalProtect Gateway 授權，而且<strong>要建立排程</strong>，GlobalProtect 才會正常運作</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Device Dictionary</td><td class="py-2 px-4 border">供 Device Security（IoT）使用的裝置字典</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="highlight-box mt-4">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>新應用程式簽章進來前，先預覽對政策的影響</p>
+                <p class="text-gray-700 text-sm">內容更新帶進新的 App-ID 時，原本被辨識成 web-browsing 之類的流量可能<strong>換了一條規則比對</strong>，所以安裝前要先預覽影響；操作細節見第 12 章。</p>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>早期教材（PAN-OS 8.0）寫 App-ID 是「每週更新（Weekly updates）」；較新的教材講師備註則寫新應用程式每月新增。較新版本（例如 PAN-OS 10.2 時期）的原廠說明是：新的 App-ID 在每個月第三個星期二發布，已有應用程式的修改則更頻繁；Applications and Threats 更新「有時一週數次」。實際節奏可能再變，排程前請以實機與當時的原廠說明為準。</li>
+                    <li>教材投影片只列出排程與手動下載、安裝（講師備註提到可先下載到另一台電腦再上傳）；現行 UI 另有 <strong>Threshold</strong>（Antivirus、Applications and Threats 的最短等待時間）與 <strong>Install From File</strong>（離線環境從支援網站下載檔案、上傳後再用它安裝）。</li>
+                    <li>教材未列的類型，如 Device Dictionary、GlobalProtect 相關資料檔，現行文件都有說明（見上表）。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Topic 5 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Best Practice</span>
+                五、最佳實務範本：IronSkillet
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                <span class="tech-term">IronSkillet</span> 是 Palo Alto Networks 在 GitHub 上公開的專案（<code>PaloAltoNetworks/iron-skillet</code>），目的是提供<strong>第一天（Day 1）的最佳實務設定範本</strong>，可載入到 NGFW 或 Panorama。
+                教材的說明是：它落實<strong>入站、出站與內部流量防護</strong>的方法論、載入設定與自訂報表，並<strong>縮短部署時間、減少錯誤</strong>。
+                教材也提到，Day 1 設定在註冊新防火牆時，也能從 Support Portal 取得（現行流程以入口網站為準）。
+            </p>
+
+            <div class="analogy-box">
+                <p class="font-bold mb-2 text-green-800">🍳 生活化比喻：新房子的標準裝潢包</p>
+                <p class="text-gray-700 text-sm">IronSkillet 像建商附的「標準裝潢包」：水電、消防、基本安全設備先做到位，之後你再依需要擺家具（介面、區域、NAT、安全規則）。它不替你決定房子怎麼隔間。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">範本涵蓋什麼，不涵蓋什麼</h3>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h4 class="font-bold text-green-800 mb-1"><i class="fas fa-check mr-1"></i>範本重點</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>動態更新（dynamic updates）、安全設定檔（security profiles）、規則（rules）、日誌（logging）等，讓各部署一致</li>
+                        <li>提供多種「播放清單（playlist）」，例如 full config、security profiles only、alert only 等，可選擇只載入一部分</li>
+                    </ul>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-xmark mr-1"></i>仍需自己設定</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>介面、區域、路由（第 5、6 章）</li>
+                        <li>允許清單式的安全規則、User-ID、解密政策（第 8、9、14、15 章）</li>
+                        <li>原廠最佳實務中需要手動設定的項目</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">怎麼載入</h3>
+            <div class="diagram-container">
+                <svg viewBox="0 0 440 544" width="100%" style="max-width:440px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c03d3-t c03d3-d" font-family="'Noto Sans TC', sans-serif"><title id="c03d3-t">IronSkillet 的載入方式</title><desc id="c03d3-d">取得 IronSkillet 檔案後選擇載入方式：圖形工具 Skillet Player（panHandler）、命令列工具 SLI（Skillet Line Interfacing），或手動匯入完整 XML、貼上 set 指令。三種方式都要 Commit，之後再補上介面、區域、路由與政策。</desc><defs><marker id="c03d3-ah" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#4b5563"/></marker></defs><rect x="20" y="6" width="400" height="41.5" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="220" y="32.7" font-size="17" fill="#1f2937" text-anchor="middle">取得 IronSkillet 檔案</text><rect x="20" y="71.5" width="400" height="41.5" rx="8" fill="#faf5ff" stroke="#7c3aed" stroke-width="2"/><text x="220" y="98.2" font-size="17" fill="#4c1d95" text-anchor="middle" font-weight="700">選擇載入方式</text><polyline points="220,47.5 220,71.5" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c03d3-ah)"/><rect x="46" y="137" width="352" height="64.9" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="222" y="163.7" font-size="17" fill="#1f2937" text-anchor="middle" font-weight="700">圖形工具</text><text x="222" y="187.1" font-size="17" fill="#1f2937" text-anchor="middle">Skillet Player（panHandler）</text><rect x="46" y="215.9" width="352" height="64.9" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="222" y="242.6" font-size="17" fill="#1f2937" text-anchor="middle" font-weight="700">命令列工具</text><text x="222" y="266" font-size="17" fill="#1f2937" text-anchor="middle">SLI（Skillet Line Interfacing）</text><rect x="46" y="294.8" width="352" height="64.9" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="222" y="321.5" font-size="17" fill="#1f2937" text-anchor="middle" font-weight="700">手動</text><text x="222" y="344.9" font-size="17" fill="#1f2937" text-anchor="middle">匯入完整 XML 或貼上 set 指令</text><polyline points="20,92.25 16,92.25 16,169.45 46,169.45" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c03d3-ah)"/><polyline points="20,92.25 16,92.25 16,248.35 46,248.35" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c03d3-ah)"/><polyline points="20,92.25 16,92.25 16,327.25 46,327.25" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c03d3-ah)"/><rect x="46" y="403.7" width="352" height="41.5" rx="8" fill="#c2410c" stroke="#7c2d12" stroke-width="2"/><text x="222" y="430.4" font-size="17" fill="#ffffff" text-anchor="middle">Commit</text><polyline points="398,169.45 424,169.45 424,424.45" fill="none" stroke="#4b5563" stroke-width="2"/><polyline points="398,248.35 424,248.35 424,424.45" fill="none" stroke="#4b5563" stroke-width="2"/><polyline points="398,327.25 424,327.25 424,424.45" fill="none" stroke="#4b5563" stroke-width="2"/><polyline points="424,424.45 398,424.45" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c03d3-ah)"/><rect x="46" y="469.2" width="352" height="64.9" rx="8" fill="#fff7ed" stroke="#fa582d" stroke-width="2"/><text x="222" y="495.9" font-size="17" fill="#7c2d12" text-anchor="middle">補上介面、區域、</text><text x="222" y="519.3" font-size="17" fill="#7c2d12" text-anchor="middle">路由與政策</text><polyline points="222,445.2 222,469.2" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c03d3-ah)"/></svg>
+            </div>
+
+            <div class="overflow-x-auto mt-4">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-52">載入方式</th><th class="py-2 px-4 text-left border">說明</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">Skillet Player（panHandler）</td><td class="py-2 px-4 border">圖形化應用程式，用來安裝並執行（play）IronSkillet 與其他 skillet</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">SLI</td><td class="py-2 px-4 border">命令列工具，例如 <code>sli load</code> 載入工作目錄中的 skillet</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">手動：完整 XML</td><td class="py-2 px-4 border">透過 <span class="tech-term">Device &gt; Setup &gt; Operations</span> 匯入成具名的設定快照，再載入並 Commit</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">手動：set 指令</td><td class="py-2 px-4 border">在 CLI 設定模式貼上指令後 Commit；建議一次貼 30 至 40 行以內</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：完整 XML 是「取代」，不是「合併」</p>
+                <p class="text-gray-700 text-sm">載入完整 XML 設定檔會<strong>取代現有設定，而不是與現有設定合併</strong>。在已經有設定的設備上直接載入，原本的介面、政策可能就沒了。要合併，得用 <code>load config partial</code> 並指定要的 xpath。<strong>載入前先備份目前設定（第 4 章）</strong>，並先在測試設備或新設備上演練。Excel 範本也只應編輯 <code>values</code> 工作表，改其他工作表會破壞公式。</p>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>教材（簡報 2017～2020 年）把 IronSkillet 稱為「GitHub repository 中的 Day 1 設定範本」。這個專案目前以 Skillet Player（panHandler）與 SLI 為主要載入工具。</li>
+                    <li>IronSkillet 的範本<strong>依 PAN-OS 版本分支維護</strong>。截至 2026 年 10 月查證時，公開分支最新為 <code>panos_v11.0</code>（2023 年 2 月更新），<strong>沒有 11.1 以後或 12.x 的分支</strong>。用在 12.x 設備前，請視為參考範例而不是可直接載入的設定，並對照現行原廠最佳實務逐項檢查；使用前也請到 GitHub 專案再確認一次分支清單。</li>
+                    <li>範本是起點而非終點：它依 Palo Alto Networks 的最佳實務編寫，但實際環境仍要評估（例如設備型號的設定檔數量限制、既有的政策）。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
+                隨堂測驗
+            </h2>
+            <p class="mb-6 text-gray-600">請點選您認為正確的選項，系統將會顯示解析。</p>
+            <div class="space-y-6" id="quiz-container"></div>
+        </div>
+
+    </main>
+
+    <footer class="footer-signature">
+        Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver.2026.10.29.11.19
+    </footer>
+
+
+    <script>
+        const quizData = [
+            {
+                question: "Q1. 公司只買了 DNS Security 訂閱，沒有 Threat Prevention。下列說法何者正確？",
+                options: ["A. 可以正常使用，兩者互相獨立", "B. DNS Security 要先購買並安裝 Threat Prevention 授權，這樣的組合不完整", "C. 只要有 Advanced URL Filtering 就能取代 Threat Prevention", "D. 授權沒問題，但要重新註冊序號"],
+                correct: 1,
+                desc: "正解：B。DNS Security 需要先有 Threat Prevention。Advanced Threat Prevention 則是包含 Threat Prevention 全部功能。URL Filtering 現已併入 Advanced URL Filtering，與 DNS Security 的相依無關。"
+            },
+            {
+                question: "Q2. 要把 PAN-OS 升級到某個目標大版本，下列做法何者符合原廠建議？",
+                options: ["A. 把路徑上每個大版本的 base image 都先裝一遍", "B. 只有目標版本才安裝它的 base image，並先依原廠升級路徑表確認來源版本能否直升（Skip Software Version）", "C. 不用看升級路徑，Check Now 之後直接 Install 最新的版本", "D. 先關閉所有授權再升級"],
+                correct: 1,
+                desc: "正解：B。不要安裝非目標版本的 base image；手動升級時建議使用各版本最新的維護版本。現行版本提供 Skip Software Version，但可略過的範圍因來源版本而異，必須對照升級路徑表，而不是憑印象。選項 A 是舊做法：教材講師備註當年的例子是先安裝 9.0.0 再升到 9.1.0，現行做法已改為不安裝非目標版本的 base image。"
+            },
+            {
+                question: "Q3. 某分公司的防火牆依資安規範完全不能連上網際網路，現在要啟用已購買的授權。下列哪個 Device > Licenses 選項最適合？",
+                options: ["A. Retrieve license keys from license server", "B. Activate feature using authorization code", "C. Manually upload license key：先在有網路的電腦下載金鑰檔，再上傳到防火牆", "D. 沒有辦法，必須先讓防火牆連上網際網路"],
+                correct: 2,
+                desc: "正解：C。A 是把已在入口網站啟用的授權金鑰從授權伺服器取回來，B 是在防火牆上直接輸入授權碼，兩者都需要防火牆連得到授權伺服器。連不到時，就用 Manually upload license key：在有網路的電腦下載金鑰檔，再上傳到防火牆。所以 D 也是錯的，離線環境有手動上傳的做法。"
+            },
+            {
+                question: "Q4. 在已運作的防火牆上，直接把 IronSkillet 的完整 XML 載入並 Commit，最可能發生什麼事？",
+                options: ["A. 與現有設定自動合併，不會有影響", "B. 取代現有設定，原有的介面與政策可能消失", "C. 只會更新 Antivirus 簽章", "D. 只會新增日誌設定"],
+                correct: 1,
+                desc: "正解：B。載入完整 XML 是「取代現有設定，不是合併」。要合併請用 load config partial 指定 xpath，或選擇只載入部分內容的播放清單（如 security profiles only）。載入前一定要先備份設定。"
+            }
+        ];
+
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionBox = document.createElement('div');
+            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
+
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border mb-2 text-gray-700" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            questionBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
+                <div class="space-y-2 mb-4">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
+                    <p class="font-bold result-title"></p>
+                    <p class="text-sm text-gray-600 mt-1">${item.desc}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionBox);
+        });
+
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            if (element.parentElement.dataset.answered) return;
+            element.parentElement.dataset.answered = "true";
+
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+                opt.classList.add('disabled');
+            });
+
+            if (optIndex === data.correct) {
+                element.classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了！";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                element.classList.add('bg-red-100', 'border-red-500');
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了！";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palo Alto Networks NGFW 實戰課程 - Panorama 集中管理</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        /* 卡片主體樣式 (Palo Alto Orange) */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #fa582d;
+        }
+
+        /* 重點提示框 (橘) */
+        .highlight-box {
+            background-color: #fff7ed;
+            border-left: 4px solid #fa582d;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 技術名詞標記 */
+        .tech-term {
+            color: #c2410c;
+            font-weight: 700;
+            background-color: #fff1e6;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
+        }
+
+        /* 比喻說明框 (綠) */
+        .analogy-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 版本差異框 (紫) */
+        .version-box {
+            background-color: #faf5ff;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 常見踩坑框 (紅) */
+        .pitfall-box {
+            background-color: #fef2f2;
+            border-left: 4px solid #dc2626;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .diagram-container {
+            display: block;
+            background-color: #ffffff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-top: 1rem;
+            overflow-x: auto;
+        }
+
+        @media (max-width: 640px) {
+            .section-card { padding: 1rem; }
+            .diagram-container { padding: 0.25rem; }
+        }
+
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover:not(.disabled) {
+            background-color: #f3f4f6;
+        }
+
+        .footer-signature {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+            margin-top: 4rem;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-orange-600 to-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-fire-flame-curved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold">Palo Alto Networks NGFW 實戰課程</h1>
+                    <p class="text-orange-100 mt-1">進階篇 - 單元 18：Panorama 集中管理</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <!-- Introduction -->
+        <div class="mb-8">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
+                <h2 class="text-xl font-bold text-blue-800 mb-2 flex items-center">
+                    <i class="fas fa-user-tie mr-2"></i>講師導言
+                </h2>
+                <p class="text-blue-900 leading-relaxed">
+                    走到最後一堂課了。前面十七章，我們都是「一台防火牆、一個管理員、一份設定」。現實中的企業常常有幾十台甚至上百台防火牆，
+                    如果每台都要登入去改一次，不但費工，而且<strong>很難保證每台都一樣</strong>。
+                    這一章要看的 <strong>Panorama</strong>，就是原廠用來解決這件事的集中管理平台。
+                    重點只有三個：<strong>怎麼把防火牆納進來、政策與網路設定怎麼分工（Device Group 與 Template）、設定怎麼從 Panorama 送到防火牆（Commit 與 Push）</strong>。
+                    第 4 章的候選組態與執行組態觀念，在這裡會再用一次。
+                </p>
+            </div>
+        </div>
+
+        <!-- 學習目標 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-gray-100 text-gray-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Goals</span>
+                本章學習目標
+            </h2>
+            <ul class="list-disc pl-6 space-y-1 text-gray-700">
+                <li>說明為什麼需要集中管理，以及 Panorama 提供的三類功能</li>
+                <li>分辨 Panorama 的兩種外型（虛擬設備、M 系列設備）與三種模式，並說出納管一台防火牆的基本步驟</li>
+                <li>說明 Device Group 的階層、Pre-rules、Post-rules、本機規則與預設規則的評估順序</li>
+                <li>分辨 Device Group 與 Template／Template Stack 各自管什麼，並解釋 Stack 的優先順序與變數</li>
+                <li>說明「Commit to Panorama」與「Push to Devices」兩段式流程，以及集中日誌、Log Collector、HA、更新部署與角色權限的概念</li>
+            </ul>
+        </div>
+
+        <!-- Topic 1 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Concept</span>
+                一、為什麼要集中管理
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                原廠對 <span class="tech-term">Panorama</span> 的定位，是讓你用「中央掌控」的方式設定、管理與監控多台 Palo Alto Networks 防火牆。
+                它主要提供三類價值：
+            </p>
+
+            <div class="grid md:grid-cols-3 gap-4 mb-4">
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h3 class="font-bold text-orange-800 mb-2"><i class="fas fa-sliders mr-1"></i>集中設定與部署</h3>
+                    <p class="text-sm text-gray-700">用 Template 管理網路與裝置的基本設定，用 Device Group 管理共用與本機的政策規則，也可以預先建立（pre-stage）要納管的防火牆。</p>
+                </div>
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h3 class="font-bold text-orange-800 mb-2"><i class="fas fa-chart-line mr-1"></i>集中日誌與報表</h3>
+                    <p class="text-sm text-gray-700">把各台防火牆的活動收在一起，統一分析、調查與出報表。</p>
+                </div>
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h3 class="font-bold text-orange-800 mb-2"><i class="fas fa-user-lock mr-1"></i>分層的管理權限</h3>
+                    <p class="text-sm text-gray-700">用角色型存取控制（RBAC），授權或限制管理員可以碰哪些全域、哪些本機的設定與政策。</p>
+                </div>
+            </div>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 480 556" width="100%" style="max-width:480px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c18d1-t" font-family="'Noto Sans TC', sans-serif"><title id="c18d1-t">Panorama 集中管理架構圖。Panorama 主動主要與被動次要成對，把設定推送給各 Device Group 的被納管防火牆；防火牆把日誌轉送到 Log Collector 與 Collector Group；Panorama 再從 Log Collector 集中查詢 ACC 與報表。</title><defs><marker id="c18d1-g" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#4b5563"/></marker><marker id="c18d1-o" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#c2410c"/></marker><marker id="c18d1-r" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#dc2626"/></marker></defs><rect x="8" y="8" width="464" height="130" rx="10" fill="#fff7ed" stroke="#fa582d" stroke-width="2"/><text x="240" y="36" text-anchor="middle" font-size="20" fill="#c2410c" font-weight="700">Panorama 管理層</text><rect x="24" y="52" width="200" height="72" rx="10" fill="#c2410c" stroke="#fa582d" stroke-width="2"/><text x="124" y="81.7" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="700">Panorama 主動主要</text><text x="124" y="106.9" text-anchor="middle" font-size="18" fill="#ffffff">Active-primary</text><rect x="256" y="52" width="200" height="72" rx="10" fill="#e5e7eb" stroke="#4b5563" stroke-width="2"/><text x="356" y="81.7" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">Panorama 被動次要</text><text x="356" y="106.9" text-anchor="middle" font-size="18" fill="#1f2937">Passive-secondary</text><line x1="224" y1="88" x2="256" y2="88" stroke="#4b5563" stroke-width="3"/><line x1="158" y1="138" x2="158" y2="178" stroke="#4b5563" stroke-width="3" marker-end="url(#c18d1-g)"/><text x="170" y="164" text-anchor="start" font-size="18" fill="#1f2937">設定推送 Push</text><rect x="8" y="178" width="300" height="252" rx="10" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/><text x="158" y="208" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">被納管的防火牆</text><rect x="24" y="222" width="268" height="60" rx="10" fill="#ffffff" stroke="#3b82f6" stroke-width="2"/><text x="158" y="245.7" text-anchor="middle" font-size="18" fill="#1f2937">總公司防火牆</text><text x="158" y="270.9" text-anchor="middle" font-size="18" fill="#1f2937">Device Group A</text><rect x="24" y="290" width="268" height="60" rx="10" fill="#ffffff" stroke="#3b82f6" stroke-width="2"/><text x="158" y="313.7" text-anchor="middle" font-size="18" fill="#1f2937">分公司防火牆 1</text><text x="158" y="338.9" text-anchor="middle" font-size="18" fill="#1f2937">Device Group B</text><rect x="24" y="358" width="268" height="60" rx="10" fill="#ffffff" stroke="#3b82f6" stroke-width="2"/><text x="158" y="381.7" text-anchor="middle" font-size="18" fill="#1f2937">分公司防火牆 2</text><text x="158" y="406.9" text-anchor="middle" font-size="18" fill="#1f2937">Device Group B</text><line x1="158" y1="430" x2="158" y2="470" stroke="#4b5563" stroke-width="3" marker-end="url(#c18d1-g)"/><text x="170" y="456" text-anchor="start" font-size="18" fill="#1f2937">日誌轉送</text><rect x="8" y="470" width="300" height="72" rx="10" fill="#c2410c" stroke="#fa582d" stroke-width="2"/><text x="158" y="499.7" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="700">Log Collector</text><text x="158" y="524.9" text-anchor="middle" font-size="18" fill="#ffffff">Collector Group</text><path d="M308,506 H448 V138" fill="none" stroke="#4b5563" stroke-width="3" stroke-dasharray="7 5" marker-end="url(#c18d1-g)"/><text x="438" y="300" text-anchor="end" font-size="18" fill="#1f2937">集中查詢</text><text x="438" y="322" text-anchor="end" font-size="18" fill="#1f2937">ACC 與報表</text></svg>
+            </div>
+
+            <div class="analogy-box">
+                <p class="font-bold mb-2 text-green-800">🏢 生活化比喻：總公司發公文給各分公司</p>
+                <ul class="list-none space-y-2 pl-2 text-gray-700">
+                    <li class="flex items-start"><i class="fas fa-building text-blue-500 mt-1 mr-3"></i><span><strong>Panorama = 總公司</strong>：統一擬定規章，不必一家一家分公司跑去講。</span></li>
+                    <li class="flex items-start"><i class="fas fa-file-lines text-green-600 mt-1 mr-3"></i><span><strong>Device Group = 規章公文</strong>：全公司通用的先寫（Shared），分區、分部門的再往下補。</span></li>
+                    <li class="flex items-start"><i class="fas fa-screwdriver-wrench text-orange-500 mt-1 mr-3"></i><span><strong>Template = 辦公室設備標準</strong>：網路孔位、時鐘、印表機位址這類「環境怎麼設」的規範。</span></li>
+                    <li class="flex items-start"><i class="fas fa-stamp text-purple-500 mt-1 mr-3"></i><span><strong>Commit to Panorama = 總公司核准歸檔</strong>；<strong>Push to Devices = 公文真的寄出去</strong>。核准了沒寄，分公司什麼都不會知道。</span></li>
+                    <li class="flex items-start"><i class="fas fa-note-sticky text-red-500 mt-1 mr-3"></i><span><strong>本機覆寫 = 分公司自己貼的便條</strong>：貼了之後，那一項總公司就不再管。</span></li>
+                </ul>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異：Panorama 與雲端管理</p>
+                <p class="text-gray-700 text-sm">
+                    現行 NGFW 的管理方式分成三種：直接用各台防火牆的 PAN-OS 介面、地端的 Panorama，以及 SaaS 型的 Strata Cloud Manager。
+                    大致的選擇是：防火牆少、需要設備層級控制時，PAN-OS 本機管理即可；多台防火牆需要一致的規則、集中日誌或有法規要求時，適合 Panorama；偏雲端或分散環境，適合 Strata Cloud Manager。
+                    本章只教 Panorama，Strata Cloud Manager 不展開。
+                    另外，本章內容對應 PAN-OS 11.1 以後的 Panorama，Device Group 與 Template 的畫面說明以 12.1 為準；各版本的畫面名稱與選項可能略有不同，以實機為準。
+                </p>
+            </div>
+        </div>
+
+        <!-- Topic 2 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Architecture</span>
+                二、部署型態與納管裝置
+            </h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">外型與模式（概述）</h3>
+            <p class="mb-4 text-gray-700">
+                Panorama 可以用<strong>虛擬設備</strong>或<strong>實體設備</strong>部署，甚至兩者並用；它可以當管理者、當 Log Collector，或兩者兼具。
+                外型如下：
+            </p>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-52">外型</th><th class="py-2 px-4 text-left border">說明</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">Panorama 虛擬設備</td><td class="py-2 px-4 border">可跑在多種平台，包括 VMware ESXi、KVM、Hyper-V，以及 AWS、Azure、GCP、OCI 等公有雲環境。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">M 系列實體設備</td><td class="py-2 px-4 border">M-200、M-300、M-500、M-600、M-700。</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="overflow-x-auto mt-4">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-52">模式</th><th class="py-2 px-4 text-left border">做什麼</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">Panorama mode</td><td class="py-2 px-4 border">管理防火牆，同時內建本機 Log Collector（虛擬設備可掛 1 到 12 顆虛擬日誌磁碟）。M 系列的預設模式。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Management Only mode</td><td class="py-2 px-4 border">專職管理防火牆與 Dedicated Log Collector，除了設定與系統日誌之外不收日誌。沒設定日誌轉送時，轉來的日誌預設會被丟棄。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Log Collector mode</td><td class="py-2 px-4 border">當 Dedicated Log Collector，只有 CLI、沒有 Web 介面，由 Panorama 的 Web 介面來管理它。</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">模式切換是在 CLI 操作，切換可能刪除本機日誌與設定，動手前請先備份並確認步驟。</p>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異：舊機型與 Legacy 模式</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>舊教材投影片提到的 M-100 不在現行的型號清單內；現行列出的是 M-200、M-300、M-500、M-600、M-700。看到 M-100 請當作舊世代機型。</li>
+                    <li>自 2025 年 9 月 1 日起，Panorama 不再支援 <strong>Legacy mode</strong>。舊文章或舊環境若提到 Legacy mode，現行版本請改用 Panorama mode。</li>
+                    <li>管理台數方面，Management Only 模式下 M-600 與 M-700 最多可管理 5,000 台防火牆，資源足夠的虛擬設備則為 2,500 台；實際授權台數依你購買的管理授權而定，規劃時以最新規格為準。</li>
+                </ul>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">把防火牆納管：基本流程</h3>
+            <p class="mb-2 text-gray-700">納管需要 Device Management License。流程是「Panorama 端先登記，防火牆端再指向 Panorama」：</p>
+            <ol class="list-decimal pl-6 text-gray-700 space-y-2">
+                <li>先確認防火牆已完成初始設定，且網路上連得到 Panorama（管理網路觀念見第 2 章）。</li>
+                <li>在 Panorama 產生認證金鑰：<span class="tech-term">Panorama &gt; Device Registration Auth Key</span> 新增一把，設定名稱、<strong>Lifetime</strong>（有效時間）、<strong>Count</strong>（這把金鑰可使用的次數）、Device Type，也可以限定適用的序號。</li>
+                <li>在 Panorama 登記防火牆：<span class="tech-term">Panorama &gt; Managed Devices &gt; Summary</span> 新增，輸入防火牆的<strong>序號（serial number）</strong>與認證金鑰；可同時指派 Device Group、Template Stack、Collector Group 與 Log Collector。</li>
+                <li>回到防火牆：<span class="tech-term">Device &gt; Setup &gt; Management</span> 編輯 Panorama Settings，把 Managed By 設為 Panorama，填入 Panorama 位址與同一把 Auth key，Commit。</li>
+                <li>在 Panorama 執行 <span class="tech-term">Commit &gt; Commit to Panorama</span>，再到 <span class="tech-term">Panorama &gt; Managed Devices &gt; Summary</span> 確認 Device State 是 <strong>Connected</strong>。</li>
+            </ol>
+
+            <div class="highlight-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>重點</p>
+                <p class="text-gray-700 text-sm">納管只是「讓 Panorama 認得這台防火牆」。要真正管到設定，還得把它<strong>指派給 Device Group 與 Template Stack</strong>（現行版本每台納管的防火牆都必須屬於一個 Template Stack，Template 要先放進 Stack 才會套用）。另外，Panorama 的 Policies 與 Objects 頁籤要先建立至少一個 Device Group 才看得到，Network 與 Device 頁籤則要先建立至少一個 Template。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Panorama 高可用（HA）概述</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>兩台 Panorama 組成一對：一台 <strong>active-primary</strong>，另一台 <strong>passive-secondary</strong>。主要的一台故障時，次要的會自動接手。</li>
+                <li>故障切換由 HA 心跳（heartbeat）與 hello 訊息，或 HA 路徑監控觸發。</li>
+                <li>兩台必須是同型號（虛擬設備則是同一種支援的虛擬平台）、相同模式（Panorama mode 或 Management Only mode）、相同 Panorama 版本、相同的管理台數授權；虛擬設備兩台的 vCPU 核心數與記憶體也要相同；Log Collector mode 的設備不支援 HA。</li>
+                <li>HA 對之間透過管理介面（MGT）同步要推送給防火牆、Log Collector 的設定，以及狀態資訊。</li>
+            </ul>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異：跨 hypervisor 的 Panorama HA</p>
+                <p class="text-gray-700 text-sm">較舊的版本要求兩台虛擬設備跑在同一種 hypervisor；PAN-OS 12.2 以後，兩台可以部署在相同或不同的受支援 hypervisor 上（起始的小版本，原廠文件說法不一，以實機為準）。不論哪個版本，兩台的 vCPU 核心數與記憶體都要相同。</p>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">Panorama HA 與第 17 章的防火牆 HA 是兩套各自獨立的機制：前者保護的是「管理平台」，後者保護的是「流量路徑」。</p>
+        </div>
+
+        <!-- Topic 3 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Policy</span>
+                三、Device Group 與政策
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                <span class="tech-term">Device Group</span> 是把防火牆（與虛擬系統）依地理、功能或網路分段組成的邏輯單位，Panorama 把每個群組當成一個單位來套用政策與物件。
+                管理路徑是 <span class="tech-term">Panorama &gt; Device Groups</span>。
+            </p>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">階層與繼承</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 mb-2">
+                <li>群組可以巢狀，<strong>在 Shared 之下最多四層</strong>；下層繼承上層的規則與物件。</li>
+                <li><strong>Shared</strong> 是最上層，放全部群組共用的設定。</li>
+                <li>一台防火牆只能屬於<strong>一個</strong> Device Group；但同一台的不同虛擬系統（vsys）可以分到不同群組。</li>
+                <li>放在 Shared 的物件整個階層都能用；放在某個 Device Group 的物件，只有該群組與其下層能用。下層可以覆寫上層同名物件的值，也能還原回繼承值。</li>
+            </ul>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 480 512" width="100%" style="max-width:480px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c18d2-t" font-family="'Noto Sans TC', sans-serif"><title id="c18d2-t">Device Group 階層圖。Shared 在最上層，下面是第 1 層的 DG_APAC 與 DG_DataCenter；DG_APAC 下有第 2 層的 DG_Taipei 與 DG_Kaohsiung，各接一台防火牆；DG_DataCenter 接 FW-DC-01。Shared 之下最多四層，圖中只畫到第 2 層。</title><defs><marker id="c18d2-g" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#4b5563"/></marker><marker id="c18d2-o" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#c2410c"/></marker><marker id="c18d2-r" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#dc2626"/></marker></defs><rect x="8" y="8" width="464" height="64" rx="10" fill="#c2410c" stroke="#fa582d" stroke-width="2"/><text x="240" y="33.7" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="700">Shared</text><text x="240" y="58.9" text-anchor="middle" font-size="18" fill="#ffffff">全公司共用的規則與物件</text><path d="M40,72 V404" fill="none" stroke="#4b5563" stroke-width="3"/><line x1="40" y1="132" x2="60" y2="132" stroke="#4b5563" stroke-width="3"/><line x1="40" y1="404" x2="60" y2="404" stroke="#4b5563" stroke-width="3"/><rect x="60" y="100" width="210" height="64" rx="10" fill="#fff7ed" stroke="#fa582d" stroke-width="2"/><text x="165" y="125.7" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">DG_APAC</text><text x="165" y="150.9" text-anchor="middle" font-size="18" fill="#1f2937">第 1 層</text><path d="M84,164 V312" fill="none" stroke="#4b5563" stroke-width="3"/><line x1="84" y1="222" x2="110" y2="222" stroke="#4b5563" stroke-width="3"/><line x1="84" y1="312" x2="110" y2="312" stroke="#4b5563" stroke-width="3"/><rect x="110" y="190" width="200" height="64" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text x="210" y="215.7" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">DG_Taipei</text><text x="210" y="240.9" text-anchor="middle" font-size="18" fill="#1f2937">第 2 層</text><rect x="340" y="190" width="132" height="64" rx="10" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/><text x="406" y="215.7" text-anchor="middle" font-size="18" fill="#1f2937">防火牆</text><text x="406" y="240.9" text-anchor="middle" font-size="18" fill="#1f2937">FW-TPE-01</text><line x1="310" y1="222" x2="340" y2="222" stroke="#4b5563" stroke-width="3"/><rect x="110" y="280" width="200" height="64" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text x="210" y="305.7" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">DG_Kaohsiung</text><text x="210" y="330.9" text-anchor="middle" font-size="18" fill="#1f2937">第 2 層</text><rect x="340" y="280" width="132" height="64" rx="10" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/><text x="406" y="305.7" text-anchor="middle" font-size="18" fill="#1f2937">防火牆</text><text x="406" y="330.9" text-anchor="middle" font-size="18" fill="#1f2937">FW-KHH-01</text><line x1="310" y1="312" x2="340" y2="312" stroke="#4b5563" stroke-width="3"/><rect x="60" y="372" width="210" height="64" rx="10" fill="#fff7ed" stroke="#fa582d" stroke-width="2"/><text x="165" y="397.7" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">DG_DataCenter</text><text x="165" y="422.9" text-anchor="middle" font-size="18" fill="#1f2937">第 1 層</text><rect x="340" y="372" width="132" height="64" rx="10" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/><text x="406" y="397.7" text-anchor="middle" font-size="18" fill="#1f2937">防火牆</text><text x="406" y="422.9" text-anchor="middle" font-size="18" fill="#1f2937">FW-DC-01</text><line x1="270" y1="404" x2="340" y2="404" stroke="#4b5563" stroke-width="3"/><text x="240" y="472" text-anchor="middle" font-size="18" fill="#4b5563">圖中只畫到第 2 層</text><text x="240" y="496" text-anchor="middle" font-size="18" fill="#4b5563">Shared 之下最多四層</text></svg>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">規則的種類與評估順序</h3>
+            <p class="mb-3 text-gray-700">
+                防火牆依「層級」（Shared、Device Group、本機）與「類型」（Pre-rules、Post-rules、預設規則）評估規則，<strong>符合的第一條規則就生效，後面的全部略過</strong>。
+                推送下來的規則，在防火牆上看得到，但只能在 Panorama 管理。
+            </p>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 480 502" width="100%" style="max-width:480px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c18d3-t" font-family="'Noto Sans TC', sans-serif"><title id="c18d3-t">規則評估順序圖，由上而下共六步：Shared Pre-rules、Device Group Pre-rules、防火牆本機規則、Device Group Post-rules、Shared Post-rules，最後是預設規則 intrazone 與 interzone。第一條符合的規則生效。</title><defs><marker id="c18d3-g" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#4b5563"/></marker><marker id="c18d3-o" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#c2410c"/></marker><marker id="c18d3-r" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#dc2626"/></marker></defs><rect x="60" y="8" width="360" height="52" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text x="240" y="40.3" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">1. Shared Pre-rules</text><line x1="240" y1="60" x2="240" y2="90" stroke="#4b5563" stroke-width="3" marker-end="url(#c18d3-g)"/><rect x="60" y="90" width="360" height="52" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text x="240" y="122.3" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">2. Device Group Pre-rules</text><line x1="240" y1="142" x2="240" y2="172" stroke="#4b5563" stroke-width="3" marker-end="url(#c18d3-g)"/><rect x="60" y="172" width="360" height="52" rx="10" fill="#c2410c" stroke="#fa582d" stroke-width="2"/><text x="240" y="204.3" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="700">3. 防火牆本機規則</text><line x1="240" y1="224" x2="240" y2="254" stroke="#4b5563" stroke-width="3" marker-end="url(#c18d3-g)"/><rect x="60" y="254" width="360" height="52" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text x="240" y="286.3" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">4. Device Group Post-rules</text><line x1="240" y1="306" x2="240" y2="336" stroke="#4b5563" stroke-width="3" marker-end="url(#c18d3-g)"/><rect x="60" y="336" width="360" height="52" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text x="240" y="368.3" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">5. Shared Post-rules</text><line x1="240" y1="388" x2="240" y2="418" stroke="#4b5563" stroke-width="3" marker-end="url(#c18d3-g)"/><rect x="60" y="418" width="360" height="76" rx="10" fill="#e5e7eb" stroke="#4b5563" stroke-width="2"/><text x="240" y="449.7" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">6. 預設規則</text><text x="240" y="474.9" text-anchor="middle" font-size="18" fill="#1f2937">intrazone / interzone</text></svg>
+            </div>
+
+            <div class="overflow-x-auto mt-4">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-40">規則類型</th><th class="py-2 px-4 text-left border">特性</th><th class="py-2 px-4 text-left border">常見用途</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">Pre-rules</td><td class="py-2 px-4 border">由 Shared 推給所有防火牆，由 Device Group 推給該群組與下層。多層時<strong>從最高層評估到最低層</strong>，所以 Shared 最先。</td><td class="py-2 px-4 border">全公司通用的規範，例如阻擋特定 URL 類別、放行 DNS。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">本機規則</td><td class="py-2 px-4 border">只作用在單一防火牆或 vsys，位於 Pre-rules 與 Post-rules 之間；本機管理員或切換到該防火牆情境的 Panorama 管理員可改。</td><td class="py-2 px-4 border">該台獨有的需求。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Post-rules</td><td class="py-2 px-4 border">推送方式同 Pre-rules，但多層時<strong>從最低層評估到最高層</strong>，所以 Shared 最後。</td><td class="py-2 px-4 border">依 App-ID、User-ID 或服務拒絕流量的兜底規則。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">預設規則</td><td class="py-2 px-4 border">只用在 Security 規則庫。intrazone-default 允許同區域流量，interzone-default 拒絕跨區域流量。預設唯讀，但可以覆寫標籤、動作、日誌與安全設定檔。</td><td class="py-2 px-4 border">沒有任何規則符合時的最後防線（第 8 章）。</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <p class="mt-3 text-gray-700">
+                新增 Pre-rules 或 Post-rules 時，到 <span class="tech-term">Policies &gt; Security &gt; Pre Rules</span>（或 Post Rules），先在上方的 Device Group 下拉選單選好要放在哪個群組（選 Shared 就是全域）。
+                想看某台防火牆實際會疊出什麼順序，可用 <span class="tech-term">Policies &gt; Preview Rules</span>，選擇 Rulebase、Device Group 與 Device 來預覽。
+            </p>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：Pre-rules 的 Deny 會蓋掉下層的 Allow</p>
+                <p class="text-gray-700 text-sm">Shared 的 Pre-rules 排在最前面，一旦符合就不會再往下看。如果總公司在 Shared 放了一條廣泛的 Deny，分公司 Device Group 裡再漂亮的 Allow 都沒有機會被評估。排錯時先用 Preview Rules 看完整的疊加順序，再回頭找是哪一層的規則先符合。</p>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：同名物件在不同層級的值不同</p>
+                <p class="text-gray-700 text-sm">預設情況下，同名物件在多個層級有不同的值時，下層群組的規則會使用<strong>下層自己的值</strong>。另有系統設定可以反轉，讓整個階層一律使用 Shared（或最高層）的值。團隊內要先決定採用哪種，否則同一個物件名稱在不同分公司代表不同內容，很難查。</p>
+            </div>
+
+            <div class="highlight-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>HA 對與 Master Device</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>防火牆 HA 的兩台（第 17 章）建議放進<strong>同一個</strong> Device Group；推送時可勾選 Group HA Peers，把 HA 配對的兩台歸成一組一起選取（實際效果以實機為準）。</li>
+                    <li>如果規則或報表要用到使用者名稱、使用者群組（第 14 章 User-ID），Device Group 必須指定一台 <strong>Master Device</strong>，Panorama 會從它取得使用者與群組對應。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Topic 4 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Template</span>
+                四、Template 與 Template Stack
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                Device Group 管「政策與物件」，<span class="tech-term">Template</span> 管的是<strong>Network 與 Device 兩個頁籤</strong>的內容：介面、區域、日誌與 syslog 的伺服器設定、VPN 等。
+                <span class="tech-term">Template Stack</span> 則把多個 Template 疊在一起，形成合併後的設定。管理路徑是 <span class="tech-term">Panorama &gt; Templates</span>。
+            </p>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-40">比較項目</th><th class="py-2 px-4 text-left border">Device Group</th><th class="py-2 px-4 text-left border">Template／Template Stack</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">管什麼</td><td class="py-2 px-4 border">政策規則（Policies 頁籤）與規則引用的物件（Objects 頁籤）</td><td class="py-2 px-4 border">網路與裝置設定（Network 與 Device 頁籤）</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">典型內容</td><td class="py-2 px-4 border">Security 規則、位址物件、安全設定檔、URL 類別</td><td class="py-2 px-4 border">介面、區域、日誌伺服器設定、syslog 設定</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">組織方式</td><td class="py-2 px-4 border">階層式（Shared 往下最多四層），下層繼承上層</td><td class="py-2 px-4 border">Template 疊進 Stack，以排列順序決定優先</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">防火牆的歸屬</td><td class="py-2 px-4 border">一台只能在一個 Device Group</td><td class="py-2 px-4 border">以 Template Stack 指派給防火牆；Stack 最多放 8 個 Template</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">本機調整</td><td class="py-2 px-4 border">推下來的 Pre/Post 規則只能在 Panorama 管理；本機規則另放在中間</td><td class="py-2 px-4 border">可以在防火牆上覆寫個別設定，覆寫後該項不再由 Panorama 管</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Stack 的優先順序</h3>
+            <p class="mb-3 text-gray-700">
+                Panorama 在 Stack 裡<strong>由上往下</strong>評估 Template，<strong>排在上面的優先</strong>。同一個設定出現在多個 Template 時，只會推送位置較高的那個值。
+                適合放進同一個 Stack 的，通常是硬體型號相近、閘道與 syslog 伺服器也類似的防火牆；Template 可以重複用在不同 Stack，例如「全球」與「亞太」兩個 Template 可同時用在資料中心與分公司的 Stack。
+            </p>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 480 456" width="100%" style="max-width:480px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c18d4-t" font-family="'Noto Sans TC', sans-serif"><title id="c18d4-t">Template Stack 優先順序圖。Branch_Stack 內由上到下依序是 T_Branch、T_APAC、T_Global，位置越高優先順序越高；同一設定衝突時採用位置較高的值，套用到指派此 Stack 的防火牆。</title><defs><marker id="c18d4-g" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#4b5563"/></marker><marker id="c18d4-o" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#c2410c"/></marker><marker id="c18d4-r" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#dc2626"/></marker></defs><rect x="8" y="8" width="464" height="312" rx="10" fill="#fff7ed" stroke="#fa582d" stroke-width="2"/><text x="240" y="38" text-anchor="middle" font-size="20" fill="#c2410c" font-weight="700">Template Stack：Branch_Stack</text><rect x="60" y="58" width="360" height="64" rx="10" fill="#c2410c" stroke="#fa582d" stroke-width="2"/><text x="240" y="83.7" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="700">1. T_Branch</text><text x="240" y="108.9" text-anchor="middle" font-size="18" fill="#ffffff">優先順序最高</text><line x1="240" y1="122" x2="240" y2="152" stroke="#4b5563" stroke-width="3" marker-end="url(#c18d4-g)"/><rect x="60" y="152" width="360" height="52" rx="10" fill="#ffffff" stroke="#fdba74" stroke-width="2"/><text x="240" y="184.3" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">2. T_APAC</text><line x1="240" y1="204" x2="240" y2="234" stroke="#4b5563" stroke-width="3" marker-end="url(#c18d4-g)"/><rect x="60" y="234" width="360" height="64" rx="10" fill="#e5e7eb" stroke="#4b5563" stroke-width="2"/><text x="240" y="259.7" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">3. T_Global</text><text x="240" y="284.9" text-anchor="middle" font-size="18" fill="#1f2937">優先順序最低</text><line x1="240" y1="320" x2="240" y2="388" stroke="#4b5563" stroke-width="3" marker-end="url(#c18d4-g)"/><text x="252" y="346" text-anchor="start" font-size="18" fill="#1f2937">同一設定衝突時</text><text x="252" y="370" text-anchor="start" font-size="18" fill="#1f2937">採用位置較高的值</text><rect x="60" y="388" width="360" height="56" rx="10" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/><text x="240" y="422.3" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">指派到此 Stack 的防火牆</text></svg>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：Stack 順序排錯，設定「消失」或互相矛盾</p>
+                <p class="text-gray-700 text-sm">Panorama <strong>不會</strong>幫你驗證 Template 的組合是否合理。如果把全域 Template 排在區域 Template 的上面，區域 Template 裡的同項設定就會被蓋掉，看起來像「明明有設卻沒推下去」。建立 Stack 時就規劃好：<strong>越具體的（分公司、機房）放越上面，越通用的（全球）放越下面</strong>。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">變數（Variables）</h3>
+            <p class="mb-2 text-gray-700">
+                每台防火牆都不同的值（例如介面位址、DNS 位址），可以用變數代替，Template 本身就能共用。
+            </p>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>變數名稱必須以 <code>$</code> 開頭，並要指定型別（例如 IP Netmask、IP Range、FQDN、Group ID、Interface 等）與值。</li>
+                <li>Template 的變數會被 Stack <strong>繼承</strong>，Stack 可以覆寫；<strong>反過來不行</strong>：Template 不會繼承 Stack 上定義的變數。</li>
+                <li>在 <span class="tech-term">Panorama &gt; Managed Devices &gt; Summary</span> 可以對單一防火牆覆寫變數的值，但不能新增或刪除該台的變數定義，也不能改名稱或型別。</li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">本機覆寫與限制</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>防火牆上可以覆寫 Template 推下來的欄位（欄位旁會出現 Template 圖示）。<strong>覆寫之後，該設定存在防火牆的本機組態，Panorama 就不再管它。</strong></li>
+                <li>要把它拉回 Template 的值，要在 Panorama 推送時啟用 <strong>Force Template Values</strong>（見下一節）。</li>
+                <li>Template 與 Stack<strong>不能</strong>設定防火牆的模式，例如 VPN 模式、Multi-vsys 模式、FIPS-CC 等營運模式；這些要在防火牆本機設定。</li>
+                <li>刪除 Template 或把防火牆從 Stack 移除，不會把已經推下去的值清掉，只是 Panorama 以後不再送新的更新。</li>
+            </ul>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：本機覆寫與 Force Template Values 互相衝突</p>
+                <p class="text-gray-700 text-sm">本機覆寫的值，平時不會被 Panorama 動到；但一旦有人在推送時勾選 Force Template Values，這些覆寫就會被 Template 的值取代，原本分公司靠覆寫撐著的設定會瞬間變回 Template 的值。推送前先確認有哪些防火牆做過本機覆寫，必要時再決定要不要勾選。</p>
+            </div>
+
+            <div class="highlight-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>重點：防火牆一律透過 Template Stack 套用 Template</p>
+                <p class="text-gray-700 text-sm">建立 Template 之後，還必須建立 Template Stack，把 Template 與防火牆加進去，才能管理那些防火牆；每台被納管的防火牆都必須屬於一個 Template Stack。名稱規則：Template 名稱最多 63 個字元；Stack 名稱最多 31 個字元，且必須以字母開頭，只能用字母、數字與底線。</p>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異：舊寫法</p>
+                <p class="text-gray-700 text-sm">舊的說明裡有「直接把防火牆指派給 Template」的寫法；現行版本請一律透過 Template Stack。</p>
+            </div>
+        </div>
+
+        <!-- Topic 5 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Workflow</span>
+                五、Commit、Push 與集中日誌
+            </h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">兩段式流程：先 Commit 到 Panorama，再 Push 到裝置</h3>
+            <p class="mb-3 text-gray-700">
+                第 4 章講過：在防火牆上，修改只是改了「候選組態」，Commit 之後才變成「執行組態」。
+                Panorama 把這個觀念延伸成兩段：你在 Panorama 改的是 Panorama 的候選組態；<strong>Commit to Panorama</strong> 讓它變成 Panorama 的執行組態；
+                <strong>Push to Devices</strong> 再把 Panorama 的執行組態送到防火牆。這些選項都在 Panorama 右上角的 <span class="tech-term">Commit</span> 選單。
+            </p>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 480 446" width="100%" style="max-width:480px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c18d5-t" font-family="'Noto Sans TC', sans-serif"><title id="c18d5-t">Commit 與 Push 的兩段式流程圖。在 Panorama 修改候選組態後，先 Commit to Panorama 更新 Panorama 的執行組態，再 Push to Devices 並用 Edit Selections 選範圍，防火牆收到設定後合併並各自 Commit。Commit and Push 一次做完兩段。若只做到 Commit to Panorama 而忘了 Push，防火牆不會有任何變化。</title><defs><marker id="c18d5-g" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#4b5563"/></marker><marker id="c18d5-o" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#c2410c"/></marker><marker id="c18d5-r" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#dc2626"/></marker></defs><rect x="116" y="8" width="220" height="96" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text x="226" y="37.1" text-anchor="middle" font-size="18" fill="#1f2937">在 Panorama 修改</text><text x="226" y="62.3" text-anchor="middle" font-size="18" fill="#1f2937">Device Group 與</text><text x="226" y="87.5" text-anchor="middle" font-size="18" fill="#1f2937">Template 候選組態</text><line x1="226" y1="104" x2="226" y2="134" stroke="#4b5563" stroke-width="3" marker-end="url(#c18d5-g)"/><rect x="116" y="134" width="220" height="80" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text x="226" y="155.1" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">Commit to Panorama</text><text x="226" y="180.3" text-anchor="middle" font-size="18" fill="#1f2937">Panorama 的</text><text x="226" y="205.5" text-anchor="middle" font-size="18" fill="#1f2937">執行組態更新</text><line x1="226" y1="214" x2="226" y2="244" stroke="#4b5563" stroke-width="3" marker-end="url(#c18d5-g)"/><rect x="116" y="244" width="220" height="80" rx="10" fill="#c2410c" stroke="#fa582d" stroke-width="2"/><text x="226" y="265.1" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="700">Push to Devices</text><text x="226" y="290.3" text-anchor="middle" font-size="18" fill="#ffffff">Edit Selections</text><text x="226" y="315.5" text-anchor="middle" font-size="18" fill="#ffffff">選範圍</text><line x1="226" y1="324" x2="226" y2="354" stroke="#4b5563" stroke-width="3" marker-end="url(#c18d5-g)"/><rect x="116" y="354" width="220" height="80" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text x="226" y="387.7" text-anchor="middle" font-size="18" fill="#1f2937">防火牆收到設定</text><text x="226" y="412.9" text-anchor="middle" font-size="18" fill="#1f2937">合併後各自 Commit</text><path d="M116,56 H100 V394 H116" fill="none" stroke="#c2410c" stroke-width="3" stroke-dasharray="7 5" marker-end="url(#c18d5-o)"/><text x="92" y="196" text-anchor="end" font-size="18" fill="#c2410c">Commit</text><text x="92" y="218" text-anchor="end" font-size="18" fill="#c2410c">and Push</text><text x="92" y="246" text-anchor="end" font-size="18" fill="#c2410c">兩段一次</text><text x="92" y="268" text-anchor="end" font-size="18" fill="#c2410c">做完</text><line x1="336" y1="174" x2="372" y2="174" stroke="#dc2626" stroke-width="3" stroke-dasharray="7 5" marker-end="url(#c18d5-r)"/><rect x="372" y="144" width="100" height="60" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/><text x="422" y="167.7" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">忘了</text><text x="422" y="192.9" text-anchor="middle" font-size="18" fill="#1f2937">Push</text><text x="422" y="232" text-anchor="middle" font-size="18" fill="#1f2937">只做到這裡</text><text x="422" y="254" text-anchor="middle" font-size="18" fill="#1f2937">防火牆不會</text><text x="422" y="276" text-anchor="middle" font-size="18" fill="#1f2937">有任何變化</text></svg>
+            </div>
+
+            <div class="overflow-x-auto mt-4">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-48">操作</th><th class="py-2 px-4 text-left border">做什麼</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">Commit to Panorama</td><td class="py-2 px-4 border">讓 Panorama 自己的設定生效，包含 Device Group、Template、Collector Group 的變更，但<strong>不送給任何裝置</strong>。適合先存好、還沒準備好上線的修改。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Push to Devices</td><td class="py-2 px-4 border">把 Panorama 的執行組態推送給 Device Group、Template、Collector Group 與 WildFire 等目標。推送的範圍預設是「與 Panorama 不同步」的裝置。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Commit and Push</td><td class="py-2 px-4 border">先 Commit 到 Panorama，再接著推送，一次完成兩段。</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">推送前的選項與檢查</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-60">選項</th><th class="py-2 px-4 text-left border">作用</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">Edit Selections</td><td class="py-2 px-4 border">選擇推送的範圍：Device Group 與 Template、Log Collector Group、WildFire 設備與叢集；Device Group 可以細到個別防火牆或 vsys。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Include Device and Network Templates</td><td class="py-2 px-4 border">只在 Device Groups 頁籤出現，預設勾選：一次推送 Device Group 與其關聯的 Template 變更。取消勾選可分開推送。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Merge with Candidate Config</td><td class="py-2 px-4 border">預設勾選：把推送內容與防火牆上尚未 Commit 的本機修改合併後一起 Commit。取消勾選則不把防火牆的候選組態納入。（部分說明把這個選項寫成 Merge with Device Candidate Config，以實機畫面為準。）</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Force Template Values</td><td class="py-2 px-4 border">預設關閉，每次推送都要自己勾選：用 Template／Stack 的值蓋掉防火牆上的本機設定。防火牆上只存在本機的物件不會被刪除。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Preview Changes／Validate</td><td class="py-2 px-4 border">Preview Changes 並排比對差異；Validate 列出實際 Commit 會出現的錯誤與警告。推送對話框也有 Validate，會驗證要推給所選防火牆與 vsys 的組態。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Commit Changes Made By</td><td class="py-2 px-4 border">依管理員或位置縮小 Commit 範圍。要 Commit 其他管理員的修改，需要 Superuser 角色，或具備 Commit For Other Admins 權限的 Admin Role 設定檔。</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：Commit 了 Panorama，卻忘記 Push</p>
+                <p class="text-gray-700 text-sm">這是最典型的「明明改了卻沒效果」。Commit to Panorama 成功，只代表 Panorama 自己更新了；防火牆沒收到任何東西，流量照舊。排錯時先回頭確認有沒有真的執行過 Push to Devices，再用 Edit Selections 檢查該防火牆所屬的 Device Group 與 Template 有沒有在推送範圍內。</p>
+            </div>
+
+            <div class="highlight-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>第 4 章觀念延伸</p>
+                <p class="text-gray-700 text-sm">候選組態與執行組態、Commit 前先 Preview 與 Validate 的做法，在 Panorama 同樣適用，只是範圍從「一台防火牆」擴大成「一批防火牆」，出錯的影響也跟著放大。推送前多做一次 Validate 與 Preview，成本遠低於事後回復。多位管理員同時作業時，鎖定的觀念在 Panorama 上也有，但鎖定的範圍（Panorama、Device Group、Template）與行為，以實機為準。</p>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異：推送的是執行組態</p>
+                <p class="text-gray-700 text-sm">Panorama 8.0 以後推送的是「已 Commit 到 Panorama 的執行組態」，所以必須先 Commit 才能 Push；Panorama 7.1 及更早版本推送的是含未 Commit 修改的候選組態。若看到舊教材說「按 Push 就會連尚未 Commit 的修改一起送」，那是舊版行為。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">集中日誌：Log Collector 與 Collector Group</h3>
+            <p class="mb-3 text-gray-700">
+                日誌要集中，防火牆要「送」，Panorama 這端要有地方「收」：
+            </p>
+            <ol class="list-decimal pl-6 text-gray-700 space-y-2">
+                <li>先建立要轉送日誌的防火牆所屬的 Device Group 與 Template（Device Group 用來推 Log Forwarding 設定檔，Template 用來推日誌設定）。</li>
+                <li>在 <span class="tech-term">Objects &gt; Log Forwarding</span> 建立 Log Forwarding 設定檔，用比對清單（match list）選擇日誌類型與過濾條件，目的地選 <strong>Panorama/Strata Logging Service</strong>，再把設定檔掛到 Security 等規則的 Actions 頁籤。</li>
+                <li>System、Configuration、User-ID、HIP Match 這類不屬於規則的日誌，在 Template 內的 <span class="tech-term">Device &gt; Log Settings</span> 設定目的地。</li>
+                <li>Panorama 端把收日誌的 Log Collector 加成 managed collector：<span class="tech-term">Panorama &gt; Managed Collectors</span>，再設定 <span class="tech-term">Panorama &gt; Collector Groups</span>，指定哪些防火牆把日誌送到哪個 Log Collector。</li>
+                <li>最後用 Commit and Push，把變更送到 Panorama、Device Group、Template 與 Collector Group。</li>
+            </ol>
+
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 mt-3">
+                <li>每台 Panorama 內建一個預設的本機 Log Collector，隸屬預設的 Collector Group（兩者的預設名稱，原廠文件說法不一，以實機為準）；另可再納管 <strong>Dedicated Log Collector</strong>（M 系列或虛擬設備的 Log Collector mode）。</li>
+                <li>每個 Collector Group 最多可放 16 個 Log Collector；Log Collector 必須先加進某個 Collector Group，才能開始收防火牆的日誌。</li>
+                <li>Panorama 能從各 Log Collector 查詢並調查彙整後的日誌。</li>
+            </ul>
+
+            <div class="highlight-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>ACC 與報表怎麼跨設備看</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>Panorama 的 ACC 預設顯示 Panorama 本機資料（Panorama local data），載入較快；若所有被納管的防火牆版本都夠新，也可以切到 Remote Device Data，由 Panorama 向各台防火牆查詢後彙總。</li>
+                    <li>ACC 的 Device Group 篩選預設是 All，可縮小到單一群組；Device Group 與 Template 管理員只看得到自己 Access Domain 內的群組資料。</li>
+                    <li>報表可以立即執行或排程，可存檔、匯出或寄送；自訂報表可取 Panorama 本機資料（效能較好），或 Remote Device Data（逐台查詢，較慢）。</li>
+                </ul>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：Management Only 模式沒有 Log Collector，日誌被丟掉</p>
+                <p class="text-gray-700 text-sm">Management Only 模式的 Panorama 本身不收日誌，若沒有設定日誌轉送到 Dedicated Log Collector，防火牆送來的日誌預設會被丟棄。集中日誌上線前，確認「設定檔掛上去了、Log Collector 在 Collector Group 裡、也已 Push」三件事都完成。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">其他集中維運功能</h3>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-cloud-arrow-down text-orange-500 mr-2"></i>軟體與內容更新部署</h4>
+                    <p class="text-sm text-gray-700">在 <span class="tech-term">Panorama &gt; Device Deployment</span> 的 Software 與 Dynamic Updates 頁面，由 Panorama 檢查、下載，再安裝到被納管的防火牆。<strong>Panorama 與 Dedicated Log Collector 的版本必須等於或高於被管理的防火牆</strong>，所以要先升 Panorama，再升防火牆。<strong>內容更新先於軟體更新</strong>。HA 配對要一台一台升級，每個配對一次只選一台，升級前先停用 Preemptive；順序與第 17 章相同：手動升級是先 Suspend 目前的 Active（原廠稱 active/primary）那台，從 Panorama 編排升級（PAN-OS 12.1.2 起）則由系統自動處理，先升被動端再切換。可部署的項目取決於各裝置啟用的訂閱。</p>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-user-shield text-orange-500 mr-2"></i>角色型管理權限</h4>
+                    <p class="text-sm text-gray-700"><span class="tech-term">Panorama &gt; Admin Roles</span> 分兩種：<strong>Panorama</strong> 角色管全域功能；<strong>Device Group and Template</strong> 角色再搭配 <span class="tech-term">Panorama &gt; Access Domains</span>（一組 Device Group），讓同一位管理員在不同範圍有不同角色，例如只能看資料中心的流量、不能改設定。</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
+                隨堂測驗
+            </h2>
+            <p class="mb-6 text-gray-600">請點選您認為正確的選項，系統將會顯示解析。</p>
+            <div class="space-y-6" id="quiz-container"></div>
+        </div>
+
+    </main>
+
+    <footer class="footer-signature">
+        Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver.2026.10.29.11.02
+    </footer>
+
+    <script>
+        const quizData = [
+            {
+                question: "Q1. 一台防火牆同時收到 Shared Pre-rules、Device Group Pre-rules、本機規則、Device Group Post-rules 與 Shared Post-rules。評估順序由先到後，下列何者正確？",
+                options: ["A. Shared Pre → Device Group Pre → 本機 → Device Group Post → Shared Post，最後才是預設規則", "B. 本機 → Shared Pre → Device Group Pre → Device Group Post → Shared Post", "C. Device Group Pre → Shared Pre → 本機 → Shared Post → Device Group Post", "D. Shared Post → Device Group Post → 本機 → Device Group Pre → Shared Pre"],
+                correct: 0,
+                desc: "正解：A。Pre-rules 由最高層（Shared）往下評估，接著是防火牆本機規則，然後是 Post-rules，由最低層往 Shared 評估，Shared Post-rules 排在最後，預設規則（intrazone-default、interzone-default）墊底。符合的第一條規則生效，後面略過。"
+            },
+            {
+                question: "Q2. 管理員在 Panorama 新增了一條 Device Group 規則，按下 Commit to Panorama 且成功，但分公司防火牆的行為完全沒變。最可能的原因是什麼？",
+                options: ["A. 規則一定寫錯了，Panorama 不接受這條規則", "B. Commit to Panorama 只讓 Panorama 自己的設定生效，還需要 Push to Devices（或直接用 Commit and Push）才會送到防火牆", "C. Panorama 要重新開機後才會把設定送出", "D. 防火牆要先離開 Device Group 再加入一次"],
+                correct: 1,
+                desc: "正解：B。Panorama 的兩段式流程中，Commit to Panorama 把變更存進 Panorama 的執行組態，不會送給裝置；要再執行 Push to Devices，或一開始就選 Commit and Push。這是最常見的「改了卻沒效果」。"
+            },
+            {
+                question: "Q3. 下列需求中，哪一項應該放進 Template 或 Template Stack，而不是 Device Group？",
+                options: ["A. 所有分公司共用的 Security 規則", "B. 一個供多條規則引用的位址物件", "C. 各分公司防火牆上統一的日誌與 syslog 伺服器設定", "D. 阻擋特定 URL 類別的 Pre-rule"],
+                correct: 2,
+                desc: "正解：C。Template 管的是 Network 與 Device 頁籤的設定（介面、區域、日誌與 syslog 伺服器設定等）；Security 規則、位址物件、URL 類別規則都屬於 Device Group 管的 Policies 與 Objects。"
+            },
+            {
+                question: "Q4. 一個 Template Stack 依序放入 T_Branch（最上）、T_APAC、T_Global（最下），三個 Template 都設定了不同的閒置逾時值。防火牆最後會得到哪一個？",
+                options: ["A. 三個值的平均", "B. T_Global 的值，因為最後處理的會覆蓋前面的", "C. Panorama 會報錯，拒絕推送", "D. T_Branch 的值，因為 Stack 中排在上面的 Template 優先"],
+                correct: 3,
+                desc: "正解：D。Panorama 在 Stack 內由上往下評估，位置較高的 Template 優先，同一設定只推送較高者的值。Panorama 也不會替你檢查 Template 組合是否合理，所以順序要事先規劃：越具體的放越上面。"
+            }
+        ];
+
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionBox = document.createElement('div');
+            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
+
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border mb-2 text-gray-700" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            questionBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
+                <div class="space-y-2 mb-4">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
+                    <p class="font-bold result-title"></p>
+                    <p class="text-sm text-gray-600 mt-1">${item.desc}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionBox);
+        });
+
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            if (element.parentElement.dataset.answered) return;
+            element.parentElement.dataset.answered = "true";
+
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+                opt.classList.add('disabled');
+            });
+
+            if (optIndex === data.correct) {
+                element.classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了！";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                element.classList.add('bg-red-100', 'border-red-500');
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了！";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+    </script>
+</body>
+</html>

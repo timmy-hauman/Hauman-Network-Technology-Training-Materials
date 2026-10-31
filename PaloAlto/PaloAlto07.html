@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palo Alto Networks NGFW 實戰課程 - Layer 2/VLAN 介面與 PBF</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        /* 卡片主體樣式 (Palo Alto Orange) */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #fa582d;
+        }
+
+        /* 重點提示框 (橘) */
+        .highlight-box {
+            background-color: #fff7ed;
+            border-left: 4px solid #fa582d;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 技術名詞標記 */
+        .tech-term {
+            color: #c2410c;
+            font-weight: 700;
+            background-color: #fff1e6;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
+        }
+
+        /* 比喻說明框 (綠) */
+        .analogy-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 版本差異框 (紫) */
+        .version-box {
+            background-color: #faf5ff;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 常見踩坑框 (紅) */
+        .pitfall-box {
+            background-color: #fef2f2;
+            border-left: 4px solid #dc2626;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .diagram-container {
+            display: flex;
+            justify-content: center;
+            background-color: #ffffff;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-top: 1rem;
+            overflow-x: auto;
+        }
+
+
+        .diagram-container svg {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+
+        @media (max-width: 640px) {
+            .section-card { padding: 1rem 0.75rem; }
+            .diagram-container { padding: 0.5rem 0.25rem; }
+        }
+
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover:not(.disabled) {
+            background-color: #f3f4f6;
+        }
+
+        .footer-signature {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+            margin-top: 4rem;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-orange-600 to-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-fire-flame-curved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold">Palo Alto Networks NGFW 實戰課程</h1>
+                    <p class="text-orange-100 mt-1">網路篇 - 單元 7：Layer 2/VLAN 介面與 PBF</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <!-- Introduction -->
+        <div class="mb-8">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
+                <h2 class="text-xl font-bold text-blue-800 mb-2 flex items-center">
+                    <i class="fas fa-user-tie mr-2"></i>講師導言
+                </h2>
+                <p class="text-blue-900 leading-relaxed">
+                    上一章的 Layer 3 介面，是讓防火牆扮演「會檢查封包的路由器」。這一章換個角色：
+                    有些環境<strong>不想動 IP 規劃、也不需要路由</strong>，只希望防火牆插進同一個網段裡當<strong>交換器</strong>，順便檢查流量，這就是 <strong>Layer 2 介面</strong>。
+                    當這個網段還想連到別的網段時，再用 <strong>VLAN 介面</strong>把 Layer 2 接到 Layer 3。
+                    最後一個主題是 <strong>Policy-Based Forwarding（PBF）</strong>：路由表說往 A 走，但你偏要讓特定流量走 B，該怎麼設、斷線時怎麼切換、回程怎麼不走歪。
+                </p>
+            </div>
+        </div>
+
+        <!-- 學習目標 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-gray-100 text-gray-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Goals</span>
+                本章學習目標
+            </h2>
+            <ul class="list-disc pl-6 space-y-1 text-gray-700">
+                <li>說明 Layer 2 介面的用途，並完成 Layer 2 介面、Zone 與 VLAN 物件的設定</li>
+                <li>建立 Layer 2 子介面，說明 VLAN tag 的作用，以及不同 Zone 之間為何預設不通</li>
+                <li>說明 VLAN 介面如何把 Layer 2 網段接到 Layer 3，並指出 VLAN 介面編號不等於 VLAN tag</li>
+                <li>說明 PBF 與路由表的關係，並建立一條 PBF 規則（比對條件、動作、出口介面與下一跳）</li>
+                <li>說明為什麼不建議用應用程式（Application）當 PBF 比對條件</li>
+                <li>設定 PBF 的路徑監控與 Enforce Symmetric Return，並用指令確認規則狀態</li>
+            </ul>
+        </div>
+
+        <!-- Topic 1 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Layer 2</span>
+                一、Layer 2 介面：讓防火牆當交換器
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                Layer 2 介面讓防火牆在<strong>兩個以上的介面之間做交換</strong>：裝置接在同一個 Layer 2 網段，防火牆依訊框中的<strong>目的 MAC 位址</strong>決定從哪個埠送出去。
+                它通常用在<strong>不需要路由</strong>的環境；區域（Zone）與安全政策仍然照常檢查與控管流量。
+                多個 Layer 2 介面要互相交換，必須歸屬於同一個 <span class="tech-term">VLAN 物件</span>。
+            </p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Layer 2 介面的設定重點</h3>
+            <p class="text-sm text-gray-600 mb-2">路徑：<span class="tech-term">Network &gt; Interfaces &gt; Ethernet &gt; 選取介面</span></p>
+            <div class="grid md:grid-cols-3 gap-4 mb-4">
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h4 class="font-bold text-orange-800 mb-2"><span class="tech-term">1</span> 類型與區域</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li><strong>Interface Type</strong> 選 <span class="tech-term">Layer2</span></li>
+                        <li>在 Config 頁籤指派 <strong>Security Zone</strong>（可直接建立新的）</li>
+                        <li>Zone 的類型也要是 Layer2，<strong>介面類型與 Zone 類型必須一致</strong></li>
+                    </ul>
+                </div>
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h4 class="font-bold text-orange-800 mb-2"><span class="tech-term">2</span> VLAN 歸屬</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>Config 頁籤有 <strong>VLAN</strong> 欄位，未加入時為 <strong>None</strong></li>
+                        <li>要互相交換的介面，放進同一個 VLAN 物件（下一節建立）</li>
+                        <li>每個 Layer 2 介面只能屬於一個 VLAN，同一個 VLAN 可以有多個介面</li>
+                    </ul>
+                </div>
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-2"><span class="tech-term">3</span> 選用與收尾</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>可套用含 <strong>protocol protection</strong> 的 Zone Protection Profile，控制 Layer 2 區域之間的非 IP 通訊協定封包</li>
+                        <li>設定完成後 <strong>Commit</strong>（第 4 章）</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="highlight-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>重點：Layer 2 不等於「不檢查」</p>
+                <p class="text-gray-700 text-sm">防火牆做 Layer 2 交換，不代表放行一切。介面屬於哪個 Zone、Zone 之間有什麼安全政策，仍決定流量能不能通過（第 8 章）。
+                    與 Virtual Wire（第 5 章）相比，Layer 2 介面多了 MAC 位址學習與依 MAC 交換的行為，因此能把<strong>多個</strong>介面串在同一個網段；Virtual Wire 則是一進一出的「透明線」。</p>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異：STP 與新的 Layer2 Switch 介面</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>教材（PAN-OS 8.0）的示意圖只寫「STP forwarding」，也就是防火牆把 STP 訊框轉送出去，自己不參與生成樹運算。</li>
+                    <li>現行版本：這個預設行為沒變，<strong>Layer 2 介面預設會把 BPDU 轉送（flood）到同一個廣播網域</strong>。</li>
+                    <li>較新的 <strong>PAN-OS 12.2.2 起</strong>，可在特定機型上設定 STP（支援 IEEE 802.1s MSTP），預設為停用；啟用位置在 <span class="tech-term">Network &gt; Network Profiles &gt; STP Profile</span> 與介面的 STP 頁籤。</li>
+                    <li>支援的機型要看型號：PA-550、PA-560、PA-545-POE、PA-555-POE（新款 PA-500 系列），以及 PA-1510-POE、PA-1520-POE、PA-1530-POE（PA-1500 系列）。不要和教材機型表上的舊款 PA-500 混為一談。</li>
+                    <li>同一版另有新的 <strong>Layer2 Switch</strong> 介面類型，可在 access／trunk 埠上以硬體交換（支援 RSTP 與 MSTP）。這不是本章教材的範圍，也不適用所有機型；你的環境用哪一種介面，請以機型與版本為準。</li>
+                    <li>此外，防火牆可以改寫 Cisco PVST+ 與 Rapid PVST+ BPDU 內的 Port VLAN ID，細節本章不展開。</li>
+                </ul>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：把兩個 Layer 2 介面接回同一台交換器</p>
+                <p class="text-gray-700 text-sm">防火牆預設只轉送 STP 訊框，並不會替你阻斷環路。若把防火牆兩個 Layer 2 介面都接回同一個網段，而周邊交換器又沒有妥善處理，就可能形成環路、造成廣播風暴。
+                    接線前先畫出拓撲，確認每個網段只有一條路徑通過防火牆。另外，介面沒指派 Zone 就不處理流量，這點和 Layer 3 介面相同（第 5、6 章）。</p>
+            </div>
+        </div>
+
+        <!-- Topic 2 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Subinterface</span>
+                二、Layer 2 子介面與 VLAN 物件
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                上游交換器以 Trunk（802.1Q）送來多個 VLAN 時，可以把實體 Layer 2 介面切成多個<strong>子介面</strong>，每個子介面帶一個 <strong>VLAN tag</strong>，並各自指派 Zone。
+                這樣不同 VLAN 的流量在防火牆內是隔離的：<strong>VLAN 之間要通，必須經過路由；而不同 Zone 之間，安全政策預設會擋下</strong>。這種切法也很適合多租戶網路。
+            </p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-4 mb-2">建立子介面</h3>
+            <ol class="list-decimal pl-6 text-gray-700 space-y-1">
+                <li><span class="tech-term">Network &gt; Interfaces &gt; Ethernet</span>，把實體介面的 Interface Type 設為 <strong>Layer2</strong>，Config 頁籤的 VLAN 保持 <strong>None</strong>，並指派 Zone，按 OK。</li>
+                <li>選取該介面，按 <strong>Add Subinterface</strong>。介面名稱前半固定，句點後輸入<strong>子介面編號（1 到 9999）</strong>。</li>
+                <li>輸入 <strong>VLAN Tag</strong>（1 到 4094），並為子介面指派 Zone。</li>
+                <li>Commit。</li>
+            </ol>
+
+            <div class="overflow-x-auto mt-4">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border">子介面</th>
+                            <th class="py-2 px-4 text-left border">VLAN tag</th>
+                            <th class="py-2 px-4 text-left border">Zone（Layer2）</th>
+                            <th class="py-2 px-4 text-left border">所屬 VLAN 物件（練習命名）</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border">ethernet1/2.1</td><td class="py-2 px-4 border">1</td><td class="py-2 px-4 border">Eng</td><td class="py-2 px-4 border">vlan-eng</td></tr>
+                        <tr><td class="py-2 px-4 border">ethernet1/3.1</td><td class="py-2 px-4 border">1</td><td class="py-2 px-4 border">Eng</td><td class="py-2 px-4 border">vlan-eng</td></tr>
+                        <tr><td class="py-2 px-4 border">ethernet1/2.2</td><td class="py-2 px-4 border">2</td><td class="py-2 px-4 border">HR</td><td class="py-2 px-4 border">vlan-hr</td></tr>
+                        <tr><td class="py-2 px-4 border">ethernet1/3.2</td><td class="py-2 px-4 border">2</td><td class="py-2 px-4 border">HR</td><td class="py-2 px-4 border">vlan-hr</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">改寫自教材的子介面示意圖（Eng 與 HR 各有一個 VLAN，分別出現在兩個實體介面上）。VLAN 物件的名稱與歸屬是為了練習而假設的。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">VLAN 物件：決定誰跟誰交換</h3>
+            <p class="text-sm text-gray-600 mb-2">路徑：<span class="tech-term">Network &gt; VLANs &gt; Add</span></p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-56">欄位</th><th class="py-2 px-4 text-left border">說明</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">Name</td><td class="py-2 px-4 border">最多 31 個字元，區分大小寫、不可重複，只能用字母、數字、空格、連字號與底線。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Interfaces</td><td class="py-2 px-4 border">屬於這個 VLAN 的防火牆介面（含子介面，以實機為準）。同一個 VLAN 裡的介面彼此交換。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">VLAN Interface</td><td class="py-2 px-4 border">選一個 VLAN 介面，讓流量能被<strong>路由到 VLAN 之外</strong>（下一節）。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Static MAC Configuration</td><td class="py-2 px-4 border">指定某個 MAC 位址要從哪個介面到達，會<strong>蓋過防火牆學到的介面與 MAC 對應</strong>。</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="highlight-box mt-4">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>與第 6 章 Layer 3 子介面的差別</p>
+                <p class="text-gray-700 text-sm">Layer 3 子介面：每個子介面有自己的 IP 與路由，防火牆是閘道。Layer 2 子介面：沒有 IP，同一個 VLAN 內由防火牆交換，只有跨 VLAN 時才需要路由。
+                    <strong>實體介面是 Layer 2 還是 Layer 3，由它的 Interface Type 決定</strong>，同一個實體介面下的子介面類型要和它一致，不要混用。</p>
+            </div>
+
+            <div class="highlight-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>補充：編號範圍與管理方式</p>
+                <p class="text-gray-700 text-sm">教材沒有寫出子介面編號與 VLAN tag 的範圍。現行 PAN-OS：子介面編號為 1 到 9999，VLAN Tag 為 1 到 4094；若改用 Strata Cloud Manager 管理，子介面編號範圍是 1 到 4094，且建議與 VLAN Tag 取相同數字以利維護。
+                    子介面編號只是名稱的一部分，不必等於 VLAN tag，但實務上刻意讓兩者一致比較好維護。</p>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：子介面通了，但跨 VLAN 不通</p>
+                <p class="text-gray-700 text-sm">兩個子介面屬於不同 Zone，跨區預設被安全政策擋下；即使放行政策，VLAN 之間仍是不同廣播網域，必須有人做路由（例如下一節的 VLAN 介面，或上層的 Layer 3 設備）。
+                    另外，防火牆子介面只處理帶有對應 tag 的訊框，上游交換器連到防火牆的埠必須是 Trunk，並允許對應的 VLAN 通過。</p>
+            </div>
+        </div>
+
+        <!-- Topic 3 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">VLAN Interface</span>
+                三、VLAN 介面：把 Layer 2 接到 Layer 3
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                <span class="tech-term">VLAN 介面</span>是有 IP 位址的邏輯介面，用來<strong>連接 Layer 2 與 Layer 3</strong>。
+                它一邊接上 VLAN 物件（Layer 2 側），另一邊加入虛擬路由器（Layer 3 側），成為這個 Layer 2 網段對外的閘道。
+                Layer 2 網段上的主機把預設閘道指向 VLAN 介面的位址，就能離開本網段，防火牆再依路由表轉送。
+            </p>
+
+            <div class="diagram-container">
+                <svg id="c07d1" viewBox="0 0 480 896" width="100%" style="max-width:480px;height:auto;display:block;margin:0 auto;font-family:'Noto Sans TC',sans-serif" role="img" aria-labelledby="c07d1-t c07d1-d"><title id="c07d1-t">VLAN 介面把 Layer 2 網段接到 Layer 3：主機 A、B 接到兩個 Layer2 介面，經 VLAN 物件交換，再經 VLAN 介面 vlan.10 與虛擬路由器連到 Layer 3 介面與上游路由器</title><desc id="c07d1-d">由上到下：主機、兩個 Layer2 介面（Zone L2-A）、VLAN 物件 vlan-10、VLAN 介面 vlan.10（Zone L3-Lan）、Virtual Router default、Layer3 介面 ethernet1/3（Zone untrust）、上游路由器。VLAN 介面的 VLAN 欄位與 VLAN 物件的 VLAN Interface 欄位是同一個關聯（兩邊是否同步，以實機畫面為準）。</desc><defs><marker id="c07d1-ar-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#4b5563"/></marker><marker id="c07d1-ar-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#c2410c"/></marker><marker id="c07d1-ar-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker><marker id="c07d1-ar-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#16a34a"/></marker><marker id="c07d1-ar-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b82f6"/></marker></defs><rect x="20" y="10" width="200" height="68" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/><text x="120" y="37.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">主機 A</text><text x="120" y="61.76" text-anchor="middle" font-size="18" fill="#4b5563">閘道指向 vlan.10</text><rect x="260" y="10" width="200" height="68" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/><text x="360" y="49.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">主機 B</text><rect x="8" y="112" width="464" height="692" rx="10" fill="none" stroke="#fdba74" stroke-width="2" stroke-dasharray="8 5"/><text x="22" y="138" text-anchor="start" font-size="18" fill="#9a3412" font-weight="700">防火牆</text><rect x="28" y="152" width="200" height="92" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/><text x="128" y="179.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">ethernet1/1</text><text x="128" y="203.76" text-anchor="middle" font-size="18" fill="#1d4ed8">Layer2</text><text x="128" y="227.76" text-anchor="middle" font-size="18" fill="#1d4ed8">Zone: L2-A</text><rect x="252" y="152" width="200" height="92" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/><text x="352" y="179.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">ethernet1/2</text><text x="352" y="203.76" text-anchor="middle" font-size="18" fill="#1d4ed8">Layer2</text><text x="352" y="227.76" text-anchor="middle" font-size="18" fill="#1d4ed8">Zone: L2-A</text><path d="M120,78 L120,152" fill="none" stroke="#4b5563" stroke-width="2.5" marker-end="url(#c07d1-ar-gray)"/><path d="M360,78 L360,152" fill="none" stroke="#4b5563" stroke-width="2.5" marker-end="url(#c07d1-ar-gray)"/><rect x="60" y="284" width="360" height="68" rx="8" fill="#c2410c" stroke="#9a3412" stroke-width="2"/><text x="240" y="311.76" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="700">VLAN 物件 vlan-10</text><text x="240" y="335.76" text-anchor="middle" font-size="18" fill="#ffedd5">內部交換</text><path d="M128,244 L128,284" fill="none" stroke="#4b5563" stroke-width="2.5"/><path d="M352,244 L352,284" fill="none" stroke="#4b5563" stroke-width="2.5"/><path d="M240,352 L240,452" fill="none" stroke="#c2410c" stroke-width="2.5"/><text x="256" y="388" text-anchor="start" font-size="18" fill="#9a3412" font-weight="700">VLAN 欄位與</text><text x="256" y="412" text-anchor="start" font-size="18" fill="#9a3412" font-weight="700">VLAN Interface 欄位</text><text x="256" y="436" text-anchor="start" font-size="18" fill="#9a3412" font-weight="700">是同一個關聯</text><rect x="60" y="452" width="360" height="92" rx="8" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text x="240" y="479.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">VLAN 介面 vlan.10</text><text x="240" y="503.76" text-anchor="middle" font-size="18" fill="#9a3412">192.168.10.1/24</text><text x="240" y="527.76" text-anchor="middle" font-size="18" fill="#9a3412">Zone: L3-Lan</text><path d="M240,544 L240,592" fill="none" stroke="#4b5563" stroke-width="2.5"/><rect x="110" y="592" width="260" height="68" rx="8" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/><text x="240" y="619.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">Virtual Router</text><text x="240" y="643.76" text-anchor="middle" font-size="18" fill="#4b5563">default</text><path d="M240,660 L240,700" fill="none" stroke="#4b5563" stroke-width="2.5"/><rect x="110" y="700" width="260" height="92" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/><text x="240" y="727.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">ethernet1/3</text><text x="240" y="751.76" text-anchor="middle" font-size="18" fill="#1d4ed8">Layer3</text><text x="240" y="775.76" text-anchor="middle" font-size="18" fill="#1d4ed8">Zone: untrust</text><path d="M240,792 L240,842" fill="none" stroke="#4b5563" stroke-width="2.5" marker-end="url(#c07d1-ar-gray)"/><rect x="110" y="842" width="260" height="44" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/><text x="240" y="869.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">上游路由器</text></svg>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">圖中位址為示意用的私有位址；Zone 名稱僅供練習。注意 VLAN 介面所在的 Zone 是 Layer 3 類型，與兩個 Layer 2 介面的 Zone 不同。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">設定步驟</h3>
+            <p class="text-sm text-gray-600 mb-2">路徑：<span class="tech-term">Network &gt; Interfaces &gt; VLAN &gt; Add</span></p>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li><strong>Interface Name</strong>：前半唯讀為 vlan，後面輸入一個<strong>介面編號</strong>（例如 10）。這個編號只是名稱，<strong>不是 VLAN tag</strong>。</li>
+                <li><strong>VLAN</strong>：選擇要連接的 VLAN 物件，這是接到 Layer 2 網路的一端。</li>
+                <li><strong>Virtual Router</strong> 與 <strong>Security Zone</strong>：接到 Layer 3 網路的一端；Zone 為 Layer 3 類型（若已啟用 Advanced Routing Engine，此處改設定 Logical Router，見第 6 章，以實機為準）。</li>
+                <li><strong>IPv4／IPv6</strong> 頁籤：設定 Static 位址（CIDR 格式）等，作法與第 6 章 Layer 3 介面相同。</li>
+                <li>VLAN 介面的 <strong>VLAN</strong> 欄位，與 <span class="tech-term">Network &gt; VLANs</span> 裡 VLAN 物件的 <strong>VLAN Interface</strong> 欄位，指的是<strong>同一個關聯</strong>，在任一處設定即可，不必設兩次（兩邊是否同步，以實機畫面為準）。設定完成後，可以到 Network &gt; VLANs 確認該 VLAN 物件已顯示這個 VLAN 介面；有了這個關聯，流量才能被路由到網段外。</li>
+            </ul>
+
+            <div class="analogy-box">
+                <p class="font-bold mb-2 text-green-800">🏢 生活化比喻：辦公大樓的樓層與櫃台</p>
+                <ul class="list-none space-y-2 pl-2 text-gray-700">
+                    <li class="flex items-start"><i class="fas fa-building text-gray-500 mt-1 mr-3"></i><span><strong>Layer 2 介面與 VLAN 物件</strong>：同一層樓的共用走廊，同事在走廊上直接找到彼此，不必經過任何人。</span></li>
+                    <li class="flex items-start"><i class="fas fa-bell-concierge text-orange-500 mt-1 mr-3"></i><span><strong>VLAN 介面</strong>：這一層樓的櫃台，有自己的門牌（IP）。要去別層樓或出大樓，就得先到櫃台。</span></li>
+                    <li class="flex items-start"><i class="fas fa-signs-post text-green-600 mt-1 mr-3"></i><span><strong>Virtual Router</strong>：櫃台後面的指路員，告訴你別的樓層和大門各往哪走。</span></li>
+                </ul>
+            </div>
+
+            <div class="highlight-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>補充：編號範圍與限制</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>教材只標示「介面編號（不是 VLAN tag）」，沒有寫範圍。現行 PAN-OS 的 VLAN 介面編號範圍是 1 到 9999。</li>
+                    <li>另外，DHCP Client 位址類型不支援 HA active/active（HA 於第 17 章說明）。</li>
+                </ul>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：Layer 2 側與 Layer 3 側是不同 Zone</p>
+                <p class="text-gray-700 text-sm">VLAN 介面自己在 Layer 3 Zone，而成員介面在 Layer 2 Zone，主機走 VLAN 介面出去其實是「跨區」，必須有安全政策放行。
+                    同一個 VLAN 內的主機互相通訊（只走 Layer 2 交換），兩端介面若在同一個 Zone，適用同區規則；若分屬不同的 Layer 2 Zone（像教材圖上的 Zone A、Zone B），仍然是跨區，需要安全政策放行。
+                    另外，VLAN 介面沒有加入 Virtual Router 就沒有路由能力；主機的預設閘道若還指向舊設備，流量根本不會送到防火牆。</p>
+            </div>
+        </div>
+
+        <!-- Topic 4 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">PBF</span>
+                四、Policy-Based Forwarding 規則
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                平常防火牆用封包的<strong>目的 IP</strong>去查虛擬路由器的路由表，決定出口介面。
+                <span class="tech-term">Policy-Based Forwarding（PBF）</span>讓你依其他條件，<strong>指定一個和路由表不同的出口介面</strong>，理由可能是效能，也可能是安全。
+                教材的例子：總公司與分公司之間有一條網際網路線路和一條專線，對頻寬敏感或未加密的應用走專線，其餘（例如已加密的、對頻寬不敏感的）走網際網路。
+                實作時，請改用服務（連接埠）或目的位址來描述這些流量，原因見本節的踩坑框。
+            </p>
+
+            <div class="diagram-container">
+                <svg id="c07d2" viewBox="0 0 480 554" width="100%" style="max-width:480px;height:auto;display:block;margin:0 auto;font-family:'Noto Sans TC',sans-serif" role="img" aria-labelledby="c07d2-t c07d2-d"><title id="c07d2-t">PBF 的判斷流程：封包進入防火牆後由上而下比對 PBF 規則，第一筆符合者生效；沒有符合或動作為 No PBF 就查路由表，Forward 依規則轉送，Discard 丟棄，之後仍要通過安全政策與 NAT</title><desc id="c07d2-d">封包進入後比對 PBF 規則。沒有規則符合或動作為 No PBF：查路由表，依路由表的出口轉送。動作為 Forward：依規則指定的出口介面與下一跳轉送。動作為 Discard：丟棄封包。轉送後仍進行安全政策比對與 NAT。</desc><defs><marker id="c07d2-ar-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#4b5563"/></marker><marker id="c07d2-ar-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#c2410c"/></marker><marker id="c07d2-ar-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker><marker id="c07d2-ar-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#16a34a"/></marker><marker id="c07d2-ar-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b82f6"/></marker></defs><rect x="110" y="10" width="260" height="44" rx="22.0" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/><text x="240" y="37.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">封包進入防火牆</text><path d="M240,54 L240,90" fill="none" stroke="#4b5563" stroke-width="2.5" marker-end="url(#c07d2-ar-gray)"/><polygon points="240,90 460,155 240,220 20,155" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text x="240" y="148.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">符合 PBF 規則嗎？</text><text x="240" y="172.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">由上而下，第一筆符合者生效</text><path d="M80,173 L80,250" fill="none" stroke="#4b5563" stroke-width="2.5" marker-end="url(#c07d2-ar-gray)"/><path d="M240,220 L240,250" fill="none" stroke="#4b5563" stroke-width="2.5" marker-end="url(#c07d2-ar-gray)"/><path d="M400,173 L400,250" fill="none" stroke="#4b5563" stroke-width="2.5" marker-end="url(#c07d2-ar-gray)"/><rect x="5" y="250" width="150" height="116" rx="8" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/><text x="80" y="289.76" text-anchor="middle" font-size="18" fill="#4b5563">沒有規則符合</text><text x="80" y="313.76" text-anchor="middle" font-size="18" fill="#4b5563">或動作 No PBF</text><text x="80" y="337.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">查路由表</text><rect x="165" y="250" width="150" height="116" rx="8" fill="#c2410c" stroke="#9a3412" stroke-width="2"/><text x="240" y="277.76" text-anchor="middle" font-size="18" fill="#ffedd5">動作 Forward</text><text x="240" y="301.76" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="700">依規則指定的</text><text x="240" y="325.76" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="700">出口介面與</text><text x="240" y="349.76" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="700">下一跳轉送</text><rect x="325" y="250" width="150" height="116" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/><text x="400" y="301.76" text-anchor="middle" font-size="18" fill="#991b1b">動作 Discard</text><text x="400" y="325.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">丟棄封包</text><path d="M80,366 L80,396" fill="none" stroke="#4b5563" stroke-width="2.5" marker-end="url(#c07d2-ar-gray)"/><rect x="5" y="396" width="150" height="68" rx="8" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/><text x="80" y="423.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">依路由表的</text><text x="80" y="447.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">出口轉送</text><path d="M80,464 L80,500" fill="none" stroke="#4b5563" stroke-width="2.5" marker-end="url(#c07d2-ar-gray)"/><path d="M240,366 L240,500" fill="none" stroke="#c2410c" stroke-width="2.5" marker-end="url(#c07d2-ar-orange)"/><rect x="40" y="500" width="400" height="44" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/><text x="240" y="527.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">之後仍進行安全政策比對與 NAT</text></svg>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">建立一條 PBF 規則</h3>
+            <p class="text-sm text-gray-600 mb-2">路徑：<span class="tech-term">Policies &gt; Policy Based Forwarding &gt; Add</span>。必填的只有三樣：規則名稱、來源（Zone 或介面）、出口介面，其餘有預設值或可省略。</p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-56">頁籤</th><th class="py-2 px-4 text-left border">內容</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">General</td><td class="py-2 px-4 border">規則名稱（建議有描述性）。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Source</td><td class="py-2 px-4 border">Type 選 <strong>Zone</strong> 或 <strong>Interface</strong>；可再加來源位址（可 Negate 排除）與來源使用者。<strong>要啟用 Symmetric Return，必須選 Interface</strong>。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Destination/Application/Service</td><td class="py-2 px-4 border">目的位址（預設 any，可 Negate）、應用程式、服務（Layer 4 連接埠）。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Forwarding</td><td class="py-2 px-4 border">Action、出口介面、下一跳、Monitor、Enforce Symmetric Return、Schedule。</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Forwarding 頁籤的動作與下一跳</h3>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h4 class="font-bold text-orange-800 mb-2">Action 四種</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li><strong>Forward</strong>：把封包送到指定的出口介面。</li>
+                        <li><strong>Forward to VSYS</strong>：送到另一個虛擬系統（多 VSYS 機型）。</li>
+                        <li><strong>Discard</strong>：直接丟棄符合的封包。</li>
+                        <li><strong>No PBF</strong>：符合的流量不套用 PBF，改走路由表（常用來排除例外流量）。</li>
+                    </ul>
+                </div>
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-2">Next Hop 三種</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li><strong>IP Address</strong>：IP Netmask 位址物件，IPv4 要 /32，IPv6 要 /128。</li>
+                        <li><strong>FQDN</strong>：解析結果必須與 PBF 介面在同一網段，否則不採用。</li>
+                        <li><strong>None</strong>：以封包的目的 IP 當下一跳；目的不在出口介面網段時會轉送失敗。</li>
+                    </ul>
+                </div>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">Schedule 可讓規則每日、每週或單次生效。多筆規則由上而下比對，第一筆符合者生效。</p>
+
+            <div class="analogy-box">
+                <p class="font-bold mb-2 text-green-800">🚚 生活化比喻：貨運分流員</p>
+                <ul class="list-none space-y-2 pl-2 text-gray-700">
+                    <li class="flex items-start"><i class="fas fa-map text-gray-500 mt-1 mr-3"></i><span><strong>路由表</strong>：郵遞區號對照表，只看「寄到哪裡」決定走哪條路。</span></li>
+                    <li class="flex items-start"><i class="fas fa-people-carry-box text-orange-500 mt-1 mr-3"></i><span><strong>PBF</strong>：站在路口的分流員，看的是「誰寄的、寄什麼」。急件（對頻寬敏感）走專車，一般件走平價貨運，不管郵遞區號怎麼說。</span></li>
+                    <li class="flex items-start"><i class="fas fa-circle-xmark text-red-500 mt-1 mr-3"></i><span><strong>Discard</strong>：違禁品直接銷毀；<strong>No PBF</strong>：這批貨照郵遞區號走，不經過分流員。</span></li>
+                </ul>
+            </div>
+
+            <div class="highlight-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>補充：教材沒講的 PBF 細節</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>教材（PAN-OS 8.0）只示範 Forward：指定來源、目的、應用程式、連接埠，以及出口介面與下一跳位址。Discard、No PBF、Forward to VSYS 與 Next Hop 的 FQDN／None 選項，是補充現行做法。</li>
+                    <li>現行做法<strong>不建議使用應用程式比對</strong>（見下方踩坑）；自訂應用程式、Application Filter 與 Application Group 也不能用在 PBF 規則。</li>
+                    <li>只有 <strong>Layer 3 介面</strong>支援 PBF，Loopback 介面不支援。</li>
+                </ul>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異：FQDN 下一跳</p>
+                <p class="text-gray-700 text-sm">原廠文件對 FQDN 下一跳說法不一：有的地方列出 FQDN 這個選項，有的地方卻寫下一跳只能是 IP 位址。FQDN 下一跳從哪個版本開始支援，本次未能確認，請以你使用的版本與實機為準。</p>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：用應用程式當比對條件</p>
+                <p class="text-gray-700 text-sm">PBF 在<strong>工作階段的第一個封包（SYN）</strong>就要決定出口，這時防火牆往往還認不出是什麼應用程式。結果是：第一次連線無法套用規則；之後的連線可能因為快取而被誤套用；應用程式在連線中途改變時，PBF 也無法跟著改。
+                    能用<strong>服務（連接埠）</strong>比對就不要用應用程式。另外，做網際網路分流時，記得把內部目的網段用 <strong>Negate</strong> 排除，否則內網流量可能被送往 ISP。</p>
+            </div>
+        </div>
+
+        <!-- Topic 5 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Failover</span>
+                五、路徑監控、Symmetric Return 與驗證
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                PBF 規則只管「去程」要走哪裡，但線路可能斷，從另一條 ISP 連進來的流量，回應也可能走錯線路。教材指出 PBF 有<strong>路徑監控</strong>，讓防火牆確認網路路徑的連通性。
+                最常見的實例是雙 ISP：主要 ISP 由 PBF 規則負責，備援 ISP 則是虛擬路由器裡的一條預設路由。
+            </p>
+
+            <div class="diagram-container">
+                <svg id="c07d3" viewBox="0 0 480 730" width="100%" style="max-width:480px;height:auto;display:block;margin:0 auto;font-family:'Noto Sans TC',sans-serif" role="img" aria-labelledby="c07d3-t c07d3-d"><title id="c07d3-t">雙 ISP 與 PBF 路徑監控：下一跳有回應時規則 Active，流量走 ethernet1/19 的主要 ISP；已啟用 Monitor 並勾選 Disable this rule 後，下一跳無回應時規則 Disabled，改查路由表，由備援預設路由走 ethernet1/20 的備援 ISP</title><desc id="c07d3-d">內網主機（Zone Corporate）從 ethernet1/2 進入防火牆，PBF 規則（服務 http 與 https，已啟用 Monitor 並勾選 Disable this rule）判斷下一跳。有回應：規則 Active，走 ethernet1/19 到 ISP-1 下一跳。無回應：規則 Disabled（必須勾選 Disable this rule if nexthop/monitor ip is unreachable），查路由表，備援預設路由走 ethernet1/20 到 ISP-2 下一跳。</desc><defs><marker id="c07d3-ar-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#4b5563"/></marker><marker id="c07d3-ar-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#c2410c"/></marker><marker id="c07d3-ar-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker><marker id="c07d3-ar-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#16a34a"/></marker><marker id="c07d3-ar-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b82f6"/></marker></defs><rect x="130" y="10" width="220" height="68" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/><text x="240" y="37.76" text-anchor="middle" font-size="18" fill="#4b5563">內網主機</text><text x="240" y="61.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">Zone: Corporate</text><rect x="8" y="100" width="464" height="544" rx="10" fill="none" stroke="#fdba74" stroke-width="2" stroke-dasharray="8 5"/><text x="22" y="126" text-anchor="start" font-size="18" fill="#9a3412" font-weight="700">防火牆</text><path d="M240,78 L240,132" fill="none" stroke="#4b5563" stroke-width="2.5" marker-end="url(#c07d3-ar-gray)"/><rect x="130" y="132" width="220" height="68" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/><text x="240" y="159.76" text-anchor="middle" font-size="18" fill="#1d4ed8">ethernet1/2</text><text x="240" y="183.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">入口介面</text><path d="M240,200 L240,226" fill="none" stroke="#4b5563" stroke-width="2.5" marker-end="url(#c07d3-ar-gray)"/><polygon points="240,227 460,315 240,403 20,315" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text x="240" y="284.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">PBF 規則</text><text x="240" y="308.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">服務 http 與 https</text><text x="240" y="332.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">已啟用 Monitor 並勾選</text><text x="240" y="356.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">Disable this rule</text><path d="M150,367 L150,436" fill="none" stroke="#16a34a" stroke-width="2.5" marker-end="url(#c07d3-ar-green)"/><path d="M330,367 L330,436" fill="none" stroke="#dc2626" stroke-width="2.5" marker-end="url(#c07d3-ar-red)"/><rect x="31" y="378.24" width="114" height="22" fill="#ffffff" fill-opacity="0.92"/><text x="142" y="396" text-anchor="end" font-size="18" fill="#166534" font-weight="700">下一跳有回應</text><rect x="38.02" y="402.24" width="106.98" height="22" fill="#ffffff" fill-opacity="0.92"/><text x="142" y="420" text-anchor="end" font-size="18" fill="#166534" font-weight="700">規則 Active</text><rect x="335" y="378.24" width="114" height="22" fill="#ffffff" fill-opacity="0.92"/><text x="338" y="396" text-anchor="start" font-size="18" fill="#991b1b" font-weight="700">下一跳無回應</text><rect x="335" y="402.24" width="128.58" height="22" fill="#ffffff" fill-opacity="0.92"/><text x="338" y="420" text-anchor="start" font-size="18" fill="#991b1b" font-weight="700">規則 Disabled</text><rect x="30" y="436" width="200" height="68" rx="8" fill="#c2410c" stroke="#9a3412" stroke-width="2"/><text x="130" y="463.76" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="700">ethernet1/19</text><text x="130" y="487.76" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="700">主要 ISP</text><rect x="250" y="436" width="200" height="68" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/><text x="350" y="463.76" text-anchor="middle" font-size="18" fill="#991b1b">路由表</text><text x="350" y="487.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">備援預設路由</text><path d="M330,504 L330,552" fill="none" stroke="#dc2626" stroke-width="2.5" marker-end="url(#c07d3-ar-red)"/><rect x="250" y="552" width="200" height="68" rx="8" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text x="350" y="579.76" text-anchor="middle" font-size="18" fill="#9a3412">ethernet1/20</text><text x="350" y="603.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">備援 ISP</text><path d="M150,504 L150,676" fill="none" stroke="#16a34a" stroke-width="2.5" marker-end="url(#c07d3-ar-green)"/><path d="M330,620 L330,676" fill="none" stroke="#dc2626" stroke-width="2.5" marker-end="url(#c07d3-ar-red)"/><rect x="30" y="676" width="200" height="44" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/><text x="130" y="703.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">ISP-1 下一跳</text><rect x="250" y="676" width="200" height="44" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/><text x="350" y="703.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">ISP-2 下一跳</text></svg>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">路徑監控（Monitor）</h3>
+            <p class="text-sm text-gray-600 mb-2">路徑：PBF 規則 <span class="tech-term">Forwarding &gt; Monitor</span>；監控設定檔在 <span class="tech-term">Network &gt; Network Profiles &gt; Monitor</span></p>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>防火牆用 <strong>ICMP ping</strong> 當心跳，檢查指定位址是否可達。沒有指定 <strong>target IP</strong> 時，就監控<strong>下一跳位址</strong>。</li>
+                <li><strong>Monitor Profile</strong> 定義失敗時的動作與判定門檻，預設的 Interval 為 3、Threshold 為 5（範圍都是 2 到 10）。</li>
+                <li>勾選 <strong>Disable this rule if nexthop/monitor ip is unreachable</strong>：位址不可達時規則停用，由虛擬路由器的路由表接手（備援預設路由生效）；恢復後規則重新啟用。</li>
+            </ul>
+
+            <div class="overflow-x-auto mt-4">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-44">Profile 的 Action</th><th class="py-2 px-4 text-left border">行為</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">Wait Recover</td><td class="py-2 px-4 border">失敗時繼續等待恢復，封包<strong>仍依 PBF 規則</strong>轉送。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Fail Over</td><td class="py-2 px-4 border">改走備援路徑；該工作階段其餘封包改查路由表。</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="highlight-box mt-4">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>和第 6 章靜態路由的 Path Monitoring 不一樣</p>
+                <p class="text-gray-700 text-sm">第 6 章是替<strong>靜態路由</strong>設監控，失敗時把路由移出路由表。本章是替<strong>PBF 規則</strong>設監控，失敗時是<strong>規則被停用</strong>（或依 Profile 動作處理），之後由路由表決定出口。兩者的設定位置與觀念都不同，不要混用。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Enforce Symmetric Return</h3>
+            <p class="mb-2 text-gray-700">
+                雙 ISP 這類<strong>非對稱路由</strong>的環境，同一台內部伺服器可能從兩條 ISP 都被連入。從預設路由<strong>沒有指向</strong>的那條 ISP 連進來的工作階段（例如本節圖中只靠 PBF 轉送的主要 ISP-1），回應封包若照路由表走預設路由，就會從另一條 ISP（備援的 ISP-2）送出。進來與出去不在同一個介面，防火牆無法追蹤整個工作階段的狀態，連線就會失敗。
+                這時要針對<strong>從那條 ISP 的介面進來</strong>的流量建一條 PBF 規則（Source 選 Interface，指定該 ISP 的入口介面），在 Forwarding 頁籤啟用 <span class="tech-term">Enforce Symmetric Return</span>，並加入 <strong>Next Hop Address List</strong>（填該 ISP 路由器的位址）：
+            </p>
+
+            <div class="diagram-container">
+                <svg id="c07d4" viewBox="0 0 480 820" width="100%" style="max-width:480px;height:auto;display:block;margin:0 auto;font-family:'Noto Sans TC',sans-serif" role="img" aria-labelledby="c07d4-t c07d4-d"><title id="c07d4-t">Enforce Symmetric Return 的情境：內部伺服器從預設路由沒指向的 ISP-1 被連入。沒有啟用時，回應照預設路由從 ISP-2 送出而失敗；啟用後，回應從原本進來的 ethernet1/19 離開</title><desc id="c07d4-d">上半：沒有啟用。SYN 從 ISP-1 經 ethernet1/19 進入伺服器，回應照預設路由從 ethernet1/20 送往 ISP-2，進出不同介面，連線失敗。下半：啟用 Enforce Symmetric Return。回應送回遞送 SYN 的 MAC，從原本進來的 ethernet1/19 離開，回到 ISP-1。</desc><defs><marker id="c07d4-ar-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#4b5563"/></marker><marker id="c07d4-ar-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#c2410c"/></marker><marker id="c07d4-ar-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker><marker id="c07d4-ar-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#16a34a"/></marker><marker id="c07d4-ar-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b82f6"/></marker></defs><text x="240" y="34" text-anchor="middle" font-size="18" fill="#c2410c" font-weight="700">沒有啟用 Enforce Symmetric Return</text><rect x="10" y="50" width="200" height="68" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/><text x="110" y="77.76" text-anchor="middle" font-size="18" fill="#4b5563">ISP-1 路由器</text><text x="110" y="101.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">預設路由沒指向</text><rect x="270" y="50" width="200" height="68" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/><text x="370" y="77.76" text-anchor="middle" font-size="18" fill="#4b5563">ISP-2 路由器</text><text x="370" y="101.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">預設路由指向這裡</text><rect x="5" y="156" width="470" height="98" rx="10" fill="none" stroke="#fdba74" stroke-width="2" stroke-dasharray="8 5"/><text x="240" y="210" text-anchor="middle" font-size="18" fill="#9a3412" font-weight="700">防火牆</text><rect x="20" y="172" width="175" height="44" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/><text x="107.5" y="199.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">ethernet1/19</text><rect x="285" y="172" width="175" height="44" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/><text x="372.5" y="199.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">ethernet1/20</text><rect x="130" y="280" width="220" height="44" rx="8" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/><text x="240" y="307.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">內部伺服器</text><path d="M60,118 L60,172" fill="none" stroke="#3b82f6" stroke-width="2.5" marker-end="url(#c07d4-ar-blue)"/><rect x="65" y="134.24" width="62.34" height="22" fill="#ffffff" fill-opacity="0.92"/><text x="68" y="152" text-anchor="start" font-size="18" fill="#1d4ed8" font-weight="700">1. SYN</text><path d="M60,216 L160,280" fill="none" stroke="#3b82f6" stroke-width="2.5" marker-end="url(#c07d4-ar-blue)"/><path d="M330,280 L370,216" fill="none" stroke="#dc2626" stroke-width="2.5" marker-end="url(#c07d4-ar-red)"/><path d="M370,172 L370,118" fill="none" stroke="#dc2626" stroke-width="2.5" marker-end="url(#c07d4-ar-red)"/><rect x="298.7" y="134.24" width="66.3" height="22" fill="#ffffff" fill-opacity="0.92"/><text x="362" y="152" text-anchor="end" font-size="18" fill="#991b1b" font-weight="700">2. 回應</text><rect x="40" y="346" width="400" height="44" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/><text x="240" y="373.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">進出不同介面，連線失敗</text><path d="M20,412 L460,412" fill="none" stroke="#4b5563" stroke-width="1.5" stroke-dasharray="7 5"/><text x="240" y="454" text-anchor="middle" font-size="18" fill="#c2410c" font-weight="700">啟用 Enforce Symmetric Return</text><rect x="10" y="470" width="200" height="68" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/><text x="110" y="497.76" text-anchor="middle" font-size="18" fill="#4b5563">ISP-1 路由器</text><text x="110" y="521.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">預設路由沒指向</text><rect x="270" y="470" width="200" height="68" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/><text x="370" y="497.76" text-anchor="middle" font-size="18" fill="#4b5563">ISP-2 路由器</text><text x="370" y="521.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">預設路由指向這裡</text><rect x="5" y="576" width="470" height="98" rx="10" fill="none" stroke="#fdba74" stroke-width="2" stroke-dasharray="8 5"/><text x="240" y="630" text-anchor="middle" font-size="18" fill="#9a3412" font-weight="700">防火牆</text><rect x="20" y="592" width="175" height="44" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/><text x="107.5" y="619.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">ethernet1/19</text><rect x="285" y="592" width="175" height="44" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/><text x="372.5" y="619.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">ethernet1/20</text><rect x="130" y="700" width="220" height="44" rx="8" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/><text x="240" y="727.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">內部伺服器</text><path d="M60,538 L60,592" fill="none" stroke="#3b82f6" stroke-width="2.5" marker-end="url(#c07d4-ar-blue)"/><rect x="65" y="554.24" width="62.34" height="22" fill="#ffffff" fill-opacity="0.92"/><text x="68" y="572" text-anchor="start" font-size="18" fill="#1d4ed8" font-weight="700">1. SYN</text><path d="M60,636 L160,700" fill="none" stroke="#3b82f6" stroke-width="2.5" marker-end="url(#c07d4-ar-blue)"/><path d="M215,700 L150,636" fill="none" stroke="#16a34a" stroke-width="2.5" marker-end="url(#c07d4-ar-green)"/><path d="M150,592 L150,538" fill="none" stroke="#16a34a" stroke-width="2.5" marker-end="url(#c07d4-ar-green)"/><rect x="155" y="554.24" width="66.3" height="22" fill="#ffffff" fill-opacity="0.92"/><text x="158" y="572" text-anchor="start" font-size="18" fill="#166534" font-weight="700">2. 回應</text><rect x="40" y="766" width="400" height="44" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/><text x="240" y="793.76" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">回應從原本進來的介面離開</text></svg>
+            </div>
+            <p class="text-xs text-gray-500 mt-2 mb-3">示意：預設路由指向備援 ISP-2，主要 ISP-1 只靠 PBF 轉送，所以從 ISP-1 連進來的流量，就是「預設路由沒指向」的那一條。</p>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>回應流量會略過一般的路由查詢，改送回<strong>遞送第一個封包（SYN）的 MAC 位址</strong>，也就是從原本進來的介面出去。</li>
+                <li>這個選項管的是<strong>防火牆自己送出的回應</strong>，不能決定 ISP 從哪條線把封包送回來。內網主機連出網際網路的工作階段，回應能不能從正確的 ISP 回來，靠的是每個 ISP 各一條 Source NAT（第 10 章），不是這個選項。</li>
+                <li>規則的 <strong>Source 必須選 Interface</strong>，不能只選 Zone（原廠文件對這一點說法不一，以實機為準）。</li>
+                <li>Next Hop Address List <strong>最多 8 個</strong>位址；Tunnel 與 PPPoE 介面的位址不能當下一跳。</li>
+                <li>若目的 IP 與入口或出口介面在同一網段，防火牆會做一般的路由查詢，不強制對稱回程，以免封包被默默丟棄。</li>
+                <li>防火牆是用 ARP 表記住回程的下一跳，表的大小依機型固定、無法調整，可用 <code>show pbf return-mac all</code> 查看。</li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">驗證</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li><code>show pbf rule all</code>：確認規則狀態是 <strong>Active</strong>（正常）或 <strong>Disabled</strong>（監控判定失敗）。</li>
+                <li>流量日誌（<span class="tech-term">Monitor &gt; Logs &gt; Traffic</span>）與 <code>show session id &lt;ID&gt;</code>：確認實際的出口介面與 NAT 轉換。</li>
+                <li>每個出口 ISP 都要有對應的 <strong>Source NAT 規則</strong>（第 10 章），否則回應封包回不到正確的介面與位址；以及安全政策放行這些 Zone 之間的流量（第 8 章）。</li>
+            </ul>
+
+            <div class="highlight-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>補充：教材的 PBF 路徑監控只有一句話</p>
+                <p class="text-gray-700 text-sm">教材（PAN-OS 8.0）只寫「PBF path monitoring 讓防火牆驗證網路路徑連通性」，沒有 Monitor Profile、Disable 勾選、Symmetric Return 與驗證指令的細節，這幾項是補充現行做法。
+                    Monitor Profile 的 Interval 單位、不同 Action 對新舊工作階段的詳細影響，說明不夠明確，請以實機為準。</p>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：從非預設 ISP 連入的流量沒啟用 Symmetric Return，或監控目標選錯</p>
+                <p class="text-gray-700 text-sm">伺服器同時可從兩條 ISP 連入，卻沒有對非預設 ISP 進來的流量啟用 Symmetric Return，常見症狀是「從那條 ISP 連進來的連線失敗」，原因是回應照預設路由從另一條 ISP 送出，進出不同介面。外連流量的回程對稱不靠這個選項，而是每個 ISP 各一條 Source NAT。
+                    監控目標也要選穩定的設備：目標常關機或不回應 ping，會讓規則被無故停用、流量改走備援。
+                    最後別忘了 PBF 只決定「出口」，<strong>仍然要有安全政策與 NAT 規則</strong>配合。</p>
+            </div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
+                隨堂測驗
+            </h2>
+            <p class="mb-6 text-gray-600">請點選您認為正確的選項，系統將會顯示解析。</p>
+            <div class="space-y-6" id="quiz-container"></div>
+        </div>
+
+    </main>
+
+    <footer class="footer-signature">
+        Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver.2026.10.29.11.06
+    </footer>
+
+
+    <script>
+        const quizData = [
+            {
+                question: "Q1. 想讓防火牆的兩個 Layer 2 介面彼此交換流量（像交換器一樣），下列哪一項是必要的設定？",
+                options: ["A. 兩個介面都要設定 IP 位址並加入同一個虛擬路由器", "B. 兩個介面要屬於同一個 VLAN 物件（Network > VLANs）", "C. 兩個介面必須是 Virtual Wire 的成員", "D. 兩個介面的 Zone 類型必須是 Layer 3"],
+                correct: 1,
+                desc: "正解：B。Layer 2 介面透過 VLAN 物件做交換，同一個 VLAN 內的介面彼此交換；每個 Layer 2 介面只能屬於一個 VLAN，同一個 VLAN 可以有多個介面。Layer 2 介面不需要 IP 與虛擬路由器（A 錯），也不是 Virtual Wire（C 錯）；介面類型與 Zone 類型必須一致，所以 Layer 2 介面要配 Layer 2 類型的 Zone（D 錯）。"
+            },
+            {
+                question: "Q2. 關於 VLAN 介面（Network > Interfaces > VLAN），下列敘述何者正確？",
+                options: ["A. 介面名稱後面的編號必須等於 VLAN tag", "B. 它沒有 IP 位址，只負責轉送 STP 訊框", "C. 它的 VLAN 欄位接 Layer 2 網路，Virtual Router 與 Zone 欄位接 Layer 3 網路，可讓 Layer 2 網段被路由到外面", "D. 介面名稱前半的 vlan 可以自行改成其他文字"],
+                correct: 2,
+                desc: "正解：C。VLAN 介面有 IP 位址，用來連接 Layer 2 與 Layer 3：VLAN 欄位對應 VLAN 物件，Virtual Router 與 Zone 屬於 Layer 3 側。介面編號只是名稱的一部分，不是 VLAN tag（A 錯）；它有 IP（B 錯）；介面名稱前半固定為唯讀的 vlan，只能輸入後面的編號（D 錯）。另外，VLAN 介面的 VLAN 欄位與 VLAN 物件的 VLAN Interface 欄位是同一個關聯，設定一處即可（兩邊是否同步，以實機畫面為準）。"
+            },
+            {
+                question: "Q3. 關於 PBF 規則的比對條件，下列何者是建議的做法？",
+                options: ["A. 盡量使用應用程式（Application）比對，因為最精準", "B. 盡量使用服務（Layer 4 連接埠）比對，因為出口要在第一個封包就決定，此時常還認不出應用程式", "C. 應用程式與服務混用沒有任何限制", "D. PBF 一定要搭配自訂應用程式才會生效"],
+                correct: 1,
+                desc: "正解：B。PBF 在工作階段的第一個封包（SYN）就要決定出口，此時往往還未識別出應用程式；第一次連線無法套用、之後的連線可能因快取被誤套用、應用程式中途改變時也無法跟著改。建議盡量用服務比對，並且自訂應用程式、Application Filter 與 Application Group 不能用在 PBF 規則。"
+            },
+            {
+                question: "Q4. 雙 ISP 環境中，主要 ISP-1 由 PBF 規則負責，預設路由指向備援 ISP-2。一台內部伺服器也會被人從 ISP-1 連入，但從 ISP-1 連進來的連線失敗，原因是回應照預設路由從 ISP-2 送出。下列做法何者正確？",
+                options: ["A. 針對從 ISP-1 介面進來的流量建一條 PBF 規則，Source 選 Interface，啟用 Enforce Symmetric Return，並在 Next Hop Address List 填 ISP-1 路由器的位址", "B. 在內網主機連出網際網路的 PBF 規則上啟用 Enforce Symmetric Return，ISP 就會把回應從原本的那條線送回來", "C. PBF 會自動偵測線路中斷並切換，所以不需要設定 Monitor", "D. 有了 PBF 規則就不需要安全政策與 NAT"],
+                correct: 0,
+                desc: "正解：A。Enforce Symmetric Return 管的是防火牆自己送出的回應：它會略過路由查詢，把回應送回遞送第一個封包（SYN）的 MAC，也就是從原本進來的介面離開。所以要針對「從 ISP-1 介面進來」的流量建規則，Source 選 Interface，並填 Next Hop Address List。它無法決定 ISP 從哪條線把封包送回來，外連流量的回程對稱靠的是每個 ISP 各一條 Source NAT（B 錯）。PBF 不會自己偵測線路中斷，要啟用 Monitor：防火牆用 ICMP 檢查下一跳（或指定的 target IP），失敗時規則停用，由路由表的備援預設路由接手（C 錯）。PBF 只決定出口，安全政策與 NAT 仍然要配合，每個出口 ISP 都需要對應的 Source NAT（D 錯）。"
+            }
+        ];
+
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionBox = document.createElement('div');
+            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
+
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border mb-2 text-gray-700" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            questionBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
+                <div class="space-y-2 mb-4">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
+                    <p class="font-bold result-title"></p>
+                    <p class="text-sm text-gray-600 mt-1">${item.desc}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionBox);
+        });
+
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            if (element.parentElement.dataset.answered) return;
+            element.parentElement.dataset.answered = "true";
+
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+                opt.classList.add('disabled');
+            });
+
+            if (optIndex === data.correct) {
+                element.classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了！";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                element.classList.add('bg-red-100', 'border-red-500');
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了！";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+    </script>
+</body>
+</html>

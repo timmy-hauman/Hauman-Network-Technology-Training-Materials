@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palo Alto Networks NGFW 實戰課程 - SSL/TLS 解密</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        /* 卡片主體樣式 (Palo Alto Orange) */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #fa582d;
+        }
+
+        /* 重點提示框 (橘) */
+        .highlight-box {
+            background-color: #fff7ed;
+            border-left: 4px solid #fa582d;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 技術名詞標記 */
+        .tech-term {
+            color: #c2410c;
+            font-weight: 700;
+            background-color: #fff1e6;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
+        }
+
+        /* 比喻說明框 (綠) */
+        .analogy-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 版本差異框 (紫) */
+        .version-box {
+            background-color: #faf5ff;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 常見踩坑框 (紅) */
+        .pitfall-box {
+            background-color: #fef2f2;
+            border-left: 4px solid #dc2626;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 圖解容器 (自繪 SVG) */
+        .diagram-container {
+            background-color: #ffffff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-top: 1rem;
+        }
+
+        .diagram-container svg {
+            display: block;
+            margin: 0 auto;
+            height: auto;
+        }
+
+        @media (max-width: 640px) {
+            .section-card {
+                padding: 1rem;
+            }
+
+            .diagram-container {
+                margin-left: -1rem;
+                margin-right: -1rem;
+                padding: 0.25rem;
+                border-left: 0;
+                border-right: 0;
+                border-radius: 0;
+            }
+        }
+
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover:not(.disabled) {
+            background-color: #f3f4f6;
+        }
+
+        .footer-signature {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+            margin-top: 4rem;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-orange-600 to-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-fire-flame-curved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold">Palo Alto Networks NGFW 實戰課程</h1>
+                    <p class="text-orange-100 mt-1">進階篇 - 單元 15：SSL/TLS 解密</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <!-- Introduction -->
+        <div class="mb-8">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
+                <h2 class="text-xl font-bold text-blue-800 mb-2 flex items-center">
+                    <i class="fas fa-user-tie mr-2"></i>講師導言
+                </h2>
+                <p class="text-blue-900 leading-relaxed">
+                    前面兩章，App-ID 幫我們看懂「這是什麼應用程式」，Content-ID 幫我們檢查「裡面夾帶了什麼」。但今天絕大多數的網路連線都是加密的：
+                    <strong>防火牆看不進去的內容，就沒辦法比對，也沒辦法阻擋</strong>。
+                    這一章要學的就是讓防火牆「有條件地」看進加密連線：<strong>哪些流量要解密、用什麼方式解密、憑證要怎麼配合、哪些流量刻意不解密</strong>，以及解密之後的效能、日誌與疑難排解。
+                    解密也牽涉隱私與治理，所以我們會同時談「技術上能不能做」與「應該不應該做」要找誰一起決定。
+                </p>
+            </div>
+        </div>
+
+        <!-- 學習目標 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-gray-100 text-gray-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Goals</span>
+                本章學習目標
+            </h2>
+            <ul class="list-disc pl-6 space-y-1 text-gray-700">
+                <li>說明為什麼加密流量會讓 App-ID 與 Content-ID 失去作用，以及解密在流量處理流程中的位置</li>
+                <li>分辨 SSL Forward Proxy、SSL Inbound Inspection、SSH Proxy 三種解密類型的方向、憑證需求與限制</li>
+                <li>說明 Forward Trust 與 Forward Untrust 憑證各自的用途，以及根憑證為什麼必須先派送給用戶端</li>
+                <li>建立解密政策規則（Policies &gt; Decryption）與解密設定檔（Objects &gt; Decryption Profile），並為敏感類別與技術上無法解密的流量設定例外</li>
+                <li>說明 TLS 1.3、效能與容量規劃對解密部署的影響</li>
+                <li>用 Decryption 日誌與 Traffic 日誌驗證解密是否生效，並依 Error Index 分類排解問題</li>
+            </ul>
+        </div>
+
+        <!-- Topic 1 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Concept</span>
+                一、為什麼要解密？它在流程的哪裡？
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                加密流量可能藏著惡意程式，也可能藏著要外流的機敏資料。原廠的立場是加密流量<strong>不應該被自動信任</strong>；解密的目的包括阻擋惡意的加密流量、避免機敏資料離開網路、確認核准的應用程式跑在安全的網路上，以及找出違反政策的行為。
+                一句話概括：<strong>你擋不了你沒有檢查的流量</strong>。
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-lock mr-1 text-gray-500"></i>沒有解密時</h3>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>內容是密文，Content-ID 無從比對</li>
+                        <li>第 13 章提過：File Blocking 的 Continue 動作用在 HTTPS 網站時，要先有解密政策才有效</li>
+                        <li>URL 類別的例外規則也無法套用到 HTTPS 網站</li>
+                    </ul>
+                </div>
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h3 class="font-bold text-orange-800 mb-2"><i class="fas fa-lock-open mr-1"></i>解密之後</h3>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>防火牆把加密流量解成明文，再交給 App-ID、Content-ID 與安全設定檔檢查</li>
+                        <li>檢查完之後，在轉送出去之前重新加密</li>
+                        <li>可搭配 Advanced Threat Prevention、Advanced URL Filtering 等雲端交付服務使用</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="analogy-box">
+                <p class="font-bold mb-2 text-green-800">🛃 生活化比喻：海關拆封檢查，再重新封口</p>
+                <ul class="list-none space-y-2 pl-2 text-gray-700">
+                    <li class="flex items-start"><i class="fas fa-box text-gray-500 mt-1 mr-3"></i><span><strong>加密流量</strong>：密封的貨櫃，海關只看得到貨櫃外面的標籤，看不到裡面裝了什麼。</span></li>
+                    <li class="flex items-start"><i class="fas fa-magnifying-glass text-orange-500 mt-1 mr-3"></i><span><strong>解密</strong>：海關依規定拆封，把貨物拿出來過 X 光、驗毒、核對清單，這就是 Content-ID 的工作。</span></li>
+                    <li class="flex items-start"><i class="fas fa-box-archive text-green-600 mt-1 mr-3"></i><span><strong>重新加密</strong>：檢查通過，用新的封條封好再放行。收貨的人拿到的還是一個完整封好的貨櫃。</span></li>
+                    <li class="flex items-start"><i class="fas fa-ban text-red-500 mt-1 mr-3"></i><span><strong>No Decrypt 規則</strong>：有些貨物依規定、約定或機密性質，海關決定不拆封，只核對封條與文件是否正常。</span></li>
+                </ul>
+                <p class="text-xs text-gray-500 mt-2">比喻只用來理解流程：真實的解密是防火牆在兩條各自獨立的加密連線之間轉手，下一節會畫出來。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">解密在封包流程中的位置</h3>
+            <p class="mb-2 text-gray-700">
+                回想第 1 章的流量處理流程。下圖沿用同樣的階段名稱，標出解密政策、解密與重新加密落在整個順序的哪裡：
+            </p>
+
+            <div class="diagram-container">
+<svg viewBox="0 0 520 1453" width="100%" style="max-width:520px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c15d1-t" font-family="'Noto Sans TC', sans-serif" font-size="18">
+<title id="c15d1-t">解密在封包處理順序中的位置：進入封包後依序做區域防護（Zone Protection）、轉送查詢與 NAT 規則查詢（判斷目的區域，含 DNAT 檢查）、DoS 防護政策查詢、安全政策初步檢查（視為 any，此時還不看應用程式），建立工作階段後由 App-ID 辨識應用程式，再比對一次安全政策，不放行就阻擋；放行後依「是 ssl 或 ssh」分三路：ssl 比對解密政策並解密，由 App-ID 再辨識解密後的內容，應用程式改變時再比對安全政策，然後做 Content-ID 套用安全設定檔；ssh 比對解密政策並解密（SSH Proxy），只控制 ssh-tunnel，不做 Content-ID 檢查；其他流量或沒有符合的解密規則時不解密，直接做 Content-ID 套用安全設定檔；之後需要時重新加密，套用 NAT 轉換並轉送出去</title>
+<defs><marker id="c15d1-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4b5563"/></marker><marker id="c15d1-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker></defs>
+<rect x="162" y="10" width="200" height="44" rx="22" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="262.0" y="38.3" text-anchor="middle" fill="#1f2937">進入封包</text>
+<path d="M262,54 L262,82" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d1-ah)" stroke-linejoin="round"/>
+<rect x="132" y="82" width="260" height="62" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="262.0" y="108.3" text-anchor="middle" fill="#1f2937">區域防護</text><text x="262.0" y="130.3" text-anchor="middle" fill="#1f2937">（Zone Protection）</text>
+<path d="M262,144 L262,172" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d1-ah)" stroke-linejoin="round"/>
+<rect x="132" y="172" width="260" height="80" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="262.0" y="196.3" text-anchor="middle" fill="#1f2937">轉送查詢與 NAT 規則查詢</text><text x="262.0" y="218.3" text-anchor="middle" fill="#1f2937">（判斷目的區域，</text><text x="262.0" y="240.3" text-anchor="middle" fill="#1f2937">含 DNAT 檢查）</text>
+<path d="M262,252 L262,280" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d1-ah)" stroke-linejoin="round"/>
+<rect x="132" y="280" width="260" height="48" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="262.0" y="310.3" text-anchor="middle" fill="#1f2937">DoS 防護政策查詢</text>
+<path d="M262,328 L262,356" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d1-ah)" stroke-linejoin="round"/>
+<rect x="132" y="356" width="260" height="80" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="262.0" y="380.3" text-anchor="middle" fill="#1f2937">安全政策初步檢查</text><text x="262.0" y="402.3" text-anchor="middle" fill="#1f2937">（視為 any）</text><text x="262.0" y="424.3" text-anchor="middle" fill="#1f2937">此時還不看應用程式</text>
+<path d="M262,436 L262,464" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d1-ah)" stroke-linejoin="round"/>
+<rect x="132" y="464" width="260" height="62" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="262.0" y="490.3" text-anchor="middle" fill="#1f2937">建立工作階段</text><text x="262.0" y="512.3" text-anchor="middle" fill="#1f2937">Session ID</text>
+<path d="M262,526 L262,554" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d1-ah)" stroke-linejoin="round"/>
+<rect x="132" y="554" width="260" height="48" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="262.0" y="584.3" text-anchor="middle" fill="#1f2937">App-ID 辨識應用程式</text>
+<path d="M262,602 L262,630" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d1-ah)" stroke-linejoin="round"/>
+<rect x="132" y="630" width="260" height="62" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="262.0" y="656.3" text-anchor="middle" fill="#1f2937">安全政策再比對</text><text x="262.0" y="678.3" text-anchor="middle" fill="#1f2937">改用辨識出的應用程式</text>
+<path d="M392,661 L422,661" fill="none" stroke="#dc2626" stroke-width="2" marker-end="url(#c15d1-ar)" stroke-linejoin="round"/>
+<rect x="422" y="630" width="88" height="62" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/>
+<text x="466.0" y="656.3" text-anchor="middle" fill="#7f1d1d">不放行</text><text x="466.0" y="678.3" text-anchor="middle" fill="#7f1d1d">阻擋</text>
+<path d="M262,692 L262,720" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d1-ah)" stroke-linejoin="round"/>
+<polygon points="262,720 392,775 262,830 132,775" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="262" y="770.3" text-anchor="middle" fill="#1f2937">放行後，</text><text x="262" y="792.3" text-anchor="middle" fill="#1f2937">是 ssl 或 ssh？</text>
+<path d="M132,775 L106,775 L106,875" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d1-ah)" stroke-linejoin="round"/>
+<text x="114.0" y="825.0" text-anchor="start" fill="#1f2937" stroke="#ffffff" stroke-width="5" paint-order="stroke" stroke-linejoin="round">ssh</text>
+<path d="M392,775 L418,775 L418,875" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d1-ah)" stroke-linejoin="round"/>
+<text x="426.0" y="825.0" text-anchor="start" fill="#1f2937" stroke="#ffffff" stroke-width="5" paint-order="stroke" stroke-linejoin="round">ssl</text>
+<rect x="326" y="875.0" width="184" height="48" rx="8" fill="#c2410c" stroke="#9a3412" stroke-width="2"/>
+<text x="418.0" y="905.3" text-anchor="middle" fill="#ffffff">比對解密政策並解密</text>
+<path d="M418,923.0 L418,951.0" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d1-ah)" stroke-linejoin="round"/>
+<rect x="326" y="951.0" width="184" height="62" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="418.0" y="977.3" text-anchor="middle" fill="#1f2937">解密後 App-ID</text><text x="418.0" y="999.3" text-anchor="middle" fill="#1f2937">再辨識</text>
+<path d="M418,1013.0 L418,1041.0" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d1-ah)" stroke-linejoin="round"/>
+<rect x="326" y="1041.0" width="184" height="62" rx="8" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/>
+<text x="418.0" y="1067.3" text-anchor="middle" fill="#7c2d12">應用程式改變時</text><text x="418.0" y="1089.3" text-anchor="middle" fill="#7c2d12">再比對安全政策</text>
+<rect x="10" y="875.0" width="192" height="62" rx="8" fill="#c2410c" stroke="#9a3412" stroke-width="2"/>
+<text x="106.0" y="901.3" text-anchor="middle" fill="#ffffff">比對解密政策並解密</text><text x="106.0" y="923.3" text-anchor="middle" fill="#ffffff">（SSH Proxy）</text>
+<path d="M106,937.0 L106,965.0" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d1-ah)" stroke-linejoin="round"/>
+<rect x="10" y="965.0" width="192" height="80" rx="8" fill="#f9fafb" stroke="#9ca3af" stroke-width="2" stroke-dasharray="6 4"/>
+<text x="106.0" y="989.3" text-anchor="middle" fill="#1f2937">只控制</text><text x="106.0" y="1011.3" text-anchor="middle" fill="#1f2937">ssh-tunnel，不做</text><text x="106.0" y="1033.3" text-anchor="middle" fill="#1f2937">Content-ID 檢查</text>
+<path d="M262,830 L262,1155" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d1-ah)" stroke-linejoin="round"/>
+<text x="262" y="852" text-anchor="middle" fill="#1f2937" stroke="#ffffff" stroke-width="5" paint-order="stroke" stroke-linejoin="round">其他流量</text>
+<path d="M326,899 L262,899" fill="none" stroke="#4b5563" stroke-width="2" stroke-linejoin="round"/>
+<text x="294.0" y="893.0" text-anchor="middle" fill="#1f2937" stroke="#ffffff" stroke-width="5" paint-order="stroke" stroke-linejoin="round">不解密</text>
+<path d="M418,1103.0 L418,1127 L262,1127" fill="none" stroke="#4b5563" stroke-width="2" stroke-linejoin="round"/>
+<rect x="132" y="1155.0" width="260" height="62" rx="8" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/>
+<text x="262.0" y="1181.3" text-anchor="middle" fill="#7c2d12">Content-ID</text><text x="262.0" y="1203.3" text-anchor="middle" fill="#7c2d12">套用安全設定檔</text>
+<path d="M262,1217.0 L262,1245" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d1-ah)" stroke-linejoin="round"/>
+<path d="M106,1045.0 L106,1231 L262,1231" fill="none" stroke="#4b5563" stroke-width="2" stroke-linejoin="round"/>
+<rect x="132" y="1245.0" width="260" height="48" rx="8" fill="#c2410c" stroke="#9a3412" stroke-width="2"/>
+<text x="262.0" y="1275.3" text-anchor="middle" fill="#ffffff">需要時重新加密</text>
+<path d="M262,1293.0 L262,1321" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d1-ah)" stroke-linejoin="round"/>
+<rect x="132" y="1321.0" width="260" height="48" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="262.0" y="1351.3" text-anchor="middle" fill="#1f2937">套用 NAT 轉換</text>
+<path d="M262,1369.0 L262,1397" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d1-ah)" stroke-linejoin="round"/>
+<rect x="162" y="1397.0" width="200" height="44" rx="22" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="262.0" y="1425.3" text-anchor="middle" fill="#1f2937">轉送出去</text>
+</svg>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">圖中 ssl 與 ssh 分兩條路：SSH 解密後只控制 ssh-tunnel，不做 Content-ID 檢查，所以不會進入 Content-ID。沒有符合的解密規則、或規則是 No Decrypt 時，流量不解密，走「其他流量」的路徑。階段名稱與順序與第 1 章相同。</p>
+
+            <div class="highlight-box mt-4">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>流程圖差異：教材的圖是簡化畫法</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>教材原本的流程圖是簡化畫法，把「檢查是否加密、解密」畫在 App-ID 之前。原廠的處理順序是：進入封包 → 區域防護（Zone Protection）→ 轉送查詢與 NAT 規則查詢（判斷目的區域，含 DNAT 檢查）→ DoS 防護政策查詢 → 安全政策初步檢查（此時還不看應用程式，視為 any）→ 建立工作階段 → App-ID 辨識應用程式 → 安全政策再比對 → <strong>放行後，是 ssl 或 ssh 才比對解密政策並解密</strong>。ssl 解密後，App-ID 再辨識解密後的內容，應用程式改變時再比對安全政策，然後 Content-ID 套用安全設定檔；ssh 解密（SSH Proxy）後只控制 ssh-tunnel，不做 Content-ID 檢查；其他流量直接 Content-ID 套用安全設定檔。最後需要時重新加密 → 套用 NAT 轉換 → 轉送出去。第 1 章的流程圖已依這個順序畫出。</li>
+                    <li>App-ID 再辨識解密後的內容之後，應用程式若改變，會再比對一次安全政策。所以規則要放行解密後出現的應用程式，不能只放行 ssl（細節以實機為準）。</li>
+                    <li>不論畫法，共通的重點都是：<strong>解密發生在 Content-ID 檢查之前，重新加密發生在進入轉送階段之前</strong>。</li>
+                </ul>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異：PAN-OS 12.1.2 的 Decryption 日誌欄位</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>PAN-OS 12.1.2 起，Decryption 日誌欄位改以 Client / Server 前綴區分用戶端側與伺服器側的連線，並新增解密狀態、排除原因與憑證撤銷狀態等欄位。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Topic 2 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Types</span>
+                二、三種解密類型
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                解密政策規則的 <span class="tech-term">Options</span> 頁籤，動作選 Decrypt 之後要再選一個 <strong>Type</strong>。三種類型對應三種情境：
+            </p>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border w-36">比較項目</th>
+                            <th class="py-2 px-4 text-left border">SSL Forward Proxy</th>
+                            <th class="py-2 px-4 text-left border">SSL Inbound Inspection</th>
+                            <th class="py-2 px-4 text-left border">SSH Proxy</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">方向與用途</td><td class="py-2 px-4 border">往外：內部使用者連到網際網路的 SSL/TLS 流量</td><td class="py-2 px-4 border">往內：外部連到你自己內部伺服器的 SSL/TLS 流量</td><td class="py-2 px-4 border">解密 SSH，辨識並可阻擋 SSH 連接埠轉送（ssh-tunnel）；不檢查通道內的內容與威脅</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">需要的憑證</td><td class="py-2 px-4 border">防火牆上的 Forward Trust 與 Forward Untrust 憑證</td><td class="py-2 px-4 border">內部伺服器的憑證與私鑰，匯入防火牆；每條規則最多 12 張</td><td class="py-2 px-4 border">不需要憑證</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">用戶端要做什麼</td><td class="py-2 px-4 border">必須信任簽發複製憑證的根 CA，否則出現憑證警告</td><td class="py-2 px-4 border">不用額外安裝；用戶端收到的是伺服器自己的憑證</td><td class="py-2 px-4 border">原廠未提到憑證相關動作</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">規則的 Type 值</td><td class="py-2 px-4 border">SSL Forward Proxy</td><td class="py-2 px-4 border">SSL Inbound Inspection</td><td class="py-2 px-4 border">SSH Proxy</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">共通限制</td><td class="py-2 px-4 border" colspan="2">無法解密使用用戶端驗證（client authentication）或憑證釘選（pinned certificate）的連線；解密後的 SSL 工作階段不支援 HA 同步；代理（proxy）處理的流量不支援 DSCP 與 QoS</td><td class="py-2 px-4 border">解密後的 SSH 工作階段同樣不做 HA 同步；Decryption 日誌不涵蓋 SSH Proxy 流量</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">其他注意</td><td class="py-2 px-4 border">解密只能在 virtual wire、Layer 2、Layer 3 介面上進行</td><td class="py-2 px-4 border">Tap 模式的介面不支援 Inbound Inspection</td><td class="py-2 px-4 border">要阻擋 SSH 通道，需另外寫安全政策：ssh-tunnel 應用程式 Deny，並放行 ssh 應用程式</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">SSL Forward Proxy：防火牆是受信任的中介</h3>
+            <p class="mb-2 text-gray-700">
+                防火牆會開出<strong>兩條各自獨立的 TLS 連線</strong>：一條在用戶端與防火牆之間，一條在防火牆與真正的伺服器之間。對用戶端，防火牆扮演伺服器；對伺服器，防火牆扮演用戶端，兩邊都以為自己直接和對方對話，防火牆就能在中間看到明文。
+            </p>
+
+            <div class="diagram-container">
+<svg viewBox="0 0 520 886" width="100%" style="max-width:520px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c15d2-t" font-family="'Noto Sans TC', sans-serif" font-size="18">
+<title id="c15d2-t">SSL Forward Proxy 的七個步驟：用戶端發起連線、防火牆攔下並對用戶端扮演伺服器、防火牆另開連線連到真正的伺服器、伺服器回傳自己的憑證、防火牆判斷簽發者是否被信任，信任就用 Forward Trust 憑證簽發複製憑證，不信任就用 Forward Untrust 憑證，最後解密檢查並重新加密後轉送</title>
+<defs><marker id="c15d2-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4b5563"/></marker><marker id="c15d2-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker></defs>
+<rect x="5" y="10" width="510" height="112" rx="10" fill="#f9fafb" stroke="#9ca3af" stroke-width="2" stroke-dasharray="6 4"/>
+<text x="17" y="32" text-anchor="start" fill="#4b5563" font-weight="700">內部用戶端</text>
+<rect x="60" y="44" width="400" height="62" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="260" y="70.3" text-anchor="middle" fill="#1f2937">1 發起 TLS 連線</text><text x="260" y="92.3" text-anchor="middle" fill="#1f2937">要連外部伺服器</text>
+<path d="M260,106 L260,176" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d2-ah)" stroke-linejoin="round"/>
+<rect x="5" y="142" width="510" height="194" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2" stroke-dasharray="6 4"/>
+<text x="17" y="164" text-anchor="start" fill="#9a3412" font-weight="700">防火牆 Forward Proxy</text>
+<rect x="60" y="176" width="400" height="62" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="260" y="202.3" text-anchor="middle" fill="#1f2937">2 攔下連線</text><text x="260" y="224.3" text-anchor="middle" fill="#1f2937">對用戶端來說，防火牆扮演該伺服器</text>
+<path d="M260,238 L260,262" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d2-ah)" stroke-linejoin="round"/>
+<rect x="60" y="262" width="400" height="62" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="260" y="288.3" text-anchor="middle" fill="#1f2937">3 另開一條連線</text><text x="260" y="310.3" text-anchor="middle" fill="#1f2937">以用戶端身分連真正的伺服器</text>
+<path d="M260,324 L260,386" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d2-ah)" stroke-linejoin="round"/>
+<rect x="5" y="352" width="510" height="90" rx="10" fill="#f9fafb" stroke="#9ca3af" stroke-width="2" stroke-dasharray="6 4"/>
+<text x="17" y="374" text-anchor="start" fill="#4b5563" font-weight="700">外部伺服器</text>
+<rect x="60" y="386" width="400" height="44" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="260" y="414.3" text-anchor="middle" fill="#1f2937">4 回傳自己的憑證</text>
+<path d="M260,430 L260,518" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d2-ah)" stroke-linejoin="round"/>
+<rect x="5" y="470" width="510" height="398" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2" stroke-dasharray="6 4"/>
+<text x="17" y="492" text-anchor="start" fill="#9a3412" font-weight="700">防火牆 Forward Proxy</text>
+<polygon points="260,518 460,568 260,618 60,568" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="260" y="563.3" text-anchor="middle" fill="#1f2937">5 伺服器憑證的簽發者</text><text x="260" y="585.3" text-anchor="middle" fill="#1f2937">被防火牆信任嗎？</text>
+<path d="M60,568 L60,660" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d2-ah)" stroke-linejoin="round"/>
+<text x="74" y="640" text-anchor="start" fill="#1f2937" stroke="#ffffff" stroke-width="5" paint-order="stroke" stroke-linejoin="round">是</text>
+<path d="M460,568 L460,660" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d2-ah)" stroke-linejoin="round"/>
+<text x="474" y="640" text-anchor="start" fill="#1f2937" stroke="#ffffff" stroke-width="5" paint-order="stroke" stroke-linejoin="round">否</text>
+<rect x="14" y="660" width="240" height="84" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+<text x="134" y="686.3" text-anchor="middle" fill="#14532d">6a Forward Trust</text><text x="134" y="708.3" text-anchor="middle" fill="#14532d">憑證簽發複製憑證</text><text x="134" y="730.3" text-anchor="middle" fill="#14532d">給用戶端</text>
+<rect x="266" y="660" width="240" height="84" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/>
+<text x="386" y="686.3" text-anchor="middle" fill="#7f1d1d">6b Forward Untrust</text><text x="386" y="708.3" text-anchor="middle" fill="#7f1d1d">憑證簽發複製憑證</text><text x="386" y="730.3" text-anchor="middle" fill="#7f1d1d">用戶端會看到警告</text>
+<path d="M134,744 L134,766 L230,766 L230,788" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d2-ah)" stroke-linejoin="round"/>
+<path d="M386,744 L386,766 L290,766 L290,788" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d2-ah)" stroke-linejoin="round"/>
+<rect x="60" y="788" width="400" height="62" rx="8" fill="#c2410c" stroke="#9a3412" stroke-width="2"/>
+<text x="260" y="814.3" text-anchor="middle" fill="#ffffff">7 解密，套用政策與設定檔</text><text x="260" y="836.3" text-anchor="middle" fill="#ffffff">重新加密後轉送</text>
+</svg>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">SSL Inbound Inspection：保護你自己的伺服器</h3>
+            <p class="mb-2 text-gray-700">
+                你把受保護伺服器的<strong>憑證與私鑰</strong>匯入防火牆，並加到規則裡。連線進來時，防火牆確認伺服器送出的憑證與規則內的某一張相符，就把伺服器憑證交給用戶端，並建立兩條各自擁有新工作階段金鑰的加密連線，再檢查明文。
+            </p>
+
+            <div class="diagram-container">
+<svg viewBox="0 0 520 650" width="100%" style="max-width:520px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c15d3-t" font-family="'Noto Sans TC', sans-serif" font-size="18">
+<title id="c15d3-t">SSL Inbound Inspection：防火牆規則裡先加入伺服器憑證與私鑰，外部用戶端連進來時比對伺服器送來的憑證；相符就把伺服器憑證交給用戶端並建立兩段各自的加密連線，檢查明文後再加密送往內部伺服器；不相符則工作階段結束，並在 Decryption 日誌記錄憑證不符</title>
+<defs><marker id="c15d3-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4b5563"/></marker><marker id="c15d3-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker></defs>
+<rect x="5" y="10" width="110" height="44" rx="22" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="60" y="38.3" text-anchor="middle" fill="#1f2937">外部用戶端</text>
+<rect x="5" y="74" width="510" height="500" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2" stroke-dasharray="6 4"/>
+<text x="503" y="96" text-anchor="end" fill="#9a3412" font-weight="700">防火牆 SSL Inbound Inspection</text>
+<rect x="215" y="112" width="290" height="62" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="360" y="138.3" text-anchor="middle" fill="#1f2937">規則內已加入</text><text x="360" y="160.3" text-anchor="middle" fill="#1f2937">伺服器憑證與私鑰</text>
+<path d="M260,174 L260,206" fill="none" stroke="#4b5563" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#c15d3-ah)" stroke-linejoin="round"/>
+<polygon points="260,206 410,256 260,306 110,256" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="260" y="251.3" text-anchor="middle" fill="#1f2937">伺服器送來的憑證</text><text x="260" y="273.3" text-anchor="middle" fill="#1f2937">與規則內的相符嗎？</text>
+<path d="M60,54 L60,256 L110,256" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d3-ah)" stroke-linejoin="round"/>
+<path d="M260,306 L260,330 L135,330 L135,350" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d3-ah)" stroke-linejoin="round"/>
+<text x="190" y="322" text-anchor="middle" fill="#1f2937" stroke="#ffffff" stroke-width="5" paint-order="stroke" stroke-linejoin="round">是</text>
+<path d="M260,330 L385,330 L385,350" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d3-ah)" stroke-linejoin="round"/>
+<text x="326" y="322" text-anchor="middle" fill="#1f2937" stroke="#ffffff" stroke-width="5" paint-order="stroke" stroke-linejoin="round">否</text>
+<rect x="20" y="350" width="230" height="108" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+<text x="135" y="377.3" text-anchor="middle" fill="#14532d">相符：把伺服器</text><text x="135" y="399.3" text-anchor="middle" fill="#14532d">憑證交給用戶端，</text><text x="135" y="421.3" text-anchor="middle" fill="#14532d">建立兩段各自的</text><text x="135" y="443.3" text-anchor="middle" fill="#14532d">加密連線</text>
+<rect x="270" y="350" width="230" height="108" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/>
+<text x="385" y="377.3" text-anchor="middle" fill="#7f1d1d">不相符：</text><text x="385" y="399.3" text-anchor="middle" fill="#7f1d1d">工作階段結束</text><text x="385" y="421.3" text-anchor="middle" fill="#7f1d1d">Decryption 日誌</text><text x="385" y="443.3" text-anchor="middle" fill="#7f1d1d">記錄憑證不符</text>
+<path d="M135,458 L135,490" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d3-ah)" stroke-linejoin="round"/>
+<rect x="20" y="490" width="230" height="62" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="135" y="516.3" text-anchor="middle" fill="#1f2937">檢查明文</text><text x="135" y="538.3" text-anchor="middle" fill="#1f2937">再加密後送往伺服器</text>
+<path d="M135,552 L135,596" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d3-ah)" stroke-linejoin="round"/>
+<rect x="45" y="596" width="180" height="44" rx="22" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="135" y="624.3" text-anchor="middle" fill="#1f2937">內部伺服器</text>
+</svg>
+            </div>
+
+            <div class="highlight-box mt-4">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>重點：換憑證不中斷的順序</p>
+                <p class="text-gray-700 text-sm">一條 Inbound Inspection 規則最多可放 12 張憑證。換新憑證時先在防火牆匯入新憑證與私鑰、<strong>加進規則</strong>，再把新憑證裝到網站伺服器。反過來做，伺服器送出的憑證和規則內的不符，連線就會被結束。</p>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li><strong>多張憑證：</strong>單一規則放多張憑證需要 PAN-OS 10.2 以上。Panorama 把含多張憑證的規則推到較舊的防火牆時，舊防火牆只保留依字母排序的第一張，PAN-OS 10.1 以前請用獨立的 Template 或 Device Group（第 18 章）。</li>
+                    <li><strong>TLS 1.3 與 HSM：</strong>私鑰放在 HSM 時，Inbound Inspection 的 TLS 1.3 支援在 PAN-OS 11.2 才加入，並需要 CLI 指令開啟。</li>
+                    <li><strong>後量子密碼學（PQC）：</strong>PAN-OS 12.1.2 起，解密設定檔可啟用後量子金鑰封裝機制（需要 TLSv1.3），用於 SSL Forward Proxy 與 SSL Inbound Inspection 等；防火牆能在用戶端側與伺服器側各自使用新式或傳統加密。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Topic 3 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Certificates</span>
+                三、憑證與信任：Forward Trust、Forward Untrust 與根憑證派送
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                Forward Proxy 的核心是「防火牆替每個網站現場簽發一張複製憑證」。用戶端的瀏覽器能不能接受這張憑證，完全取決於它<strong>信不信任簽發者</strong>。防火牆上有兩個角色的憑證：
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h3 class="font-bold text-green-800 mb-2"><i class="fas fa-circle-check mr-1"></i>Forward Trust 憑證</h3>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>伺服器憑證的簽發者是防火牆信任的 CA 時使用</li>
+                        <li>防火牆用它簽發複製憑證給用戶端</li>
+                        <li>用戶端必須信任它背後的根 CA，才不會出現警告</li>
+                        <li>私鑰只留在防火牆，不可匯出給用戶端</li>
+                    </ul>
+                </div>
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <h3 class="font-bold text-red-800 mb-2"><i class="fas fa-circle-exclamation mr-1"></i>Forward Untrust 憑證</h3>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>伺服器憑證的簽發者防火牆不信任時使用</li>
+                        <li>用戶端會因此看到憑證警告，這是預期的行為</li>
+                        <li>每台防火牆可用同一張</li>
+                        <li><strong>絕不可</strong>安裝到用戶端，也不可放進網路設備的信任清單</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">信任鏈與根憑證派送</h3>
+            <div class="diagram-container">
+<svg viewBox="0 0 520 550" width="100%" style="max-width:520px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c15d4-t" font-family="'Noto Sans TC', sans-serif" font-size="18">
+<title id="c15d4-t">信任鏈與根憑證派送：根 CA 簽發防火牆上的 Forward Trust 憑證，Forward Trust 憑證為每個網站現場簽發複製憑證；根 CA 以 PEM 格式且不含私鑰，用 GPO 或 GlobalProtect 派送到用戶端的受信任根憑證存放區，用戶端因此驗證得到根 CA 而沒有警告；Forward Untrust 憑證不可安裝到用戶端的存放區</title>
+<defs><marker id="c15d4-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4b5563"/></marker><marker id="c15d4-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker></defs>
+<rect x="10" y="10" width="190" height="84" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+<text x="105" y="36.3" text-anchor="middle" fill="#1e3a8a">根 CA</text><text x="105" y="58.3" text-anchor="middle" fill="#1e3a8a">企業根 CA</text><text x="105" y="80.3" text-anchor="middle" fill="#1e3a8a">或自簽根 CA</text>
+<path d="M105,94 L105,130" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d4-ah)" stroke-linejoin="round"/>
+<rect x="10" y="130" width="190" height="130" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+<text x="105" y="157.3" text-anchor="middle" fill="#14532d">防火牆上的</text><text x="105" y="179.3" text-anchor="middle" fill="#14532d">Forward Trust</text><text x="105" y="201.3" text-anchor="middle" fill="#14532d">憑證</text><text x="105" y="223.3" text-anchor="middle" fill="#14532d">下層 CA 私鑰</text><text x="105" y="245.3" text-anchor="middle" fill="#14532d">只留在防火牆</text>
+<path d="M105,260 L105,296" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d4-ah)" stroke-linejoin="round"/>
+<rect x="10" y="296" width="190" height="84" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="105" y="322.3" text-anchor="middle" fill="#1f2937">為每個網站</text><text x="105" y="344.3" text-anchor="middle" fill="#1f2937">現場簽發的</text><text x="105" y="366.3" text-anchor="middle" fill="#1f2937">複製憑證</text>
+<rect x="320" y="296" width="190" height="84" rx="8" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/>
+<text x="415" y="322.3" text-anchor="middle" fill="#7c2d12">用戶端的</text><text x="415" y="344.3" text-anchor="middle" fill="#7c2d12">受信任根憑證</text><text x="415" y="366.3" text-anchor="middle" fill="#7c2d12">存放區</text>
+<path d="M200,52 L490,52 L490,296" fill="none" stroke="#4b5563" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#c15d4-ah)" stroke-linejoin="round"/>
+<text x="214" y="82" text-anchor="start" fill="#1f2937" stroke="#ffffff" stroke-width="5" paint-order="stroke" stroke-linejoin="round">匯出 PEM 且不含私鑰</text>
+<text x="214" y="106" text-anchor="start" fill="#1f2937" stroke="#ffffff" stroke-width="5" paint-order="stroke" stroke-linejoin="round">用 GPO 或</text>
+<text x="214" y="130" text-anchor="start" fill="#1f2937" stroke="#ffffff" stroke-width="5" paint-order="stroke" stroke-linejoin="round">GlobalProtect 派送</text>
+<path d="M320,338 L200,338" fill="none" stroke="#4b5563" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#c15d4-ah)" stroke-linejoin="round"/>
+<text x="260" y="288" text-anchor="middle" fill="#1f2937" stroke="#ffffff" stroke-width="5" paint-order="stroke" stroke-linejoin="round">驗證得到</text>
+<text x="260" y="310" text-anchor="middle" fill="#1f2937" stroke="#ffffff" stroke-width="5" paint-order="stroke" stroke-linejoin="round">根 CA 所以</text>
+<text x="260" y="332" text-anchor="middle" fill="#1f2937" stroke="#ffffff" stroke-width="5" paint-order="stroke" stroke-linejoin="round">沒有警告</text>
+<rect x="320" y="470" width="190" height="60" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/>
+<text x="415" y="495.3" text-anchor="middle" fill="#7f1d1d">Forward Untrust</text><text x="415" y="517.3" text-anchor="middle" fill="#7f1d1d">憑證</text>
+<path d="M415,470 L415,380" fill="none" stroke="#dc2626" stroke-width="2" stroke-dasharray="6 5" stroke-linejoin="round"/>
+<path d="M406,416 L424,434 M406,434 L424,416" stroke="#dc2626" stroke-width="4" stroke-linecap="round" fill="none"/>
+<text x="398" y="432" text-anchor="end" fill="#b91c1c" stroke="#ffffff" stroke-width="5" paint-order="stroke" stroke-linejoin="round">不可安裝到這裡</text>
+</svg>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">設定位置與步驟概要</h3>
+            <ol class="list-decimal pl-6 text-gray-700 space-y-2 text-sm">
+                <li>
+                    <strong>Forward Trust（最佳實務：企業 CA 簽發）：</strong>在 <span class="tech-term">Device &gt; Certificate Management &gt; Certificates &gt; Custom Certificates</span> 按 Generate 產生 CSR（Signed By 選 External Authority (CSR)），送企業 CA 簽發後匯入；匯入時憑證名稱必須與 CSR 名稱完全相同，再勾選 <strong>Forward Trust Certificate</strong>。
+                    對 Windows 用戶端，原廠建議用「Subordinate Certification Authority」範本簽發，並只把這張下層 CA 憑證標為 Forward Trust。
+                </li>
+                <li>
+                    <strong>Forward Trust（替代做法：自簽）：</strong>先產生自簽根 CA 並勾選 Trusted Root CA，再為<strong>每一台防火牆</strong>各產生一張由它簽發的下層 CA 憑證（勾選 Certificate Authority）。
+                </li>
+                <li>
+                    <strong>派送根憑證給用戶端：</strong>用戶端若已信任企業根 CA 可略過。否則要匯出根憑證（PEM 格式、<strong>不要</strong>匯出私鑰），匯入每台用戶端的受信任根憑證存放區；在 Windows 要確認放進「受信任的根憑證授權單位」，預設會放進「個人」。可用 GPO 自動化，或用 GlobalProtect 的 Portal Agent 設定（<span class="tech-term">Network &gt; GlobalProtect &gt; Portals</span>，Trusted Root CA 並啟用 Install in Local Root Certificate Store）。
+                </li>
+                <li>
+                    <strong>Forward Untrust：</strong>在 Custom Certificates 產生一張 Signed By 留空、勾選 Certificate Authority 的憑證，再勾選 <strong>Forward Untrust Certificate</strong>。
+                </li>
+                <li>
+                    <strong>建立規則並 Commit：</strong>在 <span class="tech-term">Policies &gt; Decryption</span> 新增規則，Action 選 Decrypt、Type 選 SSL Forward Proxy，並建議附上解密設定檔（下一節）。
+                </li>
+            </ol>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑一：用戶端不信任 Forward Trust 的根 CA</p>
+                <p class="text-gray-700 text-sm">原廠明說：沒有把根憑證派送給用戶端，使用者在每個被解密的 SSL 網站都會看到憑證警告。症狀是「規則一啟用，幾乎所有 HTTPS 網站都跳警告」。解法是先派送根憑證，並用少數測試用戶端驗證後再擴大規則範圍。另外，個人裝置、訪客、沒有加入網域的設備，也是推行前要先想好的邊緣情況。</p>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑二：把 Forward Untrust 憑證也裝到用戶端</p>
+                <p class="text-gray-700 text-sm">一旦用戶端信任了 Forward Untrust 憑證，防火牆不信任的網站也會被用戶端當成可信，使用者就再也看不到警告。原廠明確要求：Forward Untrust 憑證不可安裝到用戶端，也不可匯出到網路設備的信任清單。</p>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>憑證管理的選單名稱：現行文件寫 <span class="tech-term">Custom Certificates</span>，PAN-OS 11.2 及更早版本的名稱是 <span class="tech-term">Device Certificates</span>，兩者是同一個位置。</li>
+                    <li>PAN-OS 12.1.2 新增：防火牆可依伺服器憑證中的 AIA 欄位自動取回缺少的中繼憑證（快取最長約一週，首次連線仍可能失敗，之後從快取成功）。另有 <strong>Bypass Server Certificate Verification</strong> 設定，會關閉其他所有伺服器憑證驗證，只適合暫時、針對可信服務使用。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Topic 4 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Policy</span>
+                四、解密政策、解密設定檔與例外
+            </h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">解密政策規則</h3>
+            <p class="mb-2 text-gray-700">
+                路徑：<span class="tech-term">Policies &gt; Decryption</span>。規則的結構與安全政策相似，由上往下比對，第一條符合的規則生效。
+            </p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-44">頁籤</th><th class="py-2 px-4 text-left border">內容</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">General</td><td class="py-2 px-4 border">名稱、說明、標籤</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Source</td><td class="py-2 px-4 border">來源區域、位址、位址群組、使用者與群組（可用 Negate 排除）等</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Destination</td><td class="py-2 px-4 border">目的區域、位址、位址群組、External Dynamic List 等</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Service/URL Category</td><td class="py-2 px-4 border">預設涵蓋任何 TCP/UDP 連接埠；可加服務、URL 類別（預先定義或自訂）與 EDL。application-default 對寫排除規則很有用</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Options</td><td class="py-2 px-4 border"><strong>Action</strong>（Decrypt 或 No Decrypt）、<strong>Type</strong>（Action 為 Decrypt 時選）、<strong>Decryption Profile</strong>，以及 Log Successful SSL Handshake、Log Unsuccessful SSL Handshake、Log Forwarding</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="highlight-box mt-4">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>規則順序</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>把「排除解密」的規則放在<strong>最上面</strong>，一般的解密規則在後面。</li>
+                    <li>原廠也建議在規則庫最底部放一條針對高風險與中風險 URL 類別的解密規則，當作安全網。</li>
+                    <li>原廠建議先把安全政策遷移成以應用程式為基礎的規則，再建解密規則。若先在以連接埠為基礎的規則上建好解密、之後才遷移，application-default 規則可能把解密後出現在非預設埠的流量擋掉；先遷移，這類問題在概念驗證階段就會浮現。</li>
+                </ul>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">解密設定檔（Decryption Profile）</h3>
+            <p class="mb-2 text-gray-700">
+                路徑：<span class="tech-term">Objects &gt; Decryption Profile</span>，建立後在解密規則的 Options 頁籤選用。規則決定「解不解、用哪種方式」，設定檔決定「解的時候有哪些檢查與限制」。原廠建議每一條解密規則都套用設定檔。設定檔的頁籤如下：
+            </p>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border w-52">位置</th>
+                            <th class="py-2 px-4 text-left border">主要設定（括號為原廠建議或說明）</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr>
+                            <td class="py-2 px-4 border font-semibold">SSL Decryption &gt; SSL Forward Proxy &gt; Server Certificate Validation</td>
+                            <td class="py-2 px-4 border">
+                                Block sessions with expired certificates（建議）；Block sessions with untrusted issuers（建議）；Block sessions with unknown certificate status（最嚴格，可能擋到重要業務網站）；Block sessions on SNI mismatch with Server Certificate（使用顯式或透明代理時建議）；Block sessions on the certificate status check timeout（安全與使用體驗的取捨）；Restrict certificate extensions；Append certificate's CN value to SAN extension；Automatically Fetch Intermediate Certificates；Bypass Server Certificate Verification
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 px-4 border font-semibold">SSL Forward Proxy &gt; Unsupported Mode Checks</td>
+                            <td class="py-2 px-4 border">Block sessions with unsupported versions（建議一律啟用）；Block sessions with unsupported cipher suites；Block sessions with client authentication（除非重要應用程式需要用戶端驗證，這類流量改用獨立設定檔）</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 px-4 border font-semibold">SSL Forward Proxy &gt; Failure Checks 與 Client Extension</td>
+                            <td class="py-2 px-4 border">Block sessions if resources not available；Block sessions if HSM not available；Block downgrade on no resources；Strip ALPN（移除 ALPN 值以停用 HTTP/2 檢查，HTTP/2 會降為 HTTP/1.1 或被歸為 unknown TCP）</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 px-4 border font-semibold">SSL Inbound Inspection</td>
+                            <td class="py-2 px-4 border">Unsupported Mode Checks（版本、加密套件）與 Failure Checks（資源、HSM、降級）；沒有 Server Certificate Validation 與 Client Extension 區塊。不同能力的伺服器請用不同設定檔</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 px-4 border font-semibold">SSL Protocol Settings</td>
+                            <td class="py-2 px-4 border">Min Version / Max Version；Key Exchange Algorithms（RSA、DHE、ECDHE 預設都啟用，只有 DHE 與 ECDHE 提供 PFS）；Encryption Algorithms（建議不要允許 3DES 與 RC4；Min Version 設在 TLSv1.2 以上時，這兩項會自動取消勾選，較低的 Min Version 要自己取消）；Authentication Algorithms（MD5 預設封鎖，SHA1 若沒有必要網站依賴建議封鎖）</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 px-4 border font-semibold">No Decryption</td>
+                            <td class="py-2 px-4 border">給 No Decrypt 規則用：對沒有解密的流量，仍可封鎖憑證過期與簽發者不受信任的連線</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 px-4 border font-semibold">SSH Proxy</td>
+                            <td class="py-2 px-4 border">Unsupported Mode Checks（不支援的 SSH 版本或演算法）與 Failure Checks（SSH 錯誤、資源不足）</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑三：允許不支援的模式，流量被「悄悄」放過去</p>
+                <p class="text-gray-700 text-sm">設定檔若<strong>不</strong>封鎖不支援的模式，遇到不支援的版本、加密套件或用戶端驗證時，防火牆會把該伺服器記進 Local SSL Decryption Exclusion Cache，之後 12 小時內到同一台伺服器的連線都不再解密、也就不被檢查（快取最多 1,024 筆；修改解密規則或設定檔時會被清空）。如果你的政策是「無法檢查的就不放行」，要在設定檔啟用封鎖選項。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">不解密的兩種原因，兩種做法</h3>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-scale-balanced text-orange-500 mr-2"></i>業務、法規或隱私考量 → No Decrypt 規則</h4>
+                    <p class="text-sm text-gray-700 mb-2">例：財務、健康、政府等敏感類別。範例做法：</p>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>在 <span class="tech-term">Policies &gt; Decryption</span> 新增規則，Source 與 Destination 設 Any</li>
+                        <li>Service/URL Category 加入 financial-services 與 health-and-medicine</li>
+                        <li>Options 的 Action 選 No Decrypt，附上 No Decryption 設定檔</li>
+                        <li>把規則移到解密規則庫的<strong>最上面</strong></li>
+                    </ul>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-ban text-orange-500 mr-2"></i>技術上無法解密 → 解密排除清單</h4>
+                    <p class="text-sm text-gray-700 mb-2">例：憑證釘選、雙向認證（mutual authentication）的網站與應用程式。</p>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>位置：<span class="tech-term">Device &gt; Certificate Management &gt; SSL Decryption Exclusions</span></li>
+                        <li>預先定義的清單預設就排除解密，由 Applications and Threats 內容更新維護；也可 Disable 單筆項目</li>
+                        <li>清單裡沒有的、會讓解密出問題的應用程式，可加入自訂排除</li>
+                        <li>這份清單不是拿來放「因法規或隱私而不想解」的網站，那類要寫 No Decrypt 規則</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑四：有釘選憑證的應用程式突然連不上</p>
+                <p class="text-gray-700 text-sm">使用憑證釘選或用戶端憑證驗證的應用程式（常見於行動 App 與部分更新服務），遇到 Forward Proxy 的複製憑證會直接拒絕。處理順序：先到 Decryption 日誌確認失敗原因，再決定是加入排除、單獨寫 No Decrypt 規則，或是為它們建立專用的規則與設定檔。如果政策是嚴格只放行可解密的流量，沒有被任何清單涵蓋的這類連線就會被擋。</p>
+            </div>
+
+            <div class="highlight-box mt-4">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>原廠文件說法不一：設定檔的最低版本</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>原廠不同說明對 Min Version 的建議用語不同：有的偏向設定為 TLSv1.3 以取得最強安全性；有的則建議基準值為 <strong>Min Version TLSv1.2、Max Version 設為 Max</strong>，Min Version 設為 TLSv1.3 只用在確定只使用 TLS 1.3 的流量。實務上可用 TLSv1.2 當基準，需要更嚴的流量另開規則與設定檔。</li>
+                    <li>要允許較舊協定的網站，原廠建議用<strong>另一份設定檔</strong>並綁在只涵蓋該流量的規則上（例如搭配自訂 URL 類別），不要放寬預設設定檔。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Topic 5 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Operations</span>
+                五、TLS 1.3、效能、驗證與疑難排解
+            </h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">TLS 1.3</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 text-sm">
+                <li>Forward Proxy 與 Inbound Inspection 都支援 TLS 1.3，支援的加密套件為 TLS13-AES-128-GCM-SHA256、TLS13-AES-256-GCM-SHA384、TLS13-CHACHA20-POLY1305-SHA256。</li>
+                <li>要在解密規則上啟用，須套用「最低或最高版本設為 TLSv1.3」的解密設定檔；沒有啟用時，PAN-OS 預設最高到 TLSv1.2。Max Version 選 <strong>Max</strong> 就會對支援的網站自動使用最新版，也涵蓋未來的新版本。</li>
+                <li>伺服器不支援 TLS 1.3 時，防火牆會選擇伺服器支援的版本；從 1.3 降到 1.2 的流量<strong>仍會被解密與檢查</strong>。</li>
+                <li>TLS 1.3 把憑證資訊也加密了，防火牆讀不到，所以<strong>不要把 No Decryption 設定檔套用到只處理 TLS 1.3 的規則</strong>，它擋不了過期或不受信任簽發者。TLS 1.2 以前的流量仍適用。</li>
+                <li>行動 App 常用憑證釘選，原廠建議涵蓋它們的規則把 Max Version 設為 TLSv1.2，或寫 No Decrypt 規則，否則部分流量可能被丟棄。</li>
+                <li>沒有解密的流量也要寫規則來管：只有被解密規則管到的未解密流量才會留下日誌。</li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">效能與容量規劃</h3>
+            <p class="mb-2 text-gray-700 text-sm">
+                解密是耗資源的工作。可以解多少，取決於 <strong>SSL 流量的規模、TLS 版本、加密套件、驗證方式</strong>。原廠建議與原廠業務或工程師一起評估目前與未來的需求，並確認符合效能期待。
+            </p>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-stairs text-orange-500 mr-2"></i>分階段導入</h4>
+                    <ol class="list-decimal pl-5 text-sm text-gray-700 space-y-1">
+                        <li>先建一條 No Decrypt 規則，了解使用者實際去了哪些網站與應用程式</li>
+                        <li>以低風險的範圍做概念驗證（proof of concept）</li>
+                        <li>用 Decryption 日誌找出並排除問題</li>
+                        <li>每一階段都檢視使用者體驗與解密報表，再擴大範圍</li>
+                    </ol>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-bullseye text-orange-500 mr-2"></i>決定先解哪些</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>原廠的目標：在資源允許的範圍內，盡量解密非隱私、非敏感的流量</li>
+                        <li>優先考慮高風險與中風險的 URL 類別、關鍵伺服器、業務關鍵流量</li>
+                        <li>設定檔的「資源不足時封鎖」是安全與可用性的取捨</li>
+                        <li>解密後的 SSL 工作階段不做 HA 同步：切換後不會續傳，新連線依政策重新解密（第 17 章）</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑五：沒有做容量規劃就全面啟用</p>
+                <p class="text-gray-700 text-sm">一次把所有流量都套上解密、又同時把設定檔調到最嚴格，資源的需求會一起墊高。原廠指出安全設定越嚴格，解密通常消耗越多資源。資源不足時，Decryption 日誌可能出現 Resource 類的錯誤，而設定檔的「資源不足時封鎖」也可能讓連線被結束。對策：分階段、先看現況、與原廠一起評估規模，再逐步擴大。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Decryption 日誌</h3>
+            <p class="mb-2 text-gray-700 text-sm">
+                路徑：<span class="tech-term">Monitor &gt; Logs &gt; Decryption</span>。預設只記錄<strong>失敗</strong>的 TLS 交握；要記錄成功的交握，要在解密規則的 Options 頁籤勾選 <strong>Log Successful SSL Handshake</strong>（預設關閉，並請先確認日誌空間）。Log Unsuccessful SSL Handshake 預設啟用。
+            </p>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 text-sm">
+                <li>每筆在 PAN-OS 11.0 有 60 多個欄位（12.1.2 欄位改版後的數目以實機為準），涵蓋所套用的解密規則與類型、憑證細節、TLS 版本、金鑰交換與加密演算法、SNI，以及錯誤資訊。</li>
+                <li><strong>Error Index</strong> 欄位把失敗分成八類：Certificate、Cipher、Feature、HSM、Protocol、Resource、Resume、Version；<strong>Error</strong> 欄位給出細節。兩者也在詳細日誌檢視的 Handshake Details 區。</li>
+                <li>在握手期間被阻擋的網頁流量<strong>不會</strong>產生 Decryption 日誌，要去 URL Filtering 日誌找；SSH Proxy 的流量也不在 Decryption 日誌內。</li>
+                <li>Decryption 日誌的 App-ID 來自 Traffic 日誌；Traffic 日誌若關閉，應用程式會顯示 incomplete。</li>
+                <li>ACC 的 SSL Activity（PAN-OS 11 系列起）有解密與未解密流量、失敗原因、TLS 版本與金鑰交換等小工具，可先找出問題流量，再用 Jump to Logs 跳到對應日誌；12.x 的名稱與位置以實機為準。</li>
+                <li>日誌可轉成自訂報表（排程、PDF/CSV/XML）。</li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">驗證：有沒有真的解密？</h3>
+            <p class="mb-2 text-gray-700 text-sm">到 <span class="tech-term">Monitor &gt; Logs &gt; Traffic</span> 用篩選條件檢查，Decrypted 欄位會顯示 yes 或 no：</p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-72">想確認的事</th><th class="py-2 px-4 text-left border">篩選條件</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border">被解密的工作階段</td><td class="py-2 px-4 border"><code>( flags has proxy )</code>，結果的 Decrypted 欄為 yes</td></tr>
+                        <tr><td class="py-2 px-4 border">沒被解密的 SSL 流量</td><td class="py-2 px-4 border"><code>( not flags has proxy ) and ( app eq ssl )</code>，Decrypted 欄為 no</td></tr>
+                        <tr><td class="py-2 px-4 border">特定一條工作階段</td><td class="py-2 px-4 border"><code>( sessionid eq 137020 )</code>（數字僅為範例）</td></tr>
+                        <tr><td class="py-2 px-4 border">所有 TLS 與 SSH 流量（解密與否都含）</td><td class="py-2 px-4 border"><code>( s_encrypted neq 0 )</code></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-sm text-gray-600 mt-2">也可以點日誌的放大鏡進詳細檢視，核對 Decrypted 旗標當作第二個確認。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">疑難排解流程</h3>
+            <div class="diagram-container">
+<svg viewBox="0 0 520 900" width="100%" style="max-width:520px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c15d5-t" font-family="'Noto Sans TC', sans-serif" font-size="18">
+<title id="c15d5-t">SSL 解密疑難排解流程：使用者回報 HTTPS 網站異常，先收集資訊，再看 Decryption 日誌有沒有對應紀錄；沒有就確認規則是否命中，握手期間被阻擋者改看 URL Filtering 日誌；有就看 Error Index 與 Error 欄位並分成憑證、加密套件或版本、資源、技術上無法解密四類處理，修改後再次測試並持續監看</title>
+<defs><marker id="c15d5-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4b5563"/></marker><marker id="c15d5-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker></defs>
+<rect x="60" y="10" width="400" height="44" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="260" y="38.3" text-anchor="middle" fill="#1f2937">使用者回報 HTTPS 網站異常</text>
+<path d="M260,54 L260,84" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d5-ah)" stroke-linejoin="round"/>
+<rect x="60" y="84" width="400" height="62" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="260" y="110.3" text-anchor="middle" fill="#1f2937">收集資訊</text><text x="260" y="132.3" text-anchor="middle" fill="#1f2937">哪個網站、哪些人、何時發生、能否重現</text>
+<path d="M135,146 L135,164" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d5-ah)" stroke-linejoin="round"/>
+<polygon points="135,164 265,224 135,284 5,224" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="135" y="219.3" text-anchor="middle" fill="#1f2937">Decryption 日誌</text><text x="135" y="241.3" text-anchor="middle" fill="#1f2937">有對應紀錄嗎？</text>
+<path d="M265,224 L320,224" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d5-ah)" stroke-linejoin="round"/>
+<text x="292" y="212" text-anchor="middle" fill="#1f2937" stroke="#ffffff" stroke-width="5" paint-order="stroke" stroke-linejoin="round">沒有</text>
+<rect x="320" y="170" width="190" height="108" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="415" y="197.3" text-anchor="middle" fill="#1f2937">確認規則是否命中</text><text x="415" y="219.3" text-anchor="middle" fill="#1f2937">握手期間被阻擋者</text><text x="415" y="241.3" text-anchor="middle" fill="#1f2937">改看 URL</text><text x="415" y="263.3" text-anchor="middle" fill="#1f2937">Filtering 日誌</text>
+<path d="M135,284 L135,306" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d5-ah)" stroke-linejoin="round"/>
+<text x="147" y="301" text-anchor="start" fill="#1f2937" stroke="#ffffff" stroke-width="5" paint-order="stroke" stroke-linejoin="round">有</text>
+<rect x="15" y="306" width="240" height="58" rx="8" fill="#c2410c" stroke="#9a3412" stroke-width="2"/>
+<text x="135" y="330.3" text-anchor="middle" fill="#ffffff">看 Error Index</text><text x="135" y="352.3" text-anchor="middle" fill="#ffffff">與 Error 欄位</text>
+<path d="M135,364 L135,394" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d5-ah)" stroke-linejoin="round"/>
+<polygon points="135,394 235,434 135,474 35,434" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="135" y="440.3" text-anchor="middle" fill="#1f2937">屬於哪一類？</text>
+<path d="M35,434 L14,434 L14,753" fill="none" stroke="#4b5563" stroke-width="2" stroke-linejoin="round"/>
+<rect x="50" y="496" width="440" height="58" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="270" y="520.3" text-anchor="middle" fill="#1f2937" font-weight="700">Certificate</text><text x="270" y="542.3" text-anchor="middle" fill="#1f2937">檢查憑證鏈、到期、簽發者與 SNI</text>
+<path d="M14,525 L50,525" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d5-ah)" stroke-linejoin="round"/>
+<path d="M490,525 L508,525" fill="none" stroke="#4b5563" stroke-width="2" stroke-linejoin="round"/>
+<rect x="50" y="572" width="440" height="58" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="270" y="596.3" text-anchor="middle" fill="#1f2937" font-weight="700">Cipher 或 Version</text><text x="270" y="618.3" text-anchor="middle" fill="#1f2937">調整設定檔的版本與加密套件</text>
+<path d="M14,601 L50,601" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d5-ah)" stroke-linejoin="round"/>
+<path d="M490,601 L508,601" fill="none" stroke="#4b5563" stroke-width="2" stroke-linejoin="round"/>
+<rect x="50" y="648" width="440" height="58" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="270" y="672.3" text-anchor="middle" fill="#1f2937" font-weight="700">Resource</text><text x="270" y="694.3" text-anchor="middle" fill="#1f2937">檢視資源使用、重新評估規模</text>
+<path d="M14,677 L50,677" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d5-ah)" stroke-linejoin="round"/>
+<path d="M490,677 L508,677" fill="none" stroke="#4b5563" stroke-width="2" stroke-linejoin="round"/>
+<rect x="50" y="724" width="440" height="58" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="270" y="748.3" text-anchor="middle" fill="#1f2937" font-weight="700">技術上無法解密</text><text x="270" y="770.3" text-anchor="middle" fill="#1f2937">加入排除清單或寫 No Decrypt 規則</text>
+<path d="M14,753 L50,753" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d5-ah)" stroke-linejoin="round"/>
+<path d="M490,753 L508,753" fill="none" stroke="#4b5563" stroke-width="2" stroke-linejoin="round"/>
+<path d="M508,525 L508,849 L400,849" fill="none" stroke="#4b5563" stroke-width="2" stroke-linejoin="round"/>
+<path d="M420,849 L390,849" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c15d5-ah)" stroke-linejoin="round"/>
+<rect x="130" y="818" width="260" height="62" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+<text x="260" y="844.3" text-anchor="middle" fill="#14532d">修改後再次測試</text><text x="260" y="866.3" text-anchor="middle" fill="#14532d">並持續監看</text>
+</svg>
+            </div>
+
+            <div class="overflow-x-auto mt-4">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-64">日誌中的錯誤（Error）</th><th class="py-2 px-4 text-left border">意思與常見處理（摘自原廠分類）</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">Untrusted issuer CA</td><td class="py-2 px-4 border">憑證鏈有效，但簽發者不在信任錨點中。建議改用受信任的外部 CA，不要用不受信任或自簽的 CA</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Server and firewall's certificate mismatch</td><td class="py-2 px-4 border">伺服器送出的憑證與防火牆上的不符（例如 Inbound Inspection 換憑證的時機不對）：確認伺服器憑證未過期、伺服器上放的是正確憑證，並重新匯入防火牆</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">SNI didn't match with subject name or SAN</td><td class="py-2 px-4 border">SNI 與憑證主體名稱或 SAN 不一致</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Unsupported cipher</td><td class="py-2 px-4 border">加密套件不相容。讓設定檔的加密套件和兩端都相容，必要時為該流量新增專用規則</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Client and server version mismatch / Client and decrypt profile version mismatch</td><td class="py-2 px-4 border">TLS 版本不相容。調整設定檔的版本範圍，必要時另建專用規則</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Oversized chain received</td><td class="py-2 px-4 border">憑證鏈超過 5 張，建議換成需要較少中繼憑證的憑證</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Out of the firewall resources</td><td class="py-2 px-4 border">防火牆資源不足，回頭檢視容量規劃</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">Cipher 與 Version 類錯誤會帶有位元遮罩（bitmask）值，原廠說明需用操作模式的 CLI 指令轉換，指令請查你所用版本的原廠文件。</p>
+
+            <div class="highlight-box mt-4">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-scale-balanced mr-1"></i>隱私與治理：技術之外的決定</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>原廠建議在制定策略時，讓法務、財務、人資、主管、資安與資訊單位一起參與，並考量法規遵循、隱私、效能衝擊與特定的安全需求。</li>
+                    <li>因業務、法律、法規或個人因素不想解密的流量（例如財務、健康、政府類別），用 No Decrypt 規則處理；高風險但同時涉及敏感資訊的網站，可選擇封鎖或不解密，以避免隱私爭議。</li>
+                    <li>推行前先向受影響的使用者說明網站存取會有什麼變化。</li>
+                    <li>Decryption Port Mirroring（把解密後的明文送到第三方工具）轉送的內容包含敏感資訊，且以明文傳送，需妥善保護傳輸與儲存；解密日誌也可能含敏感內容，建議一併管控存取。原廠並提醒部分國家對 SSL 流量的檢查與留存有規範，正式使用前建議諮詢公司法律顧問。</li>
+                    <li>本章只說明原廠文件如何描述，不構成對任何地區法規的判斷。</li>
+                </ul>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異：本章說明的版本範圍</p>
+                <p class="text-gray-700 text-sm">本章以 PAN-OS 10.0 到 11.1 與 12.1.2 的行為為準，其中 12.1.2 新增的功能已逐項標明。12.x 若有措辭、選單或欄位上的細微調整，請以你所用版本的實機畫面為準。</p>
+            </div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
+                隨堂測驗
+            </h2>
+            <p class="mb-6 text-gray-600">請點選您認為正確的選項，系統將會顯示解析。</p>
+            <div class="space-y-6" id="quiz-container"></div>
+        </div>
+
+    </main>
+
+    <footer class="footer-signature">
+        Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver.2026.10.29.11.12
+    </footer>
+
+
+    <script>
+        const quizData = [
+            {
+                question: "Q1. 公司要保護自己放在 DMZ 的網站伺服器，檢查從網際網路連進來的 HTTPS 流量，應該用哪一種解密類型？",
+                options: ["A. SSL Forward Proxy", "B. SSL Inbound Inspection", "C. SSH Proxy", "D. 只要在安全政策掛上 Antivirus 設定檔即可，不需要解密"],
+                correct: 1,
+                desc: "正解：B。SSL Inbound Inspection 用於外部連到內部伺服器的流量，做法是把伺服器的憑證與私鑰匯入防火牆並加到規則裡。Forward Proxy 是保護內部使用者連往網際網路的流量；SSH Proxy 處理 SSH；而 HTTPS 內容是密文，不解密的話設定檔看不到內容。"
+            },
+            {
+                question: "Q2. 啟用 SSL Forward Proxy 規則後，測試用戶端打開幾乎每個 HTTPS 網站都出現憑證警告。最可能的原因是什麼？",
+                options: ["A. 用戶端沒有信任簽發複製憑證的 Forward Trust 根 CA", "B. 防火牆沒有設定 Forward Untrust 憑證", "C. 設定檔的 Max Version 設成 Max", "D. Decryption 日誌預設只記錄失敗的交握"],
+                correct: 0,
+                desc: "正解：A。用戶端若不信任簽發複製憑證的根 CA，每個被解密的網站都會警告，需要先把根憑證（PEM、不含私鑰）以 GPO 或 GlobalProtect 派送。Forward Untrust 憑證只在伺服器簽發者不被信任時使用，警告是預期的，且不可裝到用戶端；Max 版本設定與日誌預設值都不會造成全面警告。"
+            },
+            {
+                question: "Q3. 要避免解密財務與醫療類別的網站，下列做法何者正確？",
+                options: ["A. 寫一條 Decrypt 規則，在設定檔勾選所有檢查", "B. 把網站加入 Forward Untrust 憑證的清單", "C. 寫一條 Action 為 No Decrypt 的規則，URL 類別選 financial-services 與 health-and-medicine，並放在解密規則庫的最上面", "D. 把這些網站放進 SSL Decryption Exclusions，因為那是專門處理法規與隱私的清單"],
+                correct: 2,
+                desc: "正解：C。因業務、法規或隱私因素不解密，用 No Decrypt 規則處理，並放在最上面，因為規則由上往下比對、第一條符合就生效。SSL Decryption Exclusions 是給憑證釘選、雙向認證等「技術上無法解密」的網站用的，原廠明確說它不是拿來放因法規或隱私而不解密的網站。"
+            },
+            {
+                question: "Q4. 管理員想確認某條連線有沒有被解密，下列何者是可行的做法？",
+                options: ["A. 在 Monitor > Logs > Traffic 篩選 ( flags has proxy )，被解密的工作階段 Decrypted 欄位會是 yes", "B. 看 Threat 日誌有沒有出現 Decrypt 這個動作", "C. 只要規則動作是 Decrypt，就一定被解密，不需要驗證", "D. 檢查 Forward Untrust 憑證是否已安裝在用戶端"],
+                correct: 0,
+                desc: "正解：A。Traffic 日誌以 ( flags has proxy ) 篩選被解密的工作階段，也可用 ( not flags has proxy ) and ( app eq ssl ) 找出沒被解密的 SSL 流量，並可在詳細檢視核對 Decrypted 旗標。規則命中不代表一定解密成功：憑證釘選、不支援的版本等都可能失敗，要用日誌確認。Forward Untrust 憑證本來就不應該裝在用戶端。"
+            }
+        ];
+
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionBox = document.createElement('div');
+            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
+
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border mb-2 text-gray-700" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            questionBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
+                <div class="space-y-2 mb-4">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
+                    <p class="font-bold result-title"></p>
+                    <p class="text-sm text-gray-600 mt-1">${item.desc}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionBox);
+        });
+
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            if (element.parentElement.dataset.answered) return;
+            element.parentElement.dataset.answered = "true";
+
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+                opt.classList.add('disabled');
+            });
+
+            if (optIndex === data.correct) {
+                element.classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了！";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                element.classList.add('bg-red-100', 'border-red-500');
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了！";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+    </script>
+</body>
+</html>

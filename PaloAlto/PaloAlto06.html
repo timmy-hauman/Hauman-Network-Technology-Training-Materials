@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palo Alto Networks NGFW 實戰課程 - Layer 3 介面與虛擬路由器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        /* 卡片主體樣式 (Palo Alto Orange) */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #fa582d;
+        }
+
+        /* 重點提示框 (橘) */
+        .highlight-box {
+            background-color: #fff7ed;
+            border-left: 4px solid #fa582d;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 技術名詞標記 */
+        .tech-term {
+            color: #c2410c;
+            font-weight: 700;
+            background-color: #fff1e6;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
+        }
+
+        /* 比喻說明框 (綠) */
+        .analogy-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 版本差異框 (紫) */
+        .version-box {
+            background-color: #faf5ff;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 常見踩坑框 (紅) */
+        .pitfall-box {
+            background-color: #fef2f2;
+            border-left: 4px solid #dc2626;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .diagram-container {
+            display: block;
+            background-color: #ffffff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-top: 1rem;
+            overflow-x: hidden;
+        }
+
+        .diagram-container svg {
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+
+        @media (max-width: 640px) {
+            .section-card { padding: 1rem; }
+            .diagram-container { padding: 0.25rem; }
+        }
+
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover:not(.disabled) {
+            background-color: #f3f4f6;
+        }
+
+        .footer-signature {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+            margin-top: 4rem;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-orange-600 to-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-fire-flame-curved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold">Palo Alto Networks NGFW 實戰課程</h1>
+                    <p class="text-orange-100 mt-1">網路篇 - 單元 6：Layer 3 介面與虛擬路由器</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <!-- Introduction -->
+        <div class="mb-8">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
+                <h2 class="text-xl font-bold text-blue-800 mb-2 flex items-center">
+                    <i class="fas fa-user-tie mr-2"></i>講師導言
+                </h2>
+                <p class="text-blue-900 leading-relaxed">
+                    上一章我們把流量切成一個個<strong>區域（Zone）</strong>，也看過 Tap 與 Virtual Wire 這類「不碰路由」的接法。
+                    這一章要進入實際最常用的部署：<strong>Layer 3 介面</strong>。防火牆自己有 IP、自己查路由，像一台會檢查封包的路由器。
+                    你會學到介面怎麼設、為什麼一定要搭配<strong>虛擬路由器</strong>、怎麼用<strong>子介面</strong>切 VLAN、怎麼設<strong>備援預設路由</strong>，
+                    以及出問題時<strong>去哪裡看路由表</strong>。
+                </p>
+            </div>
+        </div>
+
+        <!-- 學習目標 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-gray-100 text-gray-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Goals</span>
+                本章學習目標
+            </h2>
+            <ul class="list-disc pl-6 space-y-1 text-gray-700">
+                <li>依序完成一個 Layer 3 介面的設定：介面類型、虛擬路由器、區域、IP 位址</li>
+                <li>說明 Interface Management Profile 的用途，並避免在不受信任的介面開放管理服務</li>
+                <li>說明 Layer 3 子介面如何依 802.1Q VLAN tag 分流，並分辨它與 Virtual Wire 子介面的差別</li>
+                <li>建立虛擬路由器與靜態預設路由，並設定多條預設路由與 Path Monitoring 達成備援</li>
+                <li>在 Web 介面查看 RIB、FIB 與路徑監控狀態，進行路由疑難排解</li>
+                <li>說明 Loopback 介面的用途與設定重點</li>
+            </ul>
+        </div>
+
+        <!-- Topic 1 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Interface</span>
+                一、Layer 3 介面設定三步驟
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                Layer 3 介面讓防火牆能在多個網段之間做<strong>路由</strong>，並同時檢查與控制流量。
+                它比 Virtual Wire 多了 Layer 3 服務（虛擬路由器、VPN、路由協定），代價是<strong>必須有虛擬路由器</strong>，
+                而且相鄰設備可能需要配合新的 IP 位址調整設定（例如把預設閘道改指向防火牆）。
+            </p>
+
+            <div class="diagram-container">
+<svg viewBox="0 0 480 706" width="100%" style="max-width:480px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c06d1-t" font-family="'Noto Sans TC', sans-serif"><title id="c06d1-t">Layer 3 介面的基本部署：Trust 區域的內網主機經 ethernet1/2、Virtual Router default 的靜態預設路由、ethernet1/1，到 Untrust 區域的上游路由器</title><defs><marker id="c06d1-ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4b5563"/></marker></defs><rect x="60" y="8" width="360" height="120" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2" stroke-dasharray="7 6"/>
+<text x="240" y="36" font-size="18" text-anchor="middle" fill="#4b5563" font-weight="700">Trust 區域</text>
+<rect x="120" y="52" width="240" height="68.6" rx="10" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="240" y="80.45" font-size="18" text-anchor="middle" fill="#1f2937">內網主機</text>
+<text x="240" y="104.75" font-size="18" text-anchor="middle" fill="#1f2937">192.168.10.0/24</text>
+<rect x="20" y="170" width="440" height="360" rx="10" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/>
+<text x="40" y="198" font-size="18" text-anchor="start" fill="#4b5563" font-weight="700">防火牆</text>
+<rect x="100" y="214" width="280" height="92.9" rx="10" fill="#ffffff" stroke="#3b82f6" stroke-width="2"/>
+<text x="240" y="242.45" font-size="18" text-anchor="middle" fill="#1f2937" font-weight="700">ethernet1/2</text>
+<text x="240" y="266.75" font-size="18" text-anchor="middle" fill="#1f2937">192.168.10.1/24</text>
+<text x="240" y="291.05" font-size="18" text-anchor="middle" fill="#1f2937">Zone: trust</text>
+<rect x="100" y="332.9" width="280" height="92.9" rx="10" fill="#c2410c" stroke="#9a3412" stroke-width="2"/>
+<text x="240" y="361.35" font-size="18" text-anchor="middle" fill="#ffffff" font-weight="700">Virtual Router</text>
+<text x="240" y="385.65" font-size="18" text-anchor="middle" fill="#ffffff">default</text>
+<text x="240" y="409.95" font-size="18" text-anchor="middle" fill="#ffffff">靜態預設路由</text>
+<rect x="100" y="451.8" width="280" height="92.9" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="2"/>
+<text x="240" y="480.25" font-size="18" text-anchor="middle" fill="#1f2937" font-weight="700">ethernet1/1</text>
+<text x="240" y="504.55" font-size="18" text-anchor="middle" fill="#1f2937">203.0.113.2/24</text>
+<text x="240" y="528.85" font-size="18" text-anchor="middle" fill="#1f2937">Zone: untrust</text>
+<rect x="60" y="574" width="360" height="120" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2" stroke-dasharray="7 6"/>
+<text x="240" y="602" font-size="18" text-anchor="middle" fill="#4b5563" font-weight="700">Untrust 區域</text>
+<rect x="120" y="618" width="240" height="68.6" rx="10" fill="#ffffff" stroke="#9ca3af" stroke-width="2"/>
+<text x="240" y="646.45" font-size="18" text-anchor="middle" fill="#1f2937">上游路由器</text>
+<text x="240" y="670.75" font-size="18" text-anchor="middle" fill="#1f2937">203.0.113.1</text>
+<path d="M240,120.6 L240,214" fill="none" stroke="#4b5563" stroke-width="2.6" marker-end="url(#c06d1-ag)"/>
+<path d="M240,306.9 L240,332.9" fill="none" stroke="#4b5563" stroke-width="2.6"/>
+<path d="M240,425.8 L240,451.8" fill="none" stroke="#4b5563" stroke-width="2.6"/>
+<path d="M240,544.7 L240,618" fill="none" stroke="#4b5563" stroke-width="2.6" marker-end="url(#c06d1-ag)"/></svg>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">圖中位址為示意用的私有位址與文件保留位址，實際請換成自己環境的網段。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">三個步驟，都在同一個視窗</h3>
+            <p class="text-sm text-gray-600 mb-2">路徑：<span class="tech-term">Network &gt; Interfaces &gt; Ethernet &gt; 選取介面</span></p>
+            <div class="grid md:grid-cols-3 gap-4 mb-4">
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h4 class="font-bold text-orange-800 mb-2"><span class="tech-term">1</span> Config 頁籤</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li><strong>Interface Type</strong> 選 <span class="tech-term">Layer3</span></li>
+                        <li>選擇 <strong>Virtual Router</strong></li>
+                        <li>選擇 Layer 3 類型的 <strong>Security Zone</strong></li>
+                    </ul>
+                </div>
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h4 class="font-bold text-orange-800 mb-2"><span class="tech-term">2</span> IPv4 / IPv6 頁籤</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li><strong>Static</strong>：以 CIDR 格式輸入位址，可輸入多個</li>
+                        <li><strong>DHCP Client</strong>：由上游 DHCP 伺服器指派位址</li>
+                        <li>PPPoE：用於 DSL 線路的撥接式連線</li>
+                        <li>IPv6：先在介面啟用，再設靜態位址或 DHCPv6 Client</li>
+                    </ul>
+                </div>
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-2"><span class="tech-term">3</span> Advanced 頁籤（選用）</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>指定 Interface Management Profile（下一節）</li>
+                        <li>預載 ARP（IPv4）或 ND（IPv6）快取</li>
+                        <li>LLDP、NDP Proxy、DDNS</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="highlight-box mt-4">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>提醒：HA Active/Active 的限制</p>
+                <p class="text-gray-700 text-sm">Active/Active 不支援 DHCP Client 與 PPPoE；原廠文件對 PPPoE 另有不同說法，以實機為準。（HA 於第 17 章說明。）</p>
+            </div>
+
+            <div class="analogy-box">
+                <p class="font-bold mb-2 text-green-800">🚦 生活化比喻：路口、路標與交通號誌</p>
+                <ul class="list-none space-y-2 pl-2 text-gray-700">
+                    <li class="flex items-start"><i class="fas fa-road text-gray-500 mt-1 mr-3"></i><span><strong>Layer 3 介面</strong>：路口的各個入口，每個入口都有自己的門牌（IP 位址）。</span></li>
+                    <li class="flex items-start"><i class="fas fa-vector-square text-blue-500 mt-1 mr-3"></i><span><strong>Zone</strong>：這個入口屬於哪一個管制區（內部、外部、DMZ）。</span></li>
+                    <li class="flex items-start"><i class="fas fa-signs-post text-green-600 mt-1 mr-3"></i><span><strong>Virtual Router</strong>：路口的路標，告訴車子（封包）要往哪個出口走。</span></li>
+                    <li class="flex items-start"><i class="fas fa-traffic-light text-red-500 mt-1 mr-3"></i><span><strong>Security Policy</strong>：交通號誌，決定哪些車可以過。有路標但號誌是紅燈，車一樣過不去。</span></li>
+                </ul>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異：IPv6 全域開關</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>教材（PAN-OS 8.0 與較新的訓練簡報）寫「要支援 IPv6 位址，必須在防火牆上啟用 IPv6」，位置是 <span class="tech-term">Device &gt; Setup &gt; Session &gt; Session Settings</span>。</li>
+                    <li>這個設定現行版本<strong>仍然存在</strong>，名稱為 IPv6 Firewalling。即使介面已啟用 IPv6，沒有啟用 IPv6 Firewalling 時，防火牆會忽略所有 IPv6 相關設定。</li>
+                    <li>此功能預設就是啟用的（PAN-OS 7.1 以上），CLI 為 <code>set deviceconfig setting session ipv6-firewalling yes|no</code>。所以教材的「必須啟用」應理解成「確認已啟用」：實務上通常不必自己打開，但<strong>設定 IPv6 前仍要確認它的狀態</strong>。</li>
+                </ul>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>最常見的踩坑：介面設好 IP 卻不通</p>
+                <p class="text-gray-700 text-sm">未指派 Virtual Router 的介面，不會參與路由；未指派 Zone 的介面，<strong>不處理流量</strong>（上一章已說明）。
+                    另外，即使路由正確，沒有安全政策允許的跨區流量仍會被預設規則擋下。症狀看起來都是「ping 不通」，請依序檢查：介面 → Zone → Virtual Router → 路由 → 安全政策；要連上網際網路，還需要 Source NAT（第 10 章）。</p>
+            </div>
+        </div>
+
+        <!-- Topic 2 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Management</span>
+                二、Interface Management Profile
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                第 2 章的 MGT 介面是專用管理口。但有時你希望從<strong>一般流量介面</strong>也能 ping 防火牆、用 SSH 登入，或讓監控系統用 SNMP 查詢。
+                這時要建立 <span class="tech-term">Interface Management Profile</span>，定義「哪些管理服務可以從這個介面連進來」。
+            </p>
+
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 mb-4">
+                <li>建立路徑：<span class="tech-term">Network &gt; Network Profiles &gt; Interface Mgmt &gt; Add</span></li>
+                <li>可套用到 <strong>Layer 3 乙太網路介面（含子介面）</strong>，以及 <strong>Aggregate、VLAN、Loopback、Tunnel</strong> 等邏輯介面（在介面的 Advanced 頁籤選取）。</li>
+                <li><strong>沒有套用任何 Profile 的介面，預設拒絕所有位址、通訊協定與服務</strong>。MGT 介面不需要 Profile。</li>
+            </ul>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-56">項目</th><th class="py-2 px-4 text-left border">說明</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">Ping</td><td class="py-2 px-4 border">讓對方 ping 這個介面，常用來測試連線，也用來確認介面能連到更新伺服器。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">SSH、HTTPS</td><td class="py-2 px-4 border">CLI 與 Web 介面的加密管理通道。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Telnet、HTTP</td><td class="py-2 px-4 border">明文傳輸。原廠明確建議<strong>不要啟用</strong>。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">SNMP</td><td class="py-2 px-4 border">讓監控系統輪詢。可只開 SNMP、關閉 HTTP 與 HTTPS，不給 Web 管理權限。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">HTTP OCSP</td><td class="py-2 px-4 border">讓防火牆擔任 OCSP 回應者（OCSP responder），回覆憑證狀態查詢（解密與 VPN 章節會再遇到憑證議題）。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Response Pages</td><td class="py-2 px-4 border">Authentication Portal（舊稱 Captive Portal）與 URL Admin Override 所需的回應頁面服務。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">User-ID 相關服務</td><td class="py-2 px-4 border">User-ID：讓其他防火牆經由這個介面取得（重新發布）使用者對應；User-ID Syslog Listener（SSL 或 UDP）：接收 syslog 訊息，用來建立使用者對應（第 14 章）。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Permitted IP Addresses</td><td class="py-2 px-4 border">選用。列出允許連入的來源位址（IPv4 或 IPv6）；<strong>不填就代表沒有來源限制</strong>。</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="highlight-box mt-4">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>重點：它管的是「連到防火牆本身」的流量</p>
+                <p class="text-gray-700 text-sm">Interface Management Profile 只決定誰能連到<strong>防火牆自己的這個介面位址</strong>，不影響「穿越」防火牆的一般流量，穿越流量由安全政策管。
+                    教材的實驗（Lab 5）剛好示範這個順序：先在沒有 Profile 時測試存取，再建立 Profile、套用到介面，最後再測一次，對照前後差異。</p>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：把管理服務開在對外介面</p>
+                <p class="text-gray-700 text-sm">原廠明確提醒：<strong>不要在可從網際網路或其他不受信任區域到達的介面啟用 HTTP、HTTPS、SSH 或 Telnet</strong>。
+                    把 HTTPS 與 SSH 開在 untrust 介面，等於把管理介面直接放到網路上讓人掃描與嘗試登入。
+                    真有需要時，至少用 Permitted IP Addresses 限縮到固定來源，並確認已換掉預設 admin 密碼、設好密碼規則（第 2 章）；管理員角色與驗證設定檔本課程不另外說明。只需要 ping 測試時，只勾 Ping 就好。</p>
+            </div>
+        </div>
+
+        <!-- Topic 3 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Subinterface</span>
+                三、Layer 3 子介面
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                <span class="tech-term">Layer 3 Subinterface</span> 讓你把一個實體介面切成多個邏輯介面，常見於上游交換器以 Trunk（802.1Q）送來多個 VLAN 的情境。
+                每個子介面各有自己的 IP 位址、Zone，並加入虛擬路由器；因此<strong>不同 VLAN 之間的流量要穿過防火牆，由安全政策決定放不放行</strong>（跨區預設會被擋）。
+                這種做法也很適合多租戶網路。
+            </p>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border">子介面</th>
+                            <th class="py-2 px-4 text-left border">802.1Q VLAN tag</th>
+                            <th class="py-2 px-4 text-left border">IP 位址</th>
+                            <th class="py-2 px-4 text-left border">Zone</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border">ethernet1/2.1</td><td class="py-2 px-4 border">1</td><td class="py-2 px-4 border">192.168.1.1/24</td><td class="py-2 px-4 border">Eng</td></tr>
+                        <tr><td class="py-2 px-4 border">ethernet1/2.2</td><td class="py-2 px-4 border">2</td><td class="py-2 px-4 border">192.168.2.1/24</td><td class="py-2 px-4 border">HR</td></tr>
+                        <tr><td class="py-2 px-4 border">ethernet1/3.3</td><td class="py-2 px-4 border">3</td><td class="py-2 px-4 border">192.168.4.1/24</td><td class="py-2 px-4 border">DC</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">改寫自教材的子介面拓撲示意，位址與 Zone 名稱僅供練習。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">子介面怎麼認流量</h3>
+            <p class="text-sm text-gray-600 mb-2">路徑：<span class="tech-term">Network &gt; Interfaces &gt; Ethernet</span>，選取實體介面後 Add Subinterface，填入 <strong>Subinterface ID</strong> 與 <strong>802.1Q VLAN tag</strong>，其餘選項與一般 Layer 3 介面相同。</p>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>依 <strong>802.1Q VLAN tag</strong>（1 到 4094）分類：進來的封包帶哪個 tag，就由對應的子介面處理，每個子介面各屬於自己的 Zone。</li>
+                <li>若上游送來的是<strong>沒有 tag</strong> 的流量，要在上層實體介面的 Advanced 頁籤勾選 <strong>Untagged Subinterface</strong>，才能建立無 tag 的子介面。教材提到它常用於多租戶環境，且此時流量須做 Source NAT。</li>
+                <li>常見用途：讓安全規則更細緻、把網路流量在邏輯上切開。</li>
+            </ul>
+            <p class="text-xs text-gray-500 mt-2">Subinterface ID 只是名稱的一部分（例如 .1、.2），不必等於 VLAN tag，但為了好維護，實務上常刻意讓兩者一致。</p>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異：IP classifier 只屬於 Virtual Wire 子介面</p>
+                <p class="text-gray-700 text-sm">教材把 IP classifier（依來源 IP 分類）寫在 Layer 3 子介面；現行文件只在 Virtual Wire 子介面提供 IP classifier（見第 5 章）。Layer 3 子介面的設定頁沒有 IP Classifier 欄位，只依 VLAN tag 分流。看到教材的 Layer 3 子介面示意圖寫「VLAN tag 加來源 IP」時，請以實機畫面為準。</p>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：上游交換器沒有放行對應的 VLAN</p>
+                <p class="text-gray-700 text-sm">防火牆子介面只會處理帶有對應 tag 的封包。上游交換器連到防火牆的那一埠必須是 Trunk，且允許這些 VLAN 通過；
+                    否則子介面 IP 設得再對也收不到流量。另外，若要由防火牆自己做 Layer 2 交換（VLAN 物件），那是下一章（第 7 章）的主題，兩種做法不要混在同一個介面上。</p>
+            </div>
+        </div>
+
+        <!-- Topic 4 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Routing</span>
+                四、虛擬路由器與靜態路由
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                <span class="tech-term">Virtual Router</span> 是防火牆內部的路由實體，保存路由表並決定封包往哪個介面送。
+                每個介面只能屬於<strong>一個</strong>虛擬路由器，但一個虛擬路由器可以同時跑多種協定與靜態路由；防火牆出廠就內建一個名為 default 的虛擬路由器。
+                多個虛擬路由器各有自己的路由表，彼此之間要通訊，可以用靜態路由的 <strong>Next VR</strong> 選項。
+            </p>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-48">類別</th><th class="py-2 px-4 text-left border">支援項目（傳統路由引擎）</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">靜態路由</td><td class="py-2 px-4 border">一條或多條</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">動態路由</td><td class="py-2 px-4 border">RIPv2、OSPFv2、OSPFv3、BGPv4</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">多播路由</td><td class="py-2 px-4 border">PIM-SM、PIM-SSM（舊版簡報另列 IGMP）</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">建立虛擬路由器與靜態預設路由</h3>
+            <ol class="list-decimal pl-6 text-gray-700 space-y-1">
+                <li><span class="tech-term">Network &gt; Virtual Routers</span> &gt; Add（或編輯 default），在 General 設定頁籤把要使用的介面加入。</li>
+                <li>進入 <span class="tech-term">Static Routes &gt; Add</span>，新增靜態路由。預設路由的目的網路就是「所有網路」（IPv4 為 0.0.0.0/0）。</li>
+                <li>設定 <strong>Next Hop</strong>：可選 IP Address、Next VR、FQDN、Discard（丟棄）或 None（無下一跳）；並指定出口 Interface。</li>
+                <li>設定 <strong>Admin Distance</strong>（10 到 240，預設 10）與 <strong>Metric</strong>（1 到 65535）。</li>
+            </ol>
+
+            <div class="highlight-box mt-4">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>管理距離（Admin Distance）預設值</p>
+                <p class="text-gray-700 text-sm">不同來源的路由競爭同一個目的網路時，先比 Admin Distance，小者優先。各來源的預設值：靜態 10、EBGP 20、OSPF 內部 30、OSPF 外部 110、RIP 120、IBGP 200。
+                    只有在 Admin Distance 相同時，才比較 Metric。所以要讓靜態路由當動態路由的備援，就把靜態路由的 Admin Distance 調得比動態路由大。</p>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異：Advanced Routing Engine 與 Logical Router</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>教材與本章操作都是<strong>傳統路由引擎（Legacy Routing Engine）</strong>：<span class="tech-term">Network &gt; Virtual Routers</span>。</li>
+                    <li>較新的 PAN-OS 提供另一種 <strong>Advanced Routing Engine（ARE）</strong>。啟用後改用 <strong>Logical Router</strong> 取代 Virtual Router，路徑為 <span class="tech-term">Network &gt; Routing &gt; Logical Routers</span>。</li>
+                    <li>啟用位置為 <span class="tech-term">Device &gt; Setup &gt; Management &gt; General Settings</span>。<strong>同一時間只有一種引擎生效，切換需要 Commit 並重新啟動防火牆</strong>，且 ARE 不會自動建立預設的 Logical Router，需自行建立至少一個。啟用時可選擇由遷移腳本把既有的 Virtual Router 轉成 Logical Router；切換前請先備份組態。</li>
+                    <li>ARE 支援：靜態路由、BGP、OSPFv2、OSPFv3、RIPv2、IPv4 多播路由，另有 BFD、路由過濾與路由圖（route map）等功能；詳細功能清單以實機為準。</li>
+                    <li>兩者概念相當，但部分設定細節不同（例如路由設定檔在 ARE 可跨 Logical Router 共用）。新環境採用哪一種，請依機型、版本與原廠建議決定；本課程的指令與畫面以傳統路由引擎為主，ARE 的細節以實機為準。</li>
+                </ul>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">設定順序檢查表</h3>
+            <p class="text-sm text-gray-600 mb-2">這份順序也是疑難排解時的檢查順序，建議背下來。</p>
+            <ul class="list-none space-y-2 text-gray-700 bg-gray-50 border rounded-lg p-4">
+                <li class="flex items-start"><i class="far fa-square text-orange-500 mt-1 mr-3"></i><span><strong>1. 介面</strong>：<span class="tech-term">Network &gt; Interfaces</span>，類型選 Layer3，設定 IP 位址（Static 或 DHCP Client）。</span></li>
+                <li class="flex items-start"><i class="far fa-square text-orange-500 mt-1 mr-3"></i><span><strong>2. 區域</strong>：<span class="tech-term">Network &gt; Zones</span>，建立 Layer3 類型 Zone 並指派介面（也可在介面的 Config 頁籤直接建立）。</span></li>
+                <li class="flex items-start"><i class="far fa-square text-orange-500 mt-1 mr-3"></i><span><strong>3. 虛擬路由器</strong>：<span class="tech-term">Network &gt; Virtual Routers</span>，加入介面並設定靜態預設路由。</span></li>
+                <li class="flex items-start"><i class="far fa-square text-orange-500 mt-1 mr-3"></i><span><strong>4. 安全政策</strong>：<span class="tech-term">Policies &gt; Security</span>，允許需要的跨區流量（第 8、9 章）；要連上網際網路，還需要 Source NAT（第 10 章）。</span></li>
+                <li class="flex items-start"><i class="far fa-square text-orange-500 mt-1 mr-3"></i><span><strong>5. Commit</strong>：提交組態（第 4 章），接上線路後確認介面連線狀態為綠燈。</span></li>
+            </ul>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：忘了把介面加入 Virtual Router 或 Zone</p>
+                <p class="text-gray-700 text-sm">介面沒加入虛擬路由器，路由表裡就不會有它的直連網段，也就無法轉送；沒指派 Zone，流量根本不被處理。
+                    Commit 成功不代表通：它只代表設定通過驗證，不代表你的網路設計已完整。</p>
+            </div>
+        </div>
+
+        <!-- Topic 5 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Failover</span>
+                五、路徑監控、疑難排解與 Loopback
+            </h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">多條預設路由與 Path Monitoring</h3>
+            <p class="mb-4 text-gray-700">
+                同一個目的網路可以設定多條預設路由，例如兩家 ISP。<strong>Metric 最低的那條會被使用</strong>。
+                但光靠 Metric 只能判斷「路由存在」，不能判斷「線路真的通」，所以要搭配 <span class="tech-term">Path Monitoring</span>：
+                防火牆定期 ping 上游穩定的設備，路徑失敗就把這條靜態路由<strong>從路由表移除</strong>，流量自動改走次佳路由；
+                失敗後監控仍持續進行，恢復後路由會被重新加回（Failback）。
+            </p>
+
+            <div class="diagram-container">
+<svg viewBox="0 0 480 685" width="100%" style="max-width:480px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c06d2-t" font-family="'Noto Sans TC', sans-serif"><title id="c06d2-t">多條預設路由與 Path Monitoring：路由 A（Metric 10，已啟用 Path Monitoring）監控目標有回應就走路由 A；連續無回應就把路由 A 移出 RIB 與 FIB、流量改走路由 B，恢復並穩定一段時間後路由 A 重新加回</title><defs><marker id="c06d2-ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4b5563"/></marker><marker id="c06d2-an" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#166534"/></marker><marker id="c06d2-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#b91c1c"/></marker><marker id="c06d2-ap" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5b21b6"/></marker></defs><rect x="150" y="10" width="180" height="46" rx="10" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/>
+<text x="240" y="39.3" font-size="18" text-anchor="middle" fill="#1f2937">防火牆 VR1</text>
+<rect x="5" y="90" width="255" height="117.2" rx="10" fill="#c2410c" stroke="#9a3412" stroke-width="2"/>
+<text x="132.5" y="118.45" font-size="18" text-anchor="middle" fill="#ffffff" font-weight="700">預設路由 A</text>
+<text x="132.5" y="142.75" font-size="18" text-anchor="middle" fill="#ffffff">Metric 10</text>
+<text x="132.5" y="167.05" font-size="18" text-anchor="middle" fill="#ffffff">下一跳 ISP-1</text>
+<text x="132.5" y="191.35" font-size="18" text-anchor="middle" fill="#ffffff">已啟用 Path Monitoring</text>
+<rect x="285" y="90" width="190" height="117.2" rx="10" fill="#ffffff" stroke="#9ca3af" stroke-width="2" stroke-dasharray="7 6"/>
+<text x="380" y="130.6" font-size="18" text-anchor="middle" fill="#1f2937" font-weight="700">預設路由 B</text>
+<text x="380" y="154.9" font-size="18" text-anchor="middle" fill="#1f2937">Metric 20</text>
+<text x="380" y="179.2" font-size="18" text-anchor="middle" fill="#1f2937">下一跳 ISP-2</text>
+<path d="M180,56 L180,72 L132.5,72 L132.5,90" fill="none" stroke="#4b5563" stroke-width="2.6" marker-end="url(#c06d2-ag)"/>
+<path d="M300,56 L300,72 L380,72 L380,90" fill="none" stroke="#4b5563" stroke-width="2.6" stroke-dasharray="7 6" marker-end="url(#c06d2-ag)"/>
+<polygon points="53,247.2 247,247.2 285,285.2 247,323.2 53,323.2 15,285.2" fill="#fff7ed" stroke="#fa582d" stroke-width="2"/>
+<text x="150" y="279.35" font-size="18" text-anchor="middle" fill="#1f2937" font-weight="700">監控目標</text>
+<text x="150" y="303.65" font-size="18" text-anchor="middle" fill="#1f2937" font-weight="700">有回應 ping 嗎？</text>
+<path d="M132.5,207.2 L132.5,247.2" fill="none" stroke="#4b5563" stroke-width="2.6" marker-end="url(#c06d2-ag)"/>
+<rect x="5" y="385.2" width="215" height="68.6" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+<text x="112.5" y="413.65" font-size="18" text-anchor="middle" fill="#1f2937" font-weight="700">路徑 Up</text>
+<text x="112.5" y="437.95" font-size="18" text-anchor="middle" fill="#1f2937">流量走路由 A</text>
+<rect x="250" y="385.2" width="225" height="92.9" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/>
+<text x="362.5" y="413.65" font-size="18" text-anchor="middle" fill="#1f2937" font-weight="700">路徑 Down</text>
+<text x="362.5" y="437.95" font-size="18" text-anchor="middle" fill="#1f2937">路由 A 移出</text>
+<text x="362.5" y="462.25" font-size="18" text-anchor="middle" fill="#1f2937">RIB 與 FIB</text>
+<path d="M55,323.2 L112.5,347.2 L112.5,385.2" fill="none" stroke="#166534" stroke-width="2.6" marker-end="url(#c06d2-an)"/>
+<rect x="37" y="354.1" width="62.7" height="23.4" fill="#ffffff" fill-opacity="0.92"/>
+<text x="40" y="371.2" font-size="18" text-anchor="start" fill="#166534" font-weight="700">有回應</text>
+<path d="M245,323.2 L362.5,347.2 L362.5,385.2" fill="none" stroke="#b91c1c" stroke-width="2.6" marker-end="url(#c06d2-ar)"/>
+<rect x="367.5" y="354.1" width="100.5" height="23.4" fill="#ffffff" fill-opacity="0.92"/>
+<text x="370.5" y="371.2" font-size="18" text-anchor="start" fill="#b91c1c" font-weight="700">連續無回應</text>
+<rect x="250" y="506.1" width="225" height="46" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="2"/>
+<text x="362.5" y="535.4" font-size="18" text-anchor="middle" fill="#1f2937">流量改走路由 B</text>
+<rect x="250" y="580.1" width="225" height="92.9" rx="10" fill="#faf5ff" stroke="#7c3aed" stroke-width="2"/>
+<text x="362.5" y="608.55" font-size="18" text-anchor="middle" fill="#1f2937">監控恢復並穩定</text>
+<text x="362.5" y="632.85" font-size="18" text-anchor="middle" fill="#1f2937">一段時間後</text>
+<text x="362.5" y="657.15" font-size="18" text-anchor="middle" fill="#1f2937">路由 A 重新加回</text>
+<path d="M362.5,478.1 L362.5,506.1" fill="none" stroke="#b91c1c" stroke-width="2.6" marker-end="url(#c06d2-ar)"/>
+<path d="M362.5,552.1 L362.5,580.1" fill="none" stroke="#5b21b6" stroke-width="2.6" stroke-dasharray="7 6" marker-end="url(#c06d2-ap)"/></svg>
+            </div>
+
+            <div class="overflow-x-auto mt-4">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-56">Path Monitoring 欄位</th><th class="py-2 px-4 text-left border">說明</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">Source IP / Destination IP</td><td class="py-2 px-4 border">ping 的來源位址與監控目標。目標應是<strong>穩定可靠的設備</strong>，且位址類型（IPv4 或 IPv6）需與路由相同。一條路由最多 8 個目標，最多可監控 128 條靜態路由。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">ICMP Ping Interval</td><td class="py-2 px-4 border">探測間隔，1 到 60 秒，預設 3 秒。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">ICMP Ping Count</td><td class="py-2 px-4 border">連續未回應幾次算失敗，3 到 10，預設 5。預設值下約 15 秒偵測到失敗。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Failure Condition</td><td class="py-2 px-4 border"><strong>Any</strong>：任一目標失敗就算失敗；<strong>All</strong>：所有目標都失敗才算失敗。原廠建議選 All，避免單一目標維修就誤判整條路由失敗。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Preemptive Hold Time</td><td class="py-2 px-4 border">失敗的路徑恢復後，要先持續正常多久（0 到 1440 分鐘，預設 2 分鐘）才把路由重新加回；設 0 則一恢復就立刻加回。期間若又斷線，計時重來。</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：監控目標選得不好</p>
+                <p class="text-gray-700 text-sm">監控一台自己常關機、或會限制 ICMP 的主機，會讓路由無故被移除，造成斷線。請選上游路由器或穩定的對外位址。
+                    只設一個目標又選 Any，等於這一台一有狀況就整條切換；多個目標搭配 All 比較穩。另外，這個機制靠 ICMP，上游的設備若不回應 ping，路徑會被誤判為失敗。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">疑難排解：看 RIB、FIB 與監控狀態</h3>
+            <p class="mb-2 text-gray-700">
+                路由不如預期時，到 <span class="tech-term">Network &gt; Virtual Routers</span>，在該虛擬路由器的列點選 <span class="tech-term">More Runtime Stats</span>：
+            </p>
+
+            <div class="diagram-container">
+<svg viewBox="0 0 480 448" width="100%" style="max-width:480px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c06d3-t" font-family="'Noto Sans TC', sans-serif"><title id="c06d3-t">路由表與轉送表：靜態路由、直連網段、動態路由進入 Route Table 即 RIB，再由 RIB 產生 Forwarding Table 即 FIB，封包依 FIB 選擇出口；Static Route Monitoring 的路徑監控失敗時會把路由從 RIB 移除</title><defs><marker id="c06d3-ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4b5563"/></marker><marker id="c06d3-ap" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5b21b6"/></marker></defs><rect x="5" y="10" width="170" height="92.9" rx="10" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/>
+<text x="90" y="38.45" font-size="18" text-anchor="middle" fill="#1f2937">靜態路由</text>
+<text x="90" y="62.75" font-size="18" text-anchor="middle" fill="#1f2937">直連網段</text>
+<text x="90" y="87.05" font-size="18" text-anchor="middle" fill="#1f2937">動態路由</text>
+<rect x="188" y="10" width="287" height="92.9" rx="10" fill="#faf5ff" stroke="#7c3aed" stroke-width="2"/>
+<text x="331.5" y="38.45" font-size="18" text-anchor="middle" fill="#1f2937" font-weight="700">Static Route Monitoring</text>
+<text x="331.5" y="62.75" font-size="18" text-anchor="middle" fill="#1f2937">路徑監控狀態</text>
+<text x="331.5" y="87.05" font-size="18" text-anchor="middle" fill="#1f2937">Up 或 Down</text>
+<rect x="100" y="172.9" width="280" height="68.6" rx="10" fill="#ffffff" stroke="#3b82f6" stroke-width="2"/>
+<text x="240" y="201.35" font-size="18" text-anchor="middle" fill="#1f2937" font-weight="700">Route Table 即 RIB</text>
+<text x="240" y="225.65" font-size="18" text-anchor="middle" fill="#1f2937">所有已知路由</text>
+<rect x="100" y="281.5" width="280" height="68.6" rx="10" fill="#c2410c" stroke="#9a3412" stroke-width="2"/>
+<text x="240" y="309.95" font-size="18" text-anchor="middle" fill="#ffffff" font-weight="700">Forwarding Table 即 FIB</text>
+<text x="240" y="334.25" font-size="18" text-anchor="middle" fill="#ffffff">實際用來轉送的路由</text>
+<rect x="100" y="390.1" width="280" height="46" rx="10" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/>
+<text x="240" y="419.4" font-size="18" text-anchor="middle" fill="#1f2937">封包依此選擇出口</text>
+<path d="M90,102.9 L90,150.9 L140,150.9 L140,172.9" fill="none" stroke="#4b5563" stroke-width="2.6" marker-end="url(#c06d3-ag)"/>
+<path d="M331.5,102.9 L331.5,150.9 L340,150.9 L340,172.9" fill="none" stroke="#5b21b6" stroke-width="2.6" stroke-dasharray="7 6" marker-end="url(#c06d3-ap)"/>
+<rect x="338.5" y="119.8" width="132" height="23.4" fill="#ffffff" fill-opacity="0.92"/>
+<text x="341.5" y="136.9" font-size="18" text-anchor="start" fill="#5b21b6">失敗時移除路由</text>
+<path d="M240,241.5 L240,281.5" fill="none" stroke="#4b5563" stroke-width="2.6" marker-end="url(#c06d3-ag)"/>
+<path d="M240,350.1 L240,390.1" fill="none" stroke="#4b5563" stroke-width="2.6" marker-end="url(#c06d3-ag)"/></svg>
+            </div>
+
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 mt-4">
+                <li><strong>Route Table（RIB）</strong>：所有已知的路由。找不到預期的路由，先看這裡。</li>
+                <li><strong>Forwarding Table（FIB）</strong>：流量實際會依據哪些路由轉送。RIB 有、FIB 沒有，表示該路由沒被選中或未生效。</li>
+                <li><strong>Static Route Monitoring</strong>（在 Routing 頁籤）：Path Monitoring 是否啟用，以及每條路由的狀態（Up、Down 或 Disabled），游標移到狀態上可看到監控的 IP 與最近的 ping 結果。</li>
+                <li>事件紀錄：<span class="tech-term">Monitor &gt; Logs &gt; System</span> 會有 path-monitor-failure 與 path-monitor-recovery 事件。</li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Loopback 介面</h3>
+            <p class="mb-4 text-gray-700">
+                <span class="tech-term">Loopback</span> 是有 IP 位址的邏輯介面，行為像一台主機的介面，用來<strong>提供對防火牆自身服務的存取</strong>。
+                不論流量從哪個 Zone 進來，只要能路由到這個位址，就能存取同一組服務；它不依賴任何一個實體埠的連線狀態。
+                設定路徑：<span class="tech-term">Network &gt; Interfaces &gt; Loopback &gt; Add</span>，輸入 Loopback 介面 ID（名稱為唯讀）、選擇 Virtual Router 與 Layer 3 類型的 Zone，
+                並可在 Advanced 套用 Interface Management Profile。
+            </p>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>教材提到的用途：讓不同 Zone 的使用者，經由同一個位址連到防火牆提供的服務。</li>
+                <li>另一種用例：兩個虛擬路由器之間要跑動態路由時，各建一個 Loopback，用靜態路由互通後再建立鄰居。</li>
+            </ul>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異：Loopback 的遮罩</p>
+                <p class="text-gray-700 text-sm">教材（資安院較新的簡報）投影片寫「Do not assign a netmask to the IP addresses」，也就是不要指定網路遮罩（講者說明則寫不設遮罩或 /32）。
+                    現行 PAN-OS 12.x 的 Loopback 設定只接受 <strong>/32 子網路遮罩</strong>。
+                    教材的「不設遮罩」與 /32 實質上都是單一主機位址，實務上請直接填 /32，並以實機畫面為準。</p>
+            </div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
+                隨堂測驗
+            </h2>
+            <p class="mb-6 text-gray-600">請點選您認為正確的選項，系統將會顯示解析。</p>
+            <div class="space-y-6" id="quiz-container"></div>
+        </div>
+
+    </main>
+
+    <footer class="footer-signature">
+        Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver.2026.10.29.11.11
+    </footer>
+
+
+    <script>
+        const quizData = [
+            {
+                question: "Q1. 一個 Layer 3 介面已經設好 IP 位址並 Commit 成功，但內網主機仍無法透過它上網。下列哪一項「不是」應該檢查的項目？",
+                options: ["A. 介面是否已指派 Virtual Router", "B. 介面是否已指派 Layer 3 類型的 Zone", "C. 是否有安全政策允許該跨區流量", "D. 介面是否已套用 Interface Management Profile 並勾選 HTTPS"],
+                correct: 3,
+                desc: "正解：D。Interface Management Profile 只控制「誰能連到防火牆本身的管理服務」，不影響穿越防火牆的一般流量。A、B、C 才是流量能否轉送的必要條件：要加入虛擬路由器才有路由、要有 Zone 才會處理流量、跨區流量還需要安全政策允許。"
+            },
+            {
+                question: "Q2. 關於 Interface Management Profile，下列敘述何者正確？",
+                options: ["A. 沒有套用 Profile 的介面，預設允許所有管理服務", "B. 為了方便遠端管理，應在 untrust 介面啟用 HTTPS、SSH 與 Telnet", "C. 可以用 Permitted IP Addresses 限制只有特定來源能連入；不填則沒有來源限制", "D. 它只能套用在 Ethernet 實體介面，不能用於 Loopback"],
+                correct: 2,
+                desc: "正解：C。沒有套用 Profile 的介面預設拒絕所有位址、協定與服務（A 錯）；原廠明確建議不要在可從網際網路或不受信任區域到達的介面開放 HTTP、HTTPS、SSH、Telnet，Telnet 與 HTTP 更是明文（B 錯）；Profile 可套用在 Layer 3 乙太網路介面（含子介面），以及 Aggregate、VLAN、Loopback、Tunnel 等邏輯介面（D 錯）。"
+            },
+            {
+                question: "Q3. 虛擬路由器內有兩條預設路由：A 的 Metric 為 10 並啟用 Path Monitoring，B 的 Metric 為 20。A 的監控目標連續無回應，之後又恢復，預設 Preemptive Hold Time 為 2 分鐘。下列描述何者正確？",
+                options: ["A. 失敗期間 A 被移出路由表，流量改走 B；恢復後 A 要先穩定滿 2 分鐘才會重新加回", "B. 失敗期間 A 仍留在路由表，因為 Metric 比較小", "C. A 恢復後必須手動重新 Commit 才會生效", "D. 一旦失敗，防火牆就停止對 A 的監控"],
+                correct: 0,
+                desc: "正解：A。Path Monitoring 失敗時會把該靜態路由從路由表移除，流量走次佳路由 B；監控失敗後仍持續進行，路徑恢復並持續正常達到 Preemptive Hold Time（預設 2 分鐘，設為 0 則立即）後，路由才會重新加回，Metric 較小的 A 再次被優先使用。"
+            },
+            {
+                question: "Q4. 想確認「某條路由有沒有真的進入轉送表」以及「Path Monitoring 目前的狀態」，應該去哪裡看？",
+                options: ["A. Policies > Security", "B. Network > Virtual Routers，點選 More Runtime Stats", "C. Device > Setup > Session", "D. Network > Network Profiles > Interface Mgmt"],
+                correct: 1,
+                desc: "正解：B。在 Network > Virtual Routers 的該虛擬路由器列點選 More Runtime Stats，可看到 Route Table（RIB，所有已知路由）、Forwarding Table（FIB，實際轉送所依據的路由），以及 Routing 頁籤中的 Static Route Monitoring（路徑監控狀態）。"
+            }
+        ];
+
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionBox = document.createElement('div');
+            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
+
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border mb-2 text-gray-700" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            questionBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
+                <div class="space-y-2 mb-4">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
+                    <p class="font-bold result-title"></p>
+                    <p class="text-sm text-gray-600 mt-1">${item.desc}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionBox);
+        });
+
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            if (element.parentElement.dataset.answered) return;
+            element.parentElement.dataset.answered = "true";
+
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+                opt.classList.add('disabled');
+            });
+
+            if (optIndex === data.correct) {
+                element.classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了！";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                element.classList.add('bg-red-100', 'border-red-500');
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了！";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+    </script>
+</body>
+</html>

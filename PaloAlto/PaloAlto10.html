@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palo Alto Networks NGFW 實戰課程 - Source NAT</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        /* 卡片主體樣式 (Palo Alto Orange) */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #fa582d;
+        }
+
+        /* 重點提示框 (橘) */
+        .highlight-box {
+            background-color: #fff7ed;
+            border-left: 4px solid #fa582d;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 技術名詞標記 */
+        .tech-term {
+            color: #c2410c;
+            font-weight: 700;
+            background-color: #fff1e6;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
+        }
+
+        /* 比喻說明框 (綠) */
+        .analogy-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 版本差異框 (紫) */
+        .version-box {
+            background-color: #faf5ff;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 常見踩坑框 (紅) */
+        .pitfall-box {
+            background-color: #fef2f2;
+            border-left: 4px solid #dc2626;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .diagram-container {
+            display: block;
+            background-color: #ffffff;
+            padding: 1.25rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-top: 1rem;
+        }
+
+        .diagram-container svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        @media (max-width: 640px) {
+            .section-card { padding: 1rem; }
+            .diagram-container { padding: 0.5rem 0; border-left: 0; border-right: 0; border-radius: 0; }
+        }
+
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover:not(.disabled) {
+            background-color: #f3f4f6;
+        }
+
+        .footer-signature {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+            margin-top: 4rem;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-orange-600 to-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-fire-flame-curved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold">Palo Alto Networks NGFW 實戰課程</h1>
+                    <p class="text-orange-100 mt-1">政策篇 - 單元 10：Source NAT</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <!-- Introduction -->
+        <div class="mb-8">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
+                <h2 class="text-xl font-bold text-blue-800 mb-2 flex items-center">
+                    <i class="fas fa-user-tie mr-2"></i>講師導言
+                </h2>
+                <p class="text-blue-900 leading-relaxed">
+                    內網主機用的是私有位址，這些位址在網際網路上根本無法路由。要讓大家上網，防火牆必須在封包離開前把<strong>來源位址換成公開位址</strong>，這就是 <strong>Source NAT</strong>。
+                    這一章會先釐清 NAT 在處理流程中的位置，再逐一看三種轉換類型、DIPP 為什麼能讓很多人共用一個位址，最後做一個完整範例：
+                    <strong>NAT 規則和安全規則各填什麼</strong>。第 1 章提過的「位址看轉換前、區域看轉換後」，這章會用真正的規則表再練一次。
+                </p>
+            </div>
+        </div>
+
+        <!-- 學習目標 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-gray-100 text-gray-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Goals</span>
+                本章學習目標
+            </h2>
+            <ul class="list-disc pl-6 space-y-1 text-gray-700">
+                <li>分辨 Source NAT 與 Destination NAT 各自解決什麼問題，並說出 NAT 在流量處理流程中的位置</li>
+                <li>比較 Static IP、Dynamic IP、Dynamic IP and Port（DIPP）三種轉換類型，依需求選用</li>
+                <li>說明 DIPP 超額訂閱（Oversubscription）的意義與設定位置</li>
+                <li>在 NAT 規則與安全規則中，正確填寫轉換前的位址與轉換後的區域</li>
+                <li>在 <span class="tech-term">Policies &gt; NAT</span> 建立 Static 1:1、Dynamic IP、DIPP 三種 Source NAT 規則</li>
+            </ul>
+        </div>
+
+        <!-- Topic 1 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Concept</span>
+                一、NAT 類型與它在流程中的位置
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                NAT（Network Address Translation）依「改哪一端的位址」分成兩大類。<strong>Source NAT 改來源位址</strong>，常用於內部使用者往外上網；
+                <strong>Destination NAT 改目的位址</strong>，常用於讓外部使用者連到內部伺服器（第 11 章）。
+            </p>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border">比較項目</th>
+                            <th class="py-2 px-4 text-left border">Source NAT</th>
+                            <th class="py-2 px-4 text-left border">Destination NAT</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">改變的欄位</td><td class="py-2 px-4 border">來源 IP（DIPP 還會改來源連接埠）</td><td class="py-2 px-4 border">目的 IP（可另外轉換目的連接埠）</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">典型情境</td><td class="py-2 px-4 border">內部使用者存取網際網路（出站流量）</td><td class="py-2 px-4 border">外部使用者存取內部伺服器（入站流量）</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">本課程</td><td class="py-2 px-4 border">第 10 章（本章）</td><td class="py-2 px-4 border">第 11 章</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">NAT 在流量處理流程中的位置</h3>
+            <p class="mb-2 text-gray-700">
+                NAT 規則是用<strong>區域</strong>去比對的（教材投影片的流程圖也把 NAT 標在轉送查詢之後），所以防火牆先得知道封包「從哪個區域進、要往哪個區域出」。
+                選定 NAT 規則之後，安全政策才開始比對；<strong>真正改寫封包位址，是封包要離開防火牆的時候</strong>。
+            </p>
+
+            <div class="diagram-container">
+<svg viewBox="0 0 460 588" width="100%" style="max-width:460px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c10d1-t" font-family="'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+<title id="c10d1-t">封包處理順序簡圖：封包進入、查詢路由得知目的區域、比對 NAT 規則、比對安全政策、App-ID 與 Content-ID 檢查，最後在封包送出前才實際改寫位址</title>
+<defs><marker id="c10d1-ah" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4b5563"/></marker></defs>
+<rect x="60" y="10" width="370" height="72.44" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/>
+<text x="245" y="40.4" font-size="20" text-anchor="middle" fill="#1f2937" font-weight="700">封包進入</text>
+<text x="245" y="65.96" font-size="18" text-anchor="middle" fill="#4b5563">來源區域 Users_Net</text>
+<circle cx="32" cy="46.22" r="15" fill="#4b5563"/>
+<text x="32" y="52.22" font-size="18" text-anchor="middle" fill="#ffffff" font-weight="700">1</text>
+<path d="M245,82.44 L245,108.44" fill="none" stroke="#4b5563" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#c10d1-ah)"/>
+<rect x="60" y="108.44" width="370" height="72.44" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/>
+<text x="245" y="138.84" font-size="20" text-anchor="middle" fill="#1f2937" font-weight="700">查詢路由</text>
+<text x="245" y="164.4" font-size="18" text-anchor="middle" fill="#4b5563">得知目的區域 Internet</text>
+<circle cx="32" cy="144.66" r="15" fill="#4b5563"/>
+<text x="32" y="150.66" font-size="18" text-anchor="middle" fill="#ffffff" font-weight="700">2</text>
+<path d="M245,180.88 L245,206.88" fill="none" stroke="#4b5563" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#c10d1-ah)"/>
+<rect x="60" y="206.88" width="370" height="72.44" rx="10" fill="#c2410c" stroke="#7c2d12" stroke-width="2"/>
+<text x="245" y="237.28" font-size="20" text-anchor="middle" fill="#ffffff" font-weight="700">比對 NAT 規則</text>
+<text x="245" y="262.84" font-size="18" text-anchor="middle" fill="#ffedd5">依來源與目的區域</text>
+<circle cx="32" cy="243.1" r="15" fill="#4b5563"/>
+<text x="32" y="249.1" font-size="18" text-anchor="middle" fill="#ffffff" font-weight="700">3</text>
+<path d="M245,279.32 L245,305.32" fill="none" stroke="#4b5563" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#c10d1-ah)"/>
+<rect x="60" y="305.32" width="370" height="72.44" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/>
+<text x="245" y="335.72" font-size="20" text-anchor="middle" fill="#1f2937" font-weight="700">比對安全政策</text>
+<text x="245" y="361.28" font-size="18" text-anchor="middle" fill="#4b5563">位址看轉換前，區域看轉換後</text>
+<circle cx="32" cy="341.54" r="15" fill="#4b5563"/>
+<text x="32" y="347.54" font-size="18" text-anchor="middle" fill="#ffffff" font-weight="700">4</text>
+<path d="M245,377.76 L245,403.76" fill="none" stroke="#4b5563" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#c10d1-ah)"/>
+<rect x="60" y="403.76" width="370" height="72.44" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/>
+<text x="245" y="434.16" font-size="20" text-anchor="middle" fill="#1f2937" font-weight="700">App-ID 與 Content-ID</text>
+<text x="245" y="459.72" font-size="18" text-anchor="middle" fill="#4b5563">檢查與強制執行</text>
+<circle cx="32" cy="439.98" r="15" fill="#4b5563"/>
+<text x="32" y="445.98" font-size="18" text-anchor="middle" fill="#ffffff" font-weight="700">5</text>
+<path d="M245,476.2 L245,502.2" fill="none" stroke="#4b5563" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#c10d1-ah)"/>
+<rect x="60" y="502.2" width="370" height="72.44" rx="10" fill="#c2410c" stroke="#7c2d12" stroke-width="2"/>
+<text x="245" y="532.6" font-size="20" text-anchor="middle" fill="#ffffff" font-weight="700">封包送出前</text>
+<text x="245" y="558.16" font-size="18" text-anchor="middle" fill="#ffedd5">實際改寫位址</text>
+<circle cx="32" cy="538.42" r="15" fill="#4b5563"/>
+<text x="32" y="544.42" font-size="18" text-anchor="middle" fill="#ffffff" font-weight="700">6</text>
+</svg>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">簡化流程，只畫出與 NAT 有關的步驟；完整流程見第 1 章。</p>
+
+            <div class="highlight-box mt-4">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>重點</p>
+                <p class="text-gray-700">NAT 規則只負責「換位址」，<strong>不負責放行</strong>。有 NAT 規則但沒有對應的安全規則，流量一樣會被擋下；反過來，有安全規則但沒有 NAT 規則，封包會帶著私有位址出去，到了網際網路也回不來。上網要通，兩種規則缺一不可。</p>
+            </div>
+        </div>
+
+        <!-- Topic 2 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Types</span>
+                二、Source NAT 的三種轉換類型
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                Source NAT 把原始來源位址換成另一個來源位址。依「一個位址能服務幾個人、有沒有動連接埠」，分成三種：
+            </p>
+
+            <div class="analogy-box">
+                <p class="font-bold mb-2 text-green-800">☎️ 生活化比喻：公司總機對外統一撥號</p>
+                <ul class="list-none space-y-2 pl-2 text-gray-700">
+                    <li class="flex items-start"><i class="fas fa-phone-volume text-orange-500 mt-1 mr-3"></i><span><strong>私有位址</strong>：員工的分機號碼，只在公司內部有意義，外面的人撥不到。</span></li>
+                    <li class="flex items-start"><i class="fas fa-address-card text-green-600 mt-1 mr-3"></i><span><strong>Static IP</strong>：老闆的專線，一個分機固定對應一個外線號碼，外面的人也能反過來撥進來。</span></li>
+                    <li class="flex items-start"><i class="fas fa-list-ol text-blue-500 mt-1 mr-3"></i><span><strong>Dynamic IP</strong>：外線號碼池，誰要打電話就分配下一條空線，打完才歸還；一人占一條，線用完了，後面的人就打不出去。</span></li>
+                    <li class="flex items-start"><i class="fas fa-phone-flip text-red-500 mt-1 mr-3"></i><span><strong>DIPP</strong>：全公司共用一個總機代表號，每通電話再附上不同的通話編號（連接埠），對方回撥時總機靠編號找到是哪位同事。</span></li>
+                </ul>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">三種類型比較</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border">項目</th>
+                            <th class="py-2 px-4 text-left border">Static IP</th>
+                            <th class="py-2 px-4 text-left border">Dynamic IP</th>
+                            <th class="py-2 px-4 text-left border">Dynamic IP and Port（DIPP）</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">對應方式</td><td class="py-2 px-4 border">一對一，固定對應</td><td class="py-2 px-4 border">一對一，取位址池中下一個可用的位址</td><td class="py-2 px-4 border">多對一，多台主機共用位址</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">來源連接埠</td><td class="py-2 px-4 border">不變</td><td class="py-2 px-4 border">不變</td><td class="py-2 px-4 border">會改變，用連接埠區分不同主機</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">所需公開位址</td><td class="py-2 px-4 border">每台主機一個</td><td class="py-2 px-4 border">位址池大小要等於需要轉換的主機數</td><td class="py-2 px-4 border">少量即可，甚至只用介面本身的位址</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">位址耗盡時</td><td class="py-2 px-4 border">不適用（固定對應）</td><td class="py-2 px-4 border">預設丟棄需要轉換的新連線，可設 Advanced（Dynamic IP/Port Fallback）備援</td><td class="py-2 px-4 border">受連接埠數量與超額訂閱設定限制（下一節）</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">雙向（Bi-directional）</td><td class="py-2 px-4 border">可選用</td><td class="py-2 px-4 border">不支援</td><td class="py-2 px-4 border">不支援</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">典型用途</td><td class="py-2 px-4 border">需要固定公開位址的伺服器，或需要被外部主動連入的主機</td><td class="py-2 px-4 border">公開位址夠多、又想保留原始連接埠的環境</td><td class="py-2 px-4 border">一般使用者上網常用</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">要選哪一種？簡化的選型思路</h3>
+            <div class="diagram-container">
+<svg viewBox="0 0 460 385" width="100%" style="max-width:460px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c10d2-t" font-family="'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+<title id="c10d2-t">Source NAT 類型選擇流程圖：內部主機需要被外部主動連入就用 Static IP，必要時勾選 Bi-directional；不需要時，公開位址夠一對一就用 Dynamic IP，位址池用完可設 Advanced 備援，不夠就用 Dynamic IP and Port</title>
+<defs><marker id="c10d2-ah" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4b5563"/></marker></defs>
+<rect x="20" y="10" width="420" height="52" rx="10" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+<text x="230" y="42.27" font-size="19" text-anchor="middle" fill="#1f2937" font-weight="700">內部主機需要被外部主動連入嗎？</text>
+<path d="M122,62 L122,102" fill="none" stroke="#4b5563" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#c10d2-ah)"/>
+<path d="M337,62 L337,102" fill="none" stroke="#4b5563" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#c10d2-ah)"/>
+<text x="130" y="90" font-size="18" text-anchor="start" fill="#c2410c" font-weight="700" stroke="#ffffff" stroke-width="5" paint-order="stroke" stroke-linejoin="round">需要</text>
+<text x="345" y="90" font-size="18" text-anchor="start" fill="#4b5563" font-weight="700" stroke="#ffffff" stroke-width="5" paint-order="stroke" stroke-linejoin="round">不需要</text>
+<rect x="20" y="102" width="205" height="100" rx="10" fill="#c2410c" stroke="#7c2d12" stroke-width="2"/>
+<text x="122.5" y="133.76" font-size="20" text-anchor="middle" fill="#ffffff" font-weight="700">Static IP</text>
+<text x="122.5" y="159.32" font-size="18" text-anchor="middle" fill="#ffedd5">必要時勾選</text>
+<text x="122.5" y="184.16" font-size="18" text-anchor="middle" fill="#ffedd5">Bi-directional</text>
+<rect x="235" y="102" width="205" height="100" rx="10" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+<text x="337.5" y="145.16" font-size="19" text-anchor="middle" fill="#1f2937" font-weight="700">公開位址夠</text>
+<text x="337.5" y="171.38" font-size="19" text-anchor="middle" fill="#1f2937" font-weight="700">一對一嗎？</text>
+<path d="M337,202 L337,224" fill="none" stroke="#4b5563" stroke-width="2.5" stroke-linejoin="round"/>
+<path d="M337,224 L122,224 L122,248" fill="none" stroke="#4b5563" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#c10d2-ah)"/>
+<path d="M337,224 L337,248" fill="none" stroke="#4b5563" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#c10d2-ah)"/>
+<text x="128" y="218" font-size="18" text-anchor="start" fill="#c2410c" font-weight="700" stroke="#ffffff" stroke-width="5" paint-order="stroke" stroke-linejoin="round">夠</text>
+<text x="345" y="242" font-size="18" text-anchor="start" fill="#4b5563" font-weight="700" stroke="#ffffff" stroke-width="5" paint-order="stroke" stroke-linejoin="round">不夠</text>
+<rect x="20" y="248" width="205" height="122.12" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/>
+<text x="122.5" y="278.4" font-size="20" text-anchor="middle" fill="#1f2937" font-weight="700">Dynamic IP</text>
+<text x="122.5" y="303.96" font-size="18" text-anchor="middle" fill="#4b5563">位址池對位址池</text>
+<text x="122.5" y="328.8" font-size="18" text-anchor="middle" fill="#4b5563">用完可設 Advanced</text>
+<text x="122.5" y="353.64" font-size="18" text-anchor="middle" fill="#4b5563">備援改用 DIPP</text>
+<rect x="235" y="248" width="205" height="123.5" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/>
+<text x="337.5" y="278.4" font-size="20" text-anchor="middle" fill="#1f2937" font-weight="700">Dynamic IP</text>
+<text x="337.5" y="304.98" font-size="19" text-anchor="middle" fill="#1f2937">and Port（DIPP）</text>
+<text x="337.5" y="330.18" font-size="18" text-anchor="middle" fill="#4b5563">共用位址，</text>
+<text x="337.5" y="355.02" font-size="18" text-anchor="middle" fill="#4b5563">連接埠區分</text>
+</svg>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">這是教學用的簡化判斷；實際還要看公司政策與位址規劃。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Dynamic IP 位址池用完：Advanced 備援</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>Dynamic IP 不改連接埠，一個位址同一時間只能給一台主機。位址池全部被占用時，<strong>預設會丟棄需要轉換的新連線</strong>。</li>
+                <li>預防方式一：位址池大小設成和需要轉換的主機數相同。</li>
+                <li>預防方式二：在 Translated Packet 頁籤選了 Dynamic IP 之後，按 <strong>Advanced（Dynamic IP/Port Fallback）</strong>，另外指定一組備援位址池。主要位址池用完時，防火牆就改用 DIPP 繼續轉換。</li>
+                <li>備援位址池可以用 Translated Address 或 Interface Address 指定，而且位址<strong>不能和主要位址池重疊</strong>。</li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">DIPP 的位址來源：介面位址或轉換後位址</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li><strong>Translated Address</strong>：自己指定一個位址、一段範圍或一個子網路當作位址池。</li>
+                <li><strong>Interface Address</strong>：直接用防火牆對外介面的位址。介面如果是 DHCP 取得、之後換了位址，NAT 規則會自動跟著更新，不必改設定。教材也提到可以把 DIPP 指派成介面位址或轉換後位址，兩種都可以。</li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Static IP 的雙向選項（Bi-directional）</h3>
+            <p class="mb-2 text-gray-700">
+                <strong>Bi-directional</strong> 只有 Static IP 才能勾選。勾選後，同一條規則除了「內部主機出去時換成公開位址」，還會建立反方向的轉換：
+                外部連到那個公開位址時，換回內部位址。這樣內部伺服器就能同時收送流量，不必再另寫一條 Destination NAT 規則。
+            </p>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異：教材與現行文件</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li><strong>備援（Fallback）：</strong>教材備註已經提到 Advanced（Dynamic IP/Port Fallback，備註拼成 Failback）；現行文件另說明備援位址池可用 Translated Address 或 Interface Address 指定，且不得與主要位址池重疊（見上方小節）。</li>
+                    <li><strong>Persistent DIPP：</strong>教材沒有提到。PAN-OS 11.1.0 以前是全域設定，一次套用到所有 NAT 規則；11.1.1 起改成每條規則各自選用「Persistent Dynamic IP And Port」類型，用於 STUN 這類需要「同一組內部位址與連接埠，每次都對到同一組公開位址與連接埠」的應用。細節以你所用版本的文件為準。</li>
+                    <li><strong>雙向規則的安全政策：</strong>現行文件提醒，啟用雙向轉換時，兩個方向都要有安全政策來管控；教材沒有提到這一點。</li>
+                    <li><strong>Dynamic IP 的用途：</strong>教材備註說 Dynamic IP 最常用在「有兩個以上公開位址，但不夠每台內部主機各配一個，想只在需要時才分配給外連主機」的情況；現行文件則建議位址池大小等於需要轉換的主機數。上方的選型流程採用現行說法。</li>
+                </ul>
+            </div>
+
+            <div class="highlight-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>補充：雙向規則在兩份教材的差異</p>
+                <p class="text-gray-700 text-sm">新版教材（2017–2020）有雙向 Source NAT 的投影片；PAN-OS 8.0 時代的舊版教材沒有，只在類型清單提到 Static IP「支援隱含的雙向規則」。這是兩份教材之間的差異，不是版本變更。</p>
+            </div>
+        </div>
+
+        <!-- Topic 3 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">DIPP</span>
+                三、DIPP 超額訂閱（Oversubscription）
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                DIPP 靠「來源連接埠」區分不同主機，所以一個公開位址能被很多人共用。但連接埠總數有限，如果每個「公開位址加連接埠」組合只能給一條連線用，連線一多就不夠。
+                <strong>超額訂閱</strong>的做法是：<strong>同一組轉換後位址與連接埠，可以同時給多條工作階段重複使用</strong>，前提是這些連線的目的地不同。
+            </p>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <caption class="text-left text-sm text-gray-600 mb-1">教材範例：四台內部主機的連線，轉換後都是同一組公開位址與連接埠</caption>
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border">內部來源連接埠</th>
+                            <th class="py-2 px-4 text-left border">防火牆轉換後的來源（位址:連接埠）</th>
+                            <th class="py-2 px-4 text-left border">目的位址</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border">26435</td><td class="py-2 px-4 border">198.51.100.22:25661</td><td class="py-2 px-4 border">192.0.2.12</td></tr>
+                        <tr><td class="py-2 px-4 border">35435</td><td class="py-2 px-4 border">198.51.100.22:25661</td><td class="py-2 px-4 border">203.0.113.4</td></tr>
+                        <tr><td class="py-2 px-4 border">21569</td><td class="py-2 px-4 border">198.51.100.22:25661</td><td class="py-2 px-4 border">203.0.113.101</td></tr>
+                        <tr><td class="py-2 px-4 border">51043</td><td class="py-2 px-4 border">198.51.100.22:25661</td><td class="py-2 px-4 border">192.0.2.66</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">表中的目的位址是教材為了說明而列的示意值，這裡已改為文件保留位址。四筆連線的目的地各不相同，所以回程封包仍能被分辨。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">怎麼算同時能撐多少連線</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>教材用一個簡化的算式：<strong>並行工作階段數 ＝ 超額訂閱倍率 × 位址池大小</strong>。這裡的「位址池大小」指的是位址與連接埠組合的總數，不是位址的個數。</li>
+                <li>換成比較精確的計算方式：<strong>可同時使用的工作階段數 ≈ 轉換後位址數 × 每個位址約 64,000 個連接埠組合 × 超額訂閱倍率</strong>（實際倍率與上限依機型而定）。</li>
+                <li>每個轉換後位址約可支援 64,000 個並行工作階段（教材的計算：65,536 減去 1,024 個知名埠，約 64,512 個）；開啟超額訂閱的機型，可再乘上倍率。</li>
+                <li>設定位置：<span class="tech-term">Device &gt; Setup &gt; Session &gt; Session Settings</span> 的 <strong>NAT Oversubscription Rate</strong>。下拉選單有 Platform Default、1x、2x、4x、8x。</li>
+                <li>選 <strong>1x 等於不做超額訂閱</strong>。選 Platform Default 則採用該機型原本的預設值。</li>
+                <li>倍率可以是 8、4、2；<strong>實際可用的倍率依機型而不同</strong>，預設值也依機型而定。本章<strong>不列出各機型的數字</strong>，請查原廠的產品選擇工具或規格資料。</li>
+                <li>舉例：預設 64K 並行工作階段，乘以倍率 8，得到 512K。這只是舉例，不是每台設備都一樣。</li>
+                <li>這是<strong>全防火牆共用</strong>的設定，不是每條規則各自設定。</li>
+                <li>倍率調低，能支援的 DIP 與 DIPP 規則容量會增加，但可同時轉換的來源裝置數會減少；公開位址夠多的話，可以考慮調低。</li>
+            </ul>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異：現行文件新增的限制</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>每條 NAT 規則最多可放 256 個轉換後位址。若超額訂閱使規則超過上限，防火牆會自動調低倍率，讓 Commit 能成功。教材沒有提到這個上限。</li>
+                    <li>PA-7500 系列從 PAN-OS 12.1.8 起，單一 DIPP 規則的轉換後位址上限提高，詳見原廠文件。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Topic 4 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Policy</span>
+                四、NAT 政策與安全政策如何配合
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                第 1 章已經說過：安全政策比對時，<strong>位址用轉換前（pre-NAT）的</strong>，<strong>區域用轉換後（post-NAT）的</strong>。這裡用教材的實際拓撲做一次完整推演。
+            </p>
+
+            <div class="diagram-container">
+<svg viewBox="0 0 460 786" width="100%" style="max-width:460px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c10d3-t" font-family="'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+<title id="c10d3-t">Source NAT 實例拓撲圖：Users_Net 區域的內網主機 192.168.15.47 經防火牆的 ethernet1/1、NAT 規則、ethernet1/4 送往 Internet 區域的網站 203.0.113.38，來源位址在 NAT 後變成 198.51.100.22</title>
+<defs><marker id="c10d3-ah" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4b5563"/></marker></defs>
+<rect x="20" y="10" width="420" height="118" rx="12" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2" stroke-dasharray="6 4"/>
+<text x="36" y="38" font-size="19" text-anchor="start" fill="#1f2937" font-weight="700">Users_Net 區域</text>
+<rect x="110" y="54" width="240" height="71.06" rx="10" fill="#ffffff" stroke="#fdba74" stroke-width="2"/>
+<text x="230" y="83.38" font-size="19" text-anchor="middle" fill="#1f2937" font-weight="700">內網主機</text>
+<text x="230" y="108.58" font-size="18" text-anchor="middle" fill="#4b5563">192.168.15.47</text>
+<rect x="20" y="218" width="420" height="366.86" rx="12" fill="#ffffff" stroke="#fa582d" stroke-width="2.5"/>
+<path d="M230,125.06 L230,258" fill="none" stroke="#4b5563" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#c10d3-ah)"/>
+<text x="246" y="154" font-size="18" text-anchor="start" fill="#1f2937">來源 192.168.15.47</text>
+<text x="246" y="178" font-size="18" text-anchor="start" fill="#1f2937">目的 203.0.113.38</text>
+<text x="36" y="246" font-size="19" text-anchor="start" fill="#1f2937" font-weight="700">防火牆</text>
+<rect x="120" y="258" width="220" height="95.9" rx="10" fill="#ffffff" stroke="#fdba74" stroke-width="2"/>
+<text x="230" y="287.38" font-size="19" text-anchor="middle" fill="#1f2937" font-weight="700">ethernet1/1</text>
+<text x="230" y="312.58" font-size="18" text-anchor="middle" fill="#4b5563">192.168.15.1</text>
+<text x="230" y="337.42" font-size="18" text-anchor="middle" fill="#4b5563">Zone Users_Net</text>
+<path d="M230,353.9 L230,377.9" fill="none" stroke="#4b5563" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#c10d3-ah)"/>
+<rect x="120" y="377.9" width="220" height="71.06" rx="10" fill="#c2410c" stroke="#7c2d12" stroke-width="2"/>
+<text x="230" y="407.28" font-size="19" text-anchor="middle" fill="#ffffff" font-weight="700">NAT 規則命中</text>
+<text x="230" y="432.48" font-size="18" text-anchor="middle" fill="#ffedd5">來源改寫</text>
+<path d="M230,448.96 L230,472.96" fill="none" stroke="#4b5563" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#c10d3-ah)"/>
+<rect x="120" y="472.96" width="220" height="95.9" rx="10" fill="#ffffff" stroke="#fdba74" stroke-width="2"/>
+<text x="230" y="502.34" font-size="19" text-anchor="middle" fill="#1f2937" font-weight="700">ethernet1/4</text>
+<text x="230" y="527.54" font-size="18" text-anchor="middle" fill="#4b5563">198.51.100.22</text>
+<text x="230" y="552.38" font-size="18" text-anchor="middle" fill="#4b5563">Zone Internet</text>
+<rect x="20" y="654.86" width="420" height="118" rx="12" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2" stroke-dasharray="6 4"/>
+<text x="36" y="682.86" font-size="19" text-anchor="start" fill="#1f2937" font-weight="700">Internet 區域</text>
+<rect x="110" y="698.86" width="240" height="71.06" rx="10" fill="#ffffff" stroke="#fdba74" stroke-width="2"/>
+<text x="230" y="728.24" font-size="19" text-anchor="middle" fill="#1f2937" font-weight="700">網站</text>
+<text x="230" y="753.44" font-size="18" text-anchor="middle" fill="#4b5563">203.0.113.38</text>
+<path d="M230,568.86 L230,698.86" fill="none" stroke="#4b5563" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#c10d3-ah)"/>
+<text x="246" y="610.86" font-size="18" text-anchor="start" fill="#1f2937">來源 198.51.100.22</text>
+<text x="246" y="634.86" font-size="18" text-anchor="start" fill="#1f2937">目的 203.0.113.38</text>
+</svg>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">位址為教材使用的私有位址與文件保留位址。回程封包的目的位址是 198.51.100.22，防火牆依既有工作階段換回 192.168.15.47，不需要另寫規則。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">實例：同一條上網需求，兩張規則表</h3>
+            <p class="mb-2 text-gray-700">需求：Users_Net（192.168.15.0/24）的使用者可以用 SSL 與網頁瀏覽連到 Internet 區域，並使用防火牆對外介面的位址上網。</p>
+
+            <p class="font-bold text-gray-800 mb-1"><i class="fas fa-shuffle text-orange-500 mr-1"></i>NAT 規則（<span class="tech-term">Policies &gt; NAT</span>）</p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border" rowspan="2">Name</th>
+                            <th class="py-2 px-4 text-center border" colspan="5">Original Packet（轉換前）</th>
+                            <th class="py-2 px-4 text-center border" colspan="2">Translated Packet（轉換後）</th>
+                        </tr>
+                        <tr>
+                            <th class="py-2 px-4 text-left border">Source Zone</th>
+                            <th class="py-2 px-4 text-left border">Destination Zone</th>
+                            <th class="py-2 px-4 text-left border">Source Address</th>
+                            <th class="py-2 px-4 text-left border">Destination Address</th>
+                            <th class="py-2 px-4 text-left border">Service</th>
+                            <th class="py-2 px-4 text-left border">Source Translation</th>
+                            <th class="py-2 px-4 text-left border">Destination Translation</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr>
+                            <td class="py-2 px-4 border">Source_Users_Net_to_Internet</td>
+                            <td class="py-2 px-4 border">Users_Net</td>
+                            <td class="py-2 px-4 border">Internet</td>
+                            <td class="py-2 px-4 border">192.168.15.0/24</td>
+                            <td class="py-2 px-4 border">any</td>
+                            <td class="py-2 px-4 border">any</td>
+                            <td class="py-2 px-4 border">dynamic-ip-and-port，Interface Address：ethernet1/4（198.51.100.22）</td>
+                            <td class="py-2 px-4 border">none</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <p class="font-bold text-gray-800 mt-5 mb-1"><i class="fas fa-shield-halved text-orange-500 mr-1"></i>對應的安全規則（<span class="tech-term">Policies &gt; Security</span>）</p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border">Name</th>
+                            <th class="py-2 px-4 text-left border">Type</th>
+                            <th class="py-2 px-4 text-left border">Source Zone</th>
+                            <th class="py-2 px-4 text-left border">Source Address</th>
+                            <th class="py-2 px-4 text-left border">Destination Zone</th>
+                            <th class="py-2 px-4 text-left border">Destination Address</th>
+                            <th class="py-2 px-4 text-left border">Application</th>
+                            <th class="py-2 px-4 text-left border">Service</th>
+                            <th class="py-2 px-4 text-left border">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr>
+                            <td class="py-2 px-4 border">Users_to_Internet</td>
+                            <td class="py-2 px-4 border">universal</td>
+                            <td class="py-2 px-4 border">Users_Net</td>
+                            <td class="py-2 px-4 border font-bold text-orange-700">192.168.15.0/24</td>
+                            <td class="py-2 px-4 border">Internet</td>
+                            <td class="py-2 px-4 border">any</td>
+                            <td class="py-2 px-4 border">ssl、web-browsing</td>
+                            <td class="py-2 px-4 border">application-default</td>
+                            <td class="py-2 px-4 border">Allow</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-4 mt-4">
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h4 class="font-bold text-orange-800 mb-2">這條安全規則怎麼填</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li><strong>Source Address</strong>：填轉換前的 192.168.15.0/24（pre-NAT），不是 198.51.100.22。</li>
+                        <li><strong>Source / Destination Zone</strong>：Users_Net 到 Internet。</li>
+                        <li>Source NAT 只改來源位址，路由與區域判斷不受影響，所以本例轉換前後的區域相同。</li>
+                    </ul>
+                </div>
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-2">Pre-NAT 與 Post-NAT 一覽</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>安全規則的位址欄：轉換前（來源 192.168.15.47，目的 203.0.113.38）。</li>
+                        <li>安全規則的區域欄：轉換後的區域。</li>
+                        <li>封包實際送出：來源變成 198.51.100.22。</li>
+                        <li>位址與區域真正會「對不上」的情境是 Destination NAT，第 11 章再練。</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>常見踩坑：安全規則誤填轉換後的位址</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>把安全規則的 Source Address 寫成轉換後的公開位址（198.51.100.22），規則比對不到，內部使用者的流量會落到預設規則被擋下。看到這種症狀，先檢查規則裡填的是不是轉換前位址。</li>
+                    <li>只建 NAT 規則、忘了建安全規則，或反過來。NAT 不放行，安全規則不換位址，兩者獨立運作。</li>
+                    <li>NAT 規則同樣由上而下比對，第一條符合的規則生效，之後的 NAT 規則不再套用。建議由最精確排到最廣泛；把範圍大的規則放在上方，下面精確的規則就永遠用不到。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Topic 5 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Config</span>
+                五、設定 Source NAT 規則
+            </h2>
+
+            <p class="mb-2 text-gray-700">
+                路徑：<span class="tech-term">Policies &gt; NAT &gt; Add</span>。規則視窗有三個頁籤：<strong>General</strong>（名稱、說明、標籤）、<strong>Original Packet</strong>（比對條件）、<strong>Translated Packet</strong>（轉換方式）。
+                教材把 Original Packet 標為「Match Criteria」（比對條件），把 Translated Packet 標為「Translation」（轉換），意思是：先說「什麼封包要換」，再說「換成什麼」。
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h4 class="font-bold text-orange-800 mb-2"><span class="tech-term">Original Packet</span> 比對條件</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li><strong>Source Zone / Destination Zone</strong>：轉換前封包的來源與目的區域，預設為 Any。</li>
+                        <li><strong>Destination Interface</strong>：選用，可在雙 ISP 環境用來讓不同出口使用不同的轉換位址。</li>
+                        <li><strong>Service</strong>：選用，限定哪些服務才換位址。</li>
+                        <li><strong>Source Address / Destination Address</strong>：轉換前的位址條件。</li>
+                    </ul>
+                </div>
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h4 class="font-bold text-orange-800 mb-2"><span class="tech-term">Translated Packet</span> 轉換方式</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li><strong>Source Address Translation</strong>：Translation Type 選 None、Dynamic IP And Port、Dynamic IP、Static IP；較新的版本另有 Persistent Dynamic IP And Port（見上方版本差異）。</li>
+                        <li>選 Dynamic IP And Port 時，Address Type 可選 Translated Address 或 Interface Address（欄位名稱以實機畫面為準）。</li>
+                        <li>選 Static IP 時，會出現 <strong>Bi-directional</strong> 核取方塊。</li>
+                        <li><strong>Destination Address Translation</strong>：Source NAT 規則通常保持 None（第 11 章才會用到）。</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">三個範例（皆為 Users_Net 到 Internet）</h3>
+            <p class="text-sm text-gray-600 mb-2">三個範例是各自獨立的教學情境，公開位址可能重複出現，請不要放進同一台設備同時使用。</p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border">範例</th>
+                            <th class="py-2 px-4 text-left border">Source Address（轉換前）</th>
+                            <th class="py-2 px-4 text-left border">Source Translation（轉換後）</th>
+                            <th class="py-2 px-4 text-left border">說明</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr>
+                            <td class="py-2 px-4 border font-semibold">Static 1:1</td>
+                            <td class="py-2 px-4 border">192.168.15.47</td>
+                            <td class="py-2 px-4 border">static-ip，Translated Address 198.51.100.22，bi-directional：yes</td>
+                            <td class="py-2 px-4 border">一台主機固定對一個公開位址，雙向皆可轉換</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 px-4 border font-semibold">Dynamic IP</td>
+                            <td class="py-2 px-4 border">192.168.15.2 至 192.168.15.50</td>
+                            <td class="py-2 px-4 border">dynamic-ip，198.51.100.102 至 198.51.100.150</td>
+                            <td class="py-2 px-4 border">49 台主機對 49 個位址，位址池大小與主機數相同</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 px-4 border font-semibold">DIPP（位址範圍）</td>
+                            <td class="py-2 px-4 border">192.168.15.0/24</td>
+                            <td class="py-2 px-4 border">dynamic-ip-and-port，198.51.100.22 至 198.51.100.23</td>
+                            <td class="py-2 px-4 border">整個網段共用兩個公開位址，以連接埠區分</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 px-4 border font-semibold">DIPP（介面位址）</td>
+                            <td class="py-2 px-4 border">192.168.15.0/24</td>
+                            <td class="py-2 px-4 border">dynamic-ip-and-port，Address Type 選 Interface Address：ethernet1/4（198.51.100.22）</td>
+                            <td class="py-2 px-4 border">直接使用對外介面位址，教材的上網範例就是這樣設定</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">建立步驟（以 DIPP 加介面位址為例）</h3>
+            <ol class="list-decimal pl-6 text-gray-700 space-y-1">
+                <li>先建好位址物件（例如 192.168.15.0/24），路徑：<span class="tech-term">Objects &gt; Addresses</span>。</li>
+                <li><span class="tech-term">Policies &gt; NAT &gt; Add</span>，在 General 頁籤輸入名稱。</li>
+                <li>Original Packet 頁籤：Source Zone 選 Users_Net，Destination Zone 選 Internet，Source Address 加入剛建的物件，Destination Address 保持 Any。</li>
+                <li>Translated Packet 頁籤：Translation Type 選 Dynamic IP And Port，Address Type 選 Interface Address，再選對外介面（ethernet1/4）。</li>
+                <li>到 <span class="tech-term">Policies &gt; Security</span> 確認有對應的允許規則（位址填轉換前），最後 Commit。</li>
+            </ol>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>常見踩坑：Dynamic IP 位址池用完</p>
+                <p class="text-gray-700 text-sm">Dynamic IP 不改連接埠，一個位址同一時間只能給一台主機。位址池全部被占用時，<strong>預設會丟棄需要轉換的新連線</strong>，使用者看到的是「部分人能上網、部分人不行」。
+                    解法有兩種：把位址池加大到與主機數相同，或在 Advanced（Dynamic IP/Port Fallback）設定備援的 DIPP 位址池。一般上網需求，直接用 DIPP 通常更省事。</p>
+            </div>
+
+            <div class="highlight-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>補充：教材範例中的介面名稱</p>
+                <p class="text-gray-700 text-sm">教材簡報的範例，位址 198.51.100.22 所屬的介面，在拓撲圖與規則截圖上分別標成 ethernet1/4 與 ethernet1/1，兩處不一致。這是教材內部的前後不一，不是版本差異。本章統一寫成 ethernet1/4（外部介面）。實際設定時請以自己設備上的對外介面名稱為準。</p>
+            </div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
+                隨堂測驗
+            </h2>
+            <p class="mb-6 text-gray-600">請點選您認為正確的選項，系統將會顯示解析。</p>
+            <div class="space-y-6" id="quiz-container"></div>
+        </div>
+
+    </main>
+
+    <footer class="footer-signature">
+        Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver.2026.10.29.11.03
+    </footer>
+
+
+    <script>
+        const quizData = [
+            {
+                question: "Q1. 一台內部伺服器需要固定使用某個公開位址，而且外部也要能主動連進來，最適合哪種設定？",
+                options: ["A. Dynamic IP and Port，位址類型選 Interface Address", "B. Dynamic IP，位址池放一個位址", "C. Static IP，並勾選 Bi-directional", "D. 不需要 NAT，直接把私有位址對外公告"],
+                correct: 2,
+                desc: "正解：C。Static IP 是一對一固定對應，來源連接埠不變；Bi-directional 只有 Static IP 才能勾選，可同時處理出站的來源轉換與入站的反向轉換。DIPP 與 Dynamic IP 的對應會變動，不適合需要被外部主動連入的主機。"
+            },
+            {
+                question: "Q2. DIPP 為什麼能讓許多內部主機共用同一個公開位址？",
+                options: ["A. 因為每台主機會輪流使用該位址，一次只有一台能上網", "B. 因為防火牆同時改寫來源位址與來源連接埠，用連接埠區分不同主機", "C. 因為防火牆把所有流量都轉成同一個應用程式", "D. 因為 DIPP 不需要安全政策"],
+                correct: 1,
+                desc: "正解：B。DIPP 除了換來源位址，也會換來源連接埠，回程封包再靠「位址加連接埠」找回原始主機。若開啟超額訂閱，同一組位址與連接埠還能給目的地不同的多條連線同時使用。"
+            },
+            {
+                question: "Q3. Users_Net（192.168.15.0/24）的主機經 DIPP 轉成 198.51.100.22 後連到 Internet 區域。對應的安全規則應如何填？",
+                options: ["A. Source Address 填 198.51.100.22，Source Zone 填 Internet", "B. Source Address 填 198.51.100.22，Source Zone 填 Users_Net", "C. Source Address 填 any，Destination Zone 填 Users_Net", "D. Source Address 填 192.168.15.0/24，Source Zone 填 Users_Net，Destination Zone 填 Internet"],
+                correct: 3,
+                desc: "正解：D。安全政策的位址看轉換前（pre-NAT），所以填內網網段；區域依 NAT 之後的路徑判斷，Source NAT 不改變路由，因此是 Users_Net 到 Internet。寫成轉換後的 198.51.100.22 會比對不到，流量被預設規則擋下。"
+            },
+            {
+                question: "Q4. Dynamic IP 的位址池全部被占用後，又有新的內部主機要連線，預設會發生什麼事？",
+                options: ["A. 需要轉換的新連線會被丟棄", "B. 防火牆自動改用 DIPP 繼續轉換", "C. 防火牆自動拉長既有連線的逾時時間", "D. 新連線不轉換，直接帶著私有位址出去"],
+                correct: 0,
+                desc: "正解：A。Dynamic IP 不改連接埠，一個位址同時只能給一台主機。位址池用完後，預設會丟棄需要轉換的新連線。可把位址池加大，或在 Advanced（Dynamic IP/Port Fallback）設定備援位址池。"
+            }
+        ];
+
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionBox = document.createElement('div');
+            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
+
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border mb-2 text-gray-700" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            questionBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
+                <div class="space-y-2 mb-4">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
+                    <p class="font-bold result-title"></p>
+                    <p class="text-sm text-gray-600 mt-1">${item.desc}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionBox);
+        });
+
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            if (element.parentElement.dataset.answered) return;
+            element.parentElement.dataset.answered = "true";
+
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+                opt.classList.add('disabled');
+            });
+
+            if (optIndex === data.correct) {
+                element.classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了！";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                element.classList.add('bg-red-100', 'border-red-500');
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了！";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+    </script>
+</body>
+</html>

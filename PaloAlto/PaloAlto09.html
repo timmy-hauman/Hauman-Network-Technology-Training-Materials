@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palo Alto Networks NGFW 實戰課程 - 規則設定與政策維運</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        /* 卡片主體樣式 (Palo Alto Orange) */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #fa582d;
+        }
+
+        /* 重點提示框 (橘) */
+        .highlight-box {
+            background-color: #fff7ed;
+            border-left: 4px solid #fa582d;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 技術名詞標記 */
+        .tech-term {
+            color: #c2410c;
+            font-weight: 700;
+            background-color: #fff1e6;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
+        }
+
+        /* 比喻說明框 (綠) */
+        .analogy-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 版本差異框 (紫) */
+        .version-box {
+            background-color: #faf5ff;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 常見踩坑框 (紅) */
+        .pitfall-box {
+            background-color: #fef2f2;
+            border-left: 4px solid #dc2626;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .diagram-container {
+            display: block;
+            background-color: #ffffff;
+            padding: 1.25rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-top: 1rem;
+        }
+
+        .diagram-container svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        @media (max-width: 640px) {
+            .section-card { padding: 1rem; }
+            .diagram-container { padding: 0.5rem 0; border-left: 0; border-right: 0; border-radius: 0; }
+        }
+
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover:not(.disabled) {
+            background-color: #f3f4f6;
+        }
+
+        .footer-signature {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+            margin-top: 4rem;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-orange-600 to-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-fire-flame-curved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold">Palo Alto Networks NGFW 實戰課程</h1>
+                    <p class="text-orange-100 mt-1">政策篇 - 單元 9：規則設定與政策維運</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <!-- Introduction -->
+        <div class="mb-8">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
+                <h2 class="text-xl font-bold text-blue-800 mb-2 flex items-center">
+                    <i class="fas fa-user-tie mr-2"></i>講師導言
+                </h2>
+                <p class="text-blue-900 leading-relaxed">
+                    上一章我們談的是安全政策的<strong>觀念</strong>：由上往下比對、第一條符合就停、預設規則、規則遮蔽。
+                    這一章要動手：<strong>一條規則的每個分頁到底填什麼</strong>，以及規則上線之後，<strong>怎麼持續維護、怎麼把舊的埠號式規則一步步改成應用程式式規則</strong>。
+                    寫規則只是開始，半年後規則變成幾百條、沒人敢刪，才是真正的難題。這一章的後半段，就是教你避開那個局面。
+                </p>
+            </div>
+        </div>
+
+        <!-- 學習目標 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-gray-100 text-gray-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Goals</span>
+                本章學習目標
+            </h2>
+            <ul class="list-disc pl-6 space-y-1 text-gray-700">
+                <li>依序說明一條安全規則各分頁（General、Source、Destination、Application、Service/URL Category、Actions）的欄位與預設值</li>
+                <li>在規則中使用位址物件、External Dynamic List 與地區（GeoIP）作為來源或目的</li>
+                <li>處理 Application 相依項目，並看懂 Commit 時的 App Dependency 警告</li>
+                <li>解釋 application-default 的作用，並能建立自訂 Service</li>
+                <li>分辨 Allow、Deny、Drop、Reset 的差異，並設定日誌、Log Forwarding 設定檔、排程與預設規則的日誌</li>
+                <li>使用 Tag、Tag 群組與稽核註解，讓大量規則維持可讀、可追溯</li>
+                <li>用 Highlight Unused Rules、Rule Usage 與 Policy Optimizer 清理規則並完成 port-based 到 App-ID 的遷移</li>
+                <li>使用 Test Policy Match 與 Global Find 驗證與搜尋設定</li>
+            </ul>
+        </div>
+
+        <!-- Topic 1 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Rule Tabs</span>
+                一、規則各分頁：General、Source、Destination
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                新增規則的路徑是 <span class="tech-term">Policies &gt; Security &gt; Add</span>。
+                一條規則由多個分頁組成：<strong>各分頁之間是「而且」的關係</strong>，所有條件都符合，這條規則才算命中；同一個欄位裡放了多個項目，則是「或」的關係。
+                規則建立之後，才會多出一個 <strong>Usage</strong> 分頁（第五節說明）。
+            </p>
+
+            <div class="diagram-container">
+<svg viewBox="0 0 460 683" width="100%" style="max-width:460px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c09d1-t" font-family="'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+<title id="c09d1-t">安全規則的比對流程圖：General 填完後，Source、Destination、Application、Service 與 URL Category 全部符合才算命中，命中就執行 Actions，不符合就往下比對下一條規則</title>
+<defs><marker id="c09d1-ah" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4b5563"/></marker></defs>
+<rect x="80" y="10" width="300" height="72.44" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/>
+<text x="230" y="40.4" font-size="20" text-anchor="middle" fill="#1f2937" font-weight="700">General</text>
+<text x="230" y="65.96" font-size="18" text-anchor="middle" fill="#4b5563">名稱、類型、標籤、稽核註解</text>
+<path d="M230,82.44 L230,108.44" fill="none" stroke="#4b5563" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#c09d1-ah)"/>
+<rect x="20" y="108.44" width="420" height="423.76" rx="12" fill="#f9fafb" stroke="#d1d5db" stroke-width="2"/>
+<text x="230" y="136.44" font-size="19" text-anchor="middle" fill="#1f2937" font-weight="700">比對條件：全部符合才算命中</text>
+<rect x="50" y="150.44" width="360" height="72.44" rx="10" fill="#ffffff" stroke="#fdba74" stroke-width="2"/>
+<text x="230" y="180.84" font-size="20" text-anchor="middle" fill="#1f2937" font-weight="700">Source</text>
+<text x="230" y="206.4" font-size="18" text-anchor="middle" fill="#4b5563">來源區域、位址、使用者</text>
+<text x="230" y="240.88" font-size="18" text-anchor="middle" fill="#4b5563">而且</text>
+<rect x="50" y="248.88" width="360" height="72.44" rx="10" fill="#ffffff" stroke="#fdba74" stroke-width="2"/>
+<text x="230" y="279.28" font-size="20" text-anchor="middle" fill="#1f2937" font-weight="700">Destination</text>
+<text x="230" y="304.84" font-size="18" text-anchor="middle" fill="#4b5563">目的區域、位址</text>
+<text x="230" y="339.32" font-size="18" text-anchor="middle" fill="#4b5563">而且</text>
+<rect x="50" y="347.32" width="360" height="72.44" rx="10" fill="#ffffff" stroke="#fdba74" stroke-width="2"/>
+<text x="230" y="377.72" font-size="20" text-anchor="middle" fill="#1f2937" font-weight="700">Application</text>
+<text x="230" y="403.28" font-size="18" text-anchor="middle" fill="#4b5563">應用程式</text>
+<text x="230" y="437.76" font-size="18" text-anchor="middle" fill="#4b5563">而且</text>
+<rect x="50" y="445.76" width="360" height="72.44" rx="10" fill="#ffffff" stroke="#fdba74" stroke-width="2"/>
+<text x="230" y="476.16" font-size="20" text-anchor="middle" fill="#1f2937" font-weight="700">Service 與 URL Category</text>
+<text x="230" y="501.72" font-size="18" text-anchor="middle" fill="#4b5563">連接埠、網站分類</text>
+<path d="M125,532.2 L125,572.2" fill="none" stroke="#4b5563" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#c09d1-ah)"/>
+<path d="M345,532.2 L345,572.2" fill="none" stroke="#4b5563" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#c09d1-ah)"/>
+<text x="133" y="558.2" font-size="18" text-anchor="start" fill="#c2410c" font-weight="700" stroke="#ffffff" stroke-width="5" paint-order="stroke" stroke-linejoin="round">符合</text>
+<text x="353" y="558.2" font-size="18" text-anchor="start" fill="#4b5563" font-weight="700" stroke="#ffffff" stroke-width="5" paint-order="stroke" stroke-linejoin="round">不符合</text>
+<rect x="20" y="572.2" width="210" height="97.28" rx="10" fill="#c2410c" stroke="#7c2d12" stroke-width="2"/>
+<text x="125" y="602.6" font-size="20" text-anchor="middle" fill="#ffffff" font-weight="700">Actions</text>
+<text x="125" y="628.16" font-size="18" text-anchor="middle" fill="#ffedd5">放行或封鎖、日誌、</text>
+<text x="125" y="653" font-size="18" text-anchor="middle" fill="#ffedd5">排程、安全設定檔</text>
+<rect x="250" y="572.2" width="190" height="96" rx="10" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/>
+<text x="345" y="613.36" font-size="19" text-anchor="middle" fill="#1f2937">往下比對</text>
+<text x="345" y="639.58" font-size="19" text-anchor="middle" fill="#1f2937">下一條規則</text>
+</svg>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">各分頁欄位一覽</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-40">分頁</th><th class="py-2 px-4 text-left border">主要欄位</th><th class="py-2 px-4 text-left border">預設值與提醒</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">General</td><td class="py-2 px-4 border">Name、Rule Type、Description、Tags、Group Rules By Tag、Audit Comment</td><td class="py-2 px-4 border">Rule Type 預設 universal；名稱區分大小寫且不可重複；Tags 與 Description 選填但強烈建議填；Group Rules By Tag 是否在此分頁，以實機畫面為準（第四節）</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Source</td><td class="py-2 px-4 border">Source Zone、Source Address（含 Negate）、Source User、Source Device</td><td class="py-2 px-4 border">全部預設 any；<strong>位址比對的是 NAT 之前的位址</strong></td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Destination</td><td class="py-2 px-4 border">Destination Zone、Destination Address（含 Negate）、Destination Device</td><td class="py-2 px-4 border">預設 any；位址是 NAT 前，<strong>區域是 NAT 後</strong>（第 10、11 章）</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Application</td><td class="py-2 px-4 border">應用程式、應用程式群組、應用程式篩選器</td><td class="py-2 px-4 border">預設 any，應盡量改成具體的應用程式</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Service/URL Category</td><td class="py-2 px-4 border">Service、URL Category</td><td class="py-2 px-4 border">Service 預設 application-default；URL Category 預設 any</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Actions</td><td class="py-2 px-4 border">Action、Profile Setting、Log Setting、Schedule 等</td><td class="py-2 px-4 border">Action 預設 Allow；日誌預設只在連線結束時記錄</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Usage</td><td class="py-2 px-4 border">建立時間、命中資料、看過的應用程式、近 30 天流量</td><td class="py-2 px-4 border">規則建立後才出現</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">General 分頁</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li><strong>Rule Type</strong>：universal（預設、最常用）同時涵蓋區域內與區域間流量；intrazone 只管同一區域內，不能指定目的區域；interzone 只管不同區域之間。細節在第 8 章。</li>
+                <li><strong>Tags</strong>：用關鍵字替規則分類，方便過濾與分組（第四節）。</li>
+                <li><strong>Audit Comment</strong>：每次修改規則時寫下「為什麼改、改了什麼、誰改的」，會隨規則留存。這個欄位的內容有長度上限，實際上限請以你的畫面為準。</li>
+                <li><strong>Audit Comment Archive</strong> 連結：開啟該規則的稽核歷史，分三個頁籤。
+                    <span class="tech-term">Audit Comments</span> 顯示每次提交的註解、管理員與設定版本；
+                    <span class="tech-term">Config Logs</span> 顯示兩次 Commit 之間對這條規則做過的設定變更記錄；
+                    <span class="tech-term">Rule Changes</span> 讓你選兩個設定版本，並排比較規則差異。</li>
+            </ul>
+
+            <div class="highlight-box mt-4">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>強制大家寫標籤與稽核註解</p>
+                <p class="text-gray-700 text-sm">路徑是 <span class="tech-term">Device &gt; Setup &gt; Management &gt; Policy Rulebase Settings</span>。可以要求規則必須有 Description、Tag、Audit Comment，也可以用規則運算式（regex）規定註解格式，例如要求要有工單編號。
+                    設定完成後新增的規則就必須填寫，既有規則則要自己補上。</p>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異：規則名稱長度、User 分頁</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li><strong>名稱長度</strong>：新版教材講師備註寫「最多 31 個字元」，但現行原廠文件寫「最多 63 個字元」。實作時以 63 為準，不過跨設備與 Panorama 共用的規則，建議名稱不要寫得太長。</li>
+                    <li><strong>User 分頁</strong>：現行欄位說明與建立規則的步驟把 Source User 放在 Source 分頁，同版的概述頁仍寫獨立的 User 分頁，8.0 教材是獨立分頁；以實機畫面為準。</li>
+                    <li><strong>Source Device</strong>：教材寫的是 IoT 裝置；現行欄位說明列的選項是 any、no-hip、quarantine、select。</li>
+                    <li>User 欄位要發揮作用，必須先啟用 User-ID，第 14 章才會完整說明。目前只要知道選項：any、pre-logon、known-user、unknown、select。</li>
+                    <li>Audit Comment Archive 與 Tag 群組這些功能自 PAN-OS 9.0 起提供；若規則是由 Panorama 推送的，稽核歷史可能要在 Panorama 上查看，以實機為準。</li>
+                </ul>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Source 與 Destination 分頁：位址從哪裡來</h3>
+            <p class="text-gray-700 mb-2">位址欄位預設是 any，按 Add 之後可以選下列幾種來源，也可以混用：</p>
+            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h4 class="font-bold text-orange-800 mb-2"><i class="fas fa-cube mr-1"></i>位址物件與位址群組</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>先在 <span class="tech-term">Objects &gt; Addresses &gt; Add</span> 建立一個物件，代表一或多個 IP（單一位址、網段、範圍或 FQDN）。</li>
+                        <li>規則直接引用物件名稱，之後位址變動只要改物件，不必逐條改規則。</li>
+                        <li>多個物件可再包成位址群組。</li>
+                    </ul>
+                </div>
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h4 class="font-bold text-orange-800 mb-2"><i class="fas fa-list-check mr-1"></i>External Dynamic List（EDL）</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>由外部網址定期提供清單的物件，路徑 <span class="tech-term">Objects &gt; External Dynamic Lists</span>。</li>
+                        <li>IP 類型的 EDL 可直接當來源或目的位址，清單更新時<strong>不需要重新 Commit</strong>。</li>
+                        <li>常見用途：封鎖已知惡意來源、放行雲端服務位址。</li>
+                    </ul>
+                </div>
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h4 class="font-bold text-orange-800 mb-2"><i class="fas fa-earth-asia mr-1"></i>地區（Region，GeoIP）</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>以國家或地區為單位，由原廠維護的內部資料庫對應 IP 到國家代碼。</li>
+                        <li>適合「某些國家一律不准進來」這種規則。</li>
+                        <li>內部的私有網段請另外用位址物件表示，不要假設它們會被歸到某個國家。</li>
+                    </ul>
+                </div>
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-2"><i class="fas fa-ban mr-1"></i>Negate（反向選取）</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>勾選後，規則會比對「<strong>不在清單內</strong>」的所有位址。例如清單放一個網段，就代表該網段以外的全部位址。</li>
+                        <li>對地區使用 Negate 時要小心：必須把含有私有位址的地區也一併列入，否則內部之間的連線可能中斷，上線前請用實機驗證。</li>
+                        <li>IP Wildcard Mask 類型的位址物件只能用在安全規則；和 Negate 搭配時的行為，以實機為準。</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：Negate 的範圍比想像的大</p>
+                <p class="text-gray-700 text-sm">Negate 表示「除了這些以外的全部」，範圍通常比你想的大很多。例如在 Allow 規則的來源位址放內網網段再勾 Negate，等於允許網際網路上所有位址。
+                    用 Negate 之前，請先用 Test Policy Match（第五節）確認結果符合預期。</p>
+            </div>
+        </div>
+
+        <!-- Topic 2 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">App &amp; Service</span>
+                二、Application 與 Service 搭配
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                Application 欄位決定「這是什麼應用程式」，Service 欄位決定「它可以走哪些連接埠」。兩者搭配，才是新世代防火牆規則的標準寫法。
+                App-ID 如何辨識應用程式、為什麼同一個應用程式會有父子關係，留到第 12 章深入說明，這裡只談規則怎麼寫。
+            </p>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">Application 分頁與相依項目</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>預設是 any，建議改為具體的應用程式（或應用程式群組、篩選器）。</li>
+                <li>加入應用程式後，右側的 <strong>Depends On</strong> 窗格會列出該應用程式<strong>運作時還需要放行的其他應用程式</strong>。沒有一併放行，應用程式可能無法正常運作。</li>
+                <li>可以按 <span class="tech-term">Add to Current Rule</span> 加進目前這條規則，或 <span class="tech-term">Add to Existing Rule</span> 加進另一條既有規則。</li>
+                <li>選父應用程式會包含所有子功能，原廠日後新增的子功能也會自動納入。例如選 facebook 就包含 facebook-chat、facebook-mail 等；若只選其中幾個子功能，其餘功能就不會被放行。</li>
+            </ul>
+
+            <div class="diagram-container">
+<svg viewBox="0 0 460 710" width="100%" style="max-width:460px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c09d2-t" font-family="'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+<title id="c09d2-t">App Dependency 處理流程圖：加入應用程式後檢查 Depends On 窗格，補上相依項目並 Commit，再看 App Dependency 頁籤有沒有警告，有就補完再 Commit，沒有就代表相依項目已齊備</title>
+<defs><marker id="c09d2-ah" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4b5563"/></marker></defs>
+<rect x="60" y="10" width="340" height="46.22" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/>
+<text x="230" y="39.38" font-size="19" text-anchor="middle" fill="#1f2937" font-weight="700">Application 分頁加入應用程式</text>
+<path d="M230,56.22 L230,82.22" fill="none" stroke="#4b5563" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#c09d2-ah)"/>
+<polygon points="230,82.22 410,142.22 230,202.22 50,142.22" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+<text x="230" y="135.38" font-size="19" text-anchor="middle" fill="#1f2937" font-weight="700">Depends On 窗格</text>
+<text x="230" y="161.6" font-size="19" text-anchor="middle" fill="#1f2937" font-weight="700">有相依項目？</text>
+<path d="M230,202.22 L230,238.22" fill="none" stroke="#4b5563" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#c09d2-ah)"/>
+<text x="240" y="226.22" font-size="18" text-anchor="start" fill="#c2410c" font-weight="700" stroke="#ffffff" stroke-width="5" paint-order="stroke" stroke-linejoin="round">有</text>
+<rect x="60" y="238.22" width="340" height="72.44" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/>
+<text x="230" y="267.6" font-size="19" text-anchor="middle" fill="#1f2937">Add to Current Rule</text>
+<text x="230" y="293.82" font-size="19" text-anchor="middle" fill="#1f2937">或 Add to Existing Rule</text>
+<path d="M230,310.66 L230,338.66" fill="none" stroke="#4b5563" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#c09d2-ah)"/>
+<rect x="140" y="338.66" width="180" height="47.6" rx="10" fill="#c2410c" stroke="#7c2d12" stroke-width="2"/>
+<text x="230" y="369.06" font-size="20" text-anchor="middle" fill="#ffffff" font-weight="700">Commit</text>
+<path d="M410,142.22 L438,142.22 L438,361.66 L320,361.66" fill="none" stroke="#4b5563" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#c09d2-ah)"/>
+<text x="430" y="172.22" font-size="18" text-anchor="end" fill="#4b5563" font-weight="700" stroke="#ffffff" stroke-width="5" paint-order="stroke" stroke-linejoin="round">沒有</text>
+<path d="M230,384.66 L230,410.66" fill="none" stroke="#4b5563" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#c09d2-ah)"/>
+<polygon points="230,410.66 410,470.66 230,530.66 50,470.66" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+<text x="230" y="463.82" font-size="19" text-anchor="middle" fill="#1f2937" font-weight="700">App Dependency</text>
+<text x="230" y="490.04" font-size="19" text-anchor="middle" fill="#1f2937" font-weight="700">頁籤有警告？</text>
+<path d="M230,530.66 L230,550.66" fill="none" stroke="#4b5563" stroke-width="2.5" stroke-linejoin="round"/>
+<path d="M230,550.66 L141,550.66 L141,576.66" fill="none" stroke="#4b5563" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#c09d2-ah)"/>
+<path d="M230,550.66 L355,550.66 L355,576.66" fill="none" stroke="#4b5563" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#c09d2-ah)"/>
+<text x="124" y="544.66" font-size="18" text-anchor="end" fill="#c2410c" font-weight="700" stroke="#ffffff" stroke-width="5" paint-order="stroke" stroke-linejoin="round">有</text>
+<text x="372" y="544.66" font-size="18" text-anchor="start" fill="#4b5563" font-weight="700" stroke="#ffffff" stroke-width="5" paint-order="stroke" stroke-linejoin="round">沒有</text>
+<rect x="36" y="576.66" width="210" height="119.36" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/>
+<text x="141" y="605.02" font-size="18" text-anchor="middle" fill="#4b5563">點 Count 數字，</text>
+<text x="141" y="629.86" font-size="18" text-anchor="middle" fill="#4b5563">看缺哪些應用程式；</text>
+<text x="141" y="654.7" font-size="18" text-anchor="middle" fill="#4b5563">點規則名稱開啟</text>
+<text x="141" y="679.54" font-size="18" text-anchor="middle" fill="#4b5563">規則補上</text>
+<rect x="270" y="576.66" width="170" height="119.36" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+<text x="355" y="642.61" font-size="19" text-anchor="middle" fill="#1f2937" font-weight="700">相依項目已齊備</text>
+<path d="M36,636.34 L18,636.34 L18,361.66 L140,361.66" fill="none" stroke="#4b5563" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#c09d2-ah)"/>
+</svg>
+            </div>
+
+            <p class="text-gray-700 mt-4">
+                Commit 時，防火牆會檢查「規則裡的應用程式，其相依項目是否被<strong>任何一條規則</strong>放行」。注意這裡的判斷範圍是整個政策，不是單一規則。
+                沒有滿足的項目會逐條規則列在 Commit 視窗的 <span class="tech-term">App Dependency</span> 頁籤；點選規則旁的 Count 數字可看缺哪些應用程式，點規則名稱可直接開啟規則補上，補完再 Commit 一次，確認警告消失。
+            </p>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：Commit 的相依警告被忽略</p>
+                <p class="text-gray-700 text-sm">App Dependency 是<strong>警告</strong>，Commit 仍會完成（這一點原廠文件沒有明寫，以實機為準），所以很容易被略過。結果是應用程式「明明有放行卻用不起來」，使用者回報的症狀常常只有「網頁開一半」或「功能不完整」。
+                    原廠文件也提到，沒解決的相依項目每次 Commit 都會再次出現警告。每次改完規則，請養成看一眼 Commit 視窗頁籤的習慣。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Service/URL Category 分頁</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-48">Service 選項</th><th class="py-2 px-4 text-left border">意思</th><th class="py-2 px-4 text-left border w-52">使用建議</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">application-default</td><td class="py-2 px-4 border">應用程式只能使用 App-ID 資料庫預先定義的預設協定與連接埠。</td><td class="py-2 px-4 border"><strong>允許類規則首選</strong></td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Select（指定服務）</td><td class="py-2 px-4 border">只允許你加進來的服務物件（協定與連接埠）。</td><td class="py-2 px-4 border">企業自訂埠的內部應用程式</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">any</td><td class="py-2 px-4 border">任何協定、任何連接埠都可以，限制最少。</td><td class="py-2 px-4 border">除非有明確理由，避免使用</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 mt-3">
+                <li>application-default 的價值：應用程式跑在非標準埠，常是規避偵測或惡意行為的徵兆。使用它之後，同一個應用程式走不尋常的埠就<strong>不會命中這條規則</strong>。</li>
+                <li>就算設成 application-default，防火牆仍會在所有連接埠上辨識應用程式，只是這條規則只對預設埠上的流量生效。</li>
+                <li>加了 URL Category 的規則，必須有對應授權才能使用 PAN-DB 分類（第 3、13 章）。預設是 any，也可以加入多個分類。</li>
+            </ul>
+
+            <div class="analogy-box">
+                <p class="font-bold mb-2 text-green-800">🏢 生活化比喻：大樓訪客登記</p>
+                <ul class="list-none space-y-2 pl-2 text-gray-700">
+                    <li class="flex items-start"><i class="fas fa-id-card text-blue-500 mt-1 mr-3"></i><span><strong>Application</strong>：訪客登記單上寫的「來找誰、辦什麼事」。表上沒寫的人，即使走得進大廳也不放行。</span></li>
+                    <li class="flex items-start"><i class="fas fa-door-open text-green-600 mt-1 mr-3"></i><span><strong>application-default</strong>：這類訪客只能走他該走的那扇門。送貨的人從貨運口進來沒問題，從消防逃生門出現就很可疑。</span></li>
+                    <li class="flex items-start"><i class="fas fa-link text-orange-500 mt-1 mr-3"></i><span><strong>Depends On</strong>：開會需要的投影機與茶水也要一起登記。只放行主角、漏了配角，會議還是開不起來。</span></li>
+                </ul>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">一條寫得完整的規則範例</h3>
+            <p class="text-sm text-gray-600 mb-2">情境：內網使用者透過瀏覽器上網。位址為示意用的私有網段。</p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-44">分頁</th><th class="py-2 px-4 text-left border w-56">欄位</th><th class="py-2 px-4 text-left border">範例值</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold" rowspan="4">General</td><td class="py-2 px-4 border">Name</td><td class="py-2 px-4 border">Users-to-Internet-Web</td></tr>
+                        <tr><td class="py-2 px-4 border">Rule Type</td><td class="py-2 px-4 border">universal（預設）</td></tr>
+                        <tr><td class="py-2 px-4 border">Tags / Description</td><td class="py-2 px-4 border">Outbound；內網使用者瀏覽網頁</td></tr>
+                        <tr><td class="py-2 px-4 border">Audit Comment</td><td class="py-2 px-4 border">新增此規則，單號 CHG-1024，由管理員 admin1 建立</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold" rowspan="2">Source</td><td class="py-2 px-4 border">Source Zone / Address</td><td class="py-2 px-4 border">trust / Users_Net（位址物件，192.168.10.0/24）</td></tr>
+                        <tr><td class="py-2 px-4 border">Source User</td><td class="py-2 px-4 border">any（第 14 章再細分）</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Destination</td><td class="py-2 px-4 border">Zone / Address</td><td class="py-2 px-4 border">untrust / any</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Application</td><td class="py-2 px-4 border">Applications</td><td class="py-2 px-4 border">web-browsing、ssl（並確認 Depends On 已處理）</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Service/URL Category</td><td class="py-2 px-4 border">Service / URL Category</td><td class="py-2 px-4 border">application-default / any</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold" rowspan="3">Actions</td><td class="py-2 px-4 border">Action</td><td class="py-2 px-4 border">Allow</td></tr>
+                        <tr><td class="py-2 px-4 border">Profile Setting</td><td class="py-2 px-4 border">套用安全設定檔群組（第 13 章）</td></tr>
+                        <tr><td class="py-2 px-4 border">Log Setting</td><td class="py-2 px-4 border">Log at Session End 勾選；Log at Session Start 不勾；Log Forwarding 見本章第三節「建立 Log Forwarding 設定檔」，建立後選用</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">這條規則的重點：有明確的來源區域與位址、指定應用程式、Service 用 application-default、有日誌、有稽核註解。每一欄都盡量不是 any。</p>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：全部都是 any 的 Allow 規則</p>
+                <p class="text-gray-700 text-sm">區域、位址、Application、Service 全部 any 再加 Allow，等於這台防火牆變成一般路由器，而且它會遮蔽（shadow）排在後面的所有規則（第 8 章）。
+                    急著排除問題而臨時建立這種規則，事後卻忘了拿掉，是現場最常見的資安缺口之一。要臨時放行，也請至少限縮來源、設定排程或在稽核註解寫清楚期限。</p>
+            </div>
+        </div>
+
+        <!-- Topic 3 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Actions &amp; Logs</span>
+                三、Actions 與日誌
+            </h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">Action：六種處置方式</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-40">Action</th><th class="py-2 px-4 text-left border">行為</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">Allow</td><td class="py-2 px-4 border">放行，預設值。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Deny</td><td class="py-2 px-4 border">封鎖，並<strong>依照該應用程式本身定義的預設 Deny 動作</strong>處理。這個預設動作可在 <span class="tech-term">Objects &gt; Applications</span> 查看該應用程式的詳細資料。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Drop</td><td class="py-2 px-4 border">靜默丟棄，並<strong>覆蓋</strong>應用程式的預設 Deny 動作；不會送出 TCP reset。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Reset client</td><td class="py-2 px-4 border">對發起連線的一方（client）送 TCP reset。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Reset server</td><td class="py-2 px-4 border">對回應的一方（server）送 TCP reset。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Reset both</td><td class="py-2 px-4 border">兩端都送 TCP reset。</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 mt-3">
+                <li><strong>Send ICMP Unreachable</strong>：僅適用於 Layer 3 介面，讓來源端能優雅地結束連線。現行欄位說明寫它用於被丟棄的 TCP 流量與所有 UDP 流量；TCP 的 Reset 動作本身已經送出 reset，通常不會再多送 ICMP。教材把它列在 Drop 與各種 Reset 之下，說法略有出入，以實機為準。</li>
+                <li>Reset 只在連線（session）已成立之後才會送出；如果在三向交握完成之前就被擋掉，就不會有 reset。</li>
+                <li>為什麼 Deny 的預設不是單純丟棄？防火牆要先建立 TCP 連線，才能辨識出是什麼應用程式。連線建立後如果靜默丟包，應用程式可能卡住、持續重送，白白占用資源。所以教材（2017–2020 版）指出，當時超過半數應用程式的預設 Deny 動作是送 TCP reset；個別應用程式請到 Objects &gt; Applications 查看。</li>
+            </ul>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：誤以為 Deny 與 Drop 一樣</p>
+                <p class="text-gray-700 text-sm">兩者在日誌裡也不同。Traffic 日誌的 Type 欄位（欄位說明稱為 subtype）出現 <strong>drop</strong>，代表在<strong>辨識出應用程式之前</strong>就被丟棄，而且沒有規則放行；出現 <strong>deny</strong>，代表<strong>辨識出應用程式之後</strong>才被丟棄，可能是有規則封鎖，也可能是沒有規則放行。在辨識出應用程式之前就丟棄時，Application 欄會顯示 not-applicable。
+                    對內部使用者想讓他們「快點得到拒絕訊息而不是卡住」的場合，用 Deny 或 Reset；對外部掃描者，Drop 讓對方什麼都得不到。</p>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異：deny 與 drop 的日誌意義</p>
+                <p class="text-gray-700 text-sm">教材以「命中的規則是否指定了具體的應用程式」來解釋 deny 與 drop；現行欄位說明則改以「丟棄時是否已經辨識出應用程式」來定義。本章採用現行的定義。看日誌時請先看 Application 欄與命中的規則，不要只憑 Type 欄位推論規則怎麼寫。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">日誌設定</h3>
+            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h4 class="font-bold text-orange-800 mb-2"><i class="fas fa-flag-checkered mr-1"></i>Log at Session End</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>預設勾選。連線結束時寫一筆 Traffic 日誌，含流量位元組數、持續時間等完整資訊。</li>
+                        <li>平常維運只開這個就夠用。</li>
+                    </ul>
+                </div>
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-2"><i class="fas fa-play mr-1"></i>Log at Session Start</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>預設不勾。連線一開始就寫一筆，能看到初期的連線建立與應用程式辨識。</li>
+                        <li>只適合<strong>短期除錯</strong>：每條連線寫兩筆日誌，會增加管理平面 CPU 負擔與磁碟用量。</li>
+                    </ul>
+                </div>
+            </div>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li><strong>Log Forwarding</strong>：選一個 Log Forwarding 設定檔，把日誌送往外部系統（Syslog、Panorama 等），設定檔的建立方式見本章下方的「建立 Log Forwarding 設定檔」。</li>
+                <li>日誌查看路徑：<span class="tech-term">Monitor &gt; Logs &gt; Traffic</span>。點放大鏡可看單筆詳細資料；ICMP 這類短連線的 count 若大於 1，表示該筆合併了多個同來源同目的的連線。</li>
+                <li>只有勾了 Log at Session Start，URL 分類切換時才會在 Traffic 日誌出現各自的記錄。</li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">建立 Log Forwarding 設定檔</h3>
+            <p class="text-gray-700 mb-2">
+                設定檔只決定「哪一類日誌、符合什麼條件、送去哪裡」。規則本身要有勾選 Log at Session End（或 Start），才有 Traffic 日誌可以轉送。步驟如下：
+            </p>
+            <ol class="list-decimal pl-6 text-gray-700 space-y-1">
+                <li>先準備目的地：Syslog、Email、SNMP Trap 或 HTTP 的伺服器設定檔，路徑在 <span class="tech-term">Device &gt; Server Profiles</span>。只送往 Panorama 的話，這一步可以省略。</li>
+                <li>進入 <span class="tech-term">Objects &gt; Log Forwarding &gt; Add</span>，輸入 Name。想讓新建立的安全規則與區域自動套用這個設定檔，就把名稱取為 <span class="tech-term">default</span>。</li>
+                <li>在設定檔內按 Add 新增一筆比對清單（match list）：輸入名稱，選 Log Type（例如 traffic）。Filter 預設是轉送該類型的全部日誌；只要轉送一部分時，用 Filter Builder 建立條件。</li>
+                <li>在同一個視窗加入目的地：Panorama，或剛才準備好的 SNMP、Email、Syslog、HTTP 伺服器設定檔，然後按 OK。</li>
+                <li>回到規則的 Actions 分頁，在 Log Forwarding 欄位選這個設定檔，Commit 之後到接收端確認有收到日誌。</li>
+            </ol>
+            <p class="text-gray-700 text-sm mt-2">System、Configuration 這類不屬於規則的日誌，轉送設定放在 <span class="tech-term">Device &gt; Log Settings</span>。各欄位的名稱與位置以實機畫面為準。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">排程（Schedule）</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>預設規則永遠有效。要限制生效時間，先到 <span class="tech-term">Objects &gt; Schedules &gt; Add</span> 建立排程，再到規則的 Actions 分頁選取。</li>
+                <li>支援三種：每日、每週指定星期、非循環的指定日期區間；每一種都可以設多組起訖時間，時間用 24 小時制（細節以你版本的畫面為準）。</li>
+                <li><strong>已建立的連線不受影響</strong>：例如排程規則到點開始封鎖 FTP，原本已在傳輸的 FTP 不會被中斷，只有新的連線會被擋。</li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">區域內與區域間預設規則的日誌</h3>
+            <p class="text-gray-700 mb-2">
+                第 8 章提過兩條隱含的預設規則：intrazone-default（放行區域內）與 interzone-default（拒絕區域間）。要在 Traffic 日誌裡看見它們放行或擋掉的流量，得先對規則做 Override，再自己打開日誌。
+                這兩條規則的日誌預設值，各份文件說法不一（見本節最後的版本差異框），所以步驟裡有一步是親眼確認核取方塊。步驟如下：
+            </p>
+            <ol class="list-decimal pl-6 text-gray-700 space-y-1">
+                <li>進入 <span class="tech-term">Policies &gt; Security</span>，捲到規則清單最下方，選取 interzone-default（或 intrazone-default）。</li>
+                <li>按 <span class="tech-term">Override</span>，在 Actions 頁籤的 Log Setting 區勾選 Log at Session End。要把這些日誌送往外部系統，再選一個 Log Forwarding 設定檔（建立方式見上方的「建立 Log Forwarding 設定檔」）。</li>
+                <li>需要短期除錯時再加上 Log at Session Start。</li>
+                <li>回頭親眼確認兩個核取方塊的狀態和你要的一致，再 Commit。</li>
+                <li>想恢復成原本的設定：選取該規則，按 <span class="tech-term">Revert</span>，再按 Yes 確認。</li>
+            </ol>
+            <p class="text-gray-700 text-sm mt-2">除了日誌，預設規則也可以套用安全設定檔（第 13 章）。原廠建議開啟記錄，才能看到防火牆遇到的所有流量。</p>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異：預設規則日誌的預設值</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>教材寫預設規則預設不記錄日誌；現行原廠文件寫 Override 後 Log at Session Start 預設勾選、Session End 預設不勾選，說法不一，以實機畫面為準。</li>
+                    <li>現行文件的寫法和一般自訂規則（Session End 預設勾選、Session Start 預設不勾）剛好相反。文字是否有誤，或各版本介面的預設值是否改變，無法由文件確認。</li>
+                    <li>建議做法：Override 預設規則之後，<strong>親眼確認兩個核取方塊的實際狀態</strong>，再依需求勾選。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Topic 4 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Tags &amp; Objects</span>
+                四、Tags 與物件
+            </h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">Tag：替物件與規則貼標籤</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>建立路徑：<span class="tech-term">Objects &gt; Tags &gt; Add</span>。可設定名稱、顏色與註解。</li>
+                <li>Tag 可以貼在位址物件、位址群組、區域、服務、服務群組與政策規則上。規則與物件都可以有多個 Tag；若有多個，介面上只顯示<strong>第一個 Tag 的顏色</strong>。</li>
+                <li>規則清單可以用 Tag 過濾，只顯示帶有該標籤的規則。隱含的預設規則永遠會顯示。</li>
+                <li>命名建議：用目的命名，例如 Decrypt、No-decrypt、Mail-Servers、Temporary，而不是用人名。</li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Tag 群組：把規則按標籤分組</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>先在每條規則的編輯視窗找到 <span class="tech-term">Group Rules By Tag</span> 欄位，選一個 Tag 做為分組依據（這個欄位通常在 General 分頁，以實機畫面為準），按 OK。再到 <span class="tech-term">Policies &gt; Security</span>，勾選規則清單下方的 <span class="tech-term">View Rulebase as Groups</span>，就能以群組方式檢視規則。</li>
+                <li>群組的顯示順序與規則在規則庫中的順序一致，所以<strong>同一個 Tag 群組可能在清單中出現好幾次</strong>，以保留規則的優先順序。</li>
+                <li>在群組上執行的動作（新增、刪除、搬移、複製）會套用到<strong>該群組的所有規則</strong>，不論它們在規則庫的哪個位置。</li>
+                <li>先建立 Tag 並套用到規則上，才能用它來分組。</li>
+            </ul>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異：Tag Browser 與 Tag 群組</p>
+                <p class="text-gray-700 text-sm">較舊的 PAN-OS 版本有 Tag Browser；教材指出 PAN-OS 9.0 之後以「Tag 群組」取代，現行版本的操作就是上面的 Group Rules By Tag 欄位加上 View Rulebase as Groups 選項。若你看到的是舊介面，功能名稱會不同。
+                    教材另提到自 9.0 起可強制規則必須有 Tag，該設定位於 <span class="tech-term">Device &gt; Setup &gt; Management</span> 的規則庫設定區；是否因缺 Tag 而導致 Commit 失敗，以你版本的畫面選項為準。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">自訂 Service：定義協定與連接埠</h3>
+            <p class="text-gray-700 mb-2">
+                規則裡的 Service 欄位選「指定服務」時，要先有服務物件。路徑是 <span class="tech-term">Objects &gt; Services &gt; Add</span>：
+            </p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-52">欄位</th><th class="py-2 px-4 text-left border">說明</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">Name / Description</td><td class="py-2 px-4 border">名稱建議能看出用途，例如 tcp-8443-app。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Protocol</td><td class="py-2 px-4 border">TCP 或 UDP，<strong>二選一</strong>，不能同時選。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Destination Port</td><td class="py-2 px-4 border">必填。可以寫單一埠、用連字號的範圍，或用逗號分隔的清單，三種格式可混用，範圍 0 到 65535。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Source Port</td><td class="py-2 px-4 border">選填，大多數情況留空。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Tags</td><td class="py-2 px-4 border">選填。</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 mt-3">
+                <li>預設只有兩個預先定義的服務：<strong>service-http</strong>（教材寫 TCP 80 與 8080）與 <strong>service-https</strong>。其餘都要自己建。</li>
+                <li>多個服務可再包成服務群組。</li>
+                <li>原廠建議：原本用 service-http 與 service-https 控制 web-browsing 的規則，改用 application-default 較好，因為它能強制明文網頁只走 80、加密網頁只走 443。</li>
+            </ul>
+
+            <div class="highlight-box mt-4">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>重點：何時才需要自訂 Service</p>
+                <p class="text-gray-700 text-sm">大多數知名應用程式，application-default 就夠用，不需要建服務物件。真正需要自訂 Service 的，通常是<strong>公司內部自行開發、跑在特殊埠的應用程式</strong>。
+                    那種情況下，規則的 Application 通常會是 ssl、web-browsing 或 unknown-tcp 等，再用自訂 Service 把埠限制死。</p>
+            </div>
+        </div>
+
+        <!-- Topic 5 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Operations</span>
+                五、政策維運：Usage、Policy Optimizer、Test Policy
+            </h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">管理規則清單</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>清單下方工具列有 Add、Delete、Clone、Override、Revert、Enable、Disable、Move 等操作。</li>
+                <li>Move 可上移、下移、移到最上或最下，也可用滑鼠拖曳。<strong>左邊的行號不是規則的一部分，規則搬動時行號不會跟著動</strong>。</li>
+                <li>Disable 是停用但保留，停用的規則以灰色斜體顯示。想暫時關閉、先備好規則、或排除問題時很好用。</li>
+                <li>每位管理員可以自訂顯示的欄位：點任一欄標題即可勾選要顯示的欄位，只影響自己的畫面。</li>
+                <li>Clone 會複製選取的規則當範本，名稱預設為 rule 加編號，放在原規則下方，記得改名並檢查位置。</li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Usage 分頁：單條規則的使用情形</h3>
+            <p class="text-gray-700 mb-2">規則建立後，開啟規則會看到 <span class="tech-term">Usage</span> 分頁，依區段顯示：</p>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li><strong>Basics</strong>：規則的建立時間與最後修改時間。</li>
+                <li><strong>Activity</strong>：Hit Count（命中次數）、第一次與最後一次命中的時間。</li>
+                <li><strong>Applications</strong>：這條規則看到過幾種應用程式。點 Compare Applications &amp; Applications Seen 連結，可進入從 port-based 遷移到 App-ID 的工具。</li>
+                <li><strong>Traffic</strong>：近 30 天這條規則上的流量（位元組）。</li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">找出沒在用的規則</h3>
+            <p class="text-gray-700 mb-2">規則越多，越難維護，也越容易留下過度開放的存取。清理規則可以降低攻擊面、簡化管理。有兩個工具：</p>
+            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h4 class="font-bold text-orange-800 mb-2"><i class="fas fa-highlighter mr-1"></i>Highlight Unused Rules</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>位置：<span class="tech-term">Policies &gt; Security</span> 的工具列。</li>
+                        <li>找出自防火牆上次重新啟動以來未被使用的規則，以黃色點狀底色標示；有啟用 Policy Rule Hit Count 時，以命中資料判斷。</li>
+                        <li>也適合用來檢查從別牌防火牆搬過來的規則，是否仍有被用到。</li>
+                    </ul>
+                </div>
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h4 class="font-bold text-orange-800 mb-2"><i class="fas fa-filter mr-1"></i>Rule Usage 篩選</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>位置：<span class="tech-term">Policies &gt; Security &gt; Policy Optimizer &gt; Rule Usage</span>。</li>
+                        <li><strong>Timeframe</strong>：要看多少天的資料。</li>
+                        <li><strong>Usage</strong>：Any、Unused（期間內沒命中）、Used（期間內有命中）。</li>
+                        <li><strong>Exclude rules reset during the last N days</strong>：略過最近重設過命中計數器的規則（範圍 1 到 5000 天）。</li>
+                        <li>欄位含 Hit Count、Last Hit、First Hit、Modified、Created。</li>
+                    </ul>
+                </div>
+            </div>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li><strong>Reset Rule Hit Counter</strong>：位於清單底部選單，可對全部或選取的規則清除命中統計。典型用法：修改規則之後歸零，再觀察是否有流量命中，用來驗證修改成果。</li>
+                <li>找到未使用的規則後，建議先 <strong>Disable</strong> 觀察一段時間，確認沒有人抱怨，再刪除。</li>
+            </ul>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：觀察期太短就刪規則</p>
+                <p class="text-gray-700 text-sm">有些流量一季或一年才出現一次，例如季結算、年度備份、災難復原演練。看到「沒命中」就刪，等到那一天才發現服務不通。
+                    判斷未使用時要看足夠長的期間。Hit Count 會保留穿過重新開機、升級與資料平面重啟，但手動 Reset 之後就從零開始，觀察期要從重設那天算起（見下方版本差異）。</p>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異：未使用規則的判斷基準</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>教材說防火牆追蹤的是「自上次資料平面重新啟動以來沒被用到的規則」，也說命中資料重設之後，被清除的部分就找不回來。這是舊的說法。</li>
+                    <li>本章（和第 8 章一致）採用現行說法：<strong>總命中次數在重新開機、資料平面重啟與升級後都會保留</strong>，只有手動重設才會歸零，第一次與最後一次命中時間則不能重設。Highlight Unused Rules 標示的是自防火牆上次重新啟動以來未使用的規則，以<strong>黃色點狀底色</strong>顯示；有啟用命中計數時，以命中資料判斷。</li>
+                    <li>實務上不要只憑底色就刪規則，請同時看 Hit Count、First Hit、Last Hit 與你設定的觀察期間。</li>
+                </ul>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Policy Optimizer：從 port-based 遷移到 App-ID</h3>
+            <p class="text-gray-700 mb-2">
+                許多設備是從傳統防火牆搬過來的，規則寫的是「某來源到某目的、開放 TCP 80 與 443」，這就是 <strong>port-based 規則</strong>（Application 欄是 any）。
+                它看不出到底是誰在使用那些埠。Policy Optimizer 幫你把這類規則改成明確列出應用程式的規則。路徑是 <span class="tech-term">Policies &gt; Security &gt; Policy Optimizer</span>，本章用到三個檢視（頁籤）：
+            </p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-48">頁籤</th><th class="py-2 px-4 text-left border">用途</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">Rules Without App Controls<br/><span class="text-xs font-normal text-gray-500">部分原廠文件與舊版介面稱 No App Specified</span></td><td class="py-2 px-4 border">列出所有 port-based 規則（Apps Allowed 為 any）。開啟 Applications &amp; Usage 可看見實際命中該規則的應用程式。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Unused Apps</td><td class="py-2 px-4 border">列出已經指定應用程式、但其中有些應用程式<strong>從沒在這條規則上出現過</strong>的規則，也就是開放得比實際需要多。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Rule Usage</td><td class="py-2 px-4 border">依命中資料與時間範圍篩選規則，找出過時或未使用的規則（見上一節）。</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="diagram-container">
+<svg viewBox="0 0 460 767" width="100%" style="max-width:460px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c09d3-t" font-family="'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+<title id="c09d3-t">從 port-based 規則遷移到 App-ID 規則的循環流程圖：找出 Rules Without App Controls 的規則，看實際用到的應用程式，用 Create Cloned Rule 產生新規則並 Commit，觀察舊規則的 Hit Count，還有合法流量就回頭補，沒有就刪除舊規則，再用 Unused Apps 修剪</title>
+<defs><marker id="c09d3-ah" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4b5563"/></marker></defs>
+<rect x="30" y="10" width="400" height="71.06" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/>
+<text x="230" y="39.38" font-size="19" text-anchor="middle" fill="#1f2937" font-weight="700">Rules Without App Controls</text>
+<text x="230" y="64.58" font-size="18" text-anchor="middle" fill="#4b5563">找出 Apps Allowed 為 any 的規則</text>
+<path d="M230,81.06 L230,107.06" fill="none" stroke="#4b5563" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#c09d3-ah)"/>
+<rect x="30" y="107.06" width="400" height="71.06" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/>
+<text x="230" y="136.44" font-size="19" text-anchor="middle" fill="#1f2937" font-weight="700">Applications &amp; Usage</text>
+<text x="230" y="161.64" font-size="18" text-anchor="middle" fill="#4b5563">看實際出現過哪些應用程式</text>
+<path d="M230,178.12 L230,204.12" fill="none" stroke="#4b5563" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#c09d3-ah)"/>
+<rect x="30" y="204.12" width="400" height="71.06" rx="10" fill="#c2410c" stroke="#7c2d12" stroke-width="2"/>
+<text x="230" y="233.5" font-size="19" text-anchor="middle" fill="#ffffff" font-weight="700">Create Cloned Rule</text>
+<text x="230" y="258.7" font-size="18" text-anchor="middle" fill="#ffedd5">在原規則上方產生 App-ID 規則</text>
+<path d="M230,275.18 L230,301.18" fill="none" stroke="#4b5563" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#c09d3-ah)"/>
+<rect x="30" y="301.18" width="400" height="71.06" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/>
+<text x="230" y="330.56" font-size="19" text-anchor="middle" fill="#1f2937">Service 設為 application-default</text>
+<text x="230" y="355.76" font-size="18" text-anchor="middle" fill="#4b5563">然後 Commit</text>
+<path d="M230,372.24 L230,398.24" fill="none" stroke="#4b5563" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#c09d3-ah)"/>
+<rect x="30" y="398.24" width="400" height="46.22" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/>
+<text x="230" y="427.62" font-size="19" text-anchor="middle" fill="#1f2937">觀察原 port-based 規則的 Hit Count</text>
+<path d="M230,444.46 L230,470.46" fill="none" stroke="#4b5563" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#c09d3-ah)"/>
+<polygon points="230,470.46 380,525.46 230,580.46 80,525.46" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+<text x="230" y="518.62" font-size="19" text-anchor="middle" fill="#1f2937" font-weight="700">還有合法流量</text>
+<text x="230" y="544.84" font-size="19" text-anchor="middle" fill="#1f2937" font-weight="700">落在舊規則？</text>
+<path d="M380,525.46 L448,525.46 L448,142.59 L430,142.59" fill="none" stroke="#4b5563" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#c09d3-ah)"/>
+<text x="442" y="517.46" font-size="18" text-anchor="end" fill="#c2410c" font-weight="700" stroke="#ffffff" stroke-width="5" paint-order="stroke" stroke-linejoin="round">有</text>
+<path d="M230,580.46 L230,610.46" fill="none" stroke="#4b5563" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#c09d3-ah)"/>
+<text x="240" y="602.46" font-size="18" text-anchor="start" fill="#4b5563" font-weight="700" stroke="#ffffff" stroke-width="5" paint-order="stroke" stroke-linejoin="round">沒有</text>
+<rect x="30" y="610.46" width="400" height="46.22" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+<text x="230" y="639.84" font-size="19" text-anchor="middle" fill="#1f2937" font-weight="700">確認一段時間後刪除舊規則</text>
+<path d="M230,656.68 L230,682.68" fill="none" stroke="#4b5563" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#c09d3-ah)"/>
+<rect x="30" y="682.68" width="400" height="71.06" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/>
+<text x="230" y="712.06" font-size="19" text-anchor="middle" fill="#1f2937" font-weight="700">改看 Unused Apps</text>
+<text x="230" y="737.26" font-size="18" text-anchor="middle" fill="#4b5563">修剪多開的應用程式</text>
+<path d="M30,718.21 L12,718.21 L12,45.53 L30,45.53" fill="none" stroke="#4b5563" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#c09d3-ah)"/>
+</svg>
+            </div>
+
+            <h4 class="font-bold text-gray-800 mt-4 mb-2">三種轉換方式</h4>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li><strong>Create Cloned Rule</strong>：保留原本的 port-based 規則，並把應用程式式的新規則放在它正上方。原廠稱這是最安全的遷移方式。</li>
+                <li><strong>Add to This Rule</strong>：直接把看過的應用程式加進這條規則，並以新規則取代、刪掉原規則，風險較高，因為原規則被刪除後，新規則漏列的合法應用程式就沒有規則可以接住，會被擋下。</li>
+                <li><strong>Match Usage</strong>：一鍵把所有看過的應用程式複製進規則。只適合單純的規則，例如只看到 SSH 的 TCP 22。</li>
+            </ul>
+            <p class="text-gray-700 text-sm mt-2">在 Applications &amp; Usage 視窗，Timeframe 可選 7 天、15 天、30 天或 Anytime；原廠建議遷移時選 Anytime，評估最完整。</p>
+
+            <div class="analogy-box">
+                <p class="font-bold mb-2 text-green-800">🚪 生活化比喻：把「通行證」換成「點名簿」</p>
+                <ul class="list-none space-y-2 pl-2 text-gray-700">
+                    <li class="flex items-start"><i class="fas fa-ticket text-gray-500 mt-1 mr-3"></i><span><strong>port-based 規則</strong>：拿著 80 與 443 這張通行證，誰來都能進，沒人知道進去幹嘛。</span></li>
+                    <li class="flex items-start"><i class="fas fa-clipboard-check text-green-600 mt-1 mr-3"></i><span><strong>App-ID 規則</strong>：一份點名簿，名單上有的才放行，其餘一律攔下。</span></li>
+                    <li class="flex items-start"><i class="fas fa-eye text-blue-500 mt-1 mr-3"></i><span><strong>遷移的做法</strong>：先把點名簿放在舊通行證前面試行。舊通行證還有人在用，代表名單漏了人；等舊通行證長期沒人刷，才能放心撤掉。</span></li>
+                </ul>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：Policy Optimizer 沒資料或資料不準</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>Apps Seen 約每小時更新一次，剛改完規則別立刻判斷。</li>
+                    <li>原廠指出 Policy Optimizer 只採計 Log at Session End，會<strong>忽略</strong> Log at Session Start。規則若沒有開啟 Log at Session End，就看不到資料。</li>
+                    <li>只開放極少觀察期就轉換，可能漏掉低頻應用程式。建議先累積足夠的資料。</li>
+                </ul>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異：Policy Optimizer 的檢視名稱與載入方式</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li><strong>檢視名稱</strong>：Policy Optimizer 自 PAN-OS 9.0 起提供，Rule Usage 篩選的名稱與路徑在教材與現行文件一致。列出「應用程式為 any 的規則」那個檢視（教材沒有點名），部分原廠文件與舊版介面稱 No App Specified，現行介面多寫成 Rules Without App Controls，原廠文件說法不一，以實機畫面為準。</li>
+                    <li><strong>其他檢視</strong>：現行介面說明還列出 New App Viewer（需要 SaaS Security 訂閱）與 Log Forwarding for Security Services（一次替多條規則指定 Log Forwarding 設定檔），教材沒有提到。</li>
+                    <li><strong>載入方式</strong>：較新的 12.1 維護版本，原廠表示 Policy Optimizer 資料改為「需要時才載入」以提升效能，並建議只在需要時才切換到 Policy Optimizer 檢視。你的版本是否適用此行為，以實機為準。</li>
+                </ul>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Test Policy Match：先模擬、再上線</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>PAN-OS 9.0 起，可在網頁介面輸入一組模擬流量條件，檢查它會命中哪一條規則，不必再背 CLI 指令。</li>
+                <li>入口有兩處：<span class="tech-term">Policies &gt; Security</span> 工具列的 Test Policy Match，以及 <span class="tech-term">Device &gt; Troubleshooting</span> 的 Security Policy Match。</li>
+                <li>可輸入的條件包括 From／To 區域、Source、Destination、Destination Port、Protocol、Source User、Application、Category；還有選項決定要顯示「所有可能的符合規則，直到第一條 Allow」或只顯示第一條命中的規則。欄位與選項的實際名稱，以你版本的畫面為準。</li>
+                <li>CLI 對應指令為 <code>test security-policy-match</code>。</li>
+                <li>Troubleshooting 頁面另有連線測試，可確認設備能連上 WildFire、日誌收集器等資源。</li>
+                <li>搭配 Commit 前的驗證：新規則或 Negate 規則寫完，先測再 Commit，可以省下很多回頭修正的時間。</li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Global Find：全域搜尋設定</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>在候選設定（candidate configuration）與內容資料庫中搜尋一段文字，例如 IP 位址、物件名稱、規則名稱、威脅 ID、應用程式名稱。</li>
+                <li>啟動方式：畫面上方的 Search 連結，或在欄位的下拉箭頭選單中選 Global Find。結果依類別分組，點連結就能跳到該設定位置。</li>
+                <li>典型用途：準備刪除某個位址物件前，先找出還有哪些規則、群組引用它；找出所有帶某個 Tag 的物件；查某個應用程式有沒有被用在規則、應用程式群組或報表查詢中。</li>
+                <li>如果你在規則的註解裡寫了工單編號，之後可以直接搜尋工單編號，找到當時改的地方（稽核註解欄位是否也搜得到，以實機為準）。</li>
+                <li>限制：不搜尋日誌、位址範圍與動態配發的 DHCP 位址；個別使用者或群組名稱，除非有被寫進政策，否則也搜不到。能搜的只有防火牆寫進候選設定的內容。這些範圍與限制以你版本的畫面為準。</li>
+            </ul>
+
+            <div class="highlight-box mt-4">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>動手練習對照（教材 Lab）</p>
+                <p class="text-gray-700 text-sm">教材實驗中與本章相關的步驟：建立並測試安全規則、修改規則清單欄位、查看規則命中計數、重設命中計數器、檢視 Traffic 日誌、替預設規則啟用日誌。
+                    NAT 的部分留到第 10、11 章。</p>
+            </div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
+                隨堂測驗
+            </h2>
+            <p class="mb-6 text-gray-600">請點選您認為正確的選項，系統將會顯示解析。</p>
+            <div class="space-y-6" id="quiz-container"></div>
+        </div>
+
+    </main>
+
+    <footer class="footer-signature">
+        Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver.2026.10.29.11.03
+    </footer>
+
+
+    <script>
+        const quizData = [
+            {
+                question: "Q1. 一條規則的 Action 設為 Deny，對 TCP 流量最準確的描述是哪一項？",
+                options: ["A. 一律靜默丟棄封包，不送任何回應", "B. 封鎖流量，並依照該應用程式本身定義的預設 Deny 動作處理，許多應用程式預設會送 TCP reset", "C. 只封鎖第一個封包，之後的封包照常放行", "D. 等同於 Allow，只是多寫一筆日誌"],
+                correct: 1,
+                desc: "正解：B。Deny 會沿用應用程式的預設 Deny 動作，教材（2017–2020 版）指出當時超過半數的應用程式預設是送 TCP reset，個別應用程式請到 Objects > Applications 查看；Drop 才是靜默丟棄並覆蓋應用程式預設。因為防火牆要先建立 TCP 連線才能辨識應用程式，連線建立後靜默丟包容易讓應用程式卡住。"
+            },
+            {
+                question: "Q2. 新增一條 Allow 規則並加入某應用程式後 Commit 成功，但 Commit 視窗的 App Dependency 頁籤出現警告。正確的處理方式是？",
+                options: ["A. 這只是資訊，不需處理", "B. 警告代表 Commit 會失敗，必須先還原設定", "C. 點 Count 數字查看缺少的相依應用程式，把它們加進政策中的某條規則後再 Commit，直到警告消失", "D. 把整條規則的 Application 改回 any"],
+                correct: 2,
+                desc: "正解：C。App Dependency 是警告，Commit 仍會成功，所以容易被忽略；但相依的應用程式沒有被任何規則放行，原應用程式可能無法完整運作。把缺少的應用程式補進任一條規則即可。改成 any 會讓規則過度開放，是錯誤做法。"
+            },
+            {
+                question: "Q3. 要把一條舊的 port-based 規則（Applications 為 any）安全地遷移成 App-ID 規則，最穩妥的做法是？",
+                options: ["A. 直接刪除舊規則，再從頭建立新規則", "B. 用 Create Cloned Rule 在舊規則上方建立 App-ID 規則並 Commit，持續觀察舊規則的 Hit Count，確認沒有合法流量再移除舊規則", "C. 對所有規則都使用 Match Usage，一鍵全部轉換", "D. 把舊規則的 Service 改成 any，避免漏掉流量"],
+                correct: 1,
+                desc: "正解：B。複製出的新規則放在舊規則正上方，舊規則還在當保險：只要還有合法流量落到舊規則，就代表新規則漏了應用程式，補上之後再觀察。Match Usage 只適合單純的規則；Add to This Rule 會直接取代並刪掉舊規則，風險較高。"
+            },
+            {
+                question: "Q4. 管理員想知道有哪些流量被 interzone-default 規則擋掉，但 Traffic 日誌裡完全找不到。最可能的原因與處理方式是？",
+                options: ["A. 預設規則的日誌要自己打開：到 Policies > Security 選取該預設規則，用 Override 修改日誌設定，確認並勾選 Log at Session End 後 Commit","B. interzone-default 只能由 Panorama 開啟日誌", "C. Traffic 日誌只記錄 Allow 的流量，無法記錄被拒絕的流量", "D. 需要先建立 Schedule 才能記錄預設規則"],
+                correct: 0,
+                desc: "正解：A。要在 Traffic 日誌裡看見隱含的 intrazone-default 與 interzone-default 的流量，需先 Override 預設規則，修改日誌設定再 Commit。教材寫預設規則預設不記錄日誌；現行原廠文件寫 Override 後 Log at Session Start 預設勾選、Session End 預設不勾選，說法不一，以實機畫面為準，所以 Override 後要親眼確認核取方塊的狀態。短期除錯時可再加上 Log at Session Start，但要留意對管理平面的額外負擔。"
+            }
+        ];
+
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionBox = document.createElement('div');
+            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
+
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border mb-2 text-gray-700" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            questionBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
+                <div class="space-y-2 mb-4">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
+                    <p class="font-bold result-title"></p>
+                    <p class="text-sm text-gray-600 mt-1">${item.desc}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionBox);
+        });
+
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            if (element.parentElement.dataset.answered) return;
+            element.parentElement.dataset.answered = "true";
+
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+                opt.classList.add('disabled');
+            });
+
+            if (optIndex === data.correct) {
+                element.classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了！";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                element.classList.add('bg-red-100', 'border-red-500');
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了！";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+    </script>
+</body>
+</html>

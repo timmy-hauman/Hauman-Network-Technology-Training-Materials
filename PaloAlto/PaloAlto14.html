@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palo Alto Networks NGFW 實戰課程 - User-ID</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        /* 卡片主體樣式 (Palo Alto Orange) */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #fa582d;
+        }
+
+        /* 重點提示框 (橘) */
+        .highlight-box {
+            background-color: #fff7ed;
+            border-left: 4px solid #fa582d;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 技術名詞標記 */
+        .tech-term {
+            color: #c2410c;
+            font-weight: 700;
+            background-color: #fff1e6;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
+        }
+
+        /* 比喻說明框 (綠) */
+        .analogy-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 版本差異框 (紫) */
+        .version-box {
+            background-color: #faf5ff;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 常見踩坑框 (紅) */
+        .pitfall-box {
+            background-color: #fef2f2;
+            border-left: 4px solid #dc2626;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .diagram-container {
+            background-color: #ffffff;
+            padding: 1.25rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-top: 1rem;
+            overflow-x: auto;
+        }
+
+        @media (max-width: 640px) {
+            .section-card { padding: 1rem; }
+            .diagram-container { padding: 0.25rem; }
+        }
+
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover:not(.disabled) {
+            background-color: #f3f4f6;
+        }
+
+        .footer-signature {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+            margin-top: 4rem;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-orange-600 to-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-fire-flame-curved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold">Palo Alto Networks NGFW 實戰課程</h1>
+                    <p class="text-orange-100 mt-1">進階篇 - 單元 14：User-ID</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <!-- Introduction -->
+        <div class="mb-8">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
+                <h2 class="text-xl font-bold text-blue-800 mb-2 flex items-center">
+                    <i class="fas fa-user-tie mr-2"></i>講師導言
+                </h2>
+                <p class="text-blue-900 leading-relaxed">
+                    前面幾章的安全規則，條件幾乎都是「位址、區域、應用程式」。但真正想問的問題常常是：<strong>這是誰在用？</strong>
+                    財務部的人可以連 ERP，工程師可以用 SSH，訪客只能上網。位址會因為 DHCP、換座位、出差而改變，<strong>人不會</strong>。
+                    這一章的主角是 <strong>User-ID</strong>：防火牆如何知道「某個位址此刻是誰」、如何知道「這個人屬於哪些群組」，以及怎麼把這兩份資訊用在規則、日誌與排錯上。
+                    你也會學到它的風險：對應表一旦過期或被繞過，規則就會<strong>悄悄地套錯人</strong>。
+                </p>
+            </div>
+        </div>
+
+        <!-- 學習目標 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-gray-100 text-gray-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Goals</span>
+                本章學習目標
+            </h2>
+            <ul class="list-disc pl-6 space-y-1 text-gray-700">
+                <li>說明為什麼要用使用者與群組寫規則，以及 User-ID 的兩份資料：IP 對使用者、使用者對群組</li>
+                <li>列出主要的 IP 對使用者對應方式，並比較各自的資訊來源、適用情境與注意事項</li>
+                <li>分辨 Windows-based 與 PAN-OS 整合式 User-ID agent，說明伺服器監控、服務帳號權限與包含／排除網段</li>
+                <li>設定 LDAP 群組對應（Group Mapping Settings），並在區域啟用 User Identification</li>
+                <li>在安全規則的 Source User 使用使用者與群組，並在日誌中看到使用者名稱</li>
+                <li>用 <code>show user</code> 系列指令驗證與排錯，並說出 IP 重用、DHCP 租約、服務帳號權限等風險</li>
+            </ul>
+        </div>
+
+        <!-- Topic 1 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Concept</span>
+                一、為什麼要用「身分」寫政策？
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                <span class="tech-term">User-ID</span> 讓防火牆辨識使用者，而不是只看 IP 位址。原廠把好處歸納成三件事：
+            </p>
+            <div class="grid md:grid-cols-3 gap-4 mb-4">
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h3 class="font-bold text-orange-800 mb-1"><i class="fas fa-eye mr-1"></i>可視性</h3>
+                    <p class="text-sm text-gray-700">在 ACC 或日誌檢視器中，看到「誰」在使用哪些應用程式，而不只是哪個位址。</p>
+                </div>
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h3 class="font-bold text-orange-800 mb-1"><i class="fas fa-user-lock mr-1"></i>政策控制</h3>
+                    <p class="text-sm text-gray-700">把使用者資訊接到安全規則，讓敏感應用程式只開放給有業務需求的人。</p>
+                </div>
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h3 class="font-bold text-orange-800 mb-1"><i class="fas fa-file-lines mr-1"></i>日誌、報表、鑑識</h3>
+                    <p class="text-sm text-gray-700">產出以使用者為單位的報表，事件調查時能直接指出是哪個帳號。</p>
+                </div>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">防火牆需要兩份名單</h3>
+            <p class="mb-2 text-gray-700">
+                要執行使用者與群組政策，防火牆必須同時握有兩份資料，缺一份就做不成：
+            </p>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 mb-2">
+                <li><strong>IP 對使用者的對應（user mapping）</strong>：封包進來時，這個來源位址現在是誰。這是第二節的主題。</li>
+                <li><strong>使用者對群組的對應（group mapping）</strong>：這個人屬於哪些群組，讓你能在規則中直接選群組。這是第三節的主題。</li>
+            </ul>
+
+            <div class="diagram-container">
+<svg viewBox="0 0 460 362" width="100%" style="max-width:460px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c14d1-t" font-family="'Noto Sans TC', sans-serif">
+<title id="c14d1-t">兩種規則對照：只看 IP 的規則在使用者換座位後權限仍跟著舊 IP，看身分的規則靠對應表更新，權限跟著人與群組走</title>
+<defs><marker id="c14d1-m-gray" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#4b5563"/></marker></defs>
+<text x="115" y="30" text-anchor="middle" font-size="18" fill="#4b5563" font-weight="700">只看 IP 的規則</text>
+<text x="345" y="30" text-anchor="middle" font-size="18" fill="#166534" font-weight="700">看身分的規則</text>
+<rect x="10" y="46" width="210" height="64" rx="8" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1.6"/>
+<text x="115" y="72" text-anchor="middle" font-size="18" fill="#1f2937">使用者換座位</text>
+<text x="115" y="96" text-anchor="middle" font-size="18" fill="#1f2937">IP 改變</text>
+<rect x="240" y="46" width="210" height="64" rx="8" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1.6"/>
+<text x="345" y="72" text-anchor="middle" font-size="18" fill="#1f2937">使用者換座位</text>
+<text x="345" y="96" text-anchor="middle" font-size="18" fill="#1f2937">IP 改變</text>
+<path d="M115,110 L115,142" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c14d1-m-gray)"/>
+<path d="M345,110 L345,142" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c14d1-m-gray)"/>
+<rect x="10" y="142" width="210" height="88" rx="8" fill="#fff7ed" stroke="#fdba74" stroke-width="1.6"/>
+<text x="115" y="180" text-anchor="middle" font-size="18" fill="#7c2d12">規則還指著</text>
+<text x="115" y="204" text-anchor="middle" font-size="18" fill="#7c2d12">舊 IP</text>
+<rect x="240" y="142" width="210" height="88" rx="8" fill="#c2410c" stroke="#9a3412" stroke-width="1.6"/>
+<text x="345" y="168" text-anchor="middle" font-size="18" fill="#ffffff">對應表更新，</text>
+<text x="345" y="192" text-anchor="middle" font-size="18" fill="#ffffff">新 IP 對上</text>
+<text x="345" y="216" text-anchor="middle" font-size="18" fill="#ffffff">同一個人</text>
+<path d="M115,230 L115,262" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c14d1-m-gray)"/>
+<path d="M345,230 L345,262" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c14d1-m-gray)"/>
+<rect x="10" y="262" width="210" height="88" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="115" y="300" text-anchor="middle" font-size="18" fill="#991b1b">權限跟著 IP 走，</text>
+<text x="115" y="324" text-anchor="middle" font-size="18" fill="#991b1b">不跟著人走</text>
+<rect x="240" y="262" width="210" height="88" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.6"/>
+<text x="345" y="288" text-anchor="middle" font-size="18" fill="#166534">規則依人與群組</text>
+<text x="345" y="312" text-anchor="middle" font-size="18" fill="#166534">判斷，權限跟著</text>
+<text x="345" y="336" text-anchor="middle" font-size="18" fill="#166534">人走</text>
+</svg>
+            </div>
+
+            <div class="analogy-box">
+                <p class="font-bold mb-2 text-green-800">🪑 生活化比喻：辦公室座位表與組織圖</p>
+                <ul class="list-none space-y-2 pl-2 text-gray-700">
+                    <li class="flex items-start"><i class="fas fa-chair text-blue-500 mt-1 mr-3"></i><span><strong>IP 位址</strong>：座位編號。你只知道「A12 座位的人想進機房」，但不知道坐的是誰。</span></li>
+                    <li class="flex items-start"><i class="fas fa-table-list text-orange-500 mt-1 mr-3"></i><span><strong>IP 對使用者對應表</strong>：座位表。登記每個座位現在坐著誰。座位表沒更新，警衛就會把前一個人的權限給了現在坐下的人。</span></li>
+                    <li class="flex items-start"><i class="fas fa-sitemap text-green-600 mt-1 mr-3"></i><span><strong>使用者對群組對應</strong>：組織圖。規則只寫「財務部可以進」，部門人員異動時，改組織圖就好，不必改每一條規則。</span></li>
+                </ul>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：使用者位址在到防火牆前就被 NAT</p>
+                <p class="text-gray-700 text-sm">原廠說明明確寫道，如果使用者的來源 IP 在防火牆做對應之前就已被 NAT 轉換，<strong>User-ID 在這種環境下無法運作</strong>。上游若有設備把整個網段轉成同一個位址，防火牆看到的就是一個「人」，群組規則自然無從談起。設計拓樸時，要確保防火牆看到的是使用者的真實位址（NAT 與規則的先後關係可回頭複習第 1、10、11 章）。</p>
+            </div>
+        </div>
+
+        <!-- Topic 2 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Mapping</span>
+                二、防火牆如何學會「IP 是誰」
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                原廠說明 User-ID 提供多種對應方式，要依使用者在哪裡登入、存取什麼資源來挑選，也可以<strong>混合使用</strong>，不同站點用不同方式。
+                各種方式收集到的資訊，都會匯入防火牆的 IP 對使用者對應表，之後的政策、日誌與報表都讀這張表。
+            </p>
+
+            <div class="diagram-container">
+<svg viewBox="0 0 460 610" width="100%" style="max-width:460px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c14d2-t" font-family="'Noto Sans TC', sans-serif">
+<title id="c14d2-t">IP 對使用者的六種來源匯入防火牆的對應表，使用者對群組表來自 LDAP 或 Cloud Identity Engine，兩份資料一起供安全政策 Source User、日誌、ACC 與報表使用</title>
+<defs><marker id="c14d2-m-gray" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#4b5563"/></marker><marker id="c14d2-m-orange" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#c2410c"/></marker></defs>
+<text x="14" y="28" text-anchor="start" font-size="18" fill="#1f2937" font-weight="700">IP 對使用者的來源</text>
+<rect x="10" y="44" width="210" height="88" rx="8" fill="#fff7ed" stroke="#fdba74" stroke-width="1.6"/>
+<text x="115" y="70" text-anchor="middle" font-size="18" fill="#7c2d12" font-weight="700">伺服器監控</text>
+<text x="115" y="94" text-anchor="middle" font-size="18" fill="#7c2d12">讀網域控制站</text>
+<text x="115" y="118" text-anchor="middle" font-size="18" fill="#7c2d12">登入事件</text>
+<rect x="240" y="44" width="210" height="88" rx="8" fill="#fff7ed" stroke="#fdba74" stroke-width="1.6"/>
+<text x="345" y="70" text-anchor="middle" font-size="18" fill="#7c2d12" font-weight="700">Syslog 解析</text>
+<text x="345" y="94" text-anchor="middle" font-size="18" fill="#7c2d12">無線控制器、</text>
+<text x="345" y="118" text-anchor="middle" font-size="18" fill="#7c2d12">Proxy、NAC</text>
+<rect x="10" y="142" width="210" height="64" rx="8" fill="#fff7ed" stroke="#fdba74" stroke-width="1.6"/>
+<text x="115" y="168" text-anchor="middle" font-size="18" fill="#7c2d12" font-weight="700">Authentication</text>
+<text x="115" y="192" text-anchor="middle" font-size="18" fill="#7c2d12">Portal 網頁登入</text>
+<rect x="240" y="142" width="210" height="64" rx="8" fill="#fff7ed" stroke="#fdba74" stroke-width="1.6"/>
+<text x="345" y="168" text-anchor="middle" font-size="18" fill="#7c2d12" font-weight="700">GlobalProtect</text>
+<text x="345" y="192" text-anchor="middle" font-size="18" fill="#7c2d12">用戶端直接回報</text>
+<rect x="10" y="216" width="210" height="88" rx="8" fill="#fff7ed" stroke="#fdba74" stroke-width="1.6"/>
+<text x="115" y="242" text-anchor="middle" font-size="18" fill="#7c2d12" font-weight="700">XML API</text>
+<text x="115" y="266" text-anchor="middle" font-size="18" fill="#7c2d12">腳本送入</text>
+<text x="115" y="290" text-anchor="middle" font-size="18" fill="#7c2d12">登入登出事件</text>
+<rect x="240" y="216" width="210" height="88" rx="8" fill="#fff7ed" stroke="#fdba74" stroke-width="1.6"/>
+<text x="345" y="242" text-anchor="middle" font-size="18" fill="#7c2d12" font-weight="700">Cloud Identity</text>
+<text x="345" y="266" text-anchor="middle" font-size="18" fill="#7c2d12">Engine</text>
+<text x="345" y="290" text-anchor="middle" font-size="18" fill="#7c2d12">User Context</text>
+<path d="M115,304 L115,328" fill="none" stroke="#c2410c" stroke-width="2.2"/>
+<path d="M345,304 L345,328" fill="none" stroke="#c2410c" stroke-width="2.2"/>
+<path d="M115,328 L345,328" fill="none" stroke="#c2410c" stroke-width="2.2"/>
+<path d="M230,328 L230,360" fill="none" stroke="#c2410c" stroke-width="2.2" marker-end="url(#c14d2-m-orange)"/>
+<rect x="10" y="360" width="260" height="88" rx="8" fill="#c2410c" stroke="#9a3412" stroke-width="1.6"/>
+<text x="140" y="398" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="700">防火牆</text>
+<text x="140" y="422" text-anchor="middle" font-size="18" fill="#ffffff">IP 對使用者對應表</text>
+<rect x="285" y="360" width="165" height="112" rx="8" fill="#faf5ff" stroke="#7c3aed" stroke-width="1.6"/>
+<text x="367.5" y="386" text-anchor="middle" font-size="18" fill="#4c1d95" font-weight="700">LDAP 或</text>
+<text x="367.5" y="410" text-anchor="middle" font-size="18" fill="#4c1d95">Cloud Identity</text>
+<text x="367.5" y="434" text-anchor="middle" font-size="18" fill="#4c1d95">Engine：使用者</text>
+<text x="367.5" y="458" text-anchor="middle" font-size="18" fill="#4c1d95">對群組表</text>
+<path d="M140,448 L140,502" fill="none" stroke="#4b5563" stroke-width="2.2"/>
+<path d="M367,472 L367,502" fill="none" stroke="#4b5563" stroke-width="2.2"/>
+<path d="M140,502 L367,502" fill="none" stroke="#4b5563" stroke-width="2.2"/>
+<path d="M230,502 L230,534" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c14d2-m-gray)"/>
+<rect x="40" y="534" width="380" height="64" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.6"/>
+<text x="230" y="560" text-anchor="middle" font-size="18" fill="#1e3a8a" font-weight="700">安全政策 Source User</text>
+<text x="230" y="584" text-anchor="middle" font-size="18" fill="#1e3a8a">日誌、ACC、報表</text>
+</svg>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">對應方式比較</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border w-40">方式</th>
+                            <th class="py-2 px-4 text-left border">資訊來源</th>
+                            <th class="py-2 px-4 text-left border">典型使用情境</th>
+                            <th class="py-2 px-4 text-left border">注意事項</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr>
+                            <td class="py-2 px-4 border font-semibold">Server Monitoring（伺服器監控）</td>
+                            <td class="py-2 px-4 border">User-ID agent 讀網域控制站、Exchange、Novell eDirectory 的安全事件日誌，看 Kerberos 票證、Exchange 存取、檔案與列印服務連線等登入活動</td>
+                            <td class="py-2 px-4 border">使用者在公司內部以網域帳號登入的 Windows 環境，最常見的做法</td>
+                            <td class="py-2 px-4 border">網域必須記錄登入成功事件；使用者可登入網域內任何伺服器，所以每一台都要監控才不漏。需要專用服務帳號</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 px-4 border font-semibold">Syslog</td>
+                            <td class="py-2 px-4 border">無線控制器、802.1x 設備、Apple Open Directory、Proxy、NAC 等送來的登入與登出 syslog，經 Syslog Parse Profile 解析</td>
+                            <td class="py-2 px-4 border">非 Windows 登入來源，或位址經常變動、需要靠登出事件及時清掉舊對應的環境</td>
+                            <td class="py-2 px-4 border">訊息必須是單行文字、每則最多 8,000 bytes；UDP 訊息要放得進單一封包。由 agent 擔任 syslog 監聽端</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 px-4 border font-semibold">Authentication Portal（Captive Portal）</td>
+                            <td class="py-2 px-4 border">Authentication policy 把「尚未對應」的 HTTP／HTTPS 流量導向登入頁，使用者以 Web Form、Kerberos SSO 或用戶端憑證驗證</td>
+                            <td class="py-2 px-4 border">其他方式抓不到的使用者，例如非網域電腦、訪客、BYOD</td>
+                            <td class="py-2 px-4 border">Redirect 模式要處理憑證與 DNS；與解密併用時須搭配 SSL Forward Proxy（SSL Inbound Inspection 不支援 Redirect 模式）。以驗證取得的對應，優先於其他方式的對應</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 px-4 border font-semibold">GlobalProtect</td>
+                            <td class="py-2 px-4 border">GlobalProtect 用戶端登入 VPN 時，直接把使用者對應回報給防火牆</td>
+                            <td class="py-2 px-4 border">行動與遠端使用者；原廠建議用在需要確知身分才能放行的敏感環境</td>
+                            <td class="py-2 px-4 border">使用者必須先通過驗證才進得了網路，所以對應是明確的。細節見第 16 章</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 px-4 border font-semibold">XML API</td>
+                            <td class="py-2 px-4 border">你寫的腳本擷取登入與登出事件，用 HTTP 請求送給 PAN-OS 整合式 agent 或防火牆，以 API key 驗證</td>
+                            <td class="py-2 px-4 border">第三方 VPN、802.1x 無線網路等標準方法加不進對應的情況</td>
+                            <td class="py-2 px-4 border">腳本由你自己維護，登入與登出都要送，否則舊對應會殘留</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 px-4 border font-semibold">Port Mapping（Terminal Server Agent）</td>
+                            <td class="py-2 px-4 border">裝在 Windows 或 Citrix 終端機伺服器上，替各使用者的處理程序指派來源連接埠，回報給 User-ID</td>
+                            <td class="py-2 px-4 border">許多人共用同一個 IP 的終端機環境</td>
+                            <td class="py-2 px-4 border">只靠 IP 無法區分人，必須連來源連接埠一起看。不支援的終端機（例如 Linux）改走 XML API（支援範圍以實機為準）</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 px-4 border font-semibold">XFF 標頭</td>
+                            <td class="py-2 px-4 border">Proxy 在 HTTP／HTTPS 請求加上的 X-Forwarded-For 標頭，內含用戶端位址</td>
+                            <td class="py-2 px-4 border">使用者躲在 Proxy 後面，防火牆看到的來源位址是 Proxy 本身</td>
+                            <td class="py-2 px-4 border">只適用 HTTP／HTTPS，且 Proxy 必須真的加上標頭；用在 HTTPS 時是否要先解密，以實機為準</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 px-4 border font-semibold">Cloud Identity Engine（CIE）</td>
+                            <td class="py-2 px-4 border">由雲端目錄同步（Directory Sync）取得使用者與群組屬性，再經 User Context 分享身分資料給防火牆、Panorama、Prisma Access</td>
+                            <td class="py-2 px-4 border">雲端目錄（如 Microsoft Entra ID）與地端 AD 混合、設備多、不想讓每台防火牆互相轉送對應的環境</td>
+                            <td class="py-2 px-4 border">服務本身免費，但使用目錄資料的執法點可能需要特定授權</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 px-4 border font-semibold">Client Probing（用戶端探測）</td>
+                            <td class="py-2 px-4 border">agent 以 WMI 探測用戶端，確認對應是否仍有效，或查詢未對應位址的使用者</td>
+                            <td class="py-2 px-4 border">舊式的內部 Windows 工作站環境</td>
+                            <td class="py-2 px-4 border">原廠強烈建議停用，高安全網路尤其不適合；詳見下方</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">兩種 User-ID agent</h3>
+            <p class="mb-2 text-gray-700">
+                伺服器監控與 syslog 這兩種方式，都由 <strong>User-ID agent</strong> 執行。agent 有兩種型態，做的事相同：
+            </p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border w-40">比較項目</th>
+                            <th class="py-2 px-4 text-left border">Windows-based agent</th>
+                            <th class="py-2 px-4 text-left border">PAN-OS 整合式 agent</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">跑在哪裡</td><td class="py-2 px-4 border">網域的成員伺服器，要靠近被監控的伺服器；每個有被監控伺服器的站點至少裝一個</td><td class="py-2 px-4 border">防火牆本身，不需另外裝軟體</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">與防火牆的流量</td><td class="py-2 px-4 border">大部分流量發生在 agent 與被監控伺服器之間；傳給防火牆的只有自上次以來的對應變動</td><td class="py-2 px-4 border">防火牆直接連被監控伺服器（WMI 或 WinRM）</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">服務帳號與 Server Operators</td><td class="py-2 px-4 border">不需要 Server Operators 權限</td><td class="py-2 px-4 border">只有要監控「使用者工作階段」才需要，原廠不建議，且該群組也能關機與重開機</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Syslog 監聽</td><td class="py-2 px-4 border">TCP 與 UDP 的 514</td><td class="py-2 px-4 border">SSL 的 6514 與 UDP 的 514，並可使用隨 Applications 內容更新提供的預先定義 Parse Profile</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">設定位置</td><td class="py-2 px-4 border">在 agent 軟體中設定，防火牆再設定去連 agent</td><td class="py-2 px-4 border"><span class="tech-term">Device &gt; User Identification &gt; User Mapping</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="highlight-box mt-4">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>伺服器監控的傳輸方式</p>
+                <p class="text-gray-700 text-sm">PAN-OS 整合式 agent 在監控 Active Directory 與 Exchange 時，可選 <strong>WMI</strong>、<strong>WinRM-HTTP</strong> 或 <strong>WinRM-HTTPS</strong>。事件來源必須產生登入成功（4624）、驗證票證授予（4768）、服務票證授予（4769）與票證更新（4770）事件。每台防火牆最多監控 100 台伺服器、每個虛擬系統最多 50 個 syslog 傳送端。</p>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：Client Probing 不要開</p>
+                <p class="text-gray-700 text-sm">原廠說這不是高安全網路建議的 User-ID 取得方式：它信任終端回報的資料，設定錯誤就形成風險；若在外部或不受信任的介面上啟用，agent 可能把服務帳號的使用者名稱、網域與密碼雜湊送到網路外面；探測的流量也隨對應數量增加。優先選擇網域控制站、Syslog、XML API，或 Authentication Portal 這些較受信任的來源。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Authentication Portal 的重點</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>路徑：<span class="tech-term">Device &gt; User Identification &gt; Authentication Portal Settings</span>，再加上 Authentication policy 規則來觸發。沒有 Authentication policy 規則，登入頁不會出現。</li>
+                <li>兩種模式：<strong>Redirect</strong> 將未知的工作階段以 HTTP 302 導到防火牆的 Layer 3 介面，可避免憑證錯誤，是較建議的模式；<strong>Transparent</strong> 由防火牆冒充原目的網站並回 HTTP 401，因為沒有該網站真正的憑證，瀏覽器會跳憑證錯誤，原廠建議只在必要時使用。Kerberos SSO 與 MFA 都要求 Redirect 模式。</li>
+                <li>三種驗證方式：Web Form（所有瀏覽器與作業系統適用）、Kerberos SSO（需要 Kerberos 基礎架構，防火牆要有 Kerberos 帳號）、用戶端憑證（每台使用者電腦要有憑證，防火牆要信任簽發的 CA）。Kerberos SSO 失敗時，會依設定退回 Web Form 或用戶端憑證。</li>
+                <li>Redirect 模式要為 Redirect Host 建 DNS A 記錄（用 Kerberos SSO 時另加 PTR 記錄）；入口 Layer 3 介面的 Interface Management Profile 要啟用 Response Pages 與 User-ID。</li>
+                <li><strong>Timer</strong> 預設 60 分鐘（範圍 1 至 1,440）：驗證成功後，對應存活多久；到期對應就被移除。</li>
+                <li>Authentication Portal 搭配解密：Redirect 模式只能搭配 SSL Forward Proxy，SSL Inbound Inspection 不支援 Redirect 模式；兩種解密類型的差異見第 15 章。</li>
+            </ul>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>本章的欄位名稱與預設值以 PAN-OS 11.1 之後的行為為主，12.x 的欄位細節可能略有不同，以實機為準。</li>
+                    <li>Authentication Portal 若沒有指定 SSL/TLS Service Profile，PAN-OS 12.1 以前只協商 TLS 1.2；12.2 以後可協商 TLS 1.2 或 1.3。</li>
+                    <li>Cloud Identity Engine 在防火牆上的設定路徑與參數（<span class="tech-term">Device &gt; User Identification &gt; Cloud Identity Engine</span>、更新間隔預設 60 分鐘等），本章以 PAN-OS 10.1 的資料為準，12.x 的欄位名稱請以實機為準。CIE 的雲端端點設定是另一套獨立的設定，本章不展開。</li>
+                    <li>舊版（9.1）曾提到 Kerberos 失敗後退回 NTLM（未能逐版核對，以實機為準）；10.x 之後的驗證方式只列 Web Form、Kerberos SSO 與用戶端憑證三種。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Topic 3 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Config</span>
+                三、設定 agent 與群組對應
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                這一節用最常見的組合示範：<strong>PAN-OS 整合式 agent 監控網域控制站</strong>，再用 <strong>LDAP 做群組對應</strong>。順序是先帳號、再兩條線（IP 對使用者、使用者對群組）、最後啟用與驗證。
+            </p>
+
+            <div class="diagram-container">
+<svg viewBox="0 0 460 712" width="100%" style="max-width:460px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c14d3-t" font-family="'Noto Sans TC', sans-serif">
+<title id="c14d3-t">第三節設定順序：先建立專用服務帳號，再分兩條線設定使用者對群組與 IP 對使用者，接著在區域勾選 Enable User Identification，然後在安全規則使用 Source User，最後 Commit 後驗證</title>
+<defs><marker id="c14d3-m-gray" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#4b5563"/></marker><marker id="c14d3-m-orange" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#c2410c"/></marker></defs>
+<rect x="60" y="10" width="340" height="64" rx="8" fill="#fff7ed" stroke="#fdba74" stroke-width="1.6"/>
+<text x="230" y="36" text-anchor="middle" font-size="18" fill="#7c2d12" font-weight="700">1 建立專用服務帳號</text>
+<text x="230" y="60" text-anchor="middle" font-size="18" fill="#7c2d12">最小權限</text>
+<path d="M230,74 L230,96" fill="none" stroke="#4b5563" stroke-width="2.2"/>
+<path d="M118,96 L342,96" fill="none" stroke="#4b5563" stroke-width="2.2"/>
+<path d="M118,96 L118,126" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c14d3-m-gray)"/>
+<path d="M342,96 L342,126" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c14d3-m-gray)"/>
+<rect x="10" y="130" width="210" height="40" rx="8" fill="#faf5ff" stroke="#7c3aed" stroke-width="1.6"/>
+<text x="115" y="156" text-anchor="middle" font-size="18" fill="#4c1d95" font-weight="700">使用者對群組</text>
+<rect x="240" y="130" width="210" height="40" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.6"/>
+<text x="345" y="156" text-anchor="middle" font-size="18" fill="#1e3a8a" font-weight="700">IP 對使用者</text>
+<path d="M115,170 L115,196" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c14d3-m-gray)"/>
+<path d="M345,170 L345,196" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c14d3-m-gray)"/>
+<rect x="10" y="196" width="210" height="112" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="1.6"/>
+<text x="115" y="222" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">2 LDAP Server</text>
+<text x="115" y="246" text-anchor="middle" font-size="18" fill="#1f2937">Profile</text>
+<text x="115" y="270" text-anchor="middle" font-size="18" fill="#1f2937">Base DN、Bind DN、</text>
+<text x="115" y="294" text-anchor="middle" font-size="18" fill="#1f2937">埠號</text>
+<rect x="240" y="196" width="210" height="112" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="1.6"/>
+<text x="345" y="234" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">2 User Mapping</text>
+<text x="345" y="258" text-anchor="middle" font-size="18" fill="#1f2937">新增監控伺服器</text>
+<text x="345" y="282" text-anchor="middle" font-size="18" fill="#1f2937">WMI 或 WinRM</text>
+<path d="M115,308 L115,334" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c14d3-m-gray)"/>
+<path d="M345,308 L345,334" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c14d3-m-gray)"/>
+<rect x="10" y="334" width="210" height="88" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="1.6"/>
+<text x="115" y="360" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">3 Group Mapping</text>
+<text x="115" y="384" text-anchor="middle" font-size="18" fill="#1f2937">Settings</text>
+<text x="115" y="408" text-anchor="middle" font-size="18" fill="#1f2937">選群組、設更新間隔</text>
+<rect x="240" y="334" width="210" height="88" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="1.6"/>
+<text x="345" y="360" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">3 Include/Exclude</text>
+<text x="345" y="384" text-anchor="middle" font-size="18" fill="#1f2937">Networks</text>
+<text x="345" y="408" text-anchor="middle" font-size="18" fill="#1f2937">只對應內部網段</text>
+<path d="M115,422 L115,446" fill="none" stroke="#4b5563" stroke-width="2.2"/>
+<path d="M345,422 L345,446" fill="none" stroke="#4b5563" stroke-width="2.2"/>
+<path d="M115,446 L345,446" fill="none" stroke="#4b5563" stroke-width="2.2"/>
+<path d="M230,446 L230,476" fill="none" stroke="#c2410c" stroke-width="2.2" marker-end="url(#c14d3-m-orange)"/>
+<rect x="50" y="476" width="360" height="64" rx="8" fill="#c2410c" stroke="#9a3412" stroke-width="1.6"/>
+<text x="230" y="502" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="700">4 區域勾選</text>
+<text x="230" y="526" text-anchor="middle" font-size="18" fill="#ffffff">Enable User Identification</text>
+<path d="M230,540 L230,566" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c14d3-m-gray)"/>
+<rect x="50" y="566" width="360" height="64" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="1.6"/>
+<text x="230" y="592" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">5 安全規則 Source User</text>
+<text x="230" y="616" text-anchor="middle" font-size="18" fill="#1f2937">選使用者或群組</text>
+<path d="M230,630 L230,656" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c14d3-m-gray)"/>
+<rect x="50" y="656" width="360" height="44" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.6"/>
+<text x="230" y="684" text-anchor="middle" font-size="18" fill="#166534" font-weight="700">6 Commit 後驗證</text>
+</svg>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">步驟 1：專用服務帳號（最小權限）</h3>
+            <p class="mb-2 text-gray-700">
+                每個要監控的網域各建一個專用 Active Directory 帳號。原廠要求只給 agent 需要的<strong>最小權限</strong>，依你啟用的功能而定：
+            </p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border w-56">用途</th>
+                            <th class="py-2 px-4 text-left border">需要的權限</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">伺服器監控</td><td class="py-2 px-4 border">加入 <strong>Event Log Readers</strong>（內建群組），才能讀安全事件日誌</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">WMI 傳輸</td><td class="py-2 px-4 border">加入 <strong>Distributed COM Users</strong></td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">WMI 探測（不建議）</td><td class="py-2 px-4 border">被探測的每台用戶端要允許 Root\CIMV2 的 Enable Account 與 Remote Enable，並加入本機 Distributed COM Users 與 Remote Desktop Users</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Windows-based agent 主機</td><td class="py-2 px-4 border">本機「Log on as a service」權限；若帳號不是網域或本機管理員，還需要安裝資料夾與登錄機碼的權限</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">工作階段監控（整合式 agent）</td><td class="py-2 px-4 border">需要 Server Operators，原廠不建議；<strong>Enable Session 選項請保持停用</strong>，登入登出事件改走 Syslog 或 XML API</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">一律要做的「拒絕」</td><td class="py-2 px-4 border">拒絕互動式登入（log on as a batch job、log on locally、log on through Remote Desktop Services），並在帳號 Dial-in 內拒絕 Network Access Permission</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">步驟 2：IP 對使用者（監控伺服器）</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>路徑：<span class="tech-term">Device &gt; User Identification &gt; User Mapping</span>。在 Server Monitoring 區新增伺服器，輸入名稱，選類型：Microsoft Active Directory、Microsoft Exchange、Novell eDirectory 或 Syslog Sender。</li>
+                <li>AD 與 Exchange 要選傳輸協定：<strong>WMI</strong>、<strong>WinRM-HTTP</strong> 或 <strong>WinRM-HTTPS</strong>。WinRM 搭配 Kerberos 時網路位址要用 FQDN；使用 WMI 時，伺服器位址請填 IP（填 FQDN 會觸發 Kerberos，而 Kerberos 不支援 WMI），帳號則用 <code>domain\username</code> 格式。可選擇透過 DNS 自動探索網域控制站，但 Exchange 與 eDirectory 必須手動新增。</li>
+                <li>編輯 <strong>Palo Alto Networks User-ID Agent Setup</strong>：在 <strong>Server Monitor Account</strong> 分頁填入服務帳號（<code>domain\username</code> 格式）；<strong>Server Monitor</strong> 分頁的 Server Log Monitor Frequency 範圍 1 至 3,600 秒，預設 2 秒，較舊的網域控制站或高延遲連線至少用 5 秒。</li>
+                <li><strong>Ignore User List</strong> 分頁：排除不需對應的帳號（例如 kiosk 帳號），也可強制這些使用者走 Authentication Portal。清單定義在作為 agent 的防火牆上，最多 5,000 筆，萬用字元 * 只能放在最後一個字元。</li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">步驟 3：包含／排除網段</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>同樣在 User Mapping 頁，新增 <strong>Include/Exclude Networks</strong> 項目，確認已啟用。<strong>Include</strong> 把對應範圍限制在指定網段；<strong>Exclude</strong> 從已包含的範圍中挖掉一部分。</li>
+                <li>最佳實務：<strong>一定要明確定義 Include</strong>，讓 agent 只對應內部使用者，避免替外部位址做對應。</li>
+            </ul>
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：只加 Exclude、沒加 Include</p>
+                <p class="text-gray-700 text-sm">原廠明說：只有 Exclude 而沒有任何 Include，agent 會把<strong>所有網段都排除</strong>。對應表因此一片空白，但畫面上所有狀態看起來都正常，是很容易花很久才找到的原因。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">步驟 4：使用者對群組（LDAP 群組對應）</h3>
+            <ol class="list-decimal pl-6 text-gray-700 space-y-1">
+                <li>先建 LDAP 伺服器設定檔：<span class="tech-term">Device &gt; Server Profiles &gt; LDAP</span>。最多放四台同類型的伺服器；每台設定名稱、位址、埠號（預設 389）；選伺服器類型（例如 active-directory 會自動填入屬性）；設定 <strong>Base DN</strong>（搜尋起點）與 <strong>Bind DN</strong>（完整的 LDAP DN，例如 <code>cn=…,dc=…</code>，或 UPN，例如 <code>administrator@acme.local</code>）與密碼；Bind Timeout 與 Search Timeout 預設都是 30 秒。</li>
+                <li>建群組對應：<span class="tech-term">Device &gt; User Identification &gt; Group Mapping Settings</span>，新增設定、選上面的 LDAP 設定檔。<strong>Update Interval</strong> 範圍 60 至 86,400 秒，預設 3,600 秒；User Domain 留空則由防火牆自動偵測 AD 網域名稱，要填就填 NetBIOS 網域名稱。</li>
+                <li>用 <strong>Group Include List</strong> 限制規則裡可選的群組，或用 <strong>Custom Group</strong>（以 LDAP 過濾條件定義，例如 Department 為 Marketing 的使用者）。兩者合計每個群組對應設定最多 640 筆；沒指定就是全部群組都可用。Custom Group 在日誌查詢與報表中也能使用。</li>
+                <li>Active Directory 預設屬性：Primary Username 是 <code>sAMAccountName</code>，Alternate Username 1 是 <code>userPrincipalName</code>；Group Name 是 <code>name</code>、Group Member 是 <code>member</code>。要用到網域以外的屬性，在 User Mapping 的 Setup 設定 User Attributes（畫面位置以實機為準）。</li>
+                <li>Commit。Custom Group 要先 Commit 才會出現在規則裡。</li>
+            </ol>
+
+            <div class="highlight-box mt-4">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>多網域、多樹系的設計</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li><strong>單一網域</strong>：一個群組對應設定、LDAP 設定檔列最多四台網域控制站即可。為同一網域多加設定並不會增加備援。</li>
+                    <li><strong>多網域或多樹系</strong>：每個網域或樹系放一台伺服器，並確保使用者名稱在各樹系之間唯一。</li>
+                    <li><strong>Universal Groups</strong>：一個設定檔連 Global Catalog（埠號 3268，SSL 為 3269），另一個連根網域的網域控制站（埠號 389）。</li>
+                </ul>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：SAML、RADIUS、TACACS+ 不會填群組表</p>
+                <p class="text-gray-700 text-sm">原廠明確說明：防火牆只會在驗證設定檔的 User Group Attribute 用 SAML 群組屬性，拿來和 Allow List 比對、控制誰能登入，<strong>不會用它填使用者對群組表</strong>。要寫群組規則、設定 GlobalProtect 組態或做群組日誌查詢，需要 LDAP 群組對應或 Cloud Identity Engine 這種可持續查詢的群組來源。</p>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異</p>
+                <p class="text-gray-700 text-sm">步驟 2 至 4 的欄位名稱與預設值以 PAN-OS 11.1 之後的行為為主；若你的實機版本介面略有出入，以實機欄位為準。</p>
+            </div>
+        </div>
+
+        <!-- Topic 4 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Policy</span>
+                四、區域啟用、規則使用與使用者日誌
+            </h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">啟用 User Identification（區域層級）</h3>
+            <p class="mb-2 text-gray-700">
+                對應表建好了，還要告訴防火牆「這個區域進來的流量要套用對應」：<span class="tech-term">Network &gt; Zones</span>，點區域名稱，勾選 <strong>Enable User Identification</strong>。
+                如果關閉，防火牆的日誌、報表與政策都會<strong>排除使用者對應資訊</strong>。
+            </p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border w-56">區域設定</th>
+                            <th class="py-2 px-4 text-left border">行為</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">Enable User Identification</td><td class="py-2 px-4 border">只在<strong>受信任的區域</strong>啟用。開在網際網路等不受信任的區域，探測可能把 agent 服務帳號名稱、網域名稱與加密的密碼雜湊送出保護網路外。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">User Identification ACL：Include List</td><td class="py-2 px-4 border">沒填就是所有已探索的對應都套用在此區域；填了，就是白名單，其他網段隱含排除。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">User Identification ACL：Exclude List</td><td class="py-2 px-4 border">從 Include List 的範圍中再挖掉一部分。例如 Include 10.0.0.0/8、Exclude 10.2.50.0/22，結果是 10.0.0.0/8 內除了 10.2.50.0/22 之外都套用。只有 Exclude 沒有 Include，則會排除對應資訊。</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">在安全規則使用使用者與群組</h3>
+            <p class="mb-2 text-gray-700">
+                路徑：<span class="tech-term">Policies &gt; Security</span>，編輯規則，在 <strong>Source</strong> 分頁設定來源區域、來源位址與<strong>Source User</strong>。Source User 預設為 <code>any</code>；可以選特定使用者或群組，也可以選 <code>known-user</code>（已有使用者對應的位址）、<code>unknown</code>（沒有對應的位址），或 <code>pre-logon</code>（以 GlobalProtect 連線、但還沒登入電腦的遠端使用者；Pre-logon 連線方式見第 16 章）。原廠說明：規則的 User 欄位要生效，該區域必須已啟用 User-ID。
+            </p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border">規則（示意）</th>
+                            <th class="py-2 px-4 text-left border">Source Zone</th>
+                            <th class="py-2 px-4 text-left border">Source User</th>
+                            <th class="py-2 px-4 text-left border">Application</th>
+                            <th class="py-2 px-4 text-left border">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border">IT 管理工具</td><td class="py-2 px-4 border">trust</td><td class="py-2 px-4 border">群組 IT-Staff</td><td class="py-2 px-4 border">ssh、telnet、ftp</td><td class="py-2 px-4 border">Allow</td></tr>
+                        <tr><td class="py-2 px-4 border">一般上網</td><td class="py-2 px-4 border">trust</td><td class="py-2 px-4 border">known-user</td><td class="py-2 px-4 border">web-browsing、ssl</td><td class="py-2 px-4 border">Allow</td></tr>
+                        <tr><td class="py-2 px-4 border">承包商限制</td><td class="py-2 px-4 border">trust</td><td class="py-2 px-4 border">群組 Contractors</td><td class="py-2 px-4 border">ftp</td><td class="py-2 px-4 border">Deny</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">上表為教學示意，群組名稱與規則名稱是假設的；原廠範例政策包括「只讓 IT 部門使用 SSH、telnet、FTP」與「所有人可讀社群網站、只有行銷部門可張貼」。規則順序與比對邏輯請回頭看第 8、9 章。</p>
+
+            <div class="highlight-box mt-4">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>原廠建議與順序</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>規則<strong>優先用群組</strong>而非個別使用者，人員異動時改目錄就好，不必改規則。</li>
+                    <li>Authentication 規則在 Security policy <strong>之前</strong>評估；以驗證取得的對應會蓋過其他 User-ID 方式的對應。</li>
+                    <li>使用者條件還能和應用程式資訊（類別、子類別、底層技術、特性）合併使用，套用在出站或入站流量。</li>
+                </ul>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異</p>
+                <p class="text-gray-700 text-sm">現行欄位說明與建立規則的步驟把 Source User 放在 Source 分頁，同版的概述頁仍寫獨立的 User 分頁，8.0 教材是獨立分頁；以實機畫面為準。不論在哪個分頁，欄位名稱與選項（any、pre-logon、使用者或群組、known-user、unknown）都一樣。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">使用者日誌</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li><span class="tech-term">Monitor &gt; Logs &gt; Traffic</span> 的 <strong>Source User</strong> 欄位：確認流量有沒有標上使用者名稱。</li>
+                <li><span class="tech-term">Monitor &gt; Logs &gt; User-ID</span> 的 <strong>User Provided by Source</strong> 欄位：看這筆對應是由哪個來源提供的（欄位名稱以實機為準）。</li>
+                <li>ACC 與 <span class="tech-term">Monitor &gt; Reports</span> 可依使用者彙整應用程式使用；<code>show log userid</code> 系列指令可在 CLI 查詢對應是怎麼學到的。</li>
+            </ul>
+        </div>
+
+        <!-- Topic 5 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Troubleshoot</span>
+                五、驗證、排錯與最佳實務
+            </h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">常用驗證指令（操作模式）</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border w-80">指令</th>
+                            <th class="py-2 px-4 text-left border">用途</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border"><code>show user server-monitor state all</code></td><td class="py-2 px-4 border">整合式 agent 監控的伺服器狀態（Web UI 的 User Mapping 頁，每台應顯示 Connected）</td></tr>
+                        <tr><td class="py-2 px-4 border"><code>show user user-id-agent state all</code></td><td class="py-2 px-4 border">列出設定的 Windows-based agent 及其狀態</td></tr>
+                        <tr><td class="py-2 px-4 border"><code>show user ip-user-mapping all</code></td><td class="py-2 px-4 border">列出全部 IP 對使用者對應，欄位含 IP、Vsys、From（來源）、User、Timeout</td></tr>
+                        <tr><td class="py-2 px-4 border"><code>show user ip-user-mapping ip &lt;位址&gt;</code></td><td class="py-2 px-4 border">只看某個位址的對應</td></tr>
+                        <tr><td class="py-2 px-4 border"><code>show user group-mapping statistics</code></td><td class="py-2 px-4 border">確認群組對應有在運作，也可看下次更新</td></tr>
+                        <tr><td class="py-2 px-4 border"><code>show user group-mapping state all</code></td><td class="py-2 px-4 border">所有群組對應設定的狀態</td></tr>
+                        <tr><td class="py-2 px-4 border"><code>show user group list</code></td><td class="py-2 px-4 border">防火牆目前有哪些群組</td></tr>
+                        <tr><td class="py-2 px-4 border"><code>show user group name &lt;群組名稱&gt;</code></td><td class="py-2 px-4 border">某個群組的成員</td></tr>
+                        <tr><td class="py-2 px-4 border"><code>show log userid datasourcetype equal &lt;來源&gt;</code></td><td class="py-2 px-4 border">依驗證服務或來源類型（例如 kerberos、ntlm、globalprotect）查對應記錄</td></tr>
+                        <tr><td class="py-2 px-4 border"><code>test authentication-policy-match from &lt;區域&gt; to &lt;區域&gt; source &lt;位址&gt; destination &lt;位址&gt;</code></td><td class="py-2 px-4 border">測試某條流量會命中哪條 Authentication policy 規則</td></tr>
+                        <tr><td class="py-2 px-4 border"><code>debug user-id refresh group-mapping all</code></td><td class="py-2 px-4 border">立即更新群組對應</td></tr>
+                        <tr><td class="py-2 px-4 border"><code>clear user-cache ip &lt;位址/遮罩&gt;</code></td><td class="py-2 px-4 border">清除單一位址的對應；<code>clear user-cache all</code> 清除全部</td></tr>
+                        <tr><td class="py-2 px-4 border"><code>debug user-id log-ip-user-mapping yes</code></td><td class="py-2 px-4 border">開啟對應的偵錯記錄，結束後改成 no</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">另外 <code>show user user-attributes user all</code> 可確認 UPN、Primary Username、email 與 Alternate Username 是否正確。指令語法以你的 PAN-OS 版本為準，其中 <code>test authentication-policy-match</code> 在 12.x 的寫法尚未逐版核對。</p>
+
+            <div class="diagram-container">
+<svg viewBox="0 0 460 814" width="100%" style="max-width:460px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c14d4-t" font-family="'Noto Sans TC', sans-serif">
+<title id="c14d4-t">排錯流程：日誌的 Source User 空白或不對時，先查 IP 對使用者對應有沒有這個位址，再查使用者對群組表有沒有該群組，最後查規則順序與 Source User 設定</title>
+<defs><marker id="c14d4-m-gray" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#4b5563"/></marker></defs>
+<rect x="10" y="10" width="440" height="44" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="230" y="38" text-anchor="middle" font-size="18" fill="#991b1b" font-weight="700">日誌的 Source User 是空的或不對</text>
+<path d="M230,54 L230,84" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c14d4-m-gray)"/>
+<rect x="10" y="84" width="440" height="64" rx="8" fill="#fff7ed" stroke="#fdba74" stroke-width="1.6"/>
+<text x="230" y="110" text-anchor="middle" font-size="18" fill="#7c2d12" font-weight="700">show user ip-user-mapping ip</text>
+<text x="230" y="134" text-anchor="middle" font-size="18" fill="#7c2d12">有這個位址嗎？</text>
+<path d="M70,148 L70,460" fill="none" stroke="#4b5563" stroke-width="2.2"/>
+<rect x="10" y="176" width="120" height="136" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="70" y="250" text-anchor="middle" font-size="18" fill="#991b1b" font-weight="700">沒有</text>
+<path d="M130,244 L150,244" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c14d4-m-gray)"/>
+<rect x="150" y="176" width="300" height="136" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="1.6"/>
+<text x="300" y="202" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">查來源</text>
+<text x="300" y="226" text-anchor="middle" font-size="18" fill="#1f2937">server-monitor state 是否</text>
+<text x="300" y="250" text-anchor="middle" font-size="18" fill="#1f2937">Connected</text>
+<text x="300" y="274" text-anchor="middle" font-size="18" fill="#1f2937">Include / Exclude 是否擋掉</text>
+<text x="300" y="298" text-anchor="middle" font-size="18" fill="#1f2937">區域是否已啟用</text>
+<rect x="10" y="326" width="120" height="88" rx="8" fill="#fff7ed" stroke="#fdba74" stroke-width="1.6"/>
+<text x="70" y="364" text-anchor="middle" font-size="18" fill="#7c2d12" font-weight="700">有，但</text>
+<text x="70" y="388" text-anchor="middle" font-size="18" fill="#7c2d12" font-weight="700">使用者不對</text>
+<path d="M130,370 L150,370" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c14d4-m-gray)"/>
+<rect x="150" y="326" width="300" height="88" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="1.6"/>
+<text x="300" y="352" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">查 From 欄與 Timeout</text>
+<text x="300" y="376" text-anchor="middle" font-size="18" fill="#1f2937">可能是舊對應或位址被他人取得</text>
+<text x="300" y="400" text-anchor="middle" font-size="18" fill="#1f2937">必要時 clear user-cache ip</text>
+<rect x="10" y="428" width="120" height="64" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.6"/>
+<text x="70" y="466" text-anchor="middle" font-size="18" fill="#166534" font-weight="700">有，且正確</text>
+<path d="M130,460 L150,460" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c14d4-m-gray)"/>
+<rect x="150" y="428" width="300" height="64" rx="8" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1.6"/>
+<text x="300" y="466" text-anchor="middle" font-size="18" fill="#1f2937">往下檢查群組表</text>
+<path d="M300,492 L300,520" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c14d4-m-gray)"/>
+<rect x="10" y="520" width="440" height="64" rx="8" fill="#fff7ed" stroke="#fdba74" stroke-width="1.6"/>
+<text x="230" y="546" text-anchor="middle" font-size="18" fill="#7c2d12" font-weight="700">show user group list</text>
+<text x="230" y="570" text-anchor="middle" font-size="18" fill="#7c2d12">有該群組嗎？</text>
+<path d="M70,584 L70,758" fill="none" stroke="#4b5563" stroke-width="2.2"/>
+<rect x="10" y="612" width="120" height="88" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="70" y="662" text-anchor="middle" font-size="18" fill="#991b1b" font-weight="700">沒有</text>
+<path d="M130,656 L150,656" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c14d4-m-gray)"/>
+<rect x="150" y="612" width="300" height="88" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="1.6"/>
+<text x="300" y="638" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">查 Group Mapping Settings</text>
+<text x="300" y="662" text-anchor="middle" font-size="18" fill="#1f2937">LDAP 連線與</text>
+<text x="300" y="686" text-anchor="middle" font-size="18" fill="#1f2937">Group Include List</text>
+<rect x="10" y="714" width="120" height="88" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.6"/>
+<text x="70" y="764" text-anchor="middle" font-size="18" fill="#166534" font-weight="700">有</text>
+<path d="M130,758 L150,758" fill="none" stroke="#4b5563" stroke-width="2.2" marker-end="url(#c14d4-m-gray)"/>
+<rect x="150" y="714" width="300" height="88" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="1.6"/>
+<text x="300" y="740" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">查規則順序與</text>
+<text x="300" y="764" text-anchor="middle" font-size="18" fill="#1f2937">Source User 設定</text>
+<text x="300" y="788" text-anchor="middle" font-size="18" fill="#1f2937">是否被上方規則先命中</text>
+</svg>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">風險與最佳實務</h3>
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：IP 重用與 DHCP 租約</p>
+                <p class="text-gray-700 text-sm">對應表是「某個位址在某個時間點是誰」。如果使用者離開了、DHCP 把同一個位址發給另一台裝置，而舊對應還沒過期，新裝置就可能暫時繼承前一個人的權限。防火牆的 <span class="tech-term">Device &gt; User Identification &gt; User Mapping &gt; User-ID Agent Setup &gt; Cache</span> 提供 <strong>Enable User Identification Timeout</strong> 與 <strong>User Identification Timeout (min)</strong>：到期後防火牆清除該筆並重新收集；預設 45 分鐘、範圍 1 至 3,600。原廠建議設成 <strong>DHCP 租約時間的一半（英文為 half-life），或 Kerberos 票證的存活時間</strong>。用 Redistribution 轉送來的對應，每台防火牆依自己的逾時清除，不是依轉送端的設定。Authentication Portal 取得的對應不受這個逾時管，而是用 Portal 自己的 Timer。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：服務帳號權限過大</p>
+                <p class="text-gray-700 text-sm">agent 的帳號如果被拿走，攻擊者就多了一把進網域的鑰匙。依原廠做法：最小權限、不加入 Server Operators、拒絕互動式登入與撥入、不要在不受信任的區域開 User Identification，也不要開 Client Probing。<strong>Allow matching usernames without domains</strong>（位於 Cache 區）只有在各網域間使用者名稱不重複時才開，否則會認錯人。</p>
+            </div>
+
+            <div class="highlight-box mt-4">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>最佳實務清單</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>User-ID 只在<strong>受信任區域</strong>啟用；Include／Exclude 一律明確定義，只對應內部網段。</li>
+                    <li>專用服務帳號、最小權限；Windows-based agent 要就近放在被監控伺服器旁，每個站點至少一個。</li>
+                    <li>用 Security policy 限制 <code>paloalto-userid-agent</code> 應用程式：只在 agent 區域、被監控伺服器區域、agent 與轉送對應的防火牆之間允許，對網際網路等外部區域拒絕。</li>
+                    <li>HA 環境請記得啟用 Config Sync（第 17 章）；Panorama 如何取得使用者與群組見第 18 章，防火牆之間轉送對應（Data Redistribution）本課程不展開。</li>
+                    <li>規則優先寫群組；GlobalProtect 的細節見第 16 章；Authentication Portal 搭配解密時只用 SSL Forward Proxy，兩種解密類型的差異見第 15 章。</li>
+                </ul>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">User-ID 相關連接埠（確認沒被擋）</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border">用途</th><th class="py-2 px-4 text-left border">協定與埠號</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border">防火牆查 LDAP 做群組對應</td><td class="py-2 px-4 border">TCP 389（含 Start TLS）、TCP 636（LDAP over SSL）</td></tr>
+                        <tr><td class="py-2 px-4 border">防火牆查 AD Global Catalog</td><td class="py-2 px-4 border">TCP 3268、TCP 3269（SSL）</td></tr>
+                        <tr><td class="py-2 px-4 border">agent 接收驗證 syslog</td><td class="py-2 px-4 border">整合式 agent：UDP 514、SSL 6514；Windows-based agent：TCP 與 UDP 514</td></tr>
+                        <tr><td class="py-2 px-4 border">防火牆與 Windows-based agent 之間傳送對應</td><td class="py-2 px-4 border">TCP 5007（agent 預設監聽此埠；原廠文件說法不一，連線方向以實機為準）</td></tr>
+                        <tr><td class="py-2 px-4 border">agent 接收 XML API 請求</td><td class="py-2 px-4 border">TCP 5006</td></tr>
+                        <tr><td class="py-2 px-4 border">agent 做 WMI／監控 AD</td><td class="py-2 px-4 border">TCP 135（RPC Endpoint Mapper）、TCP 139、TCP 445</td></tr>
+                        <tr><td class="py-2 px-4 border">agent 以 WinRM 監控</td><td class="py-2 px-4 border">HTTP 5985、HTTPS 5986</td></tr>
+                        <tr><td class="py-2 px-4 border">防火牆連 Terminal Server Agent</td><td class="py-2 px-4 border">TCP 5009</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
+                隨堂測驗
+            </h2>
+            <p class="mb-6 text-gray-600">請點選您認為正確的選項，系統將會顯示解析。</p>
+            <div class="space-y-6" id="quiz-container"></div>
+        </div>
+
+    </main>
+
+    <footer class="footer-signature">
+        Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver.2026.10.29.11.09
+    </footer>
+
+    <script>
+        const quizData = [
+            {
+                question: "Q1. 公司的使用者經由上游設備做 NAT，轉成同一個位址後才進到防火牆。這對 User-ID 有什麼影響？",
+                options: ["A. 沒有影響，User-ID 會自動還原真實位址", "B. 原廠說明 User-ID 在這種環境無法運作，防火牆只看得到轉換後的同一個位址", "C. 只有 GlobalProtect 受影響，其他方式正常", "D. 只要把 Client Probing 打開就能解決"],
+                correct: 1,
+                desc: "正解：B。原廠明確指出，User-ID 不適用於使用者來源 IP 在防火牆做對應之前就被 NAT 轉換的環境。防火牆看到的是一個位址，自然無法分辨背後是哪些人。設計時要讓防火牆看到使用者的真實位址。"
+            },
+            {
+                question: "Q2. 在 PAN-OS 整合式 agent 的 Include/Exclude Networks 只新增了 Exclude 項目、完全沒有 Include，結果會是？",
+                options: ["A. 只排除指定網段，其餘照常對應", "B. 所有網段都被排除，對應表幾乎是空的", "C. 所有網段都被包含，Exclude 被忽略", "D. 儲存時會被拒絕"],
+                correct: 1,
+                desc: "正解：B。原廠說明，沒有任何 Include 而只有 Exclude 時，agent 會排除所有子網路。最佳實務是一定要明確定義 Include，只對應內部使用者，Exclude 只用來從 Include 範圍中挖掉一部分。"
+            },
+            {
+                question: "Q3. 管理員已經讓 IP 對使用者對應正常運作，但在安全規則的 Source User 找不到任何群組可選。最可能少了哪一步？",
+                options: ["A. 沒有在區域勾選 Enable User Identification", "B. 沒有建立 LDAP 設定檔與 Group Mapping Settings（或沒有 Cloud Identity Engine），防火牆沒有使用者對群組表", "C. 沒有開啟 Client Probing", "D. 服務帳號沒加入 Server Operators"],
+                correct: 1,
+                desc: "正解：B。User-ID 需要兩份資料：IP 對使用者、使用者對群組。群組要靠 LDAP 群組對應（Device > User Identification > Group Mapping Settings）或 Cloud Identity Engine 取得；SAML、RADIUS、TACACS+ 的屬性不會填這張表。區域啟用影響的是對應有沒有被套用，不是群組清單。"
+            },
+            {
+                question: "Q4. 使用者下班後，DHCP 把同一個位址發給另一台新裝置，但舊的使用者對應還沒過期。最直接的風險與原廠建議的做法是？",
+                options: ["A. 新裝置暫時被當成前一個人，應啟用 User Identification Timeout，並設為 DHCP 租約時間的一半或 Kerberos 票證存活時間", "B. 防火牆會自動拒絕該裝置，不需處理", "C. 日誌會顯示 unknown，不會有安全問題", "D. 應把 Timeout 設到最大值，讓對應盡量不要消失"],
+                correct: 0,
+                desc: "正解：A。對應表在逾時前不會自動知道位址已易主，新裝置可能暫時繼承前一個人的權限。原廠建議啟用 Enable User Identification Timeout，並把 User Identification Timeout (min) 設成 DHCP 租約時間的一半（英文為 half-life）或 Kerberos 票證存活時間（預設 45 分鐘，範圍 1 至 3,600）。把逾時拉到最大只會讓舊對應停留更久。"
+            }
+        ];
+
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionBox = document.createElement('div');
+            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
+
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border mb-2 text-gray-700" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            questionBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
+                <div class="space-y-2 mb-4">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
+                    <p class="font-bold result-title"></p>
+                    <p class="text-sm text-gray-600 mt-1">${item.desc}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionBox);
+        });
+
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            if (element.parentElement.dataset.answered) return;
+            element.parentElement.dataset.answered = "true";
+
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+                opt.classList.add('disabled');
+            });
+
+            if (optIndex === data.correct) {
+                element.classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了！";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                element.classList.add('bg-red-100', 'border-red-500');
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了！";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+    </script>
+</body>
+</html>

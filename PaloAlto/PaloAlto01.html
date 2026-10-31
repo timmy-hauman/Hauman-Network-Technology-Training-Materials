@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palo Alto Networks NGFW 實戰課程 - NGFW 架構與單通道處理</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        /* 卡片主體樣式 (Palo Alto Orange) */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #fa582d;
+        }
+
+        /* 重點提示框 (橘) */
+        .highlight-box {
+            background-color: #fff7ed;
+            border-left: 4px solid #fa582d;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 技術名詞標記 */
+        .tech-term {
+            color: #c2410c;
+            font-weight: 700;
+            background-color: #fff1e6;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
+        }
+
+        /* 比喻說明框 (綠) */
+        .analogy-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 版本差異框 (紫) */
+        .version-box {
+            background-color: #faf5ff;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 常見踩坑框 (紅) */
+        .pitfall-box {
+            background-color: #fef2f2;
+            border-left: 4px solid #dc2626;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .diagram-container {
+            display: block;
+            background-color: #ffffff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 640px) {
+            main { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+            .section-card { padding: 1rem; }
+            .diagram-container { padding: 0.25rem; }
+        }
+
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover:not(.disabled) {
+            background-color: #f3f4f6;
+        }
+
+        .footer-signature {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+            margin-top: 4rem;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-orange-600 to-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-fire-flame-curved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold">Palo Alto Networks NGFW 實戰課程</h1>
+                    <p class="text-orange-100 mt-1">基礎篇 - 單元 1：NGFW 架構與單通道處理</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <!-- Introduction -->
+        <div class="mb-8">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
+                <h2 class="text-xl font-bold text-blue-800 mb-2 flex items-center">
+                    <i class="fas fa-user-tie mr-2"></i>講師導言
+                </h2>
+                <p class="text-blue-900 leading-relaxed">
+                    歡迎來到 Palo Alto Networks 防火牆課程！第一堂課不急著敲指令，我們先弄懂一件事：它跟你以前用過的防火牆，<strong>骨子裡哪裡不一樣</strong>？
+                    答案藏在兩個設計裡：<strong>單通道並行處理</strong>，以及<strong>管理平面與資料平面分離</strong>。搞懂這兩件事，後面所有章節的設定邏輯都會順很多。
+                </p>
+            </div>
+        </div>
+
+        <!-- 學習目標 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-gray-100 text-gray-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Goals</span>
+                本章學習目標
+            </h2>
+            <ul class="list-disc pl-6 space-y-1 text-gray-700">
+                <li>說明傳統防火牆與新世代防火牆（NGFW）判斷方式的差異</li>
+                <li>解釋「單通道」與「並行處理」各自的意思</li>
+                <li>分辨管理平面與資料平面，以及各自負責什麼</li>
+                <li>依序說出封包穿過防火牆的三個階段與主要步驟，並指出 NAT 與安全政策的先後關係</li>
+                <li>列出管理防火牆的四種方式</li>
+            </ul>
+        </div>
+
+        <!-- Topic 1 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Concept</span>
+                一、為什麼需要新世代防火牆？
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                傳統防火牆（Stateful Firewall）靠 <span class="tech-term">來源/目的 IP + 通訊協定 + 連接埠</span> 決定放行或阻擋。
+                但今天的應用程式幾乎都走 80 / 443，連接埠已經看不出「這是誰」。
+                NGFW 的做法是把判斷依據換成三個維度：<strong>應用程式（App）、使用者（User）、內容（Content）</strong>。
+            </p>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border">比較項目</th>
+                            <th class="py-2 px-4 text-left border">傳統防火牆</th>
+                            <th class="py-2 px-4 text-left border">Palo Alto NGFW</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">判斷依據</td><td class="py-2 px-4 border">IP、通訊協定、連接埠</td><td class="py-2 px-4 border">應用程式（App-ID）、使用者（User-ID）、內容（Content-ID）</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">80 / 443 上的流量</td><td class="py-2 px-4 border">一律視為網頁</td><td class="py-2 px-4 border">辨識出是 Gmail、Facebook 聊天，還是惡意程式的回連</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">威脅檢查</td><td class="py-2 px-4 border">常需另外加設備</td><td class="py-2 px-4 border">同一台設備、同一條政策內完成</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="highlight-box mt-4">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>重點</p>
+                <p class="text-gray-700">在 Palo Alto 的世界裡，「連接埠」只是輔助條件。例如 DNS 流量走 53 埠沒錯，但<strong>不是 DNS 協定的流量即使走 53 埠，App-ID 也不會把它當成 DNS</strong>。這就是 App-ID 的價值（第 12 章會詳談）。若惡意程式把 C2 藏在真正的 DNS 查詢裡，則要靠 Anti-Spyware／DNS Security（第 13 章）。</p>
+            </div>
+        </div>
+
+        <!-- Topic 2 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Concept</span>
+                二、核心設計：單通道並行處理
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                原廠把這個架構稱為 <span class="tech-term">Single-Pass Parallel Processing（SP3）</span>，由兩個互補的概念組成：
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h3 class="font-bold text-orange-800 mb-2"><i class="fas fa-arrow-right mr-1"></i>單通道（Single Pass）</h3>
+                    <p class="text-sm text-gray-700 mb-2">每個封包只讀一遍，在同一趟內完成：</p>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>用 App-ID 技術分類流量</li>
+                        <li>使用者／群組對應（User-ID）</li>
+                        <li>內容掃描：威脅、URL、機敏資料</li>
+                        <li>每種類型只需<strong>一份政策</strong></li>
+                    </ul>
+                </div>
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-layer-group mr-1"></i>並行處理（Parallel Processing）</h3>
+                    <p class="text-sm text-gray-700 mb-2">不同功能交給專用的硬體引擎同時處理：</p>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>功能專屬的並行硬體處理引擎</li>
+                        <li>管理平面與資料平面各自獨立</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="analogy-box">
+                <p class="font-bold mb-2 text-green-800">✈️ 生活化比喻：機場安檢</p>
+                <ul class="list-none space-y-2 pl-2 text-gray-700">
+                    <li class="flex items-start"><i class="fas fa-people-arrows text-red-500 mt-1 mr-3"></i><span><strong>傳統多層檢查</strong>：行李先排隊照 X 光，再排隊驗爆裂物，再排隊查違禁品。每一關各讀一次行李，每一關都可能塞車。</span></li>
+                    <li class="flex items-start"><i class="fas fa-route text-green-600 mt-1 mr-3"></i><span><strong>單通道</strong>：一條動線走到底，行李一次通過所有檢查。</span></li>
+                    <li class="flex items-start"><i class="fas fa-users-gear text-blue-500 mt-1 mr-3"></i><span><strong>並行處理</strong>：每種檢查有專屬的檢查員與機器，同時動作，不必互相等待。</span></li>
+                </ul>
+            </div>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 440 473" width="100%" style="max-width:440px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c01d1-t c01d1-d" font-family="'Noto Sans TC', sans-serif"><title id="c01d1-t">傳統做法與單通道的比較</title><desc id="c01d1-d">左邊是傳統做法：封包依序經過防火牆、IPS、防毒、URL 過濾，每一關都再讀一次。右邊是 Palo Alto 單通道：封包只讀一次，同時完成 App-ID、User-ID 與 Content-ID，再轉送。</desc><defs><marker id="c01d1-ah" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#4b5563"/></marker></defs><rect x="4" y="4" width="212" height="459.1" rx="10" fill="#f3f4f6" stroke="#4b5563" stroke-width="1.5"/><rect x="224" y="4" width="212" height="459.1" rx="10" fill="#fff7ed" stroke="#fa582d" stroke-width="1.5"/><text x="110" y="30" font-size="17" fill="#1f2937" text-anchor="middle" font-weight="700">傳統做法</text><text x="110" y="52" font-size="17" fill="#1f2937" text-anchor="middle">多功能逐一串接</text><text x="330" y="30" font-size="17" fill="#7c2d12" text-anchor="middle" font-weight="700">Palo Alto</text><text x="330" y="52" font-size="17" fill="#7c2d12" text-anchor="middle">單通道</text><rect x="35" y="70" width="150" height="41.5" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="110" y="96.7" font-size="17" fill="#1f2937" text-anchor="middle">封包</text><rect x="35" y="131.5" width="150" height="64.9" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="110" y="158.2" font-size="17" fill="#1f2937" text-anchor="middle">防火牆</text><text x="110" y="181.6" font-size="17" fill="#1f2937" text-anchor="middle">讀一次</text><polyline points="110,111.5 110,131.5" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c01d1-ah)"/><rect x="35" y="216.4" width="150" height="64.9" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="110" y="243.1" font-size="17" fill="#1f2937" text-anchor="middle">IPS</text><text x="110" y="266.5" font-size="17" fill="#1f2937" text-anchor="middle">再讀一次</text><polyline points="110,196.4 110,216.4" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c01d1-ah)"/><rect x="35" y="301.3" width="150" height="64.9" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="110" y="328" font-size="17" fill="#1f2937" text-anchor="middle">防毒</text><text x="110" y="351.4" font-size="17" fill="#1f2937" text-anchor="middle">再讀一次</text><polyline points="110,281.3 110,301.3" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c01d1-ah)"/><rect x="35" y="386.2" width="150" height="64.9" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="110" y="412.9" font-size="17" fill="#1f2937" text-anchor="middle">URL 過濾</text><text x="110" y="436.3" font-size="17" fill="#1f2937" text-anchor="middle">再讀一次</text><polyline points="110,366.2 110,386.2" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c01d1-ah)"/><rect x="255" y="70" width="150" height="41.5" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="330" y="96.7" font-size="17" fill="#1f2937" text-anchor="middle">封包</text><rect x="230" y="139.5" width="200" height="111.8" rx="8" fill="#c2410c" stroke="#7c2d12" stroke-width="2"/><text x="330" y="166.2" font-size="17" fill="#ffffff" text-anchor="middle">讀一次</text><text x="330" y="189.6" font-size="17" fill="#ffffff" text-anchor="middle">App-ID + User-ID</text><text x="330" y="213.1" font-size="17" fill="#ffffff" text-anchor="middle">+ Content-ID</text><text x="330" y="236.6" font-size="17" fill="#ffffff" text-anchor="middle">同時完成</text><polyline points="330,111.5 330,139.5" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c01d1-ah)"/><rect x="255" y="279.3" width="150" height="41.5" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="330" y="306" font-size="17" fill="#1f2937" text-anchor="middle">轉送</text><polyline points="330,251.3 330,279.3" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c01d1-ah)"/></svg>
+            </div>
+
+            <p class="text-sm text-gray-700 mt-3">SP3 的基本概念在各版本相同，原廠早在 2011 年就以「掃描一切、只掃描一次」形容它。</p>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異</p>
+                <p class="text-gray-700 text-sm">現行 PAN-OS 12.x 的原廠文件，已把 Advanced Threat Prevention、Advanced WildFire、Advanced URL Filtering、Advanced DNS Security 等歸類在「雲端交付安全服務（Cloud-Delivered Security Services）」之下，訂閱的組合和教材年代不同，第 3 章授權與第 13 章會再說明。</p>
+            </div>
+        </div>
+
+        <!-- Topic 3 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Architecture</span>
+                三、管理平面與資料平面
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                Palo Alto 防火牆把「管理設備」和「轉送流量」拆在兩組互相獨立的資源上。
+                你在 Web 介面跑大報表、改設定、查日誌，<strong>不會搶走處理流量的資源</strong>。
+            </p>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 440 591" width="100%" style="max-width:440px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c01d2-t c01d2-d" font-family="'Noto Sans TC', sans-serif"><title id="c01d2-t">管理平面與資料平面</title><desc id="c01d2-d">上方是管理平面，負責設定、日誌與報表，使用獨立的 CPU、RAM 與硬碟。下方是資料平面，依序為網路處理、安全處理、特徵比對。</desc><defs><marker id="c01d2-ah" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#4b5563"/></marker></defs><rect x="6" y="6" width="428" height="200.5" rx="10" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.5"/><rect x="6" y="262.5" width="428" height="318.2" rx="10" fill="#fff7ed" stroke="#fa582d" stroke-width="1.5"/><text x="220" y="34" font-size="17" fill="#1e3a8a" text-anchor="middle" font-weight="700">管理平面 Management Plane</text><rect x="70" y="50" width="300" height="41.5" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="220" y="76.7" font-size="17" fill="#1f2937" text-anchor="middle">設定 Configuration</text><rect x="70" y="101.5" width="300" height="41.5" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="220" y="128.2" font-size="17" fill="#1f2937" text-anchor="middle">日誌 Logging</text><rect x="70" y="153" width="300" height="41.5" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="220" y="179.7" font-size="17" fill="#1f2937" text-anchor="middle">報表 Reporting</text><polyline points="60,206.5 60,262.5" fill="none" stroke="#4b5563" stroke-width="2" stroke-dasharray="6 4"/><text x="74" y="240.5" font-size="17" fill="#374151" text-anchor="start" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" paint-order="stroke">獨立的 CPU / RAM / 硬碟</text><text x="220" y="290.5" font-size="17" fill="#7c2d12" text-anchor="middle" font-weight="700">資料平面 Data Plane</text><rect x="18" y="306.5" width="404" height="64.9" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="220" y="333.2" font-size="17" fill="#1f2937" text-anchor="middle" font-weight="700">網路處理 Network Processing</text><text x="220" y="356.6" font-size="17" fill="#1f2937" text-anchor="middle">路由查詢、MAC 查詢、NAT</text><rect x="18" y="393.4" width="404" height="88.4" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="220" y="420.1" font-size="17" fill="#1f2937" text-anchor="middle" font-weight="700">安全處理 Security Processing</text><text x="220" y="443.5" font-size="17" fill="#1f2937" text-anchor="middle">App-ID、User-ID、SSL/IPsec</text><text x="220" y="467" font-size="17" fill="#1f2937" text-anchor="middle">應用程式解碼、解壓縮</text><polyline points="220,371.4 220,393.4" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c01d2-ah)"/><rect x="18" y="503.8" width="404" height="64.9" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="220" y="530.5" font-size="17" fill="#1f2937" text-anchor="middle" font-weight="700">特徵比對 Signature Matching</text><text x="220" y="553.9" font-size="17" fill="#1f2937" text-anchor="middle">IPS、病毒、間諜程式、信用卡號、社會安全碼</text><polyline points="220,481.8 220,503.8" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c01d2-ah)"/></svg>
+            </div>
+
+            <div class="overflow-x-auto mt-4">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-40">元件</th><th class="py-2 px-4 text-left border">負責什麼</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">管理平面</td><td class="py-2 px-4 border">設定、日誌、報表。有獨立的處理器、記憶體與硬碟。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">網路處理</td><td class="py-2 px-4 border">前端的網路處理，硬體加速的逐封包路由查詢、MAC 查詢與 NAT。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">安全處理</td><td class="py-2 px-4 border">高密度並行處理，加速 App-ID、User-ID、SSL/IPsec、應用程式解碼、解壓縮等標準化的複雜功能。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">特徵比對</td><td class="py-2 px-4 border">以串流方式、用統一特徵格式比對弱點攻擊（IPS）、病毒、間諜程式、信用卡號與美國社會安全碼（SSN）等機敏資料。</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異</p>
+                <p class="text-gray-700 text-sm">上表的四個元件來自教材（PAN-OS 8.0 時代）的硬體架構圖。實際硬體分工會因機型而異，VM-Series 等虛擬平台沒有專用晶片，由虛擬 CPU 以軟體方式完成。</p>
+            </div>
+        </div>
+
+        <!-- Topic 4 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Flow</span>
+                四、封包的旅程：流量處理流程
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                後面學政策、NAT、解密時，腦中都要有這張圖。流程分三段：<strong>工作階段建立</strong> → <strong>檢查與強制執行</strong> → <strong>轉送前處理</strong>。入口只做區域防護（Zone Protection）；DoS 防護政策查詢排在轉送與 NAT 規則查詢之後、安全政策初步檢查之前。第一個封包進來時，應用程式還不知道，所以會先以 any 做一次安全政策初步檢查，建立工作階段後才由 App-ID 辨識應用程式，再以辨識出的應用程式比對一次安全政策。
+                放行之後，如果是 ssl 或 ssh，才會比對解密政策並解密：ssl 解密後會再辨識一次，應用程式改變時再比對安全政策，然後套用安全設定檔；ssh 解密後只控制 ssh-tunnel，不做 Content-ID 檢查。其他流量直接套用安全設定檔，最後需要時重新加密、套用 NAT 轉換，再轉送出去。
+            </p>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 440 1426.1" width="100%" style="max-width:440px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c01d3-t c01d3-d" font-family="'Noto Sans TC', sans-serif"><title id="c01d3-t">封包穿過防火牆的處理順序</title><desc id="c01d3-d">由上而下分三段。第一段工作階段建立：進入封包；區域防護（Zone Protection）；轉送查詢與 NAT 規則查詢，判斷目的區域並含 DNAT 檢查；DoS 防護政策查詢；安全政策初步檢查（視為 any）；建立工作階段。第二段檢查與強制執行：App-ID 辨識應用程式；安全政策再比對；判斷放行後是 ssl 或 ssh。ssl 先比對解密政策並解密，解密後 App-ID 再辨識，應用程式改變時再比對安全政策，再到 Content-ID 套用安全設定檔。ssh 比對解密政策並解密（SSH Proxy），只控制 ssh-tunnel，不做 Content-ID 檢查，直接進入重新加密。其他流量直接進 Content-ID 套用安全設定檔。第三段轉送前處理：需要時重新加密、套用 NAT 轉換、轉送出去。圖中標 * 的是安全政策比對。</desc><defs><marker id="c01d3-ah" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#4b5563"/></marker></defs><rect x="3" y="6" width="434" height="518.1" rx="10" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.5"/><rect x="3" y="540.1" width="434" height="647.52" rx="10" fill="#fff7ed" stroke="#fa582d" stroke-width="1.5"/><rect x="3" y="1203.62" width="434" height="216.5" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/><text x="30" y="30.1" font-size="17" fill="#1e3a8a" text-anchor="start" font-weight="700">第一段：工作階段建立</text><rect x="139" y="46" width="170" height="41.5" rx="20.75" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="224" y="72.7" font-size="17" fill="#1f2937" text-anchor="middle">進入封包</text><rect x="48" y="107.5" width="352" height="64.9" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="224" y="134.2" font-size="17" fill="#1f2937" text-anchor="middle">區域防護</text><text x="224" y="157.65" font-size="17" fill="#1f2937" text-anchor="middle">（Zone Protection）</text><polyline points="224,87.5 224,107.5" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c01d3-ah)"/><rect x="48" y="192.4" width="352" height="88.3" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="224" y="219.1" font-size="17" fill="#1f2937" text-anchor="middle">轉送查詢（PBF／路由）</text><text x="224" y="242.55" font-size="17" fill="#1f2937" text-anchor="middle">與 NAT 規則查詢</text><text x="224" y="266" font-size="17" fill="#1f2937" text-anchor="middle">判斷目的區域（含 DNAT 檢查）</text><polyline points="224,172.4 224,192.4" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c01d3-ah)"/><rect x="48" y="300.8" width="352" height="41.5" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="224" y="327.5" font-size="17" fill="#1f2937" text-anchor="middle">DoS 防護政策查詢</text><polyline points="224,280.8 224,300.8" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c01d3-ah)"/><rect x="48" y="362.3" width="352" height="64.9" rx="8" fill="#fff7ed" stroke="#fa582d" stroke-width="2"/><text x="224" y="389" font-size="17" fill="#7c2d12" text-anchor="middle">安全政策初步檢查*</text><text x="224" y="412.45" font-size="17" fill="#7c2d12" text-anchor="middle">此時還不看應用程式（視為 any）</text><polyline points="224,342.3 224,362.3" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c01d3-ah)"/><rect x="48" y="447.2" width="352" height="64.9" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="224" y="473.9" font-size="17" fill="#1f2937" text-anchor="middle">建立工作階段</text><text x="224" y="497.35" font-size="17" fill="#1f2937" text-anchor="middle">Session ID</text><polyline points="224,427.2 224,447.2" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c01d3-ah)"/><text x="30" y="564.3" font-size="17" fill="#7c2d12" text-anchor="start" font-weight="700">第二段：檢查與強制執行</text><rect x="48" y="580.1" width="352" height="41.5" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="224" y="606.8" font-size="17" fill="#1f2937" text-anchor="middle">App-ID 辨識應用程式</text><polyline points="224,512.1 224,580.1" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c01d3-ah)"/><rect x="48" y="643.6" width="352" height="64.9" rx="8" fill="#c2410c" stroke="#7c2d12" stroke-width="2"/><text x="224" y="670.3" font-size="17" fill="#ffffff" text-anchor="middle">安全政策再比對*</text><text x="224" y="693.75" font-size="17" fill="#ffffff" text-anchor="middle">改用辨識出的應用程式</text><polyline points="224,621.6 224,643.6" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c01d3-ah)"/><polygon points="224,730.5 389,781.96 224,833.42 59,781.96" fill="#faf5ff" stroke="#7c3aed" stroke-width="2"/><text x="224" y="776.2" font-size="17" fill="#4c1d95" text-anchor="middle">放行後，</text><text x="224" y="799.6" font-size="17" fill="#4c1d95" text-anchor="middle">是 ssl 或 ssh？</text><polyline points="224,708.5 224,730.5" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c01d3-ah)"/><polyline points="59,781.96 59,877.42" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c01d3-ah)"/><text x="67" y="845.96" font-size="17" fill="#374151" text-anchor="start" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" paint-order="stroke">ssh</text><polyline points="389,781.96 389,877.42" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c01d3-ah)"/><text x="381" y="845.96" font-size="17" fill="#374151" text-anchor="end" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" paint-order="stroke">ssl</text><rect x="9" y="877.42" width="207" height="64.9" rx="8" fill="#faf5ff" stroke="#7c3aed" stroke-width="2"/><text x="112.5" y="904.12" font-size="17" fill="#4c1d95" text-anchor="middle">比對解密政策並解密</text><text x="112.5" y="927.57" font-size="17" fill="#4c1d95" text-anchor="middle">（SSH Proxy）</text><rect x="9" y="962.32" width="207" height="64.9" rx="8" fill="#faf5ff" stroke="#7c3aed" stroke-width="2"/><text x="112.5" y="989.02" font-size="17" fill="#4c1d95" text-anchor="middle">只控制 ssh-tunnel</text><text x="112.5" y="1012.47" font-size="17" fill="#4c1d95" text-anchor="middle">不做 Content-ID 檢查</text><polyline points="112.5,942.32 112.5,962.32" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c01d3-ah)"/><rect x="236" y="877.42" width="172" height="41.5" rx="8" fill="#faf5ff" stroke="#7c3aed" stroke-width="2"/><text x="322" y="904.12" font-size="17" fill="#4c1d95" text-anchor="middle">比對解密政策並解密</text><rect x="236" y="938.92" width="172" height="64.9" rx="8" fill="#faf5ff" stroke="#7c3aed" stroke-width="2"/><text x="322" y="965.62" font-size="17" fill="#4c1d95" text-anchor="middle">解密後 App-ID</text><text x="322" y="989.07" font-size="17" fill="#4c1d95" text-anchor="middle">再辨識</text><rect x="236" y="1023.82" width="172" height="64.9" rx="8" fill="#faf5ff" stroke="#7c3aed" stroke-width="2"/><text x="322" y="1050.52" font-size="17" fill="#4c1d95" text-anchor="middle">應用程式改變時</text><text x="322" y="1073.97" font-size="17" fill="#4c1d95" text-anchor="middle">再比對安全政策*</text><polyline points="322,918.92 322,938.92" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c01d3-ah)"/><polyline points="322,1003.82 322,1023.82" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c01d3-ah)"/><rect x="48" y="1110.72" width="352" height="64.9" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="224" y="1137.42" font-size="17" fill="#1f2937" text-anchor="middle">Content-ID</text><text x="224" y="1160.87" font-size="17" fill="#1f2937" text-anchor="middle">套用安全設定檔</text><polyline points="322,1088.72 322,1110.72" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c01d3-ah)"/><polyline points="224,833.42 224,1110.72" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c01d3-ah)"/><text x="232" y="863.42" font-size="17" fill="#374151" text-anchor="start" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" paint-order="stroke">其他流量</text><text x="30" y="1227.72" font-size="17" fill="#14532d" text-anchor="start" font-weight="700">第三段：轉送前處理</text><rect x="48" y="1243.62" width="352" height="41.5" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="224" y="1270.32" font-size="17" fill="#1f2937" text-anchor="middle">需要時重新加密</text><polyline points="224,1175.62 224,1243.62" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c01d3-ah)"/><rect x="48" y="1305.12" width="352" height="41.5" rx="8" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="224" y="1331.82" font-size="17" fill="#1f2937" text-anchor="middle">套用 NAT 轉換</text><polyline points="224,1285.12 224,1305.12" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c01d3-ah)"/><rect x="139" y="1366.62" width="170" height="41.5" rx="20.75" fill="#ffffff" stroke="#4b5563" stroke-width="2"/><text x="224" y="1393.32" font-size="17" fill="#1f2937" text-anchor="middle">轉送出去</text><polyline points="224,1346.62 224,1366.62" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c01d3-ah)"/><polyline points="17,1027.22 17,1264.37 48,1264.37" fill="none" stroke="#4b5563" stroke-width="2" marker-end="url(#c01d3-ah)"/></svg>
+            </div>
+
+            <p class="text-xs text-gray-500 mt-2">教材投影片的流程圖是簡化畫法（把解密畫在 App-ID 之前，DoS 防護也和區域防護畫在同一格），本圖依原廠的處理順序重畫。</p>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>最常見的踩坑：NAT 與安全政策誰先？</p>
+                <p class="text-gray-700 text-sm">圖中標 * 的每一次安全政策比對（初步檢查、再比對，以及應用程式改變時的再比對），重點都一樣：<strong>用的是「NAT 之前」的 IP 位址</strong>，但目的<strong>區域</strong>要用 NAT 之後的。
+                    寫 Destination NAT 對應的安全規則時，位址欄填原始（公開）位址，區域欄填轉換後（內部）所在的區域。第 10、11 章會用實例再練一次。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">工作階段（Session）與流（Flow）</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>每個封包會對應到一個工作階段，每個工作階段再對應到一條安全政策規則。</li>
+                <li>一個工作階段可能有一或兩條流：TCP 是兩條（去程 c2s、回程 s2c），多播這類單向流量只有一條。</li>
+                <li><strong>發起方向（c2s）必須有規則允許；回程（s2c）自動放行</strong>，所以你只需要寫「誰可以主動發起連線」的規則（不論是對內或對外）。</li>
+                <li>防火牆的「伺服器」是指<strong>回應流量的一方</strong>，不是主機是否提供服務，兩者定義不同。</li>
+            </ul>
+        </div>
+
+        <!-- Topic 5 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Platform</span>
+                五、產品平台與管理方式
+            </h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">產品平台一覽</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-44">系列</th><th class="py-2 px-4 text-left border">定位（概述）</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">PA-400 系列</td><td class="py-2 px-4 border">分公司與中小型據點</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">PA-1400 系列</td><td class="py-2 px-4 border">小型園區與較大型的分散式分公司</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">PA-3400 系列</td><td class="py-2 px-4 border">高速網際網路閘道</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">PA-5400 系列</td><td class="py-2 px-4 border">資料中心／網際網路閘道</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">PA-7500 系列</td><td class="py-2 px-4 border">大型資料中心與電信業者</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">VM-Series</td><td class="py-2 px-4 border">虛擬化環境的軟體防火牆</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">CN-Series</td><td class="py-2 px-4 border">Kubernetes 容器環境的防火牆</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">機型定位僅供概念參考，這張表也不是完整機型清單；實際效能與規格請以原廠各機型規格表（datasheet）為準。</p>
+            <p class="text-sm text-gray-700 mt-2">VM-Series 預設的 vCPU 分配：總共 2 核＝管理 1＋資料 1；4 核＝1＋2；8 核＝2＋6；16 核＝4＋12。授權不涵蓋的多餘 vCPU 會分給管理平面。</p>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異</p>
+                <p class="text-gray-700 text-sm">教材投影片列的 PA-200、PA-500、PA-3000、PA-5000 等是舊世代機型，教學環境若看到這些名稱，請知道它們已是舊機型。原廠公布 PA-220 已於 2023 年 1 月 31 日停售，PA-800 於 2024 年 8 月 31 日停售。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">管理方式：四種入口</h3>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-window-maximize text-orange-500 mr-2"></i>Web 介面（WebUI）</h4>
+                    <p class="text-sm text-gray-700">最常用，以 HTTPS 連線。依功能分頁：Dashboard、ACC、Monitor、Policies、Objects、Network、Device。</p>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-terminal text-orange-500 mr-2"></i>命令列（CLI）</h4>
+                    <p class="text-sm text-gray-700">以 SSH 或序列埠 Console 連線，分「操作模式」與「設定模式」，除錯與批次操作很方便。</p>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-code text-orange-500 mr-2"></i>API（REST／XML）</h4>
+                    <p class="text-sm text-gray-700">供自動化與整合使用，可用腳本查詢狀態或修改設定。</p>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-server text-orange-500 mr-2"></i>Panorama</h4>
+                    <p class="text-sm text-gray-700">集中管理多台防火牆，統一設定、報表與日誌收集（第 18 章）。</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
+                隨堂測驗
+            </h2>
+            <p class="mb-6 text-gray-600">請點選您認為正確的選項，系統將會顯示解析。</p>
+            <div class="space-y-6" id="quiz-container"></div>
+        </div>
+
+    </main>
+
+    <footer class="footer-signature">
+        Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver.2026.10.29.11.19
+    </footer>
+
+
+    <script>
+        const quizData = [
+            {
+                question: "Q1. 下列哪一項最能說明「單通道（Single Pass）」？",
+                options: ["A. 防火牆只有一個網路介面", "B. 封包只讀一遍，同一趟內完成 App-ID、User-ID 與內容掃描", "C. 一台設備只能設定一條政策", "D. 所有流量只走同一個連接埠"],
+                correct: 1,
+                desc: "正解：B。單通道是「每個封包只處理一趟」，把流量分類、使用者對應與內容掃描合併在同一趟完成，避免多功能串接時一再重複讀取。"
+            },
+            {
+                question: "Q2. 管理員在 Web 介面產生大型報表時，為什麼不會拖慢流量轉送？",
+                options: ["A. 因為報表只會在半夜執行", "B. 因為管理平面與資料平面使用各自獨立的處理資源", "C. 因為報表由 Panorama 代為產生", "D. 因為報表不會讀取日誌"],
+                correct: 1,
+                desc: "正解：B。管理平面負責設定、日誌與報表，擁有獨立的處理器、記憶體與硬碟，與處理流量的資料平面分開。"
+            },
+            {
+                question: "Q3. 一筆 Destination NAT 流量進到防火牆，撰寫對應的安全政策規則時，下列何者正確？",
+                options: ["A. 目的位址與目的區域都填轉換後的內部資訊", "B. 目的位址與目的區域都填轉換前的公開資訊", "C. 目的位址填轉換前的原始位址，目的區域填轉換後所在的區域", "D. 目的位址填轉換後位址，目的區域填轉換前區域"],
+                correct: 2,
+                desc: "正解：C。安全政策比對使用 NAT 之前的 IP 位址，但區域使用 NAT 之後的目的區域。這是 Palo Alto 初學者最常寫錯的地方。"
+            },
+            {
+                question: "Q4. 一條 TCP 連線建立後，回程流量需要另外寫一條規則嗎？",
+                options: ["A. 需要，兩個方向都要明確允許", "B. 不需要，只要發起方向（c2s）有規則允許，回程（s2c）自動放行", "C. 只有 UDP 需要", "D. 只有加密流量需要"],
+                correct: 1,
+                desc: "正解：B。工作階段包含兩條流，只有發起方向必須有規則允許，回程流量屬於同一個工作階段而自動放行。"
+            }
+        ];
+
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionBox = document.createElement('div');
+            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
+
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border mb-2 text-gray-700" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            questionBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
+                <div class="space-y-2 mb-4">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
+                    <p class="font-bold result-title"></p>
+                    <p class="text-sm text-gray-600 mt-1">${item.desc}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionBox);
+        });
+
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            if (element.parentElement.dataset.answered) return;
+            element.parentElement.dataset.answered = "true";
+
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+                opt.classList.add('disabled');
+            });
+
+            if (optIndex === data.correct) {
+                element.classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了！";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                element.classList.add('bg-red-100', 'border-red-500');
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了！";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+    </script>
+</body>
+</html>

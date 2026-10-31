@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palo Alto Networks NGFW 實戰課程 - 高可用性 HA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        /* 卡片主體樣式 (Palo Alto Orange) */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #fa582d;
+        }
+
+        /* 重點提示框 (橘) */
+        .highlight-box {
+            background-color: #fff7ed;
+            border-left: 4px solid #fa582d;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 技術名詞標記 */
+        .tech-term {
+            color: #c2410c;
+            font-weight: 700;
+            background-color: #fff1e6;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
+        }
+
+        /* 比喻說明框 (綠) */
+        .analogy-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 版本差異框 (紫) */
+        .version-box {
+            background-color: #faf5ff;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 常見踩坑框 (紅) */
+        .pitfall-box {
+            background-color: #fef2f2;
+            border-left: 4px solid #dc2626;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .diagram-container {
+            display: block;
+            background-color: #ffffff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-top: 1rem;
+            overflow-x: auto;
+        }
+
+        @media (max-width: 640px) {
+            .section-card { padding: 1rem; }
+            .diagram-container { padding: 0.25rem; }
+        }
+
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover:not(.disabled) {
+            background-color: #f3f4f6;
+        }
+
+        .footer-signature {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+            margin-top: 4rem;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-orange-600 to-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-fire-flame-curved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold">Palo Alto Networks NGFW 實戰課程</h1>
+                    <p class="text-orange-100 mt-1">進階篇 - 單元 17：高可用性 HA</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <!-- Introduction -->
+        <div class="mb-8">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
+                <h2 class="text-xl font-bold text-blue-800 mb-2 flex items-center">
+                    <i class="fas fa-user-tie mr-2"></i>講師導言
+                </h2>
+                <p class="text-blue-900 leading-relaxed">
+                    前面十六章，我們把一台防火牆設定得又準又細。但只要它是「一台」，它就是整個網路的<strong>單點故障（single point of failure）</strong>：
+                    電源壞掉、更新後重開機、網路孔故障，全公司就一起斷線。
+                    這一章要學的，是把兩台防火牆配成一對，<strong>其中一台出事，另一台接手，而且連線盡量不中斷</strong>。
+                    HA 的設定畫面並不複雜，真正要花力氣理解的是：<strong>兩台之間靠哪幾條線溝通、誰同步給誰、什麼情況會切換、切換後怎麼確認</strong>。
+                    把這幾件事搞清楚，半夜被叫起來處理故障時，你才知道該看哪裡。
+                </p>
+            </div>
+        </div>
+
+        <!-- 學習目標 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-gray-100 text-gray-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Goals</span>
+                本章學習目標
+            </h2>
+            <ul class="list-disc pl-6 space-y-1 text-gray-700">
+                <li>說明為什麼需要 HA，並列出組成 HA 配對的前提條件</li>
+                <li>比較 Active/Passive 與 Active/Active 的運作方式、限制與適用情境</li>
+                <li>分辨 HA1、HA2、HA3 與備援連結各自的任務，以及哪些設定與狀態會同步、哪些不會</li>
+                <li>列出會觸發故障切換的條件，並說明 Device Priority 與 Preemptive 如何影響誰當 Active</li>
+                <li>讀懂 HA 狀態名稱，並用 Dashboard 與 CLI 檢查 HA 狀態</li>
+                <li>說出 HA 配對下的 Commit、管理 IP 與升級的注意事項</li>
+            </ul>
+        </div>
+
+        <!-- Topic 1 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Concept</span>
+                一、為什麼要 HA 與前提條件
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                <span class="tech-term">High Availability（HA）</span>是把兩台防火牆配成一對，一台故障時由另一台接手，避免單點故障。
+                兩台之間會透過<strong>心跳（heartbeat）</strong>確認彼此是否正常，並且同步網路、物件、政策等設定，以及工作階段（Session）等狀態資訊，
+                這些同步都走專用的 HA 連線（專用 HA 埠或一般資料埠皆可，下一節再說明）。
+            </p>
+
+            <div class="analogy-box">
+                <p class="font-bold mb-2 text-green-800">✈️ 生活化比喻：雙機長值班與交接班</p>
+                <ul class="list-none space-y-2 pl-2 text-gray-700">
+                    <li class="flex items-start"><i class="fas fa-user-pilot text-orange-500 mt-1 mr-3"></i><span><strong>Active 與 Passive</strong>：一位機長負責飛行，另一位坐在副駕駛座，看著同樣的儀表板、聽著同樣的無線電，隨時準備接手。</span></li>
+                    <li class="flex items-start"><i class="fas fa-comments text-blue-500 mt-1 mr-3"></i><span><strong>HA1 與 HA2</strong>：機師之間的對講機與共用的飛行紀錄。對講機（HA1）負責問「你還好嗎」，飛行紀錄（HA2）負責同步「目前飛到哪裡」。</span></li>
+                    <li class="flex items-start"><i class="fas fa-repeat text-green-600 mt-1 mr-3"></i><span><strong>Preemption</strong>：原本的機長休息回來，要不要把操縱桿拿回去？拿回去等於再交接一次，所以交接班本身也有風險。</span></li>
+                    <li class="flex items-start"><i class="fas fa-triangle-exclamation text-red-500 mt-1 mr-3"></i><span><strong>Split-brain</strong>：對講機壞了，兩位都以為對方暈倒，於是同時搶操縱桿。這就是後面要談的踩坑。</span></li>
+                </ul>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">組成 HA 配對的前提條件</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-48">項目</th><th class="py-2 px-4 text-left border">要求</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">硬體型號</td><td class="py-2 px-4 border">兩台必須是相同型號。可到 <span class="tech-term">Dashboard &gt; General Information</span> 的 Model 欄確認。VM-Series 還要求相同的 hypervisor 與相同的 CPU 核心數。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">PAN-OS 與內容版本</td><td class="py-2 px-4 border">兩台必須是相同的 PAN-OS 版本與 Content Release 版本，並且應用程式、URL、威脅資料庫都要更新到最新。版本不一致可能導致無法同步。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Multi-vsys 能力</td><td class="py-2 px-4 border">兩台必須同時啟用或同時停用，啟用時各自需要自己的 vsys 授權。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">介面類型</td><td class="py-2 px-4 border">使用專用 HA 連結，或以管理埠搭配「介面類型設成 HA」的資料埠。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">授權</td><td class="py-2 px-4 border">授權是每台設備各自一份、不能共用，兩台必須有相同的一組授權，可到 <span class="tech-term">Device &gt; Licenses</span> 比對。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Group ID</td><td class="py-2 px-4 border">範圍 1 到 63；若同一個廣播網域內有多對 HA，每一對的 Group ID 必須不同。</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="highlight-box mt-4">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>重點</p>
+                <p class="text-gray-700">新加入的那台如果本來就有設定，原廠建議先<strong>重置回出廠預設</strong>，等 HA 設好後再從主要那台同步設定過去，避免兩邊的設定互相干擾。授權也要注意：兩台各買各的，授權內容必須一致。</p>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>本章內容對應 PAN-OS 12.x（Device &gt; High Availability 的欄位以 12.1 為準）。HA 的基本概念在各版本相近，但部分設定值與預設值可能因版本與機型而異，實作前請以所用版本的畫面為準。</li>
+                </ul>
+            </div>
+
+            <div class="highlight-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>平台與叢集的例外</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>雲端平台有例外：Azure 與 AWS 上的 VM-Series 只支援 Active/Passive；AWS 搭配 Elastic Load Balancing 時不支援 HA（由 ELB 提供容錯）；Google Cloud Platform 上的 VM-Series 不支援 HA。</li>
+                    <li>另有 HA 叢集（HA cluster）：在支援的機型上，最多可把 16 台防火牆組成叢集，用於資料中心內或之間的工作階段存活，最大台數視機型而定。叢集不在本章範圍。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Topic 2 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Mode</span>
+                二、Active/Passive 與 Active/Active
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                HA 有兩種運作模式。<span class="tech-term">Active/Passive（A/P）</span>：一台處理流量，另一台同步後待命，路徑、連結、系統或網路故障時接手。
+                <span class="tech-term">Active/Active（A/A）</span>：兩台同時處理流量，並且共同處理工作階段的建立與擁有權，各自保有自己的工作階段表與路由表，再與對方同步。
+            </p>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 480 440" width="100%" style="max-width:480px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c17d1-t" font-family="'Noto Sans TC', sans-serif"><title id="c17d1-t">Active/Passive 與 Active/Active 的對照圖。Active/Passive 由 Active 處理全部流量，並把設定與工作階段同步給待命的 Passive；Active/Active 兩台都處理流量，用 HA3 轉送封包，並由 HA1 與 HA2 同步。</title><defs><marker id="c17d1-g" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#4b5563"/></marker><marker id="c17d1-o" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#c2410c"/></marker><marker id="c17d1-r" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#dc2626"/></marker></defs><rect x="8" y="8" width="464" height="200" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text x="240" y="40" text-anchor="middle" font-size="20" fill="#c2410c" font-weight="700">Active/Passive</text><rect x="24" y="60" width="190" height="96" rx="10" fill="#c2410c" stroke="#fa582d" stroke-width="2"/><text x="119" y="89.1" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="700">防火牆 A</text><text x="119" y="114.3" text-anchor="middle" font-size="18" fill="#ffffff">Active</text><text x="119" y="139.5" text-anchor="middle" font-size="18" fill="#ffffff">處理全部流量</text><rect x="266" y="60" width="190" height="96" rx="10" fill="#e5e7eb" stroke="#4b5563" stroke-width="2"/><text x="361" y="89.1" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">防火牆 B</text><text x="361" y="114.3" text-anchor="middle" font-size="18" fill="#1f2937">Passive</text><text x="361" y="139.5" text-anchor="middle" font-size="18" fill="#1f2937">同步後待命</text><line x1="214" y1="108" x2="266" y2="108" stroke="#4b5563" stroke-width="3" stroke-dasharray="7 5" marker-end="url(#c17d1-g)"/><text x="240" y="186" text-anchor="middle" font-size="18" fill="#1f2937">虛線：設定與工作階段同步</text><rect x="8" y="224" width="464" height="206" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text x="240" y="256" text-anchor="middle" font-size="20" fill="#c2410c" font-weight="700">Active/Active</text><rect x="16" y="276" width="202" height="96" rx="10" fill="#c2410c" stroke="#fa582d" stroke-width="2"/><text x="117" y="305.1" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="700">防火牆 A</text><text x="117" y="330.3" text-anchor="middle" font-size="18" fill="#ffffff">Active-Primary</text><text x="117" y="355.5" text-anchor="middle" font-size="18" fill="#ffffff">處理流量</text><rect x="262" y="276" width="202" height="96" rx="10" fill="#c2410c" stroke="#fa582d" stroke-width="2"/><text x="363" y="305.1" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="700">防火牆 B</text><text x="363" y="330.3" text-anchor="middle" font-size="18" fill="#ffffff">Active-Secondary</text><text x="363" y="355.5" text-anchor="middle" font-size="18" fill="#ffffff">處理流量</text><line x1="222" y1="324" x2="258" y2="324" stroke="#4b5563" stroke-width="3" marker-end="url(#c17d1-g)" marker-start="url(#c17d1-g)"/><text x="240" y="406" text-anchor="middle" font-size="18" fill="#1f2937">HA3 轉送封包；HA1、HA2 負責同步</text></svg>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">A/P 與 A/A 對照</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border w-40">比較項目</th>
+                            <th class="py-2 px-4 text-left border">Active/Passive</th>
+                            <th class="py-2 px-4 text-left border">Active/Active</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">處理流量的設備</td><td class="py-2 px-4 border">只有 Active 那台</td><td class="py-2 px-4 border">兩台都處理</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">支援的介面模式</td><td class="py-2 px-4 border">Virtual Wire、Layer 2、Layer 3</td><td class="py-2 px-4 border">只有 Virtual Wire 與 Layer 3，不支援 Layer 2</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">需要的 HA 連結</td><td class="py-2 px-4 border">HA1、HA2</td><td class="py-2 px-4 border">HA1、HA2，另外必須有專用的 HA3</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">設計與除錯</td><td class="py-2 px-4 border">較單純，路由與流量路徑好追蹤</td><td class="py-2 px-4 border">較複雜，可能需要兩台都啟用路由協定、複製 NAT 位址池、設計 Floating IP</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">DHCP 與 PPPoE</td><td class="py-2 px-4 border">無此限制</td><td class="py-2 px-4 border">不支援 DHCP Client；PPPoE 的說法見下方提醒；只有 Active-Primary 能做 DHCP Relay；Active-Secondary 收到 DHCP 廣播封包會丟棄</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">原廠建議的情境</td><td class="py-2 px-4 border">要簡單的設計與好除錯；要 Layer 2 部署時只能選它</td><td class="py-2 px-4 border">兩台各自需要自己的路由執行個體，又要隨時完整即時的備援；非對稱路由，或要讓 OSPF、BGP 在兩台都維持運作</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>常見踩坑：以為 A/A 就是「效能加倍」</p>
+                <p class="text-gray-700 text-sm"><strong>A/A 不會自動做流量負載平衡</strong>，要分流得靠 ECMP、多條 ISP 或負載平衡器。A/A 在短時間內可以處理比單台更多的流量，但<strong>只剩一台時，那一台仍得扛得住尖峰流量，而且是在內容檢查全開的情況下</strong>，否則可能出現高延遲或應用程式失效。評估容量時，請以「單台能撐住全部流量」為標準。</p>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>HA 與 DHCP、PPPoE 的限制（呼應第 6 章）</p>
+                <p class="text-gray-700 text-sm">第 6 章提過 DHCP Client 與 PPPoE 位址類型在 HA 下有限制。<strong>Active/Active 不支援 DHCP Client 與 PPPoE；原廠文件對 PPPoE 另有不同說法，以實機為準。</strong>DHCPv6 Client 同樣不支援 A/A。若 WAN 端要用這些位址類型，建議選 A/P，並先在測試環境驗證。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">A/A 的 Floating IP 與 Virtual MAC（概觀）</h3>
+            <p class="mb-2 text-gray-700">
+                在 Layer 3 的 A/A 部署中，兩台各自保有自己的介面 IP；另外可以設定一個<strong>Floating IP</strong>，它會在連結或設備故障時，從一台移到另一台，讓連線持續。
+                擁有 Floating IP 的那台會用 <strong>Virtual MAC</strong> 回應 ARP；故障轉移後，接手的那台會送出 gratuitous ARP，通知上游 Layer 2 交換器 Virtual MAC 換位置了。
+            </p>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 text-sm">
+                <li>預設情況下，故障的那台復原後，Floating IP 與 Virtual MAC 會<strong>移回原本綁定的 Device ID 所在的那台</strong>。</li>
+                <li>設定頁面提供「Floating IP bound to the Active-Primary HA device」的選項：故障轉移後，流量會留在 Active-Primary，不會因為對方復原就移回去。</li>
+                <li>另一種做法是 <strong>ARP Load Sharing</strong>：兩台共用一個閘道 IP，由 IP Modulo 或 IP Hash 的方式決定哪一台回應 ARP；僅在防火牆與主機同屬一個廣播網域時才需要。</li>
+                <li>如果用動態路由（RIP、OSPF、BGP）加 BFD 處理改道，則不需要 Floating IP，這叫 Route-Based Redundancy。</li>
+                <li>設定位置：<span class="tech-term">Device &gt; High Availability &gt; Active/Active Config</span>。</li>
+            </ul>
+        </div>
+
+        <!-- Topic 3 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Links</span>
+                三、HA 連結與同步內容
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                兩台防火牆之間不是只靠一條線溝通，而是依任務分成幾條連結。把它們想成：<strong>HA1 傳「話」，HA2 傳「資料」，HA3 傳「封包」</strong>。
+            </p>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 480 636" width="100%" style="max-width:480px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c17d2-t" font-family="'Noto Sans TC', sans-serif"><title id="c17d2-t">兩台防火牆之間的 HA 連結示意圖。HA1 控制連結傳送 hello、心跳、狀態並同步設定；HA2 資料連結同步工作階段與表項；HA1 與 HA2 可另設備援連結（Backup），使用不同子網與不同實體埠；HA3 只有 Active/Active 才用，負責轉送封包；管理埠 MGT 可作為 Heartbeat Backup。資料埠則各自接上下游網路。</title><defs><marker id="c17d2-g" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#4b5563"/></marker><marker id="c17d2-o" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#c2410c"/></marker><marker id="c17d2-r" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#dc2626"/></marker></defs><rect x="8" y="8" width="222" height="92" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text x="119" y="35.1" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">防火牆 A</text><text x="119" y="60.3" text-anchor="middle" font-size="18" fill="#1f2937">Device Priority</text><text x="119" y="85.5" text-anchor="middle" font-size="18" fill="#1f2937">數值較小</text><rect x="250" y="8" width="222" height="92" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text x="361" y="35.1" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">防火牆 B</text><text x="361" y="60.3" text-anchor="middle" font-size="18" fill="#1f2937">Device Priority</text><text x="361" y="85.5" text-anchor="middle" font-size="18" fill="#1f2937">數值較大</text><rect x="8" y="124" width="116" height="60" rx="10" fill="#e5e7eb" stroke="#4b5563" stroke-width="2"/><text x="66" y="160.3" text-anchor="middle" font-size="18" fill="#1f2937">資料埠</text><rect x="356" y="124" width="116" height="60" rx="10" fill="#e5e7eb" stroke="#4b5563" stroke-width="2"/><text x="414" y="160.3" text-anchor="middle" font-size="18" fill="#1f2937">資料埠</text><text x="240" y="148" text-anchor="middle" font-size="18" fill="#4b5563">各自接上</text><text x="240" y="172" text-anchor="middle" font-size="18" fill="#4b5563">下游網路</text><line x1="124" y1="242" x2="356" y2="242" stroke="#c2410c" stroke-width="6"/><rect x="8" y="212" width="116" height="60" rx="10" fill="#c2410c" stroke="#fa582d" stroke-width="2"/><text x="66" y="248.3" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="700">HA1</text><rect x="356" y="212" width="116" height="60" rx="10" fill="#c2410c" stroke="#fa582d" stroke-width="2"/><text x="414" y="248.3" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="700">HA1</text><rect x="151" y="212.8" width="178" height="58.4" rx="8" fill="#ffffff"/><text x="240" y="235.7" text-anchor="middle" font-size="18" fill="#1f2937">hello、心跳、狀態</text><text x="240" y="260.9" text-anchor="middle" font-size="18" fill="#1f2937">設定同步</text><line x1="124" y1="330" x2="356" y2="330" stroke="#fdba74" stroke-width="6"/><rect x="8" y="300" width="116" height="60" rx="10" fill="#fed7aa" stroke="#c2410c" stroke-width="2"/><text x="66" y="336.3" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">HA2</text><rect x="356" y="300" width="116" height="60" rx="10" fill="#fed7aa" stroke="#c2410c" stroke-width="2"/><text x="414" y="336.3" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">HA2</text><rect x="151" y="313.4" width="178" height="33.2" rx="8" fill="#ffffff"/><text x="240" y="336.3" text-anchor="middle" font-size="18" fill="#1f2937">工作階段與表項同步</text><line x1="124" y1="418" x2="356" y2="418" stroke="#c2410c" stroke-width="3" stroke-dasharray="7 5"/><rect x="8" y="388" width="116" height="60" rx="10" fill="#fff7ed" stroke="#c2410c" stroke-width="2"/><text x="66" y="411.7" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">HA1/HA2</text><text x="66" y="436.9" text-anchor="middle" font-size="18" fill="#1f2937">Backup</text><rect x="356" y="388" width="116" height="60" rx="10" fill="#fff7ed" stroke="#c2410c" stroke-width="2"/><text x="414" y="411.7" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">HA1/HA2</text><text x="414" y="436.9" text-anchor="middle" font-size="18" fill="#1f2937">Backup</text><rect x="152" y="389" width="176" height="58" rx="8" fill="#ffffff"/><text x="240" y="411.7" text-anchor="middle" font-size="18" fill="#1f2937">主連結的備援</text><text x="240" y="436.9" text-anchor="middle" font-size="18" fill="#1f2937">不同子網與實體埠</text><line x1="124" y1="506" x2="356" y2="506" stroke="#4b5563" stroke-width="3" stroke-dasharray="7 5"/><rect x="8" y="476" width="116" height="60" rx="10" fill="#e5e7eb" stroke="#4b5563" stroke-width="2"/><text x="66" y="499.7" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">HA3</text><text x="66" y="524.9" text-anchor="middle" font-size="18" fill="#1f2937">僅 A/A</text><rect x="356" y="476" width="116" height="60" rx="10" fill="#e5e7eb" stroke="#4b5563" stroke-width="2"/><text x="414" y="499.7" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">HA3</text><text x="414" y="524.9" text-anchor="middle" font-size="18" fill="#1f2937">僅 A/A</text><rect x="196" y="489.4" width="88" height="33.2" rx="8" fill="#ffffff"/><text x="240" y="512.3" text-anchor="middle" font-size="18" fill="#1f2937">封包轉送</text><line x1="124" y1="594" x2="356" y2="594" stroke="#4b5563" stroke-width="3" stroke-dasharray="7 5"/><rect x="8" y="564" width="116" height="60" rx="10" fill="#e5e7eb" stroke="#4b5563" stroke-width="2"/><text x="66" y="600.3" text-anchor="middle" font-size="18" fill="#1f2937">MGT 管理埠</text><rect x="356" y="564" width="116" height="60" rx="10" fill="#e5e7eb" stroke="#4b5563" stroke-width="2"/><text x="414" y="600.3" text-anchor="middle" font-size="18" fill="#1f2937">MGT 管理埠</text><rect x="145.6" y="577.4" width="188.8" height="33.2" rx="8" fill="#ffffff"/><text x="240" y="600.3" text-anchor="middle" font-size="18" fill="#1f2937">Heartbeat Backup</text></svg>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">圖為概念示意。實際使用哪個實體埠依機型而定，下一段說明。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">各條連結的任務</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border w-36">連結</th>
+                            <th class="py-2 px-4 text-left border">任務與特性</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">HA1 控制連結</td><td class="py-2 px-4 border">傳送 hello、心跳與 HA 狀態資訊；同步路由與 User-ID 等管理平面資料；把設定變更推給對方。是 Layer 3 連結，需要 IP 位址；心跳用 ICMP。可選擇加密（要先匯出匯入 HA key）。設定位置：<span class="tech-term">Device &gt; High Availability &gt; HA Communications</span> 的 Control Link (HA1)。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">HA2 資料連結</td><td class="py-2 px-4 border">同步工作階段、轉送表、IPsec 安全關聯（SA）、ARP 表。資料是從 Active 單向傳給 Passive（HA2 keep-alive 例外）。預設是 Layer 2 的 Ethernet 傳輸；若 HA2 必須跨過路由網路，可改用 IP 或 UDP 傳輸。需勾選 Enable Session Synchronization，Passive 才有同步的工作階段可用。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">HA3 封包轉送連結</td><td class="py-2 px-4 border"><strong>只有 A/A 才需要</strong>。用於工作階段建立時，以及非對稱流量時，把封包轉送給對方。是 Layer 2 連結，使用 MAC-in-MAC 封裝，不支援 Layer 3 位址與加密。若用資料埠承載，必須啟用 jumbo frame，中間的網路設備也要支援。不支援 HA3 備援連結。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">HA1 Backup、HA2 Backup</td><td class="py-2 px-4 border">為 HA1、HA2 提供備援。原廠要求：主連結與備援連結的 IP 不可重疊、備援連結要在不同子網路、HA1 Backup 與 HA2 Backup 必須使用不同的實體埠。沒有專用備援埠時，可用資料埠（in-band）充當備援。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Heartbeat Backup</td><td class="py-2 px-4 border">讓兩台的 MGT 管理埠充當心跳與 hello 的備援路徑。設定位置：<span class="tech-term">Device &gt; High Availability &gt; General &gt; Election Settings</span>。控制連結走專用埠或資料埠（in-band）時才需要啟用；若管理埠本身已承載 HA1 或其備援，就不要啟用。使用前必須確認兩台的管理埠彼此可以互相連通，並在管理介面允許 Ping。</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">常見的協定與埠號</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border w-36">連結</th>
+                            <th class="py-2 px-4 text-left border">協定與埠號</th>
+                            <th class="py-2 px-4 text-left border">補充</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">HA1</td><td class="py-2 px-4 border">TCP 28769 與 28260（明文）</td><td class="py-2 px-4 border">Monitor Hold Time 預設 3,000 ms，範圍 1,000 到 60,000 ms。加密時的埠號以實機為準。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">HA1 Backup</td><td class="py-2 px-4 border">28770 與 28260</td><td class="py-2 px-4 border">要用不同子網、不同實體埠。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Heartbeat Backup</td><td class="py-2 px-4 border">管理埠 28771</td><td class="py-2 px-4 border">管理埠要允許 Ping。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">HA2</td><td class="py-2 px-4 border">Ethernet、IP（protocol 99）或 UDP（port 29281）</td><td class="py-2 px-4 border">HA2 keep-alive 閾值預設 10,000 ms（範圍 5,000 到 60,000）；失敗時的動作有 Log Only（A/P 適用）與 Split Datapath（A/A 適用）。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">HA3</td><td class="py-2 px-4 border">Layer 2 的 MAC-in-MAC</td><td class="py-2 px-4 border">沒有 IP 位址，不能加密，也沒有備援連結。</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">專用 HA 埠與 In-band 埠</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 text-sm">
+                <li>許多機型有<strong>專用 HA 埠</strong>（例如標示 HA1、HA1-A、HA1-B、HA2、HSCI 的埠）。專用的管理平面 HA 介面比 in-band 埠更有效率，因為同步流量不必穿過資料平面。</li>
+                <li>沒有專用 HA 埠的機型（例如 PA-400 系列），必須把一般<strong>資料埠</strong>設成 HA 類型，這稱為 in-band。資料埠可以直接連接，也可以透過 Layer 2 交換器，但原廠建議直接連接，以免網路問題影響 HA 通訊。</li>
+                <li>HSCI 是 Layer 1 的原始連線，不可路由也不可交換，兩台必須直接相連。</li>
+                <li>HA 介面本身不屬於任何 Zone，這與一般資料埠不同（你在第 5 章學過 Zone 的作用；此點以實機為準）。</li>
+            </ul>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>最常見的踩坑：Split-brain（雙主）</p>
+                <p class="text-gray-700 text-sm mb-2">所謂 <strong>split-brain</strong>，是兩台都認為對方已經故障，各自升為 Active，結果兩台同時處理流量、位址衝突、工作階段亂掉。典型成因是：<strong>HA1 是兩台之間唯一的溝通管道，而這條線斷了</strong>（線被拔、交換器壞掉，或兩台中間被其他設備擋下）。（這是 split-brain 的一般說法與常見成因，不是原廠逐字定義，以實機為準。）</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>預防方式：除了 HA1，再設定 <strong>HA1 Backup</strong> 與 <strong>Heartbeat Backup</strong>，讓心跳有第二、第三條路。</li>
+                    <li>還有一個機型限定的提醒：PA-1400、PA-1500、PA-3200、PA-3400 系列的 HA1-B 會隨資料平面一起重啟，若沒有設定 HA1-A 連結，可能造成 split-brain，所以這些機型 <strong>HA1-A 與 HA1-B 兩個都要設定</strong>。其他機型也建議把備援連結接好、設好。</li>
+                    <li>HA1 與 HA2 之間若有任何過濾設備，必須放行 HA 連結使用的協定與埠。</li>
+                </ul>
+            </div>
+
+            <div class="highlight-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>機型差異：HA 埠怎麼接</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>各機型的專用 HA 埠不同：例如 PA-3500 系列與 PA-5510、PA-5520、PA-5530 以 HSCI 同時承載 HA1 與 HA2；PA-5540 到 PA-5580 的 HSCI 則是用來組 NGFW 叢集的連線。購買與規劃前請查所用機型的 HA 埠說明。</li>
+                    <li><strong>管理埠能否當 HA1，依機型而定。</strong>沒有專用 HA 埠的機型（例如 PA-220、PA-220R），建議用管理埠做 HA1、資料埠做 HA1 Backup，此時兩台管理埠之間要有路由，若設了 Permitted IP，要把對端的 HA1 位址加進去。有專用 HA 埠的機型（例如 PA-3200 到 PA-5450、PA-7000 系列），管理介面不能設為 HA 埠。</li>
+                    <li>預設傳輸類型的 EtherType 數值，不同說明的寫法不一致，所以本章不列這類數字，以實機為準。</li>
+                </ul>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>較新的版本才支援：PA-7500 系列（PAN-OS 12.1.5 起）與 PA-5500 系列（12.1.7 起）也可以用 HSCI 組 Active/Passive HA，HSCI-A 為主連結，HSCI-B 可設為備援。這些機型<strong>不支援 Active/Active</strong>；在此之前，它們的兩台組合方式是 NGFW 叢集。PA-5500 系列中適用的子型號，以實機為準；上一框提到 PA-5510、PA-5520、PA-5530 以 HSCI 承載 HA1 與 HA2，兩處如何對應，也以實機為準。</li>
+                </ul>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">什麼會同步，什麼不會</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border w-40">類別</th>
+                            <th class="py-2 px-4 text-left border">內容</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">會同步：設定</td><td class="py-2 px-4 border">啟用 Config Sync 後，大部分設定在 Commit 後同步給對方（網路、物件、政策等）。<strong>只有已 Commit 的設定才會同步</strong>；同步當下還在 commit 佇列中的設定不會被同步。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">會同步：執行期資料</td><td class="py-2 px-4 border">經 HA1：User-to-IP 對應、使用者與群組對應、DHCP Server 租約、PPPoE 與 DHCP Client 設定與租約等。經 HA2：工作階段表、ARP 表、IPsec SA 等（A/P 與 A/A 略有差異）。轉送表（FIB）與部分項目經 HA1 還是 HA2，原廠文件說法不一，以實機為準。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">不會同步：每台自己的設定</td><td class="py-2 px-4 border">管理介面設定（主機名稱、網域、登入橫幅、時區、管理 IP 與服務等）、HA 本身的設定、授權與支援訂閱、Master Key（必須相同，但要在每台手動輸入）、SNMP、服務路由、Log 匯出設定、裝置管理用憑證。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">不會同步：更新檔</td><td class="py-2 px-4 border">軟體、GlobalProtect Agent、內容更新可以在一台下載後同步給對端，但仍要在每台各自安裝。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">不會同步：日誌與報表</td><td class="py-2 px-4 border">日誌資料、報表與 Dashboard 資料不會同步；若要合併檢視兩台的日誌與報表，可以用 Panorama 集中收集（第 18 章）。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">其他</td><td class="py-2 px-4 border">故障轉移後，已解密的 SSL 工作階段不支援 HA 同步（第 15 章）；規則使用統計（命中次數等）也不會同步。</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="highlight-box mt-4">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>重點</p>
+                <p class="text-gray-700">原廠的建議流程：<strong>在 Active（A/A 則是 Active-Primary）上修改設定，等同步完成後再做下一次變更</strong>。工作階段同步中斷的情況包括：關閉了 Session 同步，或 <strong>HA2 連結中斷</strong>。設定不同步的情況包括：任一台關閉了 Config Sync、PAN-OS 版本不相容、兩台授權不同、一台啟用了 multi-vsys 而另一台沒有等。A/A 另外有幾項預設不同步（例如介面 IP 位址，虛擬路由器與 QoS 要另外啟用 VR Sync、QoS Sync），規劃 A/A 時要特別確認各項目是否同步。</p>
+            </div>
+        </div>
+
+        <!-- Topic 4 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Failover</span>
+                四、故障切換條件與優先權
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                什麼情況下 Passive 會接手？觸發條件可以分成四大類：<strong>對端失聯、監控失敗、內部健康檢查、人為與優先權</strong>。
+            </p>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 480 696" width="100%" style="max-width:480px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c17d3-t" font-family="'Noto Sans TC', sans-serif"><title id="c17d3-t">觸發故障切換的條件分類圖。Passive 接手的原因分四類：對端失聯、監控失敗、內部健康檢查、人為與優先權。連結監控與路徑監控失敗的預設結果是 Non-functional，Active/Active 則是 Tentative。</title><defs><marker id="c17d3-g" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#4b5563"/></marker><marker id="c17d3-o" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#c2410c"/></marker><marker id="c17d3-r" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#dc2626"/></marker></defs><rect x="110" y="8" width="260" height="52" rx="10" fill="#c2410c" stroke="#fa582d" stroke-width="2"/><text x="240" y="40.3" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="700">Passive 何時接手</text><rect x="30" y="84" width="442" height="146" rx="10" fill="#ffffff" stroke="#fdba74" stroke-width="2"/><rect x="30" y="84" width="136" height="146" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text x="98" y="163" text-anchor="middle" font-size="18" fill="#c2410c" font-weight="700">對端失聯</text><text x="178" y="114" text-anchor="start" font-size="18" fill="#1f2937">•</text><text x="196" y="114" text-anchor="start" font-size="18" fill="#1f2937">HA1 上 ICMP 心跳</text><text x="196" y="140" text-anchor="start" font-size="18" fill="#1f2937">連續遺失三次</text><text x="178" y="166" text-anchor="start" font-size="18" fill="#1f2937">•</text><text x="196" y="166" text-anchor="start" font-size="18" fill="#1f2937">Hello 訊息沒有回應</text><text x="178" y="192" text-anchor="start" font-size="18" fill="#1f2937">•</text><text x="196" y="192" text-anchor="start" font-size="18" fill="#1f2937">HA1 實體連結中斷，</text><text x="196" y="218" text-anchor="start" font-size="18" fill="#1f2937">等待 Monitor Hold Time</text><rect x="30" y="244" width="442" height="196" rx="10" fill="#ffffff" stroke="#fdba74" stroke-width="2"/><rect x="30" y="244" width="136" height="196" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text x="98" y="348" text-anchor="middle" font-size="18" fill="#c2410c" font-weight="700">監控失敗</text><text x="178" y="274" text-anchor="start" font-size="18" fill="#1f2937">•</text><text x="196" y="274" text-anchor="start" font-size="18" fill="#1f2937">Link Monitoring：</text><text x="196" y="300" text-anchor="start" font-size="18" fill="#1f2937">連結群組失敗</text><text x="178" y="326" text-anchor="start" font-size="18" fill="#1f2937">•</text><text x="196" y="326" text-anchor="start" font-size="18" fill="#1f2937">Path Monitoring：</text><text x="196" y="352" text-anchor="start" font-size="18" fill="#1f2937">目的 IP 不可達</text><rect x="176" y="372" width="286" height="62" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/><text x="319" y="396.7" text-anchor="middle" font-size="18" fill="#1f2937">預設結果：Non-functional</text><text x="319" y="421.9" text-anchor="middle" font-size="18" fill="#1f2937">（A/A 為 Tentative）</text><rect x="30" y="454" width="442" height="120" rx="10" fill="#ffffff" stroke="#fdba74" stroke-width="2"/><rect x="30" y="454" width="136" height="120" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text x="98" y="520" text-anchor="middle" font-size="18" fill="#c2410c" font-weight="700">內部健康檢查</text><text x="178" y="484" text-anchor="start" font-size="18" fill="#1f2937">•</text><text x="196" y="484" text-anchor="start" font-size="18" fill="#1f2937">關鍵硬體元件</text><text x="196" y="510" text-anchor="start" font-size="18" fill="#1f2937">如 FPGA 與 CPU</text><text x="196" y="536" text-anchor="start" font-size="18" fill="#1f2937">健康檢查失敗</text><text x="196" y="562" text-anchor="start" font-size="18" fill="#1f2937">（部分機型才有）</text><rect x="30" y="588" width="442" height="94" rx="10" fill="#ffffff" stroke="#fdba74" stroke-width="2"/><rect x="30" y="588" width="136" height="94" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text x="98" y="641" text-anchor="middle" font-size="18" fill="#c2410c" font-weight="700">人為與優先權</text><text x="178" y="618" text-anchor="start" font-size="18" fill="#1f2937">•</text><text x="196" y="618" text-anchor="start" font-size="18" fill="#1f2937">管理員執行 Suspend</text><text x="178" y="644" text-anchor="start" font-size="18" fill="#1f2937">•</text><text x="196" y="644" text-anchor="start" font-size="18" fill="#1f2937">Preemption：</text><text x="196" y="670" text-anchor="start" font-size="18" fill="#1f2937">高優先權者回收 Active</text><path d="M110,34 H14 V635" fill="none" stroke="#4b5563" stroke-width="3"/><line x1="14" y1="157" x2="30" y2="157" stroke="#4b5563" stroke-width="3"/><line x1="14" y1="342" x2="30" y2="342" stroke="#4b5563" stroke-width="3"/><line x1="14" y1="514" x2="30" y2="514" stroke="#4b5563" stroke-width="3"/><line x1="14" y1="635" x2="30" y2="635" stroke="#4b5563" stroke-width="3"/></svg>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">各類觸發條件的細節</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border w-44">條件</th>
+                            <th class="py-2 px-4 text-left border">說明（數值為預設或範圍，可能因版本與機型而異）</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">心跳（Heartbeat）</td><td class="py-2 px-4 border">在 HA1 上送 ICMP ping，對方要回應。預設每 1,000 ms 一次，連續遺失三次就觸發故障切換。Heartbeat Interval 可調，範圍 1,000 到 60,000 ms（部分版本的欄位說明沒有列預設值，以實機為準）。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Hello 訊息</td><td class="py-2 px-4 border">兩台依 Hello Interval 互相確認狀態。範圍 8,000 到 60,000 ms，預設 8,000 ms。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">HA1 連結中斷</td><td class="py-2 px-4 border">Control Link 的 Monitor Hold Time：防火牆等多久才宣告對端因控制連結失敗而故障。預設 3,000 ms，範圍 1,000 到 60,000 ms。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Link Monitoring</td><td class="py-2 px-4 border">把一組實體介面編成 Link Group，每組可設「任一條斷」或「全部都斷」才算失敗；多個 Link Group 也可設「任一組失敗」或「全部失敗」。<strong>預設：任何一組內任何一條連結失敗，就把 HA 狀態設為 Non-functional（A/A 為 Tentative）</strong>。路徑：<span class="tech-term">Device &gt; High Availability &gt; Link and Path Monitoring</span>。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Path Monitoring</td><td class="py-2 px-4 border">防火牆對指定的目的 IP 群組送 ICMP ping。路徑群組可建立在 Virtual Wire、VLAN 或虛擬路由器上（啟用 Advanced Routing 時，改為 Logical Router）。Ping Interval 範圍 200 到 60,000 ms，預設 200 ms；Ping Count 範圍 3 到 10，預設 10（連續失敗達次數才宣告不可達）。Failure Condition 預設為 Any。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">內部健康檢查</td><td class="py-2 px-4 border">部分機型會對 FPGA、CPU 等關鍵元件做不可設定的內部健康檢查，失敗會觸發切換；任何平台的一般健康檢查也可能造成切換。這類檢查不可設定，也沒有可調的數值。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">人為與優先權</td><td class="py-2 px-4 border">管理員手動 Suspend，或 Preemption（見下方）。</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="highlight-box mt-4">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>重點：Last device standing 與 Flap Max</p>
+                <p class="text-gray-700 text-sm">如果唯一的問題是 Link 或 Path 監控失敗，而對端也不是 Active，Active 這台會繼續運作，只記錄失敗而不離開 Active。若兩台都有路徑或連結失敗，可能一直來回切換；<strong>Flap Max</strong>（範圍 0 到 16，預設 3，0 表示沒有上限）會把這台設為 Suspended，讓對端維持 Active，打破循環。HA 叢集不支援這個行為。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Device Priority 與 Preemption</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 text-sm">
+                <li><strong>Device Priority</strong> 範圍 0 到 255，<strong>數值越小，優先權越高</strong>，會成為 Active。設定位置：<span class="tech-term">Device &gt; High Availability &gt; General &gt; Election Settings</span>。</li>
+                <li><strong>Preemptive</strong> 預設為停用。要讓指定的那台固定當 Active，兩台都要啟用 Preemptive，並各自設定 Device Priority。啟用後，優先權較高的那台在故障復原後會把 Active 角色取回；Preemption 發生時會記錄在 System 日誌。若停用，復原後現任 Active 會繼續當 Active。</li>
+                <li>兩台優先權相同時，可能用 HA 連結的 MAC 位址等因素決勝。</li>
+                <li>A/A 用 <strong>Device ID</strong> 決定：0 為 Active-Primary，1 為 Active-Secondary。</li>
+                <li>Preemption Hold Time：Passive 或 Active-Secondary 在取回角色前等待的時間，單位分鐘，範圍 1 到 60，預設 1。</li>
+                <li>Monitor Fail Hold Up Time（毫秒，範圍 0 到 60,000，預設 0）：Link 或 Path 監控失敗後，防火牆仍維持 Active 的時間，可避免上游設備偶爾閃斷造成切換。Additional Master Hold Up Time（預設 500 ms）：加在 Active 那台，避免兩台同時失敗時搶著切換。</li>
+                <li>HA Timer Settings 可選 Recommended、Aggressive（切換更快）或 Advanced（自訂）。各預設組合的數值依平台不同，也可能隨版本改變，這裡不列。</li>
+            </ul>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>常見踩坑：Preemption 造成「二次中斷」</p>
+                <p class="text-gray-700 text-sm mb-2">主機故障時切到備機是一次中斷；主機修好後 Preemption 又把角色搶回去，是<strong>第二次切換</strong>。如果主機其實還不穩（監控一直閃），還可能來回切換。</p>
+                <p class="text-gray-700 text-sm mt-1">做法：在變更時段內（尤其是<strong>升級前</strong>）先停用 Preemptive；環境穩定、希望固定主機時，再開啟並設好 Preemption Hold Time。</p>
+            </div>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 480 592" width="100%" style="max-width:480px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c17d4-t" font-family="'Noto Sans TC', sans-serif"><title id="c17d4-t">Preemption 造成二次切換的流程圖。防火牆 A 是 Active，A 故障後 B 接手成 Active，A 修復後重新上線；若兩台都啟用 Preemptive 且 A 優先權較高，等 Preemption Hold Time 後 A 搶回 Active，造成第二次切換；若不是兩台都啟用，B 繼續當 Active，不再切換。</title><defs><marker id="c17d4-g" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#4b5563"/></marker><marker id="c17d4-o" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#c2410c"/></marker><marker id="c17d4-r" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#dc2626"/></marker></defs><rect x="90" y="8" width="300" height="52" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text x="240" y="40.3" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">1. 防火牆 A 是 Active</text><rect x="90" y="94" width="300" height="52" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text x="240" y="126.3" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">2. A 故障，B 接手成 Active</text><rect x="90" y="180" width="300" height="52" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text x="240" y="212.3" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">3. A 修復後重新上線</text><line x1="240" y1="60" x2="240" y2="94" stroke="#4b5563" stroke-width="3" marker-end="url(#c17d4-g)"/><line x1="240" y1="146" x2="240" y2="180" stroke="#4b5563" stroke-width="3" marker-end="url(#c17d4-g)"/><line x1="240" y1="232" x2="240" y2="266" stroke="#4b5563" stroke-width="3" marker-end="url(#c17d4-g)"/><path d="M240,266 L400,326 L240,386 L80,326 Z" fill="#fff7ed" stroke="#fff7ed" stroke-width="2"/><text x="240" y="322" text-anchor="middle" font-size="18" fill="#1f2937">兩台都啟用</text><text x="240" y="346" text-anchor="middle" font-size="18" fill="#1f2937">Preemptive？</text><path d="M80,326 H40 V436" fill="none" stroke="#4b5563" stroke-width="3" marker-end="url(#c17d4-g)"/><path d="M400,326 H440 V436" fill="none" stroke="#dc2626" stroke-width="3" marker-end="url(#c17d4-r)"/><text x="60" y="316" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">否</text><text x="420" y="316" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">是</text><rect x="12" y="436" width="200" height="80" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/><text x="112" y="469.7" text-anchor="middle" font-size="18" fill="#1f2937">B 繼續當 Active</text><text x="112" y="494.9" text-anchor="middle" font-size="18" fill="#1f2937">不再切換</text><rect x="268" y="436" width="200" height="140" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/><text x="368" y="461.9" text-anchor="middle" font-size="18" fill="#1f2937">A 優先權較高</text><text x="368" y="487.1" text-anchor="middle" font-size="18" fill="#1f2937">等 Preemption</text><text x="368" y="512.3" text-anchor="middle" font-size="18" fill="#1f2937">Hold Time 後</text><text x="368" y="537.5" text-anchor="middle" font-size="18" fill="#1f2937">A 搶回 Active</text><text x="368" y="562.7" text-anchor="middle" font-size="18" fill="#1f2937">第二次切換</text></svg>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>常見踩坑：兩邊設定不一致</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>只在一台啟用 Preemptive：原廠要求兩台都要啟用，否則優先權的設定不會如預期運作。</li>
+                    <li>兩台 PAN-OS 或 Content Release 版本不同、授權不同、HA1 加密設定不一致：都可能讓同步失敗，或讓一台進入 Suspended 或 Non-functional。</li>
+                    <li>監控設得太敏感（例如監控的目的 IP 剛好會偶爾不回 ping）：造成不必要的切換。先把 Monitor Fail Hold Up Time 與監控對象設計好，再開 Preemptive。</li>
+                </ul>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">HA 狀態（State）</h3>
+            <p class="mb-2 text-gray-700">HA 共有下列八種狀態：</p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border w-44">狀態</th>
+                            <th class="py-2 px-4 text-left border">說明</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">Initial</td><td class="py-2 px-4 border">加入 HA 配對時的短暫狀態。開機後會停在這裡，直到找到對端並開始協商；若逾時仍沒開始協商，這台會變成 Active。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Active（A/P）</td><td class="py-2 px-4 border">A/P 中負責處理流量的那台。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Passive（A/P）</td><td class="py-2 px-4 border">隨時可無縫接手，但本身不處理其他流量。同步流量狀態、執行期物件與設定，並用 hello 協定監控 Active。若 Passive Link State 設成 Auto，還會跑路由協定、監控連結與路徑，並預先協商 LACP 與 LLDP。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Active-Primary（A/A）</td><td class="py-2 px-4 border">A/A 中連到 User-ID 代理程式、執行 DHCP Server 與 DHCP Relay 的那台，用 Active-Primary 的 Device ID 比對 NAT 與 PBF 規則。可擁有並建立工作階段。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Active-Secondary（A/A）</td><td class="py-2 px-4 border">A/A 中另一台，連 User-ID 代理程式、執行 DHCP Server，但不支援 DHCP Relay，用自己的 Device ID 比對 NAT 與 PBF。可擁有並建立工作階段。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Tentative（A/A）</td><td class="py-2 px-4 border">因防火牆故障、監控的連結或路徑失敗，或離開 Suspended、Non-functional 而進入。會從對端同步工作階段與設定；故障排除後先等 Tentative Hold Time（可停用，或 10 到 600 秒，預設 60 秒），讓路由收斂完成才處理封包。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Non-functional（A/P 或 A/A）</td><td class="py-2 px-4 border">錯誤狀態，由資料平面故障或設定不一致造成（例如只有一台設了封包轉送、VR 同步或 QoS 同步不一致）。A/P 中，凡是 A/A 會進入 Tentative 的原因，都會變成 Non-functional。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Suspended（A/P 或 A/A）</td><td class="py-2 px-4 border">這台被停用，不傳遞資料流量。HA 通訊仍在進行，但不參與選舉；沒有人為介入無法回到正常的 HA 狀態。</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 480 952" width="100%" style="max-width:480px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c17d5-t" font-family="'Noto Sans TC', sans-serif"><title id="c17d5-t">HA 狀態轉換的高階示意圖。Active/Passive：Initial 協商完成成為 Active 或 Passive，逾時仍未開始協商則成為 Active；監控失敗或內部故障進入 Non-functional，管理員 Suspend 進入 Suspended，兩者再經 Monitor Fail Hold Down Time 或 Make local device functional 變成 Passive。Active/Active：Active-Primary 或 Active-Secondary 在本機故障、監控失敗，或離開 Suspended 或 Non-functional 時進入 Tentative，故障排除後等 Tentative Hold Time 再回來。</title><defs><marker id="c17d5-g" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#4b5563"/></marker><marker id="c17d5-o" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#c2410c"/></marker><marker id="c17d5-r" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#dc2626"/></marker></defs><text x="240" y="32" text-anchor="middle" font-size="20" fill="#c2410c" font-weight="700">Active/Passive 的狀態</text><rect x="140" y="52" width="200" height="68" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="2"/><text x="240" y="79.7" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">Initial</text><text x="240" y="104.9" text-anchor="middle" font-size="18" fill="#1f2937">找對端、協商</text><rect x="16" y="190" width="210" height="64" rx="10" fill="#c2410c" stroke="#fa582d" stroke-width="2"/><text x="121" y="228.3" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="700">Active 或 Passive</text><rect x="300" y="190" width="160" height="64" rx="10" fill="#c2410c" stroke="#fa582d" stroke-width="2"/><text x="380" y="228.3" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="700">Active</text><line x1="190" y1="120" x2="121" y2="190" stroke="#4b5563" stroke-width="3" marker-end="url(#c17d5-g)"/><text x="135" y="164" text-anchor="end" font-size="18" fill="#1f2937">協商完成</text><line x1="290" y1="120" x2="380" y2="190" stroke="#4b5563" stroke-width="3" marker-end="url(#c17d5-g)"/><text x="350" y="138" text-anchor="start" font-size="18" fill="#1f2937">逾時仍未</text><text x="350" y="160" text-anchor="start" font-size="18" fill="#1f2937">開始協商</text><rect x="16" y="330" width="210" height="64" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/><text x="121" y="368.3" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">Non-functional</text><rect x="270" y="330" width="190" height="64" rx="10" fill="#e5e7eb" stroke="#4b5563" stroke-width="2"/><text x="365" y="368.3" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">Suspended</text><line x1="60" y1="254" x2="60" y2="330" stroke="#4b5563" stroke-width="3" marker-end="url(#c17d5-g)"/><text x="72" y="286" text-anchor="start" font-size="18" fill="#1f2937">監控失敗或內部故障</text><text x="72" y="310" text-anchor="start" font-size="18" fill="#1f2937">（A/P）</text><line x1="200" y1="254" x2="340" y2="330" stroke="#4b5563" stroke-width="3" marker-end="url(#c17d5-g)"/><text x="300" y="278" text-anchor="start" font-size="18" fill="#1f2937">管理員 Suspend</text><text x="300" y="300" text-anchor="start" font-size="18" fill="#1f2937">local device</text><rect x="140" y="498" width="200" height="64" rx="10" fill="#c2410c" stroke="#fa582d" stroke-width="2"/><text x="240" y="536.3" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="700">Passive</text><path d="M60,394 V530 H140" fill="none" stroke="#4b5563" stroke-width="3" marker-end="url(#c17d5-g)"/><text x="72" y="422" text-anchor="start" font-size="18" fill="#1f2937">Monitor Fail</text><text x="72" y="444" text-anchor="start" font-size="18" fill="#1f2937">Hold Down Time 後</text><path d="M365,394 V530 H340" fill="none" stroke="#4b5563" stroke-width="3" marker-end="url(#c17d5-g)"/><text x="353" y="472" text-anchor="end" font-size="18" fill="#1f2937">Make local device</text><text x="353" y="494" text-anchor="end" font-size="18" fill="#1f2937">functional</text><line x1="12" y1="594" x2="468" y2="594" stroke="#e5e7eb" stroke-width="2"/><text x="240" y="626" text-anchor="middle" font-size="20" fill="#c2410c" font-weight="700">僅 Active/Active 的狀態</text><rect x="90" y="650" width="300" height="100" rx="10" fill="#c2410c" stroke="#fa582d" stroke-width="2"/><text x="240" y="681.1" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="700">Active-Primary 或</text><text x="240" y="706.3" text-anchor="middle" font-size="18" fill="#ffffff">Active-Secondary</text><text x="240" y="731.5" text-anchor="middle" font-size="18" fill="#ffffff">僅 A/A</text><rect x="90" y="860" width="300" height="76" rx="10" fill="#fff7ed" stroke="#c2410c" stroke-width="2"/><text x="240" y="891.7" text-anchor="middle" font-size="18" fill="#1f2937" font-weight="700">Tentative</text><text x="240" y="916.9" text-anchor="middle" font-size="18" fill="#1f2937">僅 A/A</text><line x1="200" y1="750" x2="200" y2="860" stroke="#4b5563" stroke-width="3" marker-end="url(#c17d5-g)"/><text x="190" y="772" text-anchor="end" font-size="18" fill="#1f2937">本機故障、</text><text x="190" y="794" text-anchor="end" font-size="18" fill="#1f2937">監控失敗，或</text><text x="190" y="816" text-anchor="end" font-size="18" fill="#1f2937">離開 Suspended 或</text><text x="190" y="838" text-anchor="end" font-size="18" fill="#1f2937">Non-functional</text><line x1="310" y1="860" x2="310" y2="750" stroke="#4b5563" stroke-width="3" marker-end="url(#c17d5-g)"/><text x="322" y="786" text-anchor="start" font-size="18" fill="#1f2937">故障排除後等</text><text x="322" y="808" text-anchor="start" font-size="18" fill="#1f2937">Tentative</text><text x="322" y="830" text-anchor="start" font-size="18" fill="#1f2937">Hold Time</text></svg>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">圖為高階示意，只畫出幾種主要的轉換；實際轉換條件很多，細節以實機為準。</p>
+
+            <div class="highlight-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>機型與平台差異</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>Passive Link State 預設為 <strong>Shutdown</strong>（連結強制關閉，可防迴圈）；設為 Auto 可加快切換，但<strong>防火牆有 Layer 2 介面時不要選 Auto</strong>，以免形成迴圈，且 AWS 上的 VM-Series 不提供 Auto。路徑：<span class="tech-term">Device &gt; High Availability &gt; General &gt; Active Passive Settings</span>。</li>
+                    <li>AWS 上的 VM-Series 不提供 Link Monitoring 與 Path Monitoring；VMware ESXi 上的 VM-Series 不支援 Link Monitoring，請改用 Path Monitoring。</li>
+                    <li>各 HA 計時器的預設值與 Recommended、Aggressive 組合，依平台不同，預設組合也可能在後續版本改變；實作時以所用機型與版本的實機畫面為準。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Topic 5 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Operate</span>
+                五、檢查狀態與維運
+            </h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">怎麼檢查 HA 狀態</h3>
+            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-window-maximize text-orange-500 mr-2"></i>Web 介面</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li>Dashboard 的 High Availability 小工具：<span class="tech-term">Dashboard &gt; Widgets &gt; System &gt; High Availability</span>。看本機與對端的狀態，以及 Running Config 是否為 Synchronized（選單名稱以實機為準）。</li>
+                        <li>HA 事件的時間點可到 <span class="tech-term">Monitor &gt; Logs &gt; System</span> 對照。</li>
+                        <li>用 <span class="tech-term">Device &gt; Config Audit</span> 比對本機與對端的設定差異。</li>
+                    </ul>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-terminal text-orange-500 mr-2"></i>命令列（CLI）</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                        <li><span class="tech-term">show high-availability state</span>：快速確認哪台是 Active、哪台是 Passive；兩台各下一次，最容易確認。</li>
+                        <li><span class="tech-term">show high-availability all</span>：本機與對端狀態、連線狀態、上次進入 Non-functional 的原因。</li>
+                        <li><span class="tech-term">show high-availability interface ha1</span>（也可換成 ha2、ha3）：檢查各條 HA 連結。</li>
+                        <li><span class="tech-term">request high-availability state suspend</span> 與 <span class="tech-term">request high-availability state functional</span>：停用本機與恢復。</li>
+                        <li><span class="tech-term">request high-availability sync-to-remote running-config</span>：在 Active 上把 running config 推給對端，會覆蓋對端的設定。</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="highlight-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>重點：看到 Peer 連不上，先看原因欄</p>
+                <p class="text-gray-700 text-sm"><span class="tech-term">show high-availability all</span> 的輸出裡，有對端的 Connection status 與 Connection down reason。常見的原因包括：HA1 link went down、Heartbeat ping failure、Hello protocol failure、HA1 encryption configuration mismatch、Peer HA agent exiting、SSH Tunnel reset 等。看到 Non-functional 或 Suspended 時，也要看 Last non-functional state reason。先讀這些欄位，比猜測有效。另外，HA 配對正常時，Active 的 HA 埠 LED 為綠色、Passive 為琥珀色。</p>
+            </div>
+
+            <div class="highlight-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>小提醒：推送設定按鈕的名稱</p>
+                <p class="text-gray-700 text-sm">HA 小工具的「推送設定」按鈕，不同說明裡的名稱寫成 Sync to peer 或 Push Configuration，功能都是把 Active 的設定推給對端（會覆蓋對端的設定），實際名稱以你所用版本的畫面為準。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Commit 與同步行為（呼應第 4 章）</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 text-sm">
+                <li>設定變更要在 <strong>Active（A/A 為 Active-Primary）</strong>上做，Commit 成功後才會同步給對端；沒有 Commit 的 candidate config 不會同步。</li>
+                <li>變更完成後，先在 Dashboard 的 High Availability 小工具確認兩台都顯示 Running Config 為 Synchronized，再做下一次變更。</li>
+                <li>若同步沒有如預期，先查：Enable Config Sync 是否兩台都開、兩台 PAN-OS 版本是否相容、授權是否一致。</li>
+                <li>從 Panorama 推送的設定，不會在兩台防火牆之間再同步；本機（非 Panorama 推送）的設定仍靠 Config Sync 同步。是否要停用 Config Sync，請依 Panorama 管理 HA 配對的實際做法決定，以實機為準。</li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">HA 與管理介面：兩台各有自己的管理 IP</h3>
+            <p class="mb-2 text-gray-700 text-sm">管理介面設定屬於「每台自己的設定」，不會同步（第 2 章介紹過的 MGT 埠）。也就是說：</p>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 text-sm">
+                <li>Active 與 Passive 各自有獨立的管理 IP、主機名稱，你要分別登入兩台進行管理，不會有一個「共用的管理位址」。</li>
+                <li>管理介面的服務（HTTPS、SSH、Ping 等）也要各自設定；若使用 Heartbeat Backup，兩台的管理埠必須能互相連通，且管理介面要允許 Ping。</li>
+                <li>裝置管理用的憑證也不會同步，建議兩台的憑證項目名稱一致，即使憑證內容可以不同。</li>
+                <li>SNMP 與日誌匯出設定同樣屬於不同步的項目，要對兩台分別設定，避免切換後收不到另一台的資料。</li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">維運：驗證切換與升級</h3>
+            <p class="mb-2 text-gray-700 text-sm"><strong>驗證切換：</strong>在 Active 上到 <span class="tech-term">Device &gt; High Availability &gt; Operational Commands</span>，點 <strong>Suspend local device</strong>，確認 Passive 變成 Active；再點 <strong>Make local device functional</strong> 恢復。恢復後等幾分鐘，若啟用 Preemptive，要確認是否又發生了 Preemption。</p>
+            <p class="mb-2 text-gray-700 text-sm"><strong>升級 HA 配對（手動；以 Active/Passive 配對為例，PAN-OS 11.1 的步驟）：</strong></p>
+            <ol class="list-decimal pl-6 text-gray-700 space-y-1 text-sm">
+                <li>先備份兩台的設定，並確認兩台的內容更新版本符合新版 PAN-OS 的最低要求。</li>
+                <li><strong>停用 Preemptive</strong>（只需要在其中一台做，Commit）。</li>
+                <li>先 Suspend 目前是 Active 的那台（原廠稱 active/primary），讓流量切到另一台，確認另一台變成 Active（Active/Active 配對的先後順序，以所用版本的步驟為準）。</li>
+                <li>在被 Suspend 的那台安裝新版並重新開機，確認 HA 小工具顯示兩台已同步。</li>
+                <li>Make local device functional，狀態應為 Passive，等 Running Config 同步。</li>
+                <li>再 Suspend 另一台，讓剛升級完的那台變成 Active，並照同樣方式升級。</li>
+                <li>兩台都完成後，重新啟用 Preemptive 並 Commit，最後檢查兩台都能正常轉送流量。</li>
+            </ol>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>常見踩坑：版本差太多與忘了關 Preemption</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>從很舊的版本升級時，例如 PAN-OS 9.1 以前要先升到 10.1，再往目標版本升級；兩台相差兩個以上的功能版本時，較舊的那台會進入 Suspended，訊息為 Peer version too old。</li>
+                    <li>升級前沒有停用 Preemptive，升級中途可能發生非預期的切換。</li>
+                </ul>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異</p>
+                <p class="text-gray-700 text-sm">新版新增了從 Panorama 進行的 <strong>HA 配對升級編排（orchestrated upgrade）</strong>，由 PAN-OS 12.1.2 起提供，可自動完成大部分上述步驟。需要 Panorama 12.1.2 以上、防火牆 10.2.0 以上，兩台都連線到 Panorama，兩台都要先下載基礎映像檔。編排升級的順序由系統自動處理，是先升被動端，再切換並升另一台；上面的手動步驟則是先 Suspend 目前的 Active。手動步驟是 PAN-OS 11.1 的版本，12.x 的手動步驟可能略有不同，請以所用版本為準。</p>
+            </div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
+                隨堂測驗
+            </h2>
+            <p class="mb-6 text-gray-600">請點選您認為正確的選項，系統將會顯示解析。</p>
+            <div class="space-y-6" id="quiz-container"></div>
+        </div>
+
+    </main>
+
+    <footer class="footer-signature">
+        Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver.2026.10.29.11.02
+    </footer>
+
+    <script>
+        const quizData = [
+            {
+                question: "Q1. 公司的防火牆要做在 Layer 2 部署（Layer 2 介面），又希望有備援。下列哪一種 HA 模式可以用？",
+                options: ["A. 只有 Active/Active 支援 Layer 2", "B. Active/Passive 與 Active/Active 都支援 Layer 2", "C. Active/Passive 支援 Layer 2；Active/Active 只支援 Virtual Wire 與 Layer 3", "D. 兩種模式都不支援 Layer 2，必須改用 Layer 3"],
+                correct: 2,
+                desc: "正解：C。Active/Passive 支援 Virtual Wire、Layer 2、Layer 3；Active/Active 只支援 Virtual Wire 與 Layer 3，不支援 Layer 2。所以需要 Layer 2 部署時只能選 Active/Passive。"
+            },
+            {
+                question: "Q2. 關於 HA1、HA2、HA3，下列敘述何者正確？",
+                options: ["A. HA1 同步工作階段，HA2 傳送心跳，HA3 在每種模式都必須有", "B. HA1 傳 hello、心跳與狀態資訊並推送設定，HA2 同步工作階段等表項，HA3 只有 Active/Active 才需要", "C. 三條連結都必須是 Layer 3 並設定 IP 位址", "D. HA3 可以加密，HA1 不能加密"],
+                correct: 1,
+                desc: "正解：B。HA1 是控制連結，傳 hello、心跳與 HA 狀態並推送設定；HA2 是資料連結，同步工作階段、轉送表、IPsec SA、ARP 表等；HA3 是封包轉送連結，只有 Active/Active 需要，而且是 Layer 2 的 MAC-in-MAC，不支援 Layer 3 位址與加密。HA1 可選擇加密，所以 D 錯誤。"
+            },
+            {
+                question: "Q3. 管理員想讓防火牆 A 平時固定當 Active，A 故障恢復後要自動取回角色。下列設定何者最合理？",
+                options: ["A. 只在 A 啟用 Preemptive，A 的 Device Priority 設 200，B 設 100", "B. 兩台都啟用 Preemptive，A 的 Device Priority 設成比 B 小的數值", "C. 兩台都啟用 Preemptive，A 的 Device Priority 設成比 B 大的數值", "D. 兩台都停用 Preemptive，Device Priority 隨意設定"],
+                correct: 1,
+                desc: "正解：B。Device Priority 數值越小，優先權越高；Preemptive 必須在兩台都啟用，優先權較高的那台才會在復原後取回 Active。提醒：這也代表故障復原後會再發生一次切換，所以升級前要先停用 Preemptive。"
+            },
+            {
+                question: "Q4. 下列哪一項設定，在 HA 配對中「不會」自動從 Active 同步到 Passive？",
+                options: ["A. 安全政策規則", "B. 管理介面的 IP 位址與主機名稱", "C. 物件，例如位址物件", "D. 網路設定，例如 Active/Passive 下的路由設定"],
+                correct: 1,
+                desc: "正解：B。管理介面設定（主機名稱、管理 IP、服務等）屬於每台各自的設定，不會同步，所以 Active 與 Passive 要分別用各自的管理 IP 登入。政策、物件、網路設定在啟用 Config Sync 並 Commit 後會同步。"
+            }
+        ];
+
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionBox = document.createElement('div');
+            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
+
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border mb-2 text-gray-700" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            questionBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
+                <div class="space-y-2 mb-4">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
+                    <p class="font-bold result-title"></p>
+                    <p class="text-sm text-gray-600 mt-1">${item.desc}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionBox);
+        });
+
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            if (element.parentElement.dataset.answered) return;
+            element.parentElement.dataset.answered = "true";
+
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+                opt.classList.add('disabled');
+            });
+
+            if (optIndex === data.correct) {
+                element.classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了！";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                element.classList.add('bg-red-100', 'border-red-500');
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了！";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+    </script>
+</body>
+</html>

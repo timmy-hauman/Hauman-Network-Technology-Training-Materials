@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palo Alto Networks NGFW 實戰課程 - 組態管理、Commit 與日誌檢視</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        /* 卡片主體樣式 (Palo Alto Orange) */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #fa582d;
+        }
+
+        /* 重點提示框 (橘) */
+        .highlight-box {
+            background-color: #fff7ed;
+            border-left: 4px solid #fa582d;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 技術名詞標記 */
+        .tech-term {
+            color: #c2410c;
+            font-weight: 700;
+            background-color: #fff1e6;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
+        }
+
+        /* 比喻說明框 (綠) */
+        .analogy-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 版本差異框 (紫) */
+        .version-box {
+            background-color: #faf5ff;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 常見踩坑框 (紅) */
+        .pitfall-box {
+            background-color: #fef2f2;
+            border-left: 4px solid #dc2626;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .diagram-container {
+            display: block;
+            background-color: #ffffff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-top: 1rem;
+            overflow-x: hidden;
+        }
+
+        .diagram-container svg {
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+
+        @media (max-width: 640px) {
+            .section-card { padding: 1rem; }
+            .diagram-container { padding: 0.25rem; }
+        }
+
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover:not(.disabled) {
+            background-color: #f3f4f6;
+        }
+
+        .footer-signature {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+            margin-top: 4rem;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-orange-600 to-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-fire-flame-curved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold">Palo Alto Networks NGFW 實戰課程</h1>
+                    <p class="text-orange-100 mt-1">基礎篇 - 單元 4：組態管理、Commit 與日誌檢視</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <!-- Introduction -->
+        <div class="mb-8">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
+                <h2 class="text-xl font-bold text-blue-800 mb-2 flex items-center">
+                    <i class="fas fa-user-tie mr-2"></i>講師導言
+                </h2>
+                <p class="text-blue-900 leading-relaxed">
+                    如果你用過其他廠牌的防火牆，第一次在 Palo Alto 上改完設定、按下 OK，常會發現「怎麼沒有生效？」。
+                    這不是故障，而是刻意的設計：<strong>你改的只是候選組態（Candidate），要 Commit 之後才會變成正在運作的執行組態（Running）</strong>。
+                    這一章先把這條界線講清楚，再學怎麼預覽、驗證、多人協作、備份回復，最後學怎麼從日誌看出「剛剛到底發生了什麼事」。
+                </p>
+            </div>
+        </div>
+
+        <!-- 學習目標 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-gray-100 text-gray-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Goals</span>
+                本章學習目標
+            </h2>
+            <ul class="list-disc pl-6 space-y-1 text-gray-700">
+                <li>分辨候選組態（Candidate）與執行組態（Running），並說出 Commit 時資料如何流向記憶體</li>
+                <li>依序完成 Preview Changes、Change Summary、Validate Commit 與 Commit，並在 Tasks 追蹤結果</li>
+                <li>在多位管理員同時作業時，選擇 Commit、Save、Revert 的範圍，並知道 Config lock 與 Commit lock 的差別</li>
+                <li>說出 Save、Load、Export、Import 與版本回復各自的用途，並用 Config Audit 比對版本</li>
+                <li>在 <span class="tech-term">Monitor &gt; Logs</span> 找到對應的日誌類型，並用點選與語法組出過濾條件</li>
+            </ul>
+        </div>
+
+        <!-- Topic 1 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Concept</span>
+                一、Candidate 與 Running 組態
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                防火牆同時存在兩份組態：
+                <strong>Running Configuration（執行組態）</strong>是目前正在生效的設定；
+                <strong>Candidate Configuration（候選組態）</strong>是已經修改、但還沒 Commit 的設定。
+                換句話說，候選組態就是「執行組態的副本，再加上上次 Commit 之後尚未提交的修改」。
+            </p>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border">比較項目</th>
+                            <th class="py-2 px-4 text-left border">Candidate 候選組態</th>
+                            <th class="py-2 px-4 text-left border">Running 執行組態</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">狀態</td><td class="py-2 px-4 border">已修改，尚未生效</td><td class="py-2 px-4 border">目前正在生效</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">怎麼變動</td><td class="py-2 px-4 border">在 WebUI 或 CLI 修改設定（WebUI 按 OK 只是更新候選組態）</td><td class="py-2 px-4 border">只有 Commit 才會更新</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">重新開機後</td><td class="py-2 px-4 border">未手動儲存的修改可能遺失</td><td class="py-2 px-4 border">由 <code>running-config.xml</code> 載入，繼續生效</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="diagram-container">
+<svg viewBox="0 0 480 578" width="100%" style="max-width:480px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c04d1-t" font-family="'Noto Sans TC', sans-serif"><title id="c04d1-t">候選組態與執行組態的關係：管理員的修改先進候選組態，Commit 後才成為執行組態並載入控制平面與資料平面，每次 Commit 留下一個版本；Save 與 Load 在候選組態與快照檔之間進出，Revert 取回執行組態</title><defs><marker id="c04d1-ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4b5563"/></marker><marker id="c04d1-ao" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#c2410c"/></marker><marker id="c04d1-ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#1d4ed8"/></marker><marker id="c04d1-ap" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5b21b6"/></marker></defs><rect x="150" y="10" width="180" height="68.6" rx="10" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/>
+<text x="240" y="38.45" font-size="18" text-anchor="middle" fill="#1f2937">管理員修改設定</text>
+<text x="240" y="62.75" font-size="18" text-anchor="middle" fill="#1f2937">WebUI 或 CLI</text>
+<rect x="30" y="100" width="230" height="68.6" rx="10" fill="#fff7ed" stroke="#fa582d" stroke-width="2"/>
+<text x="145" y="128.45" font-size="18" text-anchor="middle" fill="#1f2937" font-weight="700">Candidate 候選組態</text>
+<text x="145" y="152.75" font-size="18" text-anchor="middle" fill="#1f2937">在記憶體中，尚未生效</text>
+<rect x="330" y="100" width="140" height="68.6" rx="10" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+<text x="400" y="128.45" font-size="18" text-anchor="middle" fill="#1f2937">快照檔</text>
+<text x="400" y="152.75" font-size="18" text-anchor="middle" fill="#1f2937">xml</text>
+<path d="M240,78.6 L240,100" fill="none" stroke="#4b5563" stroke-width="2.6" marker-end="url(#c04d1-ag)"/>
+<path d="M260,122 L330,122" fill="none" stroke="#c2410c" stroke-width="2.6" marker-end="url(#c04d1-ao)"/>
+<rect x="267.619" y="96.9" width="54.762" height="23.4" fill="#ffffff" fill-opacity="0.92"/>
+<text x="295" y="114" font-size="18" text-anchor="middle" fill="#c2410c" font-weight="700">Save</text>
+<path d="M330,152 L260,152" fill="none" stroke="#1d4ed8" stroke-width="2.6" marker-end="url(#c04d1-ab)"/>
+<rect x="267.619" y="160.9" width="54.762" height="23.4" fill="#ffffff" fill-opacity="0.92"/>
+<text x="295" y="178" font-size="18" text-anchor="middle" fill="#1d4ed8" font-weight="700">Load</text>
+<rect x="30" y="250" width="230" height="68.6" rx="10" fill="#c2410c" stroke="#9a3412" stroke-width="2"/>
+<text x="145" y="278.45" font-size="18" text-anchor="middle" fill="#ffffff" font-weight="700">Running 執行組態</text>
+<text x="145" y="302.75" font-size="18" text-anchor="middle" fill="#ffffff">目前生效中</text>
+<path d="M80,168.6 L80,250" fill="none" stroke="#c2410c" stroke-width="2.6" marker-end="url(#c04d1-ao)"/>
+<rect x="89" y="200.9" width="81.978" height="23.4" fill="#ffffff" fill-opacity="0.92"/>
+<text x="92" y="218" font-size="18" text-anchor="start" fill="#c2410c" font-weight="700">Commit</text>
+<path d="M200,250 L200,168.6" fill="none" stroke="#5b21b6" stroke-width="2.6" stroke-dasharray="7 6" marker-end="url(#c04d1-ap)"/>
+<rect x="209" y="200.9" width="205.08" height="23.4" fill="#ffffff" fill-opacity="0.92"/>
+<text x="212" y="218" font-size="18" text-anchor="start" fill="#5b21b6">Revert 取回 Running</text>
+<rect x="100" y="370" width="350" height="44.3" rx="10" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/>
+<text x="275" y="398.45" font-size="18" text-anchor="middle" fill="#1f2937">Control Plane 記憶體</text>
+<rect x="100" y="434" width="350" height="44.3" rx="10" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/>
+<text x="275" y="462.45" font-size="18" text-anchor="middle" fill="#1f2937">Data Plane 記憶體（實際處理流量）</text>
+<rect x="100" y="498" width="350" height="68.6" rx="10" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/>
+<text x="275" y="526.45" font-size="18" text-anchor="middle" fill="#1f2937">版本紀錄與 running-config.xml</text>
+<text x="275" y="550.75" font-size="18" text-anchor="middle" fill="#1f2937">（每次 Commit 留下一個版本）</text>
+<path d="M60,318.6 L60,392.15 L100,392.15" fill="none" stroke="#4b5563" stroke-width="2.6" marker-end="url(#c04d1-ag)"/>
+<path d="M60,318.6 L60,456.15 L100,456.15" fill="none" stroke="#4b5563" stroke-width="2.6" marker-end="url(#c04d1-ag)"/>
+<path d="M60,318.6 L60,532.3 L100,532.3" fill="none" stroke="#4b5563" stroke-width="2.6" marker-end="url(#c04d1-ag)"/></svg>
+            </div>
+
+            <div class="analogy-box">
+                <p class="font-bold mb-2 text-green-800">📝 生活化比喻：文書草稿 vs 已發布版本</p>
+                <ul class="list-none space-y-2 pl-2 text-gray-700">
+                    <li class="flex items-start"><i class="fas fa-pen text-orange-500 mt-1 mr-3"></i><span><strong>候選組態 = 草稿</strong>：你可以隨便改、反覆改，但讀者（也就是流量）完全看不到。</span></li>
+                    <li class="flex items-start"><i class="fas fa-paper-plane text-green-600 mt-1 mr-3"></i><span><strong>Commit = 按下發布</strong>：草稿變成正式版，從這一刻起才影響所有使用者。</span></li>
+                    <li class="flex items-start"><i class="fas fa-clock-rotate-left text-blue-500 mt-1 mr-3"></i><span><strong>版本紀錄 = 歷史版本</strong>：每次發布都留下一份，要退回去就載入舊版再發布。</span></li>
+                </ul>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>最常見的踩坑：按了 OK 就以為上線了</p>
+                <p class="text-gray-700 text-sm">按 OK 只會更新候選組態，<strong>不會生效，也不會自動存檔</strong>。若這時防火牆重新開機，沒有手動 Save 的修改可能就不見了；反過來說，忘記 Commit 的修改，流量完全不會受到影響，常見於「明明改了卻沒效果」的排錯現場。</p>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異</p>
+                <p class="text-gray-700 text-sm">候選與執行兩份組態的觀念，從教材的 PAN-OS 8.0 到現行 PAN-OS 12.x 都相同。教材圖中的「auto-commit」畫在開機路徑上，應是指開機或資料平面重啟時，系統自動把執行組態載入資料平面（Tasks 或 CLI 的 show jobs 可看到 AutoCom 工作）。另外，現行版本還有防火牆自己發起的自動 Commit（例如 FQDN 位址物件的更新），在提交佇列中優先於管理員發起的 Commit。</p>
+            </div>
+        </div>
+
+        <!-- Topic 2 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Flow</span>
+                二、Commit 流程與 Preview / Validate
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                點選 WebUI 右上方的 <span class="tech-term">Commit</span>，會先決定要提交的範圍，再依序可做三件檢查：
+            </p>
+
+            <div class="diagram-container">
+<svg viewBox="0 0 480 957" width="100%" style="max-width:480px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c04d2-t" font-family="'Noto Sans TC', sans-serif"><title id="c04d2-t">Commit 的流程：選擇範圍，依序 Preview Changes、Change Summary、Validate Commit；有錯誤就回頭修正候選組態，沒有錯誤才送出 Commit，進入佇列後更新執行組態並載入 Data Plane</title><defs><marker id="c04d2-ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4b5563"/></marker><marker id="c04d2-an" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#166534"/></marker><marker id="c04d2-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#b91c1c"/></marker></defs><rect x="80" y="10" width="220" height="44.3" rx="23" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/>
+<text x="190" y="38.45" font-size="18" text-anchor="middle" fill="#1f2937">管理員按下 Commit</text>
+<rect x="40" y="84.3" width="300" height="92.9" rx="10" fill="#fff7ed" stroke="#fa582d" stroke-width="2"/>
+<text x="190" y="112.75" font-size="18" text-anchor="middle" fill="#1f2937">選擇範圍</text>
+<text x="190" y="137.05" font-size="18" text-anchor="middle" fill="#1f2937">Commit All Changes 或</text>
+<text x="190" y="161.35" font-size="18" text-anchor="middle" fill="#1f2937">Commit Changes Made By</text>
+<rect x="40" y="207.2" width="300" height="92.9" rx="10" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/>
+<text x="190" y="235.65" font-size="18" text-anchor="middle" fill="#1f2937" font-weight="700">Preview Changes</text>
+<text x="190" y="259.95" font-size="18" text-anchor="middle" fill="#1f2937">並排比較 Candidate</text>
+<text x="190" y="284.25" font-size="18" text-anchor="middle" fill="#1f2937">與 Running</text>
+<rect x="40" y="330.1" width="300" height="68.6" rx="10" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/>
+<text x="190" y="358.55" font-size="18" text-anchor="middle" fill="#1f2937" font-weight="700">Change Summary</text>
+<text x="190" y="382.85" font-size="18" text-anchor="middle" fill="#1f2937">列出被修改的設定項目</text>
+<rect x="40" y="428.7" width="300" height="68.6" rx="10" fill="#c2410c" stroke="#9a3412" stroke-width="2"/>
+<text x="190" y="457.15" font-size="18" text-anchor="middle" fill="#ffffff" font-weight="700">Validate Commit</text>
+<text x="190" y="481.45" font-size="18" text-anchor="middle" fill="#ffffff">找出提交時會出現的錯誤與警告</text>
+<polygon points="190,527.3 300,572.3 190,617.3 80,572.3" fill="#fff7ed" stroke="#fa582d" stroke-width="2"/>
+<text x="190" y="578.6" font-size="18" text-anchor="middle" fill="#1f2937" font-weight="700">有錯誤嗎？</text>
+<rect x="40" y="655.3" width="300" height="92.9" rx="10" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/>
+<text x="190" y="683.75" font-size="18" text-anchor="middle" fill="#1f2937" font-weight="700">送出 Commit</text>
+<text x="190" y="708.05" font-size="18" text-anchor="middle" fill="#1f2937">可填 Description</text>
+<text x="190" y="732.35" font-size="18" text-anchor="middle" fill="#1f2937">說明這次改了什麼</text>
+<rect x="40" y="778.2" width="300" height="68.6" rx="10" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/>
+<text x="190" y="806.65" font-size="18" text-anchor="middle" fill="#1f2937" font-weight="700">進入 Commit 佇列</text>
+<text x="190" y="830.95" font-size="18" text-anchor="middle" fill="#1f2937">在 Tasks 查看進度</text>
+<rect x="60" y="876.8" width="260" height="68.6" rx="23" fill="#fff7ed" stroke="#fa582d" stroke-width="2"/>
+<text x="190" y="905.25" font-size="18" text-anchor="middle" fill="#1f2937">Running 更新</text>
+<text x="190" y="929.55" font-size="18" text-anchor="middle" fill="#1f2937">並載入 Data Plane</text>
+<rect x="352" y="542.3" width="122" height="68.6" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/>
+<text x="413" y="570.75" font-size="18" text-anchor="middle" fill="#1f2937">回頭修正</text>
+<text x="413" y="595.05" font-size="18" text-anchor="middle" fill="#1f2937">Candidate</text>
+<path d="M190,54.3 L190,84.3" fill="none" stroke="#4b5563" stroke-width="2.6" marker-end="url(#c04d2-ag)"/>
+<path d="M190,177.2 L190,207.2" fill="none" stroke="#4b5563" stroke-width="2.6" marker-end="url(#c04d2-ag)"/>
+<path d="M190,300.1 L190,330.1" fill="none" stroke="#4b5563" stroke-width="2.6" marker-end="url(#c04d2-ag)"/>
+<path d="M190,398.7 L190,428.7" fill="none" stroke="#4b5563" stroke-width="2.6" marker-end="url(#c04d2-ag)"/>
+<path d="M190,497.3 L190,527.3" fill="none" stroke="#4b5563" stroke-width="2.6" marker-end="url(#c04d2-ag)"/>
+<path d="M190,617.3 L190,655.3" fill="none" stroke="#166534" stroke-width="2.6" marker-end="url(#c04d2-an)"/>
+<rect x="197" y="626.2" width="43.8" height="23.4" fill="#ffffff" fill-opacity="0.92"/>
+<text x="200" y="643.3" font-size="18" text-anchor="start" fill="#166534" font-weight="700">沒有</text>
+<path d="M190,748.2 L190,778.2" fill="none" stroke="#4b5563" stroke-width="2.6" marker-end="url(#c04d2-ag)"/>
+<path d="M190,846.8 L190,876.8" fill="none" stroke="#4b5563" stroke-width="2.6" marker-end="url(#c04d2-ag)"/>
+<path d="M300,572.3 L352,572.3" fill="none" stroke="#b91c1c" stroke-width="2.6" marker-end="url(#c04d2-ar)"/>
+<rect x="312.55" y="547.2" width="24.9" height="23.4" fill="#ffffff" fill-opacity="0.92"/>
+<text x="325" y="564.3" font-size="18" text-anchor="middle" fill="#b91c1c" font-weight="700">有</text>
+<path d="M413,542.3 L413,130.75 L340,130.75" fill="none" stroke="#b91c1c" stroke-width="2.6" marker-end="url(#c04d2-ar)"/></svg>
+            </div>
+
+            <div class="overflow-x-auto mt-4">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-52">功能</th><th class="py-2 px-4 text-left border">作用</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">Preview Changes</td><td class="py-2 px-4 border">把候選組態與執行組態並排比較。新增以綠色、修改以黃色、刪除以紅色標示；可用 Lines of Context 調整上下文行數。預覽會開新視窗，瀏覽器需允許彈出視窗。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Change Summary</td><td class="py-2 px-4 border">列出這次要提交的每一項設定、設定類型與修改者，可用 Group By 依欄位分組。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Validate Commit</td><td class="py-2 px-4 border">列出實際 Commit 時會出現的所有錯誤與警告，<strong>不會更動執行組態</strong>。錯誤必須先排除；警告則是提醒你注意。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Commit</td><td class="py-2 px-4 border">真正把候選組態變成執行組態。到 Tasks 可查看進行中、完成或失敗的 Commit，等待中的 Commit 可取消。</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">按鈕名稱：教材（PAN-OS 8.0）與上表寫「Validate Commit」；也有原廠文件把它寫成「Validate Changes」。原廠文件說法不一，以實機按鈕為準。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Commit 佇列與工作管理</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>防火牆會把 Commit 要求排進佇列，你可以在前一筆還在跑時再送出下一筆，依發起順序執行。</li>
+                <li>點選 WebUI 下方的 <span class="tech-term">Tasks</span> 開啟工作管理員，預設顯示 Type、Status、Start Time、Messages 欄位，Messages 會顯示佇列順位。</li>
+                <li>已開始執行的 Commit 無法取消；等待中的可在 Action 欄按 <strong>x</strong> 取消，內建（predefined）的管理員角色還可按 Clear Commit Queue 一次清空。</li>
+                <li>Preview、Validate、Commit、Save、Revert 都只針對「上次 Commit 之後」的修改。</li>
+            </ul>
+
+            <div class="highlight-box mt-4">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>重點：養成提交前的習慣</p>
+                <p class="text-gray-700 text-sm">先 Preview 確認「我改的就是我以為的那些」，再 Validate 排除錯誤，最後 Commit。Validate 不會動到執行組態，所以在有固定維護時段的環境，可以提早幾小時先驗證。</p>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：Commit 不能反悔</p>
+                <p class="text-gray-700 text-sm">Revert 只能撤銷「上次 Commit 之後」的修改。要退回到上一次 Commit 之前的狀態，必須載入先前備份或系統自動留存的版本（見第四節），再 Commit 一次。</p>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>在被 Panorama 管理的防火牆上，Commit 後防火牆會檢查是否切斷了與 Panorama 的連線；若是，Commit 會失敗並退回先前的執行組態（第 18 章會再談 Panorama 的 Commit 與 Push）。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Topic 3 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Teamwork</span>
+                三、多管理員：Per-admin Commit、Save / Revert 與 Lock
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                多位管理員同時登入時，<strong>大家的修改都放在同一份候選組態裡</strong>。如果只想提交自己負責的部分，就要使用範圍控制。
+            </p>
+
+            <div class="diagram-container">
+<svg viewBox="0 0 480 474" width="100%" style="max-width:480px;height:auto;display:block;margin:0 auto" role="img" aria-labelledby="c04d3-t" font-family="'Noto Sans TC', sans-serif"><title id="c04d3-t">多位管理員共用同一份候選組態：Commit All Changes 讓兩人的修改全部生效；Commit Changes Made By admin 只讓 admin 的修改生效，ZoneAdmin 的修改仍留在候選組態</title><defs><marker id="c04d3-ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4b5563"/></marker><marker id="c04d3-an" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#166534"/></marker></defs><rect x="10" y="10" width="460" height="130" rx="10" fill="#fff7ed" stroke="#fa582d" stroke-width="2"/>
+<text x="240" y="40" font-size="18" text-anchor="middle" fill="#c2410c" font-weight="700">同一份 Candidate 候選組態</text>
+<rect x="30" y="62" width="200" height="44.3" rx="10" fill="#ffffff" stroke="#fdba74" stroke-width="2"/>
+<text x="130" y="90.45" font-size="18" text-anchor="middle" fill="#1f2937">admin 的修改</text>
+<rect x="250" y="62" width="200" height="44.3" rx="10" fill="#ffffff" stroke="#fdba74" stroke-width="2"/>
+<text x="350" y="90.45" font-size="18" text-anchor="middle" fill="#1f2937">ZoneAdmin 的修改</text>
+<rect x="140" y="180" width="200" height="50" rx="10" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/>
+<text x="240" y="211.3" font-size="18" text-anchor="middle" fill="#1f2937">Commit 範圍</text>
+<path d="M240,140 L240,180" fill="none" stroke="#4b5563" stroke-width="2.6" marker-end="url(#c04d3-ag)"/>
+<rect x="4" y="290" width="234" height="172" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+<text x="121" y="358" font-size="18" text-anchor="middle" fill="#1f2937" font-weight="700">Commit All Changes</text>
+<text x="121" y="382.3" font-size="18" text-anchor="middle" fill="#1f2937">Running：兩人的</text>
+<text x="121" y="406.6" font-size="18" text-anchor="middle" fill="#1f2937">修改全部生效</text>
+<rect x="246" y="290" width="230" height="172" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+<text x="361" y="321.55" font-size="18" text-anchor="middle" fill="#1f2937" font-weight="700">Commit Changes</text>
+<text x="361" y="345.85" font-size="18" text-anchor="middle" fill="#1f2937" font-weight="700">Made By admin</text>
+<text x="361" y="370.15" font-size="18" text-anchor="middle" fill="#1f2937">Running：只有 admin</text>
+<text x="361" y="394.45" font-size="18" text-anchor="middle" fill="#1f2937">的修改生效</text>
+<text x="361" y="418.75" font-size="18" text-anchor="middle" fill="#1f2937">ZoneAdmin 的修改</text>
+<text x="361" y="443.05" font-size="18" text-anchor="middle" fill="#1f2937">仍留在 Candidate</text>
+<path d="M190,230 L190,260 L121,260 L121,290" fill="none" stroke="#166534" stroke-width="2.6" marker-end="url(#c04d3-an)"/>
+<path d="M290,230 L290,260 L361,260 L361,290" fill="none" stroke="#166534" stroke-width="2.6" marker-end="url(#c04d3-an)"/></svg>
+            </div>
+
+            <div class="overflow-x-auto mt-4">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="py-2 px-4 text-left border w-36">操作</th>
+                            <th class="py-2 px-4 text-left border">全部管理員</th>
+                            <th class="py-2 px-4 text-left border">指定管理員或位置</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">Commit</td><td class="py-2 px-4 border"><span class="tech-term">Commit &gt; Commit All Changes</span>（預設，範圍由你的角色權限決定）</td><td class="py-2 px-4 border"><span class="tech-term">Commit &gt; Commit Changes Made By</span>，可依管理員或位置（虛擬系統、共用物件與政策、共用的 Device 與 Network 設定）篩選</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Save</td><td class="py-2 px-4 border"><span class="tech-term">Device &gt; Setup &gt; Operations</span> 的 Save candidate configuration（覆寫預設快照，含所有管理員的修改）</td><td class="py-2 px-4 border"><span class="tech-term">Config &gt; Save Changes</span> 再選 Save Changes Made By，另存為具名檔案</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Revert</td><td class="py-2 px-4 border"><span class="tech-term">Device &gt; Setup &gt; Operations</span> 的 Revert to running configuration；或 <span class="tech-term">Config &gt; Revert Changes</span> 的 Revert All Changes</td><td class="py-2 px-4 border"><span class="tech-term">Config &gt; Revert Changes</span> 的 Revert Changes Made By</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">提交或儲存「其他管理員」的修改，需要 Superuser 角色，或管理員角色設定檔中啟用 Commit For Other Admins（儲存則為 Save For Other Admins）權限。</p>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑一：「全域」操作會連同事的修改一起處理</p>
+                <p class="text-gray-700 text-sm">教材特別提醒：<span class="tech-term">Device &gt; Setup &gt; Operations</span> 裡的 Revert、Save、Load 是<strong>全域</strong>操作，不分管理員。在這裡按 Revert to running configuration，會把<strong>所有管理員</strong>尚未提交的修改一併丟掉。只想撤銷自己的修改，請改用 Config &gt; Revert Changes &gt; Revert Changes Made By。要注意 Revert to last saved configuration 也只有全域版本，沒有「依管理員」的選項。</p>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑二：拆開提交時的相依關係</p>
+                <p class="text-gray-700 text-sm">如果你只提交自己的修改，而這些修改和別人的修改彼此相依（例如兩人都在同一個規則區新增、刪除或調整規則順序），驗證可能會報錯。原廠建議的處理方式是：<strong>把相關管理員的修改一併納入，或直接全部提交</strong>。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Lock：避免兩個人同時改同一處</h3>
+            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h4 class="font-bold text-orange-800 mb-2"><i class="fas fa-lock mr-1"></i>Config lock</h4>
+                    <p class="text-sm text-gray-700">擋住其他管理員<strong>修改</strong>候選組態。適合你要連續做一組互相關聯的設定，不希望被打斷。</p>
+                </div>
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-2"><i class="fas fa-lock mr-1"></i>Commit lock</h4>
+                    <p class="text-sm text-gray-700">擋住其他管理員<strong>提交</strong>候選組態。適合你的修改還沒驗證完，不想被別人的 Commit 一併帶上線。</p>
+                </div>
+            </div>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 text-sm">
+                <li>入口是 WebUI 最上方的<strong>鎖頭圖示</strong>（旁邊的數字是目前的鎖數量）：點開後選 Take a Lock，選擇 Config 或 Commit，可加上 Comment 說明原因（原廠建議填寫）。多虛擬系統的機型還要選 Location（某個 vsys 或 Shared）。</li>
+                <li>只有 Superuser 或上鎖的管理員本人可以手動 Remove Lock；防火牆完成一次 Commit 後也會自動解除鎖。</li>
+                <li>也可以在 <span class="tech-term">Device &gt; Setup &gt; Management &gt; General Settings</span> 勾選 Automatically Acquire Commit Lock，讓任何人修改候選組態時自動取得 Commit lock（對所有管理員生效）。</li>
+            </ul>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異</p>
+                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                    <li>教材（PAN-OS 8.0）只有 Commit 的「依管理員」與 Save、Revert 的「依管理員」概念。現行 PAN-OS 12.x 另可依<strong>位置</strong>（虛擬系統、共用政策與物件、共用 Device 與 Network 設定）篩選，也有 Automatically Acquire Commit Lock 選項（教材未提到）。</li>
+                    <li>教材第 26 張寫「依管理員還原到先前儲存的組態」，現行說法不同：依管理員的 Revert（Config &gt; Revert Changes &gt; Revert Changes Made By）是丟棄<strong>尚未提交</strong>的修改，也就是回到執行組態；「還原到最後儲存版本」（Revert to last saved configuration）只有全域操作，沒有依管理員的選項。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Topic 4 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Backup</span>
+                四、儲存、載入、匯出與版本回復
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                所有備份與回復的入口都集中在 <span class="tech-term">Device &gt; Setup &gt; Operations</span>。教材圖把它們分成「留在防火牆本機」與「經過管理電腦進出」兩類：
+            </p>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-64">操作（Operations 內的項目）</th><th class="py-2 px-4 text-left border">用途</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">Save candidate configuration</td><td class="py-2 px-4 border">把候選組態存成預設快照（<code>.snapshot.xml</code>），會覆寫舊的預設快照。存檔不會生效。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Save named configuration snapshot</td><td class="py-2 px-4 border">另存為你命名的快照，不動預設快照。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Revert to running configuration</td><td class="py-2 px-4 border">丟掉 Commit 之後所有管理員的修改，回到目前的執行組態。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Revert to last saved configuration</td><td class="py-2 px-4 border">把候選組態還原成預設快照的內容，之後可再 Commit 覆寫執行組態。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Load configuration version</td><td class="py-2 px-4 border">載入先前某次 Commit 時留下的版本（每次 Commit 都會產生一個版本），再視需要 Commit。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Load named configuration snapshot</td><td class="py-2 px-4 border">載入你先前存下或匯入的具名快照，再視需要 Commit。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Export named configuration snapshot</td><td class="py-2 px-4 border">把執行組態、具名候選快照或先前匯入的組態以 XML 匯出到管理電腦。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Export configuration version</td><td class="py-2 px-4 border">匯出指定版本的執行組態（XML）。</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Import named configuration snapshot</td><td class="py-2 px-4 border">把管理電腦上的 XML 組態檔匯入防火牆；匯入後要再 Load 才會進入候選組態。</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="highlight-box mt-4">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>重點：從外部備份回復的順序</p>
+                <p class="text-gray-700 text-sm">Import named configuration snapshot（把檔案送進防火牆）→ Load named configuration snapshot（載入成候選組態）→ Validate / Commit（真正生效）。原廠也建議把重要組態備份到防火牆以外的主機。第 3 章若載入範本組態，也是走這條路徑。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">用 Config Audit 比對兩個版本</h3>
+            <p class="text-gray-700 mb-2">
+                到 <span class="tech-term">Device &gt; Config Audit</span>，可從版本清單（欄位含 Versions、Committed By、Commit Date、Object Changes、Description）選出最多兩個版本，按 Compare Versions：
+            </p>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 text-sm">
+                <li><strong>XML Diff</strong>：左舊右新並排比對，新增綠色、刪除紅色、修改黃色。</li>
+                <li><strong>Change Summary</strong>：以 Operation 欄列出 Set、Edit、Rename、Move、Delete，點物件名稱可看 XML 片段。</li>
+                <li>兩個版本之間若有多次 Commit，會顯示累積後的差異。Load 與 Revert 操作不會被記錄在差異中。</li>
+                <li>這就是為什麼 Commit 時填寫 <strong>Description</strong> 很有價值：它會出現在 Config Audit 的 Description 欄，事後比對一目了然。</li>
+            </ul>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>踩坑：以為防火牆會自動幫你存候選組態</p>
+                <p class="text-gray-700 text-sm">防火牆<strong>不會</strong>自動把候選組態存到永久儲存。要留下做到一半的工作，必須手動 Save；而且存到預設快照時，會把所有管理員的修改一起覆寫。多人環境建議用具名快照，檔名裡寫日期與用途。</p>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異</p>
+                <p class="text-gray-700 text-sm">教材（PAN-OS 8.0）只列出 Save、Load、Revert、Export、Import 的概念圖。現行 PAN-OS 12.x 另有「Export device state」（匯出含 Panorama 範本與裝置群組設定的狀態包，用於更換設備）與 Config Audit 的 XML Diff / Change Summary。Config Audit 的 Change Summary 處理的差異上限為 25 MB，超過時請改看 XML Diff；HA 環境請在主動（Active）設備上執行稽核。</p>
+            </div>
+        </div>
+
+        <!-- Topic 5 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-orange-100 text-orange-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Logs</span>
+                五、日誌檢視與過濾
+            </h2>
+
+            <p class="mb-4 text-gray-700">
+                防火牆本機維護多種日誌，入口是 <span class="tech-term">Monitor &gt; Logs</span>，選擇日誌類型後即可看到清單。你能看到哪些類型，取決於管理員角色的權限。
+            </p>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr><th class="py-2 px-4 text-left border w-52">日誌類型</th><th class="py-2 px-4 text-left border">記錄什麼</th></tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr><td class="py-2 px-4 border font-semibold">Traffic</td><td class="py-2 px-4 border">每個工作階段的開始與結束，含區域、位址、應用程式、規則動作與流量位元組數</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Threat</td><td class="py-2 px-4 border">流量符合安全設定檔時產生的威脅事件，含威脅名稱、嚴重性與動作</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">URL Filtering</td><td class="py-2 px-4 border">網站存取紀錄，依 URL 過濾設定檔產生</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">WildFire Submissions</td><td class="py-2 px-4 border">送交 WildFire 分析的檔案與結果判定</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">DNS Security</td><td class="py-2 px-4 border">DNS Security 服務處理過的 DNS 查詢紀錄</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Data Filtering</td><td class="py-2 px-4 border">機敏資料偵測與檔案類型阻擋的紀錄</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">HIP Match / GlobalProtect</td><td class="py-2 px-4 border">主機資訊檔案比對結果；GlobalProtect 連線、用戶端與入口、閘道資訊（第 16 章）</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">IP-Tag / User-ID / Decryption</td><td class="py-2 px-4 border">IP 標籤套用紀錄；IP 與使用者對應（第 14 章）；解密與未解密工作階段（第 15 章）</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Tunnel Inspection</td><td class="py-2 px-4 border">受檢查的通道工作階段</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Unified</td><td class="py-2 px-4 border">把 Traffic、Threat、URL Filtering、WildFire Submissions、Data Filtering 的最新紀錄合併在同一個檢視</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Configuration</td><td class="py-2 px-4 border"><strong>每一次組態變更</strong>：管理員、用戶端類型、指令、結果，以及修改前後的值</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">System / Alarms</td><td class="py-2 px-4 border">系統事件（含嚴重性與描述）；系統產生的警報資訊</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Authentication</td><td class="py-2 px-4 border">驗證政策（Authentication policy）所保護資源的驗證事件，可用來排錯或找出暴力破解的跡象</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">另有 GTP、SCTP 等較少用於一般企業的類型；實際可見的類型依機型、授權、已啟用功能與 PAN-OS 版本而異。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">建立日誌過濾條件</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li><strong>最快的做法</strong>：在日誌清單中，點選任何一個值（例如來源位址或應用程式），它就會被加進過濾條件。多個條件之間是 <strong>AND</strong>（且）的關係。</li>
+                <li>過濾列旁的按鈕：Add Filter（新增條件）、Load Filter（載入已存的條件）、Apply Filter（以目前條件重新整理）、Save Filter（以名稱儲存條件）。</li>
+                <li>點清單中的放大鏡圖示可開啟 Detailed Log View，查看來源與目的詳細資訊與相關工作階段；Threat 日誌另有封包擷取圖示可看本機封包擷取。</li>
+                <li>Unified 日誌可用 Effective Queries 選擇要包含哪些日誌類型。</li>
+                <li>匯出：點 Export to CSV 圖示。預設匯出的列數上限，原廠文件說法不一（2,000 或 65,535），請以實機 Max Rows in CSV Export 欄位的預設值為準；可到 <span class="tech-term">Device &gt; Setup &gt; Management</span> 編輯 Logging and Reporting Settings，在 Log Export and Reporting 分頁調整。</li>
+            </ul>
+
+            <p class="text-gray-700 mt-4 mb-2">也可以直接輸入過濾語法，運算子包括 <code>eq</code>、<code>in</code>、<code>has</code>、<code>geq</code>、<code>leq</code> 等。例如：</p>
+            <div class="bg-gray-900 text-green-300 rounded p-4 text-sm font-mono overflow-x-auto">
+                <div>( addr.src in 10.0.0.1 ) and ( app eq ssl )</div>
+                <div class="text-gray-400"># 來源位址是 10.0.0.1，且應用程式是 ssl</div>
+                <div class="mt-2">( dstloc eq "IN" )</div>
+                <div class="text-gray-400"># 值剛好等於運算子關鍵字時（例如國碼 IN 與運算子 in 同字），要用雙引號包起來，避免語法錯誤</div>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">欄位名稱（如 addr.src、app）請以實機為準：先在你的 WebUI 以點選方式產生語法，再對照調整。另外，表示「不等於」的 <code>neq</code> 運算子，原廠文件沒有明確列出，是否可用請以實機為準。</p>
+
+            <div class="highlight-box mt-4">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>重點：Traffic 日誌何時產生？</p>
+                <p class="text-gray-700 text-sm">每條安全政策規則可以選擇在工作階段<strong>開始</strong>和／或<strong>結束</strong>時記錄，預設是在結束時記錄。排錯時可暫時加上開始時記錄，確認封包有沒有到達並比對到哪條規則（規則的 Log 設定，以及把日誌轉送到外部系統的 Log Forwarding 設定檔，請見第 9 章）。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">組態日誌與規則稽核備註：查「誰改了什麼」</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li><span class="tech-term">Monitor &gt; Logs &gt; Configuration</span> 會記下每次組態變更的管理員、指令與修改前後的值，是追查「誰在什麼時候改了這條規則」的第一站。</li>
+                <li>針對單一政策規則，可開啟 <strong>Audit Comment Archive</strong>：顯示該規則的稽核備註（Audit Comment）歷史、規則在兩次 Commit 之間的組態日誌，以及 Rule Changes（比對該規則兩個組態版本的差異）。</li>
+                <li>若要求每次新增或修改規則都必須填 Audit Comment，可到 <span class="tech-term">Device &gt; Setup &gt; Management</span> 編輯 Policy Rulebase Settings，勾選 Require Audit Comment on Policies 啟用。這項強制檢查在單機也有效：啟用後，新增規則時必須填 Audit Comment，既有規則在下次編輯時也要填；另可用 Audit Comment Regular Expression 規範格式（例如工單編號）。</li>
+            </ul>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異</p>
+                <p class="text-gray-700 text-sm">教材（PAN-OS 8.0）只提到「每台防火牆維護多種日誌」並示範 System 與 Traffic 日誌的過濾。現行版本另有 Decryption、Tunnel Inspection、IP-Tag、User-ID、GlobalProtect、DNS Security、Authentication 等類型，並且有 Unified 合併檢視；稽核備註（Audit Comment）與 Rule Changes Archive 則是 PAN-OS 9.0 之後才有的功能。實際可見的日誌類型，請以實機 Monitor &gt; Logs 的清單為準。</p>
+            </div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
+                隨堂測驗
+            </h2>
+            <p class="mb-6 text-gray-600">請點選您認為正確的選項，系統將會顯示解析。</p>
+            <div class="space-y-6" id="quiz-container"></div>
+        </div>
+
+    </main>
+
+    <footer class="footer-signature">
+        Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver.2026.10.29.11.11
+    </footer>
+
+
+    <script>
+        const quizData = [
+            {
+                question: "Q1. 管理員在 WebUI 修改了一條安全規則並按下 OK，但還沒有 Commit。此時這條修改的狀態是什麼？",
+                options: ["A. 已寫入執行組態，流量立刻套用新規則", "B. 只存在於候選組態，流量仍依照舊的執行組態處理", "C. 已自動儲存為預設快照，重新開機後仍會保留", "D. 已經送到 Panorama"],
+                correct: 1,
+                desc: "正解：B。按 OK 只會更新候選組態，要 Commit 才會變成執行組態並載入資料平面。候選組態也不會自動存檔，沒有手動 Save 就重新開機，修改可能遺失。"
+            },
+            {
+                question: "Q2. admin 與 ZoneAdmin 都改了候選組態，admin 想只提交自己的修改。該怎麼做？",
+                options: ["A. 在 Commit 視窗選 Commit Changes Made By，篩選 admin", "B. 到 Device > Setup > Operations 按 Revert to running configuration", "C. 對 ZoneAdmin 的修改執行 Validate Commit 即可", "D. 先 Take a Lock 選 Commit，再按 Commit All Changes"],
+                correct: 0,
+                desc: "正解：A。Commit Changes Made By 可依管理員或位置篩選範圍。B 是全域 Revert，會連 ZoneAdmin 的修改一起丟掉；C 的 Validate 只檢查不提交；D 的 Commit lock 是擋別人提交，不能縮小自己的範圍。提醒：若兩人的修改彼此相依，拆開提交可能驗證失敗，需一併納入或全部提交。"
+            },
+            {
+                question: "Q3. 你要連續修改一組互相關聯的設定，不希望其他管理員在這段時間動到候選組態。應該取得哪一種鎖？",
+                options: ["A. Commit lock，因為它阻擋其他管理員修改候選組態", "B. Config lock，因為它阻擋其他管理員修改候選組態", "C. 兩種都不必，Candidate 本來就是每位管理員各一份", "D. Config lock，因為它會讓所有人的 Commit 自動失敗"],
+                correct: 1,
+                desc: "正解：B。Config lock 擋住別人修改候選組態；Commit lock 擋住別人提交。候選組態是所有管理員共用的一份，所以才需要鎖。鎖會在 Commit 完成後自動解除，也可由上鎖者或 Superuser 手動移除。"
+            },
+            {
+                question: "Q4. 同事說「昨天有人改了防火牆的某條規則」，你想查是誰在何時改的。最直接的作法是什麼？",
+                options: ["A. 到 Monitor > Logs > Traffic，過濾來源位址", "B. 到 Monitor > Logs > Configuration 查看管理員、指令與修改前後的值", "C. 到 Monitor > Logs > Threat 查看威脅名稱", "D. 重新開機，讓防火牆回到執行組態"],
+                correct: 1,
+                desc: "正解：B。Configuration 日誌記錄每次組態變更的管理員、指令與前後值。針對單一規則，還可用 Audit Comment Archive 看稽核備註歷史並比較版本；Device > Config Audit 則可比對兩個 Commit 版本的差異。"
+            }
+        ];
+
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionBox = document.createElement('div');
+            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
+
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border mb-2 text-gray-700" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            questionBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
+                <div class="space-y-2 mb-4">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
+                    <p class="font-bold result-title"></p>
+                    <p class="text-sm text-gray-600 mt-1">${item.desc}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionBox);
+        });
+
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            if (element.parentElement.dataset.answered) return;
+            element.parentElement.dataset.answered = "true";
+
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+                opt.classList.add('disabled');
+            });
+
+            if (optIndex === data.correct) {
+                element.classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了！";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                element.classList.add('bg-red-100', 'border-red-500');
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了！";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+    </script>
+</body>
+</html>
