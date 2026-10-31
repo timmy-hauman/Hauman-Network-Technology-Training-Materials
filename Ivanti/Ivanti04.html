@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ivanti Connect Secure SSL VPN 實戰課程 - 初始化與基本設定</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        /* 卡片主體樣式 (Ivanti Red) */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #e11d48;
+        }
+
+        /* 重點提示框 (紅) */
+        .highlight-box {
+            background-color: #fff1f2;
+            border-left: 4px solid #e11d48;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 技術名詞標記 */
+        .tech-term {
+            color: #be123c;
+            font-weight: 700;
+            background-color: #ffe4e6;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
+        }
+
+        /* 比喻說明框 (綠) */
+        .analogy-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 版本差異框 (紫) */
+        .version-box {
+            background-color: #faf5ff;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 常見踩坑框 (橘,避開主色紅) */
+        .pitfall-box {
+            background-color: #fff7ed;
+            border-left: 4px solid #ea580c;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .diagram-container {
+            display: block;
+            background-color: #ffffff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-top: 1rem;
+        }
+
+        .diagram-container svg {
+            display: block;
+            width: 100%;
+            max-width: 520px;
+            margin: 0 auto;
+        }
+
+        /* 示意畫面 (仿管理介面) */
+        .mock-window {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            background: #ffffff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            margin-top: 1rem;
+        }
+        .mock-titlebar {
+            background: #e2e8f0;
+            padding: 0.4rem 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: #475569;
+        }
+        .mock-dots span {
+            display: inline-block;
+            width: 0.6rem;
+            height: 0.6rem;
+            border-radius: 50%;
+            background: #94a3b8;
+            margin-right: 0.2rem;
+        }
+        .mock-url {
+            background: #ffffff;
+            border-radius: 0.25rem;
+            padding: 0.1rem 0.5rem;
+            flex: 1;
+            min-width: 0;
+            font-family: ui-monospace, Consolas, monospace;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .mock-nav {
+            background: #1f2937;
+            color: #cbd5e1;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.25rem 1rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+        }
+        .mock-nav .brand { font-weight: 700; color: #ffffff; margin-right: 0.5rem; }
+        .mock-nav .on { color: #ffffff; border-bottom: 2px solid #e11d48; padding-bottom: 0.1rem; }
+        .mock-crumb {
+            font-size: 0.8rem;
+            color: #475569;
+            padding: 0.5rem 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f8fafc;
+        }
+        .mock-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            padding: 0.5rem 0.75rem 0;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.8rem;
+        }
+        .mock-tabs span {
+            padding: 0.3rem 0.7rem;
+            border: 1px solid #e5e7eb;
+            border-bottom: none;
+            border-radius: 0.3rem 0.3rem 0 0;
+            background: #f1f5f9;
+            color: #475569;
+        }
+        .mock-tabs span.on { background: #ffffff; color: #111827; font-weight: 600; }
+        .mock-body { padding: 0.75rem; font-size: 0.85rem; }
+        .mock-section { font-weight: 700; color: #334155; margin: 0.75rem 0 0.25rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.2rem; }
+        .mock-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.35rem 0.6rem;
+            padding: 0.35rem 0;
+        }
+        .mock-label { width: 12rem; color: #374151; font-weight: 500; }
+        .mock-input {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+            padding: 0.2rem 0.5rem;
+            min-width: 12rem;
+            background: #ffffff;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #111827;
+        }
+        .mock-select::after { content: " ▾"; color: #64748b; }
+        .mock-indent { padding-left: 2rem; }
+        .mock-btn {
+            display: inline-block;
+            border: 1px solid #94a3b8;
+            background: #f8fafc;
+            border-radius: 0.25rem;
+            padding: 0.2rem 0.7rem;
+            font-size: 0.8rem;
+            color: #1f2937;
+        }
+        .mock-btn.primary { background: #1f2937; color: #ffffff; border-color: #1f2937; }
+        .mock-hl { outline: 2px solid #e11d48; outline-offset: 2px; border-radius: 0.25rem; }
+        .mock-list {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+            min-width: 9rem;
+            min-height: 4.2rem;
+            padding: 0.25rem 0.5rem;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.8rem;
+            background: #ffffff;
+        }
+        .mock-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 0.5rem; }
+        .mock-table th { background: #f1f5f9; text-align: left; padding: 0.35rem 0.5rem; border: 1px solid #e2e8f0; color: #334155; }
+        .mock-table td { padding: 0.35rem 0.5rem; border: 1px solid #e2e8f0; }
+        .mock-caption {
+            font-size: 0.75rem;
+            color: #6b7280;
+            padding: 0.5rem 0.75rem;
+            background: #f9fafb;
+            border-top: 1px dashed #e5e7eb;
+        }
+        .step-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.4rem;
+            height: 1.4rem;
+            border-radius: 9999px;
+            background: #e11d48;
+            color: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .step-list li { display: flex; gap: 0.6rem; align-items: flex-start; margin-bottom: 0.6rem; }
+
+        /* 模擬器 */
+        .sim-rule {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.4rem 0.75rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            margin-bottom: 0.5rem;
+            background: #ffffff;
+        }
+        .sim-rule .num { font-weight: 700; color: #be123c; width: 3.5rem; }
+        .sim-rule .desc { flex: 1; min-width: 12rem; }
+        .sim-arrow { border: 1px solid #cbd5e1; border-radius: 0.25rem; padding: 0 0.45rem; background: #f8fafc; }
+        .sim-arrow:disabled { opacity: 0.35; cursor: not-allowed; }
+        .trace-line { padding: 0.3rem 0; border-bottom: 1px dashed #e5e7eb; }
+
+        @media (max-width: 640px) {
+            main { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+            .section-card { padding: 1rem; }
+            .diagram-container { padding: 0.25rem; }
+            .mock-label { width: calc(100% - 2.2rem); }
+            .mock-indent .mock-label { width: 100%; }
+            .mock-input { min-width: 0; width: 100%; }
+            .mock-indent { padding-left: 0.75rem; }
+            .mock-body { padding: 0.5rem; }
+        }
+
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover:not(.disabled) {
+            background-color: #f3f4f6;
+        }
+
+        .footer-signature {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+            margin-top: 4rem;
+        }
+
+        /* 本章追加:Console 終端機示意畫面與模擬器版面 */
+        .mock-terminal {
+            background: #0f172a;
+            color: #e2e8f0;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.8rem;
+            line-height: 1.6;
+            padding: 0.75rem;
+        }
+        .mock-terminal .t-line { display: flex; gap: 0.5rem; align-items: flex-start; padding: 0.05rem 0; }
+        .mock-terminal .t-text { flex: 1; min-width: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+        .mock-terminal .t-pad { width: 1.4rem; flex-shrink: 0; }
+        .mock-terminal .t-dim { color: #94a3b8; }
+        .mock-terminal .t-in { color: #fbbf24; }
+        .mock-terminal .t-gap { height: 0.5rem; }
+        .mock-terminal .t-hl { outline: 2px solid #e11d48; outline-offset: 2px; border-radius: 0.25rem; padding: 0.1rem 0; }
+        .mock-terminal .step-badge { margin-top: 0.15rem; }
+        .mock-titlebar .t-title { flex: 1; min-width: 0; }
+        .check-row { display: flex; gap: 0.6rem; align-items: flex-start; padding: 0.5rem 0; border-bottom: 1px dashed #e5e7eb; }
+        .check-row:last-child { border-bottom: none; }
+        .check-row .mark { width: 1.5rem; flex-shrink: 0; text-align: center; font-weight: 700; }
+        /* Long URLs and code wrap on narrow screens */
+        main { overflow-wrap: break-word; } main code { overflow-wrap: anywhere; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-rose-700 to-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-shield-halved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold">Ivanti Connect Secure SSL VPN 實戰課程</h1>
+                    <p class="text-rose-100 mt-1">單元 4:初始化與基本設定</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <!-- Introduction -->
+        <div class="mb-8">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
+                <h2 class="text-xl font-bold text-blue-800 mb-2 flex items-center">
+                    <i class="fas fa-user-tie mr-2"></i>講師導言
+                </h2>
+                <p class="text-blue-900 leading-relaxed">
+                    設備剛拆封時,誰也連不上它。這一章要把它從「一台空白的機器」變成「管理員能登入、時間正確、有授權、有正式憑證」的狀態。
+                    順序是這樣的:先用 <strong>Console</strong> 設好最小限度的網路與管理員帳號,接著全部改用瀏覽器完成。
+                    照著官方建議的順序走,後面每一步才不會被前面的錯誤卡住,例如時間沒校準,TOTP 與 SAML 就會莫名其妙失敗。
+                </p>
+            </div>
+        </div>
+
+        <!-- 學習目標 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-gray-100 text-gray-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Goals</span>
+                本章學習目標
+            </h2>
+            <ul class="list-disc pl-6 space-y-1 text-gray-700">
+                <li>說出初始化的八個步驟與先後順序</li>
+                <li>備妥 Console 初始化要輸入的值,並說明為什麼 Console 只設 Internal port</li>
+                <li>用瀏覽器登入管理介面,找到 Guidance 按鈕</li>
+                <li>設定 Internal、External、Management 三個網路介面</li>
+                <li>說明為什麼要先把時間設對,以及時間不準會連鎖出哪些問題</li>
+                <li>找到授權與憑證的操作位置,並完成設備憑證的申請流程</li>
+                <li>說出管理介面應該限制從哪裡登入</li>
+            </ul>
+            <p class="text-sm text-gray-500 mt-4"><i class="fas fa-map-signs mr-1"></i>本章承接第 3 章規劃好的三個網路介面;升級的細節放在第 16 章。</p>
+        </div>
+
+        <!-- 一、初始化總覽 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">一、初始化的八個步驟</h2>
+
+            <div class="analogy-box">
+                <p class="font-bold text-green-800 mb-1"><i class="fas fa-store mr-1"></i>用新店開張來想</p>
+                <ul class="list-disc pl-6 text-green-900 space-y-1">
+                    <li><strong>Console</strong> 像先把水電接通:只做到「店裡能亮燈、老闆進得去」的最小程度。</li>
+                    <li>進了店(瀏覽器開 <code>/admin</code>),再慢慢布置:設網路、對時鐘、申請營業登記(授權)。</li>
+                    <li><strong>自簽憑證</strong>像手寫的臨時招牌,開幕前一定要換成受信任單位核發的正式招牌(<strong>受信任 CA 簽發的憑證</strong>)。</li>
+                </ul>
+            </div>
+
+            <p class="text-gray-700 leading-relaxed">
+                官方建議的順序是先設定系統與網路(一開始要靠 <span class="tech-term">Console 初始化</span>),第二步就是設定日期時間,接著升級 Service Package、安裝授權。官方建議的順序到安裝授權為止,換正式憑證是本教材加上的一步。完整的八個步驟如下圖:
+            </p>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 360 512" role="img" aria-labelledby="svg1-title" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans TC, sans-serif">
+                    <title id="svg1-title">初始化流程共八步:先用 Console 設定 Internal port 與管理員,再用瀏覽器開 /admin,依序完成 Guidance 導引、網路、日期時間、升級 Service Package、安裝授權、換上正式憑證</title>
+                    <defs>
+                        <marker id="arrow1" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+                        </marker>
+                    </defs>
+
+                    <rect x="20" y="10" width="320" height="44" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="2"/>
+                    <circle cx="44" cy="32" r="14" fill="#d97706"/>
+                    <text x="44" y="38" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">1</text>
+                    <text x="68" y="30" font-size="15" font-weight="700" fill="#1f2937">Console 初始化</text>
+                    <text x="68" y="47" font-size="13" fill="#6b7280">Internal port 位址與管理員帳密</text>
+                    <line x1="180" y1="54" x2="180" y2="68" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+
+                    <rect x="20" y="70" width="320" height="44" rx="8" fill="#fff1f2" stroke="#e11d48" stroke-width="2"/>
+                    <circle cx="44" cy="92" r="14" fill="#e11d48"/>
+                    <text x="44" y="98" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">2</text>
+                    <text x="68" y="90" font-size="15" font-weight="700" fill="#1f2937">瀏覽器開 /admin</text>
+                    <text x="68" y="107" font-size="13" fill="#6b7280">https://10.0.20.10/admin</text>
+                    <line x1="180" y1="114" x2="180" y2="128" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+
+                    <rect x="20" y="130" width="320" height="44" rx="8" fill="#fff1f2" stroke="#e11d48" stroke-width="2"/>
+                    <circle cx="44" cy="152" r="14" fill="#e11d48"/>
+                    <text x="44" y="158" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">3</text>
+                    <text x="68" y="150" font-size="15" font-weight="700" fill="#1f2937">Guidance 導引</text>
+                    <text x="68" y="167" font-size="13" fill="#6b7280">右上角按鈕,可重新開啟</text>
+                    <line x1="180" y1="174" x2="180" y2="188" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+
+                    <rect x="20" y="190" width="320" height="44" rx="8" fill="#fff1f2" stroke="#e11d48" stroke-width="2"/>
+                    <circle cx="44" cy="212" r="14" fill="#e11d48"/>
+                    <text x="44" y="218" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">4</text>
+                    <text x="68" y="210" font-size="15" font-weight="700" fill="#1f2937">設定網路</text>
+                    <text x="68" y="227" font-size="13" fill="#6b7280">System &gt; Network</text>
+                    <line x1="180" y1="234" x2="180" y2="248" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+
+                    <rect x="20" y="250" width="320" height="44" rx="8" fill="#fff1f2" stroke="#e11d48" stroke-width="2"/>
+                    <circle cx="44" cy="272" r="14" fill="#e11d48"/>
+                    <text x="44" y="278" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">5</text>
+                    <text x="68" y="270" font-size="15" font-weight="700" fill="#1f2937">日期時間與 NTP</text>
+                    <text x="68" y="287" font-size="13" fill="#6b7280">時間不準,後面全部會出問題</text>
+                    <line x1="180" y1="294" x2="180" y2="308" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+
+                    <rect x="20" y="310" width="320" height="44" rx="8" fill="#fff1f2" stroke="#e11d48" stroke-width="2"/>
+                    <circle cx="44" cy="332" r="14" fill="#e11d48"/>
+                    <text x="44" y="338" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">6</text>
+                    <text x="68" y="330" font-size="15" font-weight="700" fill="#1f2937">升級 Service Package</text>
+                    <text x="68" y="347" font-size="13" fill="#6b7280">細節見第 16 章</text>
+                    <line x1="180" y1="354" x2="180" y2="368" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+
+                    <rect x="20" y="370" width="320" height="44" rx="8" fill="#fff1f2" stroke="#e11d48" stroke-width="2"/>
+                    <circle cx="44" cy="392" r="14" fill="#e11d48"/>
+                    <text x="44" y="398" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">7</text>
+                    <text x="68" y="390" font-size="15" font-weight="700" fill="#1f2937">安裝授權</text>
+                    <text x="68" y="407" font-size="13" fill="#6b7280">System &gt; Configuration &gt; Licensing</text>
+                    <line x1="180" y1="414" x2="180" y2="428" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+
+                    <rect x="20" y="430" width="320" height="44" rx="8" fill="#fff1f2" stroke="#e11d48" stroke-width="2"/>
+                    <circle cx="44" cy="452" r="14" fill="#e11d48"/>
+                    <text x="44" y="458" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">8</text>
+                    <text x="68" y="450" font-size="15" font-weight="700" fill="#1f2937">換上正式憑證</text>
+                    <text x="68" y="467" font-size="13" fill="#6b7280">System &gt; Configuration &gt; Certificates</text>
+
+                    <rect x="20" y="488" width="14" height="14" rx="3" fill="#fffbeb" stroke="#d97706" stroke-width="2"/>
+                    <text x="40" y="500" font-size="13" fill="#475569">Console 操作</text>
+                    <rect x="150" y="488" width="14" height="14" rx="3" fill="#fff1f2" stroke="#e11d48" stroke-width="2"/>
+                    <text x="170" y="500" font-size="13" fill="#475569">瀏覽器(管理介面)操作</text>
+                </svg>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">名詞小卡</h3>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-terminal text-rose-600 mr-2"></i>Console</h4>
+                    <p class="text-sm text-gray-700">用 console 線接到設備的文字管理畫面,只在初始化或救援時使用。日常管理都在瀏覽器的 <code>/admin</code>。</p>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-compass text-rose-600 mr-2"></i>Guidance</h4>
+                    <p class="text-sm text-gray-700">管理介面右上角的導引按鈕。第一次登入會自動跳出,之後可以隨時重新開啟,它會帶你升級 Service Package 與安裝授權。</p>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-box-open text-rose-600 mr-2"></i>Service Package</h4>
+                    <p class="text-sm text-gray-700">設備的版本更新。官方建議在安裝授權之前先升到最新(第 16 章會講怎麼升)。</p>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-certificate text-rose-600 mr-2"></i>自簽憑證</h4>
+                    <p class="text-sm text-gray-700">設備自己簽給自己的憑證。瀏覽器不認得它,會出現警告,所以只能在初始化階段使用,上線前要換成受信任 CA 簽發的憑證。</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 二、Console 初始化 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">二、動手做:實體設備的 Console 初始化</h2>
+            <p class="text-gray-700 mb-2">目標:讓設備有一個可以連得到的 Internal port 位址,以及一組管理員帳號。以下依 ISA6000 硬體指南整理,ISA6500 / 8500 的 Console 畫面是否完全相同,以實機為準。</p>
+
+            <ol class="list-decimal pl-6 space-y-1 text-gray-700 mt-3">
+                <li>用 console 線連接設備。終端機軟體設定 <strong>9600 bps、8N1、無流量控制</strong>。Internal port 先接上交換器。</li>
+                <li>接上電源,設備自動開機。開機前 60 秒出現的錯誤訊息可以忽略。</li>
+                <li>進入 Basic Setup,依下面的畫面依序回答。</li>
+            </ol>
+
+            <div class="mock-window">
+                <div class="mock-titlebar">
+                    <span class="mock-dots"><span></span><span></span><span></span></span>
+                    <span class="t-title">Console 終端機(9600 bps、8N1)</span>
+                </div>
+                <div class="mock-terminal">
+                    <div class="t-line"><span class="t-pad"></span><span class="t-text t-dim"># Basic Setup(以下輸入值為教學範例值)</span></div>
+                    <div class="t-gap"></div>
+                    <div class="t-line"><span class="step-badge">1</span><span class="t-text">Load from local disk?  <span class="t-in">y</span></span></div>
+                    <div class="t-line"><span class="t-pad"></span><span class="t-text">Stand-alone (y) or cluster?  <span class="t-in">y</span></span></div>
+                    <div class="t-line"><span class="t-pad"></span><span class="t-text">Personality:  <span class="t-in">Ivanti Connect Secure</span></span></div>
+                    <div class="t-gap"></div>
+                    <div class="t-line"><span class="step-badge">2</span><span class="t-text">Accept license agreement? (y, or r to read)  <span class="t-in">y</span></span></div>
+                    <div class="t-gap"></div>
+                    <div class="t-hl">
+                        <div class="t-line"><span class="step-badge">3</span><span class="t-text">Internal port IP address:  <span class="t-in">10.0.20.10</span></span></div>
+                        <div class="t-line"><span class="t-pad"></span><span class="t-text">Netmask:  <span class="t-in">255.255.255.0</span></span></div>
+                        <div class="t-line"><span class="t-pad"></span><span class="t-text">Default gateway:  <span class="t-in">10.0.20.1</span></span></div>
+                        <div class="t-line"><span class="t-pad"></span><span class="t-text">Default VLAN (optional):  <span class="t-dim">(留空)</span></span></div>
+                        <div class="t-line"><span class="t-pad"></span><span class="t-text">Primary DNS:  <span class="t-in">10.0.10.10</span></span></div>
+                    </div>
+                    <div class="t-gap"></div>
+                    <div class="t-line"><span class="step-badge">4</span><span class="t-text">Admin username:  <span class="t-in">ics-admin</span></span></div>
+                    <div class="t-line"><span class="t-pad"></span><span class="t-text">Admin password:  <span class="t-in">******</span></span></div>
+                    <div class="t-line"><span class="t-pad"></span><span class="t-text">Allow this admin to use the REST API?  <span class="t-in">n</span></span></div>
+                    <div class="t-gap"></div>
+                    <div class="t-line"><span class="step-badge">5</span><span class="t-text">Self-signed certificate, Common name:  <span class="t-in">vpn.example.com</span></span></div>
+                    <div class="t-line"><span class="t-pad"></span><span class="t-text">Organization name:  <span class="t-in">Example Corp</span></span></div>
+                    <div class="t-gap"></div>
+                    <div class="t-line"><span class="step-badge">6</span><span class="t-text">Register to Ivanti Neurons for Secure Access?  <span class="t-in">n</span></span></div>
+                </div>
+                <div class="mock-caption"><i class="fas fa-circle-info mr-1"></i>Console 示意畫面:提示文字是依教材整理的順序示意,實際文字與版面以實機為準。</div>
+            </div>
+
+            <ol class="step-list mt-4 text-gray-700">
+                <li><span class="step-badge">1</span><span>確認從本機磁碟載入;輸入 <code>y</code> 選<strong>單機(stand-alone)</strong>;產品身分(personality)選 <strong>Ivanti Connect Secure</strong>。安裝最久約 30 分鐘。</span></li>
+                <li><span class="step-badge">2</span><span>輸入 <code>y</code> 接受授權條款。想先看內容,輸入 <code>r</code>。</span></li>
+                <li><span class="step-badge">3</span><span><strong>Internal port</strong> 的 IP 位址、遮罩、預設閘道、預設 VLAN(選填),再加上主要 DNS。閘道一定要和 IP 在同一個網段(第十節有練習)。</span></li>
+                <li><span class="step-badge">4</span><span>管理員帳號、密碼,以及是否允許這個管理員使用 REST API。範例選 <code>n</code>(教學範例值,沒有要用就先不開)。</span></li>
+                <li><span class="step-badge">5</span><span>自簽憑證的 Common name 與 Organization name。</span></li>
+                <li><span class="step-badge">6</span><span>是否註冊到 Ivanti Neurons for Secure Access。範例先不註冊。</span></li>
+            </ol>
+
+            <div class="highlight-box">
+                <p class="font-bold text-rose-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>External port 不在 Console 設定</p>
+                <p class="text-gray-800">Console 只問 Internal port。External port 之後到網頁管理介面設定(第五節)。和舊版設定手冊的 Console 流程相比,大方向一樣,新版多了選擇產品身分、REST API 權限、註冊 Ivanti Neurons for Secure Access 三項。</p>
+            </div>
+        </div>
+
+        <!-- 三、虛擬版初始化 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">三、虛擬版與雲端的初始化</h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">VMware</h3>
+            <ol class="list-decimal pl-6 space-y-1 text-gray-700">
+                <li>在 vCenter 對 inventory 按右鍵,選 <strong>Deploy OVF Template</strong>,選擇本機的 OVF 檔。</li>
+                <li>依序指定名稱、運算資源、儲存空間,並對應三個網路。</li>
+                <li>開機後點 <strong>Launch Web Console</strong>,設定網路與管理員帳密。</li>
+            </ol>
+
+            <div class="highlight-box">
+                <p class="font-bold text-rose-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>Launch Web Console 不是 ICS 的管理介面</p>
+                <p class="text-gray-800">這顆按鈕是 vSphere 提供的虛擬機主控台,相當於實體設備的 console 線。ICS 的網頁管理介面要用瀏覽器開 <code>https://10.0.20.10/admin</code>。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">用 OVF properties 預先帶入參數</h3>
+            <p class="text-gray-700 mb-2">也可以在部署時先填好參數,開機就自動完成設定:</p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">參數</th><th class="py-2 px-4 border text-left">用途</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold"><code>vaIPAddress</code>、<code>vaNetmask</code>、<code>vaGateway</code></td><td class="py-2 px-4 border">Internal port 網路設定</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold"><code>vaPrimaryDNS</code>、<code>vaSecondaryDNS</code>、<code>vaDNSDomain</code></td><td class="py-2 px-4 border">DNS</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold"><code>vaAdminUsername</code>、<code>vaAdminPassword</code></td><td class="py-2 px-4 border">管理員帳密</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold"><code>vaCommonName</code>、<code>vaOrganization</code></td><td class="py-2 px-4 border">自簽憑證資訊</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold"><code>vaAcceptLicenseAgreement</code>、<code>vaEnableLicenseServer</code></td><td class="py-2 px-4 border">授權條款、是否當 License Server</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <p class="text-gray-700 mt-4"><strong>雲端</strong>:Azure、GCP、AWS 各有 provisioning 參數頁,部署時一併填入網路與管理員資訊。</p>
+        </div>
+
+        <!-- 四、第一次登入 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">四、第一次登入管理介面</h2>
+            <ol class="step-list text-gray-700">
+                <li><span class="step-badge">1</span><span>瀏覽器開 <code>https://10.0.20.10/admin</code>,也就是 Internal port 位址後面加 <code>/admin</code>。</span></li>
+                <li><span class="step-badge">2</span><span>這時用的是自簽憑證,瀏覽器會出現警告,確認後繼續。這是正常的,第八節會換成正式憑證。</span></li>
+                <li><span class="step-badge">3</span><span>用剛才在 Console 建立的管理員帳號登入。</span></li>
+                <li><span class="step-badge">4</span><span>第一次登入會跳出初始設定導引。之後想再看,按右上角的 <strong>Guidance</strong> 按鈕就能重新開啟,它會引導你升級 Service Package 與安裝授權。</span></li>
+            </ol>
+            <p class="text-sm text-gray-500 mt-3"><i class="fas fa-circle-info mr-1"></i>22.8R2.1 起預設啟用 Host header 驗證(設備會檢查瀏覽器網址上的主機名稱,是否列在憑證的 SAN 裡)後,用 IP 位址登入是否會被擋,以實機為準。</p>
+        </div>
+
+        <!-- 五、網路設定 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">五、動手做:網路設定</h2>
+            <p class="text-gray-700 mb-2">先看 Internal port 的設定畫面。Console 已經填過位址,這裡可以確認或修改,也可以展開進階設定。</p>
+
+            <div class="mock-window">
+                <div class="mock-titlebar">
+                    <span class="mock-dots"><span></span><span></span><span></span></span>
+                    <span class="mock-url">https://10.0.20.10/admin</span>
+                </div>
+                <div class="mock-nav">
+                    <span class="brand">Ivanti Connect Secure</span>
+                    <span class="on">System</span><span>Authentication</span><span>Administrators</span><span>Users</span><span>Maintenance</span>
+                </div>
+                <div class="mock-crumb">System &gt; Network &gt; Internal Port &gt; Settings</div>
+                <div class="mock-tabs"><span class="on">Settings</span><span>Virtual Ports</span></div>
+                <div class="mock-body">
+                    <div class="mock-section">IPv4</div>
+                    <div class="mock-row"><span class="step-badge">1</span><span class="mock-label">IP Address</span><span class="mock-input mock-hl">10.0.20.10</span></div>
+                    <div class="mock-row"><span class="step-badge">2</span><span class="mock-label">Netmask</span><span class="mock-input mock-hl">255.255.255.0</span></div>
+                    <div class="mock-row"><span class="step-badge">3</span><span class="mock-label">Default Gateway</span><span class="mock-input mock-hl">10.0.20.1</span></div>
+                    <div class="mock-section">Advanced Settings</div>
+                    <div class="mock-row"><span class="step-badge" style="visibility:hidden">0</span><span class="mock-label">Link Speed</span><span class="mock-input mock-select">(保持預設)</span></div>
+                    <div class="mock-row"><span class="step-badge">4</span><span class="mock-label">ARP Ping Timeout</span><span class="mock-input">(保持預設)</span></div>
+                    <div class="mock-row"><span class="step-badge">5</span><span class="mock-label">MTU</span><span class="mock-input mock-hl">1500</span></div>
+                    <div class="mock-row"><span class="step-badge" style="visibility:hidden">0</span><span class="mock-label">Default VLAN ID</span><span class="mock-input">(留空)</span></div>
+                    <div class="mock-row" style="justify-content:flex-end;"><span class="step-badge">6</span><span class="mock-btn primary mock-hl">Save Changes</span></div>
+                </div>
+                <div class="mock-caption"><i class="fas fa-circle-info mr-1"></i>示意畫面:欄位名稱為示意,以實機為準。</div>
+            </div>
+
+            <ol class="step-list mt-4 text-gray-700">
+                <li><span class="step-badge">1</span><span><strong>IP Address</strong>:Internal port 的位址,IPv4 為必填。範例環境是 <code>10.0.20.10</code>。</span></li>
+                <li><span class="step-badge">2</span><span><strong>Netmask</strong>:範例環境是 /24,也就是 <code>255.255.255.0</code>。</span></li>
+                <li><span class="step-badge">3</span><span><strong>Default Gateway</strong>:<code>10.0.20.1</code>。<strong>必須和 IP 在同一個網段</strong>。</span></li>
+                <li><span class="step-badge">4</span><span><strong>ARP Ping Timeout</strong> 等進階設定(Link Speed、Default VLAN ID 也屬於這一類):沒有特殊需求就保持預設。</span></li>
+                <li><span class="step-badge">5</span><span>MTU 的預設值是 <code>1500</code>。</span></li>
+                <li><span class="step-badge">6</span><span>按 <strong>Save Changes</strong>。</span></li>
+            </ol>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">網路設定的選單一覽</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">項目</th><th class="py-2 px-4 border text-left">選單位置</th><th class="py-2 px-4 border text-left">重點</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">主機名稱、DNS、WINS</td><td class="py-2 px-4 border">System &gt; Network &gt; Overview</td><td class="py-2 px-4 border">Hostname 最長 30 字元;可指定 DNS 查詢走哪個介面(預設 Internal)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Internal port</td><td class="py-2 px-4 border">System &gt; Network &gt; Internal Port &gt; Settings</td><td class="py-2 px-4 border">IPv4 必填。進階設定有 Link Speed、ARP Ping Timeout、MTU(預設 1500)、Default VLAN ID</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">External port</td><td class="py-2 px-4 border">System &gt; Network &gt; External Port &gt; Settings</td><td class="py-2 px-4 border"><strong>Use Port?</strong> 改成 Enabled 才會啟用</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Management port</td><td class="py-2 px-4 border">System &gt; Network &gt; Management Port &gt; Settings</td><td class="py-2 px-4 border"><strong>Use Port?</strong> 改成 Enabled;Console 也可設定(選 <code>1</code> → <code>10</code>)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">VLAN</td><td class="py-2 px-4 border">System &gt; Network &gt; VLANs</td><td class="py-2 px-4 border">VLAN ID 1–4094;VLAN IP 要和 Internal port 不同網段</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">靜態路由</td><td class="py-2 px-4 border">System &gt; Network &gt; Routes</td><td class="py-2 px-4 border">Metric 0–15,數字越小越優先</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Hosts</td><td class="py-2 px-4 border">System &gt; Network &gt; Hosts</td><td class="py-2 px-4 border">DNS 查不到時才查這張表</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Virtual Ports</td><td class="py-2 px-4 border">System &gt; Network &gt; Internal / External Port &gt; Virtual Ports</td><td class="py-2 px-4 border">同一實體介面上的 IP 別名,用來搭配多張網域憑證</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">範例環境的設定</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">介面</th><th class="py-2 px-4 border text-left">IP</th><th class="py-2 px-4 border text-left">閘道</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">Internal</td><td class="py-2 px-4 border"><code>10.0.20.10/24</code></td><td class="py-2 px-4 border"><code>10.0.20.1</code></td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">External</td><td class="py-2 px-4 border"><code>203.0.113.10/24</code></td><td class="py-2 px-4 border"><code>203.0.113.1</code></td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Management</td><td class="py-2 px-4 border"><code>10.0.30.10/24</code></td><td class="py-2 px-4 border">—</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-gray-700 mt-3">靜態路由:<code>10.0.10.0/24</code>(內部伺服器網段)經 <code>10.0.20.1</code>。</p>
+        </div>
+
+        <!-- 六、時間 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">六、為什麼時間要先設好:日期時間與 NTP</h2>
+
+            <div class="analogy-box">
+                <p class="font-bold text-green-800 mb-1"><i class="fas fa-clock mr-1"></i>用火車票來想</p>
+                <p class="text-green-900">車票上印著「幾點幾分的車次」。如果售票系統的時鐘亂跳,票上的時間就沒有意義,驗票的人也沒辦法判斷票是不是過期。ICS 的驗證碼、憑證、授權和日誌都靠時間判斷,時鐘不準,這些東西會一起出狀況。</p>
+            </div>
+
+            <p class="text-gray-700 leading-relaxed">
+                官方建議的第二步就是設定時間(<span class="tech-term">NTP</span> 是讓設備自動向時間伺服器校時的機制)。時間不準會連鎖出問題:
+            </p>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 360 390" role="img" aria-labelledby="svg2-title" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans TC, sans-serif">
+                    <title id="svg2-title">設備時間不準會連鎖造成五種問題:TOTP 驗證碼對不上、SAML 登入失敗、憑證被判定尚未生效或已過期、授權同步出錯、多台設備的日誌時間對不起來</title>
+                    <defs>
+                        <marker id="arrow2" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+                        </marker>
+                    </defs>
+                    <rect x="60" y="10" width="240" height="44" rx="8" fill="#fff1f2" stroke="#e11d48" stroke-width="2"/>
+                    <text x="180" y="38" text-anchor="middle" font-size="15" font-weight="700" fill="#be123c">設備時間不準</text>
+                    <polyline points="60,32 30,32 30,347" fill="none" stroke="#64748b" stroke-width="2"/>
+
+                    <line x1="30" y1="99" x2="54" y2="99" stroke="#64748b" stroke-width="2" marker-end="url(#arrow2)"/>
+                    <rect x="58" y="74" width="290" height="50" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+                    <text x="70" y="95" font-size="14" font-weight="700" fill="#1f2937">TOTP 驗證碼對不上</text>
+                    <text x="70" y="114" font-size="13" fill="#6b7280">TOTP Server 只容許 1–5 分鐘時差</text>
+
+                    <line x1="30" y1="161" x2="54" y2="161" stroke="#64748b" stroke-width="2" marker-end="url(#arrow2)"/>
+                    <rect x="58" y="136" width="290" height="50" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+                    <text x="70" y="157" font-size="14" font-weight="700" fill="#1f2937">SAML 登入失敗</text>
+                    <text x="70" y="176" font-size="13" fill="#6b7280">出現 No valid assertion found</text>
+
+                    <line x1="30" y1="223" x2="54" y2="223" stroke="#64748b" stroke-width="2" marker-end="url(#arrow2)"/>
+                    <rect x="58" y="198" width="290" height="50" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+                    <text x="70" y="219" font-size="14" font-weight="700" fill="#1f2937">憑證被判定尚未生效或已過期</text>
+                    <text x="70" y="238" font-size="13" fill="#6b7280">時鐘與憑證有效期間對不上</text>
+
+                    <line x1="30" y1="285" x2="54" y2="285" stroke="#64748b" stroke-width="2" marker-end="url(#arrow2)"/>
+                    <rect x="58" y="260" width="290" height="50" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+                    <text x="70" y="281" font-size="14" font-weight="700" fill="#1f2937">授權同步出錯</text>
+                    <text x="70" y="300" font-size="13" fill="#6b7280">ISA-V 與 License Server 之間</text>
+
+                    <line x1="30" y1="347" x2="54" y2="347" stroke="#64748b" stroke-width="2" marker-end="url(#arrow2)"/>
+                    <rect x="58" y="322" width="290" height="50" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+                    <text x="70" y="343" font-size="14" font-weight="700" fill="#1f2937">日誌時間對不起來</text>
+                    <text x="70" y="362" font-size="13" fill="#6b7280">多台設備的事件無法對照</text>
+                </svg>
+            </div>
+
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 mt-4">
+                <li>ISA-V 與 License Server 的授權同步,官方建議兩者使用<strong>同一台</strong> NTP。</li>
+                <li>手機上的驗證 app 也要有準確的時間,雙方差距超過容許範圍,驗證碼就會被判定錯誤。</li>
+            </ul>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>日期時間設定的選單位置以實機為準</p>
+                <p class="text-gray-800">新版的日期時間 / NTP 設定選單位置,本教材沒有取得官方頁面可以對照,所以這一章不示範設定畫面。上機時請在管理介面的 System 底下找對應的設定頁,或從 Guidance 的導引進入。</p>
+            </div>
+        </div>
+
+        <!-- 七、授權 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">七、動手做:安裝授權</h2>
+            <p class="text-gray-700 mb-2">每台設備有一組 16 字元的 <span class="tech-term">licensing hardware ID</span>,在 Console 選單上方與管理介面頁尾都看得到。購買後會拿到 authorization code,到 Ivanti 授權網站用它產生授權金鑰,再貼進設備。</p>
+
+            <div class="mock-window">
+                <div class="mock-titlebar">
+                    <span class="mock-dots"><span></span><span></span><span></span></span>
+                    <span class="mock-url">https://10.0.20.10/admin</span>
+                </div>
+                <div class="mock-nav">
+                    <span class="brand">Ivanti Connect Secure</span>
+                    <span class="on">System</span><span>Authentication</span><span>Administrators</span><span>Users</span><span>Maintenance</span>
+                </div>
+                <div class="mock-crumb">System &gt; Configuration &gt; Licensing &gt; Licensing Summary</div>
+                <div class="mock-body">
+                    <div class="mock-row"><span class="step-badge">1</span><span class="mock-label">Licensing hardware ID</span><span class="mock-input mock-hl">XXXXXXXXXXXXXXXX</span></div>
+                    <div class="mock-section">貼上授權金鑰</div>
+                    <div class="mock-row"><span class="step-badge">2</span><span>☑ 接受授權條款</span></div>
+                    <div class="mock-row"><span class="step-badge">3</span><span class="mock-input mock-hl" style="min-height:3rem;">XXXXXXXX-XXXXXXXX-XXXXXXXX…(授權金鑰,已遮蔽)</span></div>
+                    <div class="mock-row" style="justify-content:flex-end;"><span class="step-badge">4</span><span class="mock-btn primary mock-hl">Add</span></div>
+                </div>
+                <div class="mock-caption"><i class="fas fa-circle-info mr-1"></i>示意畫面:欄位名稱依 Ivanti 官方文件,版面、按鈕位置與配色以實機為準;硬體 ID 與授權金鑰一律以 X 遮蔽。</div>
+            </div>
+
+            <ol class="step-list mt-4 text-gray-700">
+                <li><span class="step-badge">1</span><span>先記下 <strong>licensing hardware ID</strong>,產生授權金鑰時要用。</span></li>
+                <li><span class="step-badge">2</span><span>接受條款。</span></li>
+                <li><span class="step-badge">3</span><span>貼上授權金鑰。</span></li>
+                <li><span class="step-badge">4</span><span>按 <strong>Add</strong>。</span></li>
+            </ol>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">三種授權操作</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">動作</th><th class="py-2 px-4 border text-left">選單位置</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">貼上授權金鑰</td><td class="py-2 px-4 border">System &gt; Configuration &gt; Licensing &gt; Licensing Summary(接受條款、貼上 key、按 <strong>Add</strong>)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">線上下載授權</td><td class="py-2 px-4 border">System &gt; Configuration &gt; Licensing &gt; Download Licenses(輸入 authentication code,按 <strong>Download and Install</strong>)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">當 License Client 連到授權伺服器</td><td class="py-2 px-4 border">System &gt; Configuration &gt; Licensing &gt; Configure Server</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 八、憑證 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">八、動手做:換上正式憑證</h2>
+            <p class="text-gray-700 mb-2">自簽憑證只能在初始化階段用,上線前一定要換成受信任 CA 簽發的憑證。申請流程是:產生 <span class="tech-term">CSR</span>(憑證簽署要求)→ 交給 CA → 拿到簽好的憑證 → 匯入。</p>
+
+            <div class="mock-window">
+                <div class="mock-titlebar">
+                    <span class="mock-dots"><span></span><span></span><span></span></span>
+                    <span class="mock-url">https://10.0.20.10/admin</span>
+                </div>
+                <div class="mock-nav">
+                    <span class="brand">Ivanti Connect Secure</span>
+                    <span class="on">System</span><span>Authentication</span><span>Administrators</span><span>Users</span><span>Maintenance</span>
+                </div>
+                <div class="mock-crumb">System &gt; Configuration &gt; Certificates &gt; Device Certificates</div>
+                <div class="mock-tabs"><span class="on">Device Certificates</span><span>Intermediate Device CAs</span><span>Trusted Client CAs</span><span>Trusted Server CAs</span></div>
+                <div class="mock-body">
+                    <div class="mock-row"><span class="step-badge">1</span><span class="mock-btn mock-hl">New CSR...</span><span class="step-badge">2</span><span class="mock-btn mock-hl">Import Certificate &amp; Key...</span></div>
+                    <div class="overflow-x-auto">
+                        <table class="mock-table">
+                            <thead><tr><th>Certificate</th><th>備註(教學說明)</th></tr></thead>
+                            <tbody>
+                                <tr><td>vpn.example.com(自簽)</td><td>初始化產生的自簽憑證</td></tr>
+                                <tr><td><span class="step-badge" style="width:1.1rem;height:1.1rem;font-size:0.65rem;">3</span> <span class="mock-hl" style="color:#1d4ed8;text-decoration:underline;">Pending CSR</span></td><td>已產生 CSR,等 CA 簽發</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="mock-caption"><i class="fas fa-circle-info mr-1"></i>示意畫面:欄位名稱依 Ivanti 官方文件,版面、按鈕位置與配色以實機為準;清單欄位為示意。</div>
+            </div>
+
+            <ol class="step-list mt-4 text-gray-700">
+                <li><span class="step-badge">1</span><span>按 <strong>New CSR</strong>,填入欄位後按 <strong>Create CSR</strong>。把 CSR 交給 CA,CA 問伺服器類型時選 <code>apache</code>。</span></li>
+                <li><span class="step-badge">2</span><span>如果手上<strong>已經有憑證與私鑰</strong>,改按 <strong>Import Certificate &amp; Key</strong>。支援 PEM / DER(<code>.cer</code>、<code>.crt</code>、<code>.der</code>、<code>.pem</code>)與 PKCS #12(<code>.pfx</code>、<code>.p12</code>)。</span></li>
+                <li><span class="step-badge">3</span><span>拿到簽好的憑證後,點清單裡的 <strong>Pending CSR</strong> 連結,匯入簽發的憑證。<strong>等 CA 簽發期間不要刪除這個 CSR</strong>:刪除 CSR 會連同本機私鑰一起刪掉。</span></li>
+            </ol>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">其他憑證清單</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">清單</th><th class="py-2 px-4 border text-left">用途</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">Intermediate Device CAs</td><td class="py-2 px-4 border">匯入中繼 CA,讓用戶端拿到完整憑證鏈</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Trusted Server CAs</td><td class="py-2 px-4 border">ICS 往外連線時信任的 CA,例如連 LDAPS、下載 CRL</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Trusted Client CAs</td><td class="py-2 px-4 border">驗證使用者端憑證;【25.x】SAML IdP 的 CA 鏈也要匯入這裡</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">重點提醒</h3>
+            <div class="highlight-box">
+                <p class="font-bold text-rose-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>SAN 要涵蓋所有網址</p>
+                <p class="text-gray-800">22.8R2.1 起(全新安裝與升級),預設啟用 <span class="tech-term">Host header 驗證</span>。憑證的 <span class="tech-term">SAN</span>(Subject Alternative Name,憑證上列出「這張憑證適用哪些主機名稱」的欄位)要包含使用者會用到的每個主機名稱,否則連線會被拒絕。也就是說,設備會檢查瀏覽器網址上的主機名稱,是否列在憑證的 SAN 裡。第十節有小練習。</p>
+            </div>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 mt-2">
+                <li><strong>多網域</strong>:為每個網域建立 Virtual Port,再在憑證的 <strong>Present certificate on these ports</strong> 勾選要在哪些介面出示這張憑證。也可以用一張萬用字元憑證(<code>*.example.com</code>)涵蓋全部。</li>
+                <li><strong>金鑰與演算法</strong>:官方明寫支援 3072-bit,使用 SHA-2,不支援 DSA。</li>
+                <li><strong>到期提醒</strong>:Certificates Validity Check 可設定提前 7–999 天通知(預設 60 天),通知會出現在管理介面橫幅、SNMP trap 與事件日誌。</li>
+                <li><strong>續約</strong>:官方建議產生新的 CSR(新的金鑰對)。直接用 Renew Certificate 也可以,但官方稱較不安全。</li>
+            </ul>
+        </div>
+
+        <!-- 九、管理介面存取控制 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">九、管理介面該從哪裡登入?</h2>
+            <p class="text-gray-700 leading-relaxed mb-2">
+                ICS 是直接面對 Internet 的設備,管理介面一旦外露,風險極高(第 17 章會專門談)。初始化完成前,先把存取範圍收緊:
+            </p>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li><strong>不要從 External port 登入管理介面</strong>:22.7R2.9 起不支援,升級作業也不要從 External port 進行。</li>
+                <li>管理員能從哪裡登入,由 Administrators &gt; Admin Realms &gt; (realm) &gt; Authentication Policy &gt; <strong>Source IP</strong> 控制。範例環境只放行管理網段 <code>10.0.30.0/24</code>。</li>
+                <li>預設有兩個管理角色:<strong>Administrators</strong>(全權)與 <strong>Read-Only Administrators</strong>(只能看),位於 Administrators &gt; Admin Roles。需要分工時另建委派角色(第 6 章)。</li>
+                <li>建議管理員也加上第二因素驗證(第 11 章)。</li>
+            </ul>
+        </div>
+
+        <!-- 十、模擬器 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">十、動手玩:初始化練習</h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2"><i class="fas fa-terminal mr-1 text-rose-600"></i>練習一:Console 初始化</h3>
+            <p class="text-gray-700 mb-2">範例環境規劃 Internal port 是 <code>10.0.20.10/24</code>。請從下拉選單選出要在 Console 輸入的值,按「檢查」,系統會用網段計算判斷閘道到底在不在同一個網段。選項裡混了常見的錯誤值。</p>
+
+            <div class="grid md:grid-cols-2 gap-4 mt-4">
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-3">要輸入的值</h4>
+                    <label class="block text-sm font-semibold mb-1" for="c-ip">Internal port IP 位址</label>
+                    <select id="c-ip" class="border rounded px-2 py-1 w-full mb-3">
+                        <option value="">請選擇</option>
+                        <option value="10.0.20.10">10.0.20.10</option>
+                        <option value="10.0.30.10">10.0.30.10</option>
+                        <option value="203.0.113.10">203.0.113.10</option>
+                        <option value="10.0.10.10">10.0.10.10</option>
+                    </select>
+                    <label class="block text-sm font-semibold mb-1" for="c-mask">遮罩(Netmask)</label>
+                    <select id="c-mask" class="border rounded px-2 py-1 w-full mb-3">
+                        <option value="">請選擇</option>
+                        <option value="255.255.255.0">255.255.255.0</option>
+                        <option value="255.255.0.0">255.255.0.0</option>
+                        <option value="255.255.25.0">255.255.25.0</option>
+                        <option value="255.255.255.255">255.255.255.255</option>
+                    </select>
+                    <label class="block text-sm font-semibold mb-1" for="c-gw">預設閘道</label>
+                    <select id="c-gw" class="border rounded px-2 py-1 w-full mb-3">
+                        <option value="">請選擇</option>
+                        <option value="10.0.20.1">10.0.20.1</option>
+                        <option value="10.0.30.1">10.0.30.1</option>
+                        <option value="203.0.113.1">203.0.113.1</option>
+                        <option value="10.0.20.10">10.0.20.10</option>
+                    </select>
+                    <label class="block text-sm font-semibold mb-1" for="c-dns">主要 DNS</label>
+                    <select id="c-dns" class="border rounded px-2 py-1 w-full mb-3">
+                        <option value="">請選擇</option>
+                        <option value="10.0.10.10">10.0.10.10</option>
+                        <option value="8.8.8.8">8.8.8.8</option>
+                        <option value="10.0.20.10">10.0.20.10</option>
+                        <option value="10.0.10.20">10.0.10.20</option>
+                    </select>
+                    <div class="flex flex-wrap gap-2 mt-2">
+                        <button type="button" id="c-check" class="px-4 py-2 rounded bg-gray-800 text-white hover:bg-gray-700">檢查</button>
+                        <button type="button" id="c-reset" class="px-4 py-2 rounded border bg-white hover:bg-gray-100">還原</button>
+                    </div>
+                </div>
+                <div class="bg-white border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-2"><i class="fas fa-calculator mr-1 text-blue-600"></i>網段計算</h4>
+                    <div id="c-calc" class="text-sm text-gray-700"></div>
+                    <p class="text-xs text-gray-500 mt-3">位址與選項為教學範例值,依本教材的範例環境設計。</p>
+                </div>
+            </div>
+
+            <div id="c-result" class="mt-4"></div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-8 mb-2"><i class="fas fa-certificate mr-1 text-rose-600"></i>練習二:憑證 SAN 檢查</h3>
+            <p class="text-gray-700 mb-2">勾選「使用者會用到的網址」與「憑證 SAN 涵蓋的名稱」,看看 Host header 驗證會不會把連線擋下來(網址與憑證名稱為教學範例值)。</p>
+
+            <div class="grid md:grid-cols-3 gap-4 mt-4">
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-2">使用者會用的網址</h4>
+                    <label class="block mb-1"><input type="checkbox" id="s-u0" class="mr-2" checked>vpn.example.com</label>
+                    <label class="block mb-1"><input type="checkbox" id="s-u1" class="mr-2">vpn-hq.example.com</label>
+                    <label class="block"><input type="checkbox" id="s-u2" class="mr-2">partner-vpn.example.org</label>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-2">憑證 SAN 涵蓋的名稱</h4>
+                    <label class="block mb-1"><input type="checkbox" id="s-c0" class="mr-2" checked>vpn.example.com</label>
+                    <label class="block mb-1"><input type="checkbox" id="s-c1" class="mr-2">vpn-hq.example.com</label>
+                    <label class="block"><input type="checkbox" id="s-c2" class="mr-2">*.example.com(萬用字元)</label>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-2">設備版本</h4>
+                    <select id="s-ver" class="border rounded px-2 py-1 w-full mb-3" aria-label="設備版本">
+                        <option value="new">22.8R2.1 起(預設啟用 Host header 驗證)</option>
+                        <option value="old">22.8R2.1 之前(沒有這項預設)</option>
+                    </select>
+                    <button type="button" id="s-reset" class="px-4 py-2 rounded border bg-white hover:bg-gray-100">還原</button>
+                </div>
+            </div>
+
+            <div id="s-result" class="mt-4"></div>
+        </div>
+
+        <!-- 十一、踩坑與版本差異 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">十一、常見踩坑與版本差異</h2>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>閘道和 IP 不在同一個網段</p>
+                <p class="text-gray-800">輸入錯誤時,若管理介面連不上,要回 Console 重新設定;連得上就可以到 System &gt; Network &gt; Internal Port &gt; Settings 修改(以實機為準)。填完先心算:IP 與遮罩算出網段,閘道必須落在同一個網段裡。範例環境 <code>10.0.20.10/24</code> 的閘道是 <code>10.0.20.1</code>,不是管理網段的 <code>10.0.30.1</code>。</p>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>等 CA 簽發時刪掉 Pending CSR</p>
+                <p class="text-gray-800">刪除 CSR 會連同本機私鑰一起刪掉。CA 簽好的憑證要和這把私鑰配成一對才能匯入,私鑰沒了就得重新申請。</p>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>正式環境用 DHCP</p>
+                <p class="text-gray-800">OVF 參數的 IP 欄位留空,會改用 DHCP 自動設定。但 ICS 假設租約長期有效、不會續租,正式環境請用固定 IP。</p>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>隨手更換產品身分</p>
+                <p class="text-gray-800">更換產品身分(personality)會清除所有設定。要回復出廠,在 Console 選 <code>4</code>(System Operations)→ <code>1</code>(重新開機),重開後選 Factory Reset。</p>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>把授權碼貼進文件或截圖</p>
+                <p class="text-gray-800">舊版教材的截圖裡出現過授權碼、客戶名稱與公網 IP。做教材、回報問題或寄截圖給別人時,授權金鑰與 hardware ID 都先遮起來。</p>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異</p>
+                <ul class="list-disc pl-6 text-gray-800 space-y-1">
+                    <li>22.7R2.9 起不支援從 External port 登入管理介面。</li>
+                    <li>22.8R2.1 起(全新安裝與升級)預設啟用 Host header 驗證,憑證 SAN 要涵蓋所有網址。</li>
+                    <li>新版 Console 比舊版設定手冊多了選擇產品身分、REST API 權限、註冊 Ivanti Neurons for Secure Access 三項。</li>
+                    <li>ISA6500 / 8500 的 Console 畫面、日期時間設定的選單位置,以實機為準。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
+                隨堂測驗
+            </h2>
+            <p class="mb-6 text-gray-600">請點選您認為正確的選項,系統將會顯示解析。</p>
+            <div class="space-y-6" id="quiz-container"></div>
+        </div>
+
+    </main>
+
+    <footer class="footer-signature">
+        Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver.2026.10.31.22.33
+    </footer>
+
+
+    <script>
+        // ===== 練習一:Console 初始化 =====
+        // 規劃值依範例環境;選項為教學範例值
+        const PLAN = { ip: '10.0.20.10', mask: '255.255.255.0', gw: '10.0.20.1', dns: '10.0.10.10' };
+
+        function ipToInt(s) {
+            const p = s.split('.').map(Number);
+            return ((p[0] * 256 + p[1]) * 256 + p[2]) * 256 + p[3];
+        }
+        function intToIp(n) {
+            return [(n >>> 24) & 255, (n >>> 16) & 255, (n >>> 8) & 255, n & 255].join('.');
+        }
+        // 回傳遮罩的前置長度;不合法(1 不連續)回傳 -1
+        function maskBits(maskStr) {
+            const m = ipToInt(maskStr);
+            const inv = (~m) >>> 0;
+            if (((inv & ((inv + 1) >>> 0)) >>> 0) !== 0) return -1;
+            let bits = 0;
+            for (let i = 31; i >= 0; i--) {
+                if (((m >>> i) & 1) === 1) bits++; else break;
+            }
+            return bits;
+        }
+        function netOf(ipStr, maskStr) {
+            return ((ipToInt(ipStr) & ipToInt(maskStr)) >>> 0);
+        }
+
+        const cIp = document.getElementById('c-ip');
+        const cMask = document.getElementById('c-mask');
+        const cGw = document.getElementById('c-gw');
+        const cDns = document.getElementById('c-dns');
+        const cCalc = document.getElementById('c-calc');
+        const cResult = document.getElementById('c-result');
+
+        function renderCalc() {
+            const ip = cIp.value, mask = cMask.value;
+            if (!ip || !mask) {
+                cCalc.innerHTML = '<p class="text-gray-500">先選好 IP 位址與遮罩,這裡會算出網段。</p>';
+                return;
+            }
+            const bits = maskBits(mask);
+            if (bits < 0) {
+                cCalc.innerHTML = `<p class="text-red-700"><strong>${mask}</strong> 不是合法的遮罩:遮罩轉成二進位,必須是一串連續的 1 接一串連續的 0。</p>`;
+                return;
+            }
+            const net = netOf(ip, mask);
+            let range = '';
+            if (bits <= 30) {
+                const size = Math.pow(2, 32 - bits);
+                range = `<p>可用位址:<strong>${intToIp(net + 1)}</strong> ~ <strong>${intToIp(net + size - 2)}</strong></p>`;
+            } else {
+                range = '<p>可用位址:這個網段小到只有自己,沒有位置放閘道。</p>';
+            }
+            cCalc.innerHTML = `<p>${ip} / ${mask}</p>
+                <p>網路位址:<strong>${intToIp(net)}/${bits}</strong></p>${range}
+                <p class="text-gray-500 mt-1">閘道必須落在這個範圍內。</p>`;
+        }
+
+        function evaluateConsole() {
+            const ip = cIp.value, mask = cMask.value, gw = cGw.value, dns = cDns.value;
+            const items = [];
+
+            // IP
+            if (!ip) items.push({ s: 'todo', t: 'Internal port IP 位址', m: '還沒選。' });
+            else if (ip === PLAN.ip) items.push({ s: 'ok', t: 'Internal port IP 位址', m: '與範例環境規劃一致。' });
+            else if (ip === '10.0.30.10') items.push({ s: 'bad', t: 'Internal port IP 位址', m: '這是 Management port 的位址。Console 初始化只問 Internal port 的位址。' });
+            else if (ip === '203.0.113.10') items.push({ s: 'bad', t: 'Internal port IP 位址', m: '這是 External port 的位址。External port 不在 Console 設定,之後到網頁管理介面設。' });
+            else items.push({ s: 'bad', t: 'Internal port IP 位址', m: '這是 AD 網域控制站 dc01 的位址,設備填了會造成位址衝突。' });
+
+            // 遮罩
+            let bits = -1;
+            if (!mask) items.push({ s: 'todo', t: '遮罩', m: '還沒選。' });
+            else {
+                bits = maskBits(mask);
+                if (bits < 0) items.push({ s: 'bad', t: '遮罩', m: `${mask} 不是合法的遮罩,應該是 255.255.255.0 這種連續 1 接連續 0 的形式(像是打錯了一個數字)。` });
+                else if (bits >= 31) items.push({ s: 'bad', t: '遮罩', m: `/${bits} 的網段只剩自己一個位址,沒有地方放閘道。範例環境是 /24。` });
+                else if (mask === PLAN.mask) items.push({ s: 'ok', t: '遮罩', m: '/24,與範例環境規劃一致。' });
+                else items.push({ s: 'warn', t: '遮罩', m: `合法的遮罩,但和範例環境規劃的 /24 不同。/${bits} 的範圍太大,會把 10.0.10.0/24(伺服器網段)與 10.0.30.0/24(管理網段)都算成同一個網段。` });
+            }
+
+            // 閘道
+            if (!gw) items.push({ s: 'todo', t: '預設閘道', m: '還沒選。' });
+            else if (!ip || !mask || bits < 0) items.push({ s: 'todo', t: '預設閘道', m: 'IP 或遮罩還沒選好(或不合法),無法判斷閘道在不在同一個網段。' });
+            else if (gw === ip) items.push({ s: 'bad', t: '預設閘道', m: '和設備自己的 IP 相同,等於把自己當閘道,位址衝突。' });
+            else {
+                const same = netOf(gw, mask) === netOf(ip, mask);
+                if (!same) items.push({ s: 'bad', t: '預設閘道', m: `${gw} 不在 ${intToIp(netOf(ip, mask))}/${bits} 這個網段裡。設備沒辦法把封包送給不同網段的閘道,必須改成同網段的位址。` });
+                else if (gw === PLAN.gw) items.push({ s: 'ok', t: '預設閘道', m: `${gw} 與 IP 在同一個網段,與範例環境規劃一致。` });
+                else items.push({ s: 'warn', t: '預設閘道', m: `${gw} 以目前選的遮罩計算雖然在同一個網段,但和範例環境規劃的閘道 10.0.20.1 不同。` });
+            }
+
+            // DNS
+            if (!dns) items.push({ s: 'todo', t: '主要 DNS', m: '還沒選。' });
+            else if (dns === PLAN.dns) items.push({ s: 'ok', t: '主要 DNS', m: '範例環境的內部 DNS(dc01),查得到 corp.example.com。' });
+            else if (dns === '8.8.8.8') items.push({ s: 'warn', t: '主要 DNS', m: '可以用,但查不到內部網域名稱 corp.example.com,需要另外用 Hosts 表補。之後 ICS 要用名稱 dc01.corp.example.com 連網域控制站(第 5 章)時,這個名稱不會自動解析。' });
+            else if (dns === '10.0.20.10') items.push({ s: 'bad', t: '主要 DNS', m: '這是設備自己的位址,設備本身不是 DNS 伺服器。' });
+            else items.push({ s: 'bad', t: '主要 DNS', m: '這是 ERP 網站伺服器的位址,不是 DNS 伺服器。' });
+
+            return items;
+        }
+
+        const MARK = { ok: ['✔', 'text-green-700'], bad: ['✘', 'text-red-700'], warn: ['!', 'text-orange-600'], todo: ['…', 'text-gray-400'] };
+
+        function renderConsole() {
+            const items = evaluateConsole();
+            const todo = items.filter(i => i.s === 'todo').length;
+            const bad = items.filter(i => i.s === 'bad' || i.s === 'warn').length;
+            const rows = items.map(i => `<div class="check-row"><span class="mark ${MARK[i.s][1]}">${MARK[i.s][0]}</span><div><div class="font-semibold text-gray-800">${i.t}</div><div class="text-sm text-gray-700">${i.m}</div></div></div>`).join('');
+            let head;
+            if (bad > 0) {
+                cResult.className = 'mt-4 border rounded-lg p-4 bg-red-50 border-red-300';
+                head = `<h4 class="font-bold text-red-700 mb-2"><i class="fas fa-circle-xmark mr-1"></i>有 ${bad} 項需要修正${todo > 0 ? `,另有 ${todo} 項還沒選或無法判斷` : ''}</h4>`;
+            } else if (todo > 0) {
+                cResult.className = 'mt-4 border rounded-lg p-4 bg-blue-50 border-blue-300';
+                head = `<h4 class="font-bold text-blue-700 mb-2"><i class="fas fa-circle-info mr-1"></i>還有 ${todo} 項沒選或無法判斷</h4>`;
+            } else {
+                cResult.className = 'mt-4 border rounded-lg p-4 bg-green-50 border-green-300';
+                head = `<h4 class="font-bold text-green-700 mb-2"><i class="fas fa-circle-check mr-1"></i>四項輸入全部正確</h4>
+                    <p class="text-sm text-gray-800 mb-2"><strong>下一步:瀏覽器開 https://10.0.20.10/admin</strong>,忽略自簽憑證警告後,用剛建立的管理員帳號登入。</p>`;
+            }
+            cResult.innerHTML = head + rows;
+        }
+
+        document.getElementById('c-check').addEventListener('click', renderConsole);
+        [cIp, cMask].forEach(el => el.addEventListener('change', renderCalc));
+        document.getElementById('c-reset').addEventListener('click', () => {
+            [cIp, cMask, cGw, cDns].forEach(el => { el.value = ''; });
+            cResult.className = 'mt-4';
+            cResult.innerHTML = '';
+            renderCalc();
+        });
+        renderCalc();
+
+        // ===== 練習二:憑證 SAN 檢查 =====
+        const SAN_URLS = ['vpn.example.com', 'vpn-hq.example.com', 'partner-vpn.example.org'];
+        const SAN_CERT = ['vpn.example.com', 'vpn-hq.example.com', '*.example.com'];
+        const sResult = document.getElementById('s-result');
+        const sVer = document.getElementById('s-ver');
+
+        function sanMatch(host, entry) {
+            if (entry === host) return true;
+            if (entry.startsWith('*.')) {
+                const suffix = entry.slice(1); // .example.com
+                return host.endsWith(suffix) && host.slice(0, host.length - suffix.length).indexOf('.') === -1 && host.length > suffix.length;
+            }
+            return false;
+        }
+
+        function renderSan() {
+            const urls = SAN_URLS.filter((u, i) => document.getElementById('s-u' + i).checked);
+            const sans = SAN_CERT.filter((c, i) => document.getElementById('s-c' + i).checked);
+            if (urls.length === 0) {
+                sResult.className = 'mt-4 border rounded-lg p-4 bg-blue-50 border-blue-300';
+                sResult.innerHTML = '<p class="text-sm text-blue-800">先勾選至少一個使用者會用的網址。</p>';
+                return;
+            }
+            const strict = sVer.value === 'new';
+            let anyBlocked = false, anyAtRisk = false;
+            const rows = urls.map(u => {
+                const hit = sans.find(s => sanMatch(u, s));
+                if (hit) return `<div class="check-row"><span class="mark text-green-700">✔</span><div><div class="font-semibold text-gray-800">${u}</div><div class="text-sm text-gray-700">SAN 涵蓋(對上 ${hit}),可以連線。</div></div></div>`;
+                if (strict) { anyBlocked = true; return `<div class="check-row"><span class="mark text-red-700">✘</span><div><div class="font-semibold text-gray-800">${u}</div><div class="text-sm text-gray-700">SAN 沒有涵蓋這個名稱,Host header 驗證會拒絕連線。</div></div></div>`; }
+                anyAtRisk = true;
+                return `<div class="check-row"><span class="mark text-blue-700">i</span><div><div class="font-semibold text-gray-800">${u}</div><div class="text-sm text-gray-700">SAN 沒有涵蓋這個名稱。此版本沒有預設啟用 Host header 驗證,實際行為以實機為準,但升級到 22.8R2.1 以上就會被拒絕。</div></div></div>`;
+            }).join('');
+            let head;
+            if (anyBlocked) {
+                sResult.className = 'mt-4 border rounded-lg p-4 bg-red-50 border-red-300';
+                head = '<h4 class="font-bold text-red-700 mb-2"><i class="fas fa-circle-xmark mr-1"></i>有網址會被拒絕</h4><p class="text-sm text-gray-800 mb-2">補上缺的主機名稱重新申請憑證,或改用萬用字元憑證。注意 <code>*.example.com</code> 只涵蓋 example.com 底下的名稱,.org 的網址不在其中。</p>';
+            } else if (anyAtRisk) {
+                sResult.className = 'mt-4 border rounded-lg p-4 bg-blue-50 border-blue-300';
+                head = '<h4 class="font-bold text-blue-700 mb-2"><i class="fas fa-circle-info mr-1"></i>此版本沒有預設啟用,但升級後有風險</h4>';
+            } else {
+                sResult.className = 'mt-4 border rounded-lg p-4 bg-green-50 border-green-300';
+                head = '<h4 class="font-bold text-green-700 mb-2"><i class="fas fa-circle-check mr-1"></i>所有網址都被憑證 SAN 涵蓋</h4>';
+            }
+            sResult.innerHTML = head + rows;
+        }
+
+        ['s-u0', 's-u1', 's-u2', 's-c0', 's-c1', 's-c2', 's-ver'].forEach(id => document.getElementById(id).addEventListener('change', renderSan));
+        document.getElementById('s-reset').addEventListener('click', () => {
+            ['s-u0', 's-c0'].forEach(id => { document.getElementById(id).checked = true; });
+            ['s-u1', 's-u2', 's-c1', 's-c2'].forEach(id => { document.getElementById(id).checked = false; });
+            sVer.value = 'new';
+            renderSan();
+        });
+        renderSan();
+
+        // ===== 隨堂測驗 =====
+        const quizData = [
+            {
+                question: "Q1. 你用 Console 設好 Internal port 位址 10.0.20.10 後,要啟用 External port(203.0.113.10)。下列做法何者正確?",
+                options: ["A. 回到 Console 再輸入一次 External port 的位址", "B. 用瀏覽器開 https://10.0.20.10/admin 登入,到 System > Network > External Port > Settings,把 Use Port? 改成 Enabled", "C. 直接從 External port 用瀏覽器連 /admin 來設定", "D. External port 不需要設定,開機後自動啟用"],
+                correct: 1,
+                desc: "正解:B。Console 初始化只問 Internal port,External port 之後到網頁管理介面設定,而且 Use Port? 要改成 Enabled 才會啟用。C 不可行:22.7R2.9 起不支援從 External port 登入管理介面。"
+            },
+            {
+                question: "Q2. 員工回報 TOTP 驗證碼一直顯示錯誤,但他手機上的時間是準的。你最先該檢查什麼?",
+                options: ["A. 授權金鑰是否過期", "B. Internal port 的 MTU 是否改過", "C. Pending CSR 是否還在", "D. 設備的日期時間與 NTP 是否準確"],
+                correct: 3,
+                desc: "正解:D。TOTP Server 只容許 1–5 分鐘的時差。手機準確而驗證碼仍然對不上,最可能是設備端時間偏掉,所以先查日期時間與 NTP。這也是官方建議初始化第二步就設定時間的原因。"
+            },
+            {
+                question: "Q3. Internal port 設 10.0.20.10、遮罩 255.255.255.0。同事在 Console 把預設閘道輸入成 10.0.30.1,會發生什麼事?",
+                options: ["A. 10.0.30.1 不在 10.0.20.0/24 這個網段,設備無法把封包送給閘道,要改成 10.0.20.1", "B. 沒有影響,閘道填哪個都可以", "C. 設備會自動把它改成 10.0.20.1", "D. 只有 External port 受影響"],
+                correct: 0,
+                desc: "正解:A。閘道必須和介面位址在同一個網段。10.0.30.1 屬於 10.0.30.0/24(範例環境的管理網段),和 Internal port 的 10.0.20.0/24 不同網段。"
+            },
+            {
+                question: "Q4. 你已經產生 CSR 並送給 CA,同事看到憑證清單裡的 Pending CSR 覺得礙眼,想把它刪掉。為什麼不能刪?",
+                options: ["A. 刪掉會讓授權失效", "B. 刪掉會讓 Internal port 斷線", "C. 刪除 CSR 會連同本機私鑰一起刪掉,CA 簽好的憑證就沒有配對的私鑰可以匯入", "D. Pending CSR 本來就刪不掉"],
+                correct: 2,
+                desc: "正解:C。CA 簽好的憑證要和產生 CSR 時留在本機的私鑰配對才能匯入。等 CA 簽發期間請保留 Pending CSR,拿到憑證後點它的連結匯入。"
+            },
+            {
+                question: "Q5. 設備升級到 22.8R2.1 後,使用者用 vpn-hq.example.com 連線被拒絕,用 vpn.example.com 卻正常。憑證的 SAN 只列了 vpn.example.com。最合理的處理是?",
+                options: ["A. 把使用者的瀏覽器換新版", "B. 憑證 SAN 補上 vpn-hq.example.com(或改用萬用字元憑證 *.example.com),重新取得憑證", "C. 延長 Idle Timeout", "D. 重新安裝授權金鑰"],
+                correct: 1,
+                desc: "正解:B。22.8R2.1 起預設啟用 Host header 驗證,憑證 SAN 要包含使用者會用到的每個主機名稱,否則連線會被拒絕。可以補上名稱重新申請,或用一張萬用字元憑證涵蓋全部。"
+            }
+        ];
+
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionBox = document.createElement('div');
+            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
+
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border mb-2 text-gray-700" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            questionBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
+                <div class="space-y-2 mb-4">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
+                    <p class="font-bold result-title"></p>
+                    <p class="text-sm text-gray-600 mt-1">${item.desc}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionBox);
+        });
+
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            if (element.parentElement.dataset.answered) return;
+            element.parentElement.dataset.answered = "true";
+
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+                opt.classList.add('disabled');
+            });
+
+            if (optIndex === data.correct) {
+                element.classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了!";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                element.classList.add('bg-red-100', 'border-red-500');
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了!";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+    </script>
+</body>
+</html>

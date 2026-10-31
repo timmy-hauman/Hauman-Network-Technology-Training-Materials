@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ivanti Connect Secure SSL VPN 實戰課程 - 使用者領域與角色對應</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        /* 卡片主體樣式 (Ivanti Red) */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #e11d48;
+        }
+
+        /* 重點提示框 (紅) */
+        .highlight-box {
+            background-color: #fff1f2;
+            border-left: 4px solid #e11d48;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 技術名詞標記 */
+        .tech-term {
+            color: #be123c;
+            font-weight: 700;
+            background-color: #ffe4e6;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
+        }
+
+        /* 比喻說明框 (綠) */
+        .analogy-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 版本差異框 (紫) */
+        .version-box {
+            background-color: #faf5ff;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 常見踩坑框 (橘,避開主色紅) */
+        .pitfall-box {
+            background-color: #fff7ed;
+            border-left: 4px solid #ea580c;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .diagram-container {
+            display: block;
+            background-color: #ffffff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-top: 1rem;
+        }
+
+        .diagram-container svg {
+            display: block;
+            width: 100%;
+            max-width: 520px;
+            margin: 0 auto;
+        }
+
+        /* 示意畫面 (仿管理介面) */
+        .mock-window {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            background: #ffffff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            margin-top: 1rem;
+        }
+        .mock-titlebar {
+            background: #e2e8f0;
+            padding: 0.4rem 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: #475569;
+        }
+        .mock-dots span {
+            display: inline-block;
+            width: 0.6rem;
+            height: 0.6rem;
+            border-radius: 50%;
+            background: #94a3b8;
+            margin-right: 0.2rem;
+        }
+        .mock-url {
+            background: #ffffff;
+            border-radius: 0.25rem;
+            padding: 0.1rem 0.5rem;
+            flex: 1;
+            min-width: 0;
+            font-family: ui-monospace, Consolas, monospace;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .mock-nav {
+            background: #1f2937;
+            color: #cbd5e1;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.25rem 1rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+        }
+        .mock-nav .brand { font-weight: 700; color: #ffffff; margin-right: 0.5rem; }
+        .mock-nav .on { color: #ffffff; border-bottom: 2px solid #e11d48; padding-bottom: 0.1rem; }
+        .mock-crumb {
+            font-size: 0.8rem;
+            color: #475569;
+            padding: 0.5rem 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f8fafc;
+        }
+        .mock-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            padding: 0.5rem 0.75rem 0;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.8rem;
+        }
+        .mock-tabs span {
+            padding: 0.3rem 0.7rem;
+            border: 1px solid #e5e7eb;
+            border-bottom: none;
+            border-radius: 0.3rem 0.3rem 0 0;
+            background: #f1f5f9;
+            color: #475569;
+        }
+        .mock-tabs span.on { background: #ffffff; color: #111827; font-weight: 600; }
+        .mock-body { padding: 0.75rem; font-size: 0.85rem; }
+        .mock-section { font-weight: 700; color: #334155; margin: 0.75rem 0 0.25rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.2rem; }
+        .mock-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.35rem 0.6rem;
+            padding: 0.35rem 0;
+        }
+        .mock-label { width: 12rem; color: #374151; font-weight: 500; }
+        .mock-input {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+            padding: 0.2rem 0.5rem;
+            min-width: 12rem;
+            background: #ffffff;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #111827;
+        }
+        .mock-select::after { content: " ▾"; color: #64748b; }
+        .mock-indent { padding-left: 2rem; }
+        .mock-btn {
+            display: inline-block;
+            border: 1px solid #94a3b8;
+            background: #f8fafc;
+            border-radius: 0.25rem;
+            padding: 0.2rem 0.7rem;
+            font-size: 0.8rem;
+            color: #1f2937;
+        }
+        .mock-btn.primary { background: #1f2937; color: #ffffff; border-color: #1f2937; }
+        .mock-hl { outline: 2px solid #e11d48; outline-offset: 2px; border-radius: 0.25rem; }
+        .mock-list {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+            min-width: 9rem;
+            min-height: 4.2rem;
+            padding: 0.25rem 0.5rem;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.8rem;
+            background: #ffffff;
+        }
+        .mock-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 0.5rem; }
+        .mock-table th { background: #f1f5f9; text-align: left; padding: 0.35rem 0.5rem; border: 1px solid #e2e8f0; color: #334155; }
+        .mock-table td { padding: 0.35rem 0.5rem; border: 1px solid #e2e8f0; }
+        .mock-caption {
+            font-size: 0.75rem;
+            color: #6b7280;
+            padding: 0.5rem 0.75rem;
+            background: #f9fafb;
+            border-top: 1px dashed #e5e7eb;
+        }
+        .step-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.4rem;
+            height: 1.4rem;
+            border-radius: 9999px;
+            background: #e11d48;
+            color: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .step-list li { display: flex; gap: 0.6rem; align-items: flex-start; margin-bottom: 0.6rem; }
+
+        /* 模擬器 */
+        .sim-rule {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.4rem 0.75rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            margin-bottom: 0.5rem;
+            background: #ffffff;
+        }
+        .sim-rule .num { font-weight: 700; color: #be123c; width: 3.5rem; }
+        .sim-rule .desc { flex: 1; min-width: 12rem; }
+        .sim-arrow { border: 1px solid #cbd5e1; border-radius: 0.25rem; padding: 0 0.45rem; background: #f8fafc; }
+        .sim-arrow:disabled { opacity: 0.35; cursor: not-allowed; }
+        .trace-line { padding: 0.3rem 0; border-bottom: 1px dashed #e5e7eb; }
+
+        @media (max-width: 640px) {
+            main { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+            .section-card { padding: 1rem; }
+            .diagram-container { padding: 0.25rem; }
+            .mock-label { width: calc(100% - 2.2rem); }
+            .mock-indent .mock-label { width: 100%; }
+            .mock-input { min-width: 0; width: 100%; }
+            .mock-indent { padding-left: 0.75rem; }
+            .mock-body { padding: 0.5rem; }
+        }
+
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover:not(.disabled) {
+            background-color: #f3f4f6;
+        }
+
+        .footer-signature {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+            margin-top: 4rem;
+        }
+        /* Long URLs and code wrap on narrow screens */
+        main { overflow-wrap: break-word; } main code { overflow-wrap: anywhere; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-rose-700 to-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-shield-halved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold">Ivanti Connect Secure SSL VPN 實戰課程</h1>
+                    <p class="text-rose-100 mt-1">單元 7:使用者領域(User Realm)與角色對應(Role Mapping)</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <!-- Introduction -->
+        <div class="mb-8">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
+                <h2 class="text-xl font-bold text-blue-800 mb-2 flex items-center">
+                    <i class="fas fa-user-tie mr-2"></i>講師導言
+                </h2>
+                <p class="text-blue-900 leading-relaxed">
+                    上一章我們建好了角色,可是系統怎麼知道「王小明登入後該拿到哪個角色」?答案就是這一章的兩個主角:
+                    <strong>User Realm</strong> 決定「用哪台伺服器驗證這群人」,<strong>Role Mapping</strong> 決定「驗證通過後發給他哪些角色」。
+                    很多「明明登入成功,卻什麼都打不開」的問題,都出在這一章的設定。
+                </p>
+            </div>
+        </div>
+
+        <!-- 學習目標 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-gray-100 text-gray-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Goals</span>
+                本章學習目標
+            </h2>
+            <ul class="list-disc pl-6 space-y-1 text-gray-700">
+                <li>說出 User Realm 與 User Role 各自負責什麼</li>
+                <li>建立一個用 AD 驗證、加上 TOTP 第二因素的 Realm</li>
+                <li>用群組建立 Role Mapping 規則,並說明規則順序與 Stop 的作用</li>
+                <li>分辨 Realm 的 Authentication Policy 與角色的 Restrictions,沒通過時結果有什麼不同</li>
+                <li>選擇使用者拿到多個角色時的處理方式</li>
+            </ul>
+            <p class="text-sm text-gray-500 mt-4"><i class="fas fa-map-signs mr-1"></i>本章對應第 2 章「登入評估流程」的第 5 到第 8 項。</p>
+        </div>
+
+        <!-- 一、Realm 是什麼 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">一、Realm 與 Role:一群人、一組權限</h2>
+
+            <div class="analogy-box">
+                <p class="font-bold text-green-800 mb-1"><i class="fas fa-building mr-1"></i>用公司大樓來想</p>
+                <ul class="list-disc pl-6 text-green-900 space-y-1">
+                    <li><strong>Realm</strong> 像大樓的入口:員工走員工通道刷識別證,訪客走訪客櫃台登記。<strong>不同的人,用不同的方式驗明身分。</strong></li>
+                    <li><strong>Role</strong> 像門禁卡的權限等級:一般卡只能進辦公區,資訊部的卡還能進機房。</li>
+                    <li><strong>Role Mapping</strong> 像櫃台人員:看你是哪個部門,決定發你哪張卡。</li>
+                </ul>
+            </div>
+
+            <p class="text-gray-700 leading-relaxed">
+                一句話記住:<span class="tech-term">Realm</span> 是「一群使用者」,<span class="tech-term">Role</span> 是「一組權限」。
+                使用者先進入某個 Realm、通過驗證,再由 Realm 裡的 Role Mapping 規則決定他拿到哪些 Role。
+            </p>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 360 520" role="img" aria-labelledby="svg1-title" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans TC, sans-serif">
+                    <title id="svg1-title">從送出帳密到拿到角色的流程:使用者進入 Realm-AD 驗證,再由 Role Mapping 規則由上而下比對,合併成 Session 角色</title>
+                    <defs>
+                        <marker id="arrow1" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+                        </marker>
+                    </defs>
+                    <rect x="60" y="10" width="240" height="46" rx="8" fill="#f1f5f9" stroke="#94a3b8"/>
+                    <text x="180" y="39" text-anchor="middle" font-size="15" fill="#1f2937">使用者送出帳號密碼</text>
+                    <line x1="180" y1="56" x2="180" y2="80" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+
+                    <rect x="20" y="84" width="320" height="150" rx="10" fill="#fff1f2" stroke="#e11d48" stroke-width="2"/>
+                    <text x="180" y="110" text-anchor="middle" font-size="16" font-weight="700" fill="#be123c">User Realm:Realm-AD</text>
+                    <text x="40" y="140" font-size="14" fill="#1f2937">① 主要驗證:AD-LDAPS</text>
+                    <text x="40" y="168" font-size="14" fill="#1f2937">② 查群組:Same as above</text>
+                    <text x="40" y="196" font-size="14" fill="#1f2937">③ 第二因素:TOTP-Local</text>
+                    <text x="40" y="222" font-size="13" fill="#6b7280">任何一關沒過 → 登入失敗</text>
+                    <line x1="180" y1="234" x2="180" y2="262" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+                    <text x="190" y="254" font-size="13" fill="#475569">驗證成功</text>
+
+                    <rect x="20" y="266" width="320" height="140" rx="10" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+                    <text x="180" y="292" text-anchor="middle" font-size="16" font-weight="700" fill="#1d4ed8">Role Mapping(由上而下比對)</text>
+                    <rect x="36" y="306" width="288" height="38" rx="6" fill="#ffffff" stroke="#93c5fd"/>
+                    <text x="48" y="330" font-size="14" fill="#1f2937">規則 1 群組 VPN-IT → Role-IT-Full</text>
+                    <rect x="36" y="352" width="288" height="38" rx="6" fill="#ffffff" stroke="#93c5fd"/>
+                    <text x="48" y="376" font-size="14" fill="#1f2937">規則 2 群組 VPN-Users → Role-Staff</text>
+                    <line x1="180" y1="406" x2="180" y2="436" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+                    <text x="190" y="427" font-size="13" fill="#475569">命中的角色</text>
+
+                    <rect x="20" y="440" width="320" height="64" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+                    <text x="180" y="467" text-anchor="middle" font-size="15" font-weight="700" fill="#15803d">合併成 Session 角色</text>
+                    <text x="180" y="490" text-anchor="middle" font-size="13" fill="#1f2937">決定登入後能用哪些功能</text>
+                </svg>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">名詞小卡</h3>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-door-open text-rose-600 mr-2"></i>User Realm</h4>
+                    <p class="text-sm text-gray-700">一群使用者的登入設定:用哪台伺服器驗證、去哪裡查群組、要不要第二因素、怎麼對應角色。選單在 Users &gt; User Realms。</p>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-id-badge text-rose-600 mr-2"></i>User Role</h4>
+                    <p class="text-sm text-gray-700">一組權限:啟用哪些存取功能、Session 多久、有什麼限制。第 6 章已建好。</p>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-list-ol text-rose-600 mr-2"></i>Role Mapping</h4>
+                    <p class="text-sm text-gray-700">Realm 裡的一份規則清單,依帳號、群組、屬性或憑證,決定發哪些角色。</p>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-hand text-rose-600 mr-2"></i>Stop processing</h4>
+                    <p class="text-sm text-gray-700">規則上的勾選框。勾了之後,這條規則一旦命中,後面的規則就不再比對。</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 二、動手做:建立 Realm -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">二、動手做:建立員工用的 Realm</h2>
+            <p class="text-gray-700 mb-2">目標:建立 <span class="tech-term">Realm-AD</span>,用第 5 章建好的 AD-LDAPS 驗證帳密,再用 TOTP 驗證碼當第二因素。</p>
+            <p class="text-sm text-gray-500">事前準備:第 5 章的 AD-LDAPS、第 11 章的 TOTP-Local、第 6 章的 Role-IT-Full 與 Role-Staff 都已建立。</p>
+
+            <div class="mock-window">
+                <div class="mock-titlebar">
+                    <span class="mock-dots"><span></span><span></span><span></span></span>
+                    <span class="mock-url">https://10.0.30.10/admin</span>
+                </div>
+                <div class="mock-nav">
+                    <span class="brand">Ivanti Connect Secure</span>
+                    <span>System</span><span>Authentication</span><span>Administrators</span><span class="on">Users</span><span>Maintenance</span>
+                </div>
+                <div class="mock-crumb">Users &gt; User Realms &gt; New User Realm</div>
+                <div class="mock-tabs"><span class="on">General</span><span>Authentication Policy</span><span>Role Mapping</span></div>
+                <div class="mock-body">
+                    <div class="mock-row"><span class="step-badge">1</span><span class="mock-label">Name</span><span class="mock-input mock-hl">Realm-AD</span></div>
+                    <div class="mock-row"><span class="step-badge" style="visibility:hidden">0</span><span class="mock-label">Description</span><span class="mock-input">員工 AD 登入</span></div>
+                    <div class="mock-section">Servers</div>
+                    <div class="mock-row"><span class="step-badge">2</span><span class="mock-label">Authentication</span><span class="mock-input mock-select mock-hl">AD-LDAPS</span></div>
+                    <div class="mock-row"><span class="step-badge">3</span><span class="mock-label">Directory/Attribute</span><span class="mock-input mock-select mock-hl">Same as above</span></div>
+                    <div class="mock-row"><span class="step-badge" style="visibility:hidden">0</span><span class="mock-label">Accounting</span><span class="mock-input mock-select">None</span></div>
+                    <div class="mock-section">Additional Authentication Server</div>
+                    <div class="mock-row"><span class="step-badge">4</span><span class="mock-hl">☑ Additional authentication server</span></div>
+                    <div class="mock-row mock-indent"><span class="mock-label">Authentication #2</span><span class="mock-input mock-select">TOTP-Local</span></div>
+                    <div class="mock-row mock-indent"><span class="mock-label">Username is</span><span class="mock-input">&lt;username&gt;</span></div>
+                    <div class="mock-row mock-indent"><span>☑ End session if authentication against this server fails</span></div>
+                    <div class="mock-section">Dynamic Policy Evaluation</div>
+                    <div class="mock-row"><span class="step-badge" style="visibility:hidden">0</span><span>☐ Dynamic policy evaluation</span></div>
+                    <div class="mock-row" style="justify-content:flex-end;"><span class="step-badge">5</span><span class="mock-btn primary mock-hl">Save Changes</span></div>
+                </div>
+                <div class="mock-caption"><i class="fas fa-circle-info mr-1"></i>示意畫面:欄位名稱依 Ivanti 官方文件,版面、按鈕位置與配色以實機為準。</div>
+            </div>
+
+            <ol class="step-list mt-4 text-gray-700">
+                <li><span class="step-badge">1</span><span><strong>Name</strong> 填 <code>Realm-AD</code>。Description 寫清楚用途,半年後回來看才知道這個 Realm 給誰用。</span></li>
+                <li><span class="step-badge">2</span><span><strong>Authentication</strong> 選 <code>AD-LDAPS</code>,也就是用 AD 驗證帳號密碼。</span></li>
+                <li><span class="step-badge">3</span><span><strong>Directory/Attribute</strong> 選 <code>Same as above</code>,讓系統用同一台 LDAP 查使用者的群組。<strong>Role Mapping 要依群組發角色,這一欄就一定要設。</strong></span></li>
+                <li><span class="step-badge">4</span><span>勾選 <strong>Additional authentication server</strong>,Authentication #2 選 <code>TOTP-Local</code>,帳號維持 <code>&lt;username&gt;</code>(沿用剛才輸入的帳號),並勾選 <strong>End session if authentication against this server fails</strong>:驗證碼錯了就結束,不放行。</span></li>
+                <li><span class="step-badge">5</span><span>按 <strong>Save Changes</strong>,再切到 <strong>Role Mapping</strong> 分頁設定規則(第四節)。</span></li>
+            </ol>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">General 分頁其他欄位</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">欄位</th><th class="py-2 px-4 border text-left">做什麼用</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">Accounting</td><td class="py-2 px-4 border">指定 RADIUS 帳務伺服器,記錄誰在什麼時候連線多久</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">FallBack Authentication Server</td><td class="py-2 px-4 border">主要驗證失敗時改用的備援伺服器。只有 User Realm 有這個選項</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Dynamic policy evaluation</td><td class="py-2 px-4 border">每隔 5 到 1440 分鐘重新評估已登入使用者的角色與政策。改了群組不想等使用者重新登入時很有用,也可以按 Refresh Now 立即重評</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Mask Static Password</td><td class="py-2 px-4 border">遮蔽靜態密碼。預設關閉,啟用後無法還原</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 三、兩道關卡 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">三、兩道關卡:Authentication Policy 與 Restrictions</h2>
+            <p class="text-gray-700 leading-relaxed">
+                「只准公司電腦登入」「只准從公司固定的對外 IP 連線」這類條件,可以設在兩個地方。兩者看起來很像,沒通過時的結果卻完全不同。
+            </p>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 360 400" role="img" aria-labelledby="svg2-title" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans TC, sans-serif">
+                    <title id="svg2-title">兩道關卡比較:Realm 的 Authentication Policy 沒通過就進不了 Realm;角色的 Restrictions 沒通過只是拿不到該角色</title>
+                    <defs>
+                        <marker id="arrow2" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+                        </marker>
+                    </defs>
+                    <rect x="20" y="10" width="320" height="136" rx="10" fill="#fff1f2" stroke="#e11d48" stroke-width="2"/>
+                    <text x="180" y="36" text-anchor="middle" font-size="15" font-weight="700" fill="#be123c">第一關:Realm 的 Authentication Policy</text>
+                    <text x="36" y="62" font-size="14" fill="#1f2937">檢查來源 IP、瀏覽器、憑證、Host Checker</text>
+                    <text x="36" y="88" font-size="14" fill="#b91c1c">沒通過 → 整個 Realm 都進不去</text>
+                    <text x="36" y="110" font-size="13" fill="#6b7280">來源 IP(Source IP):使用者連線的來源位址</text>
+                    <text x="36" y="128" font-size="13" fill="#6b7280">Host Checker:端點合規檢查(第 12 章)</text>
+                    <g transform="translate(0,40)">
+                    <line x1="180" y1="106" x2="180" y2="136" stroke="#64748b" stroke-width="2" marker-end="url(#arrow2)"/>
+                    <text x="190" y="127" font-size="13" fill="#475569">通過、驗證成功、對應出角色</text>
+
+                    <rect x="20" y="140" width="150" height="120" rx="10" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+                    <text x="95" y="164" text-anchor="middle" font-size="14" font-weight="700" fill="#1d4ed8">Role-IT-Full</text>
+                    <text x="95" y="188" text-anchor="middle" font-size="13" fill="#1f2937">Restrictions:</text>
+                    <text x="95" y="208" text-anchor="middle" font-size="13" fill="#1f2937">要通過 Host Checker</text>
+                    <text x="95" y="242" text-anchor="middle" font-size="13" fill="#b91c1c">沒通過 → 不發這個角色</text>
+
+                    <rect x="190" y="140" width="150" height="120" rx="10" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+                    <text x="265" y="164" text-anchor="middle" font-size="14" font-weight="700" fill="#1d4ed8">Role-Staff</text>
+                    <text x="265" y="188" text-anchor="middle" font-size="13" fill="#1f2937">Restrictions:</text>
+                    <text x="265" y="208" text-anchor="middle" font-size="13" fill="#1f2937">沒有限制</text>
+                    <text x="265" y="242" text-anchor="middle" font-size="13" fill="#15803d">照常發給</text>
+
+                    <line x1="180" y1="260" x2="180" y2="290" stroke="#64748b" stroke-width="2" marker-end="url(#arrow2)"/>
+                    <rect x="20" y="294" width="320" height="56" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+                    <text x="180" y="318" text-anchor="middle" font-size="14" font-weight="700" fill="#15803d">結果:用個人電腦登入的資訊人員</text>
+                    <text x="180" y="340" text-anchor="middle" font-size="13" fill="#1f2937">仍能登入,但只拿到 Role-Staff</text>
+                    </g>
+                </svg>
+            </div>
+
+            <div class="overflow-x-auto mt-4">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left"></th><th class="py-2 px-4 border text-left">Authentication Policy</th><th class="py-2 px-4 border text-left">Restrictions</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">設在哪裡</td><td class="py-2 px-4 border">Realm 的 Authentication Policy 分頁</td><td class="py-2 px-4 border">角色的 General &gt; Restrictions</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">可檢查的項目</td><td class="py-2 px-4 border">Source IP、Browser、Certificate、Password、Limits、Host Checker</td><td class="py-2 px-4 border">Source IP、Browser、Certificate、Host Checker</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">沒通過的結果</td><td class="py-2 px-4 border">進不了這個 Realm,登入失敗</td><td class="py-2 px-4 border">拿不到這個角色,但可能拿到其他角色</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">適合用在</td><td class="py-2 px-4 border">整群人都必須符合的條件,例如管理員只能從管理網段登入</td><td class="py-2 px-4 border">依裝置狀態給不同權限,例如公司電腦才有完整 VPN</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 四、Role Mapping 規則 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">四、動手做:用群組發角色</h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">規則可以依據什麼?</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">規則類型</th><th class="py-2 px-4 border text-left">依據</th><th class="py-2 px-4 border text-left">需要什麼</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">Username</td><td class="py-2 px-4 border">帳號名稱,<code>*</code> 代表所有人</td><td class="py-2 px-4 border">無</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">User attribute</td><td class="py-2 px-4 border">使用者屬性,例如部門</td><td class="py-2 px-4 border">RADIUS 或 LDAP</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Certificate / Certificate attribute</td><td class="py-2 px-4 border">用戶端憑證的欄位</td><td class="py-2 px-4 border">憑證驗證</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Group membership</td><td class="py-2 px-4 border">目錄裡的群組(最常用)</td><td class="py-2 px-4 border">LDAP,或 AD 驗證伺服器</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Custom Expressions</td><td class="py-2 px-4 border">自訂運算式</td><td class="py-2 px-4 border">熟悉語法後再用</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">新增第一條規則:資訊人員</h3>
+            <p class="text-gray-700">在 Realm-AD 的 Role Mapping 分頁按 <strong>New Rule</strong>。</p>
+
+            <div class="mock-window">
+                <div class="mock-titlebar">
+                    <span class="mock-dots"><span></span><span></span><span></span></span>
+                    <span class="mock-url">https://10.0.30.10/admin</span>
+                </div>
+                <div class="mock-nav">
+                    <span class="brand">Ivanti Connect Secure</span>
+                    <span>System</span><span>Authentication</span><span>Administrators</span><span class="on">Users</span><span>Maintenance</span>
+                </div>
+                <div class="mock-crumb">Users &gt; User Realms &gt; Realm-AD &gt; Role Mapping &gt; Role Mapping Rule</div>
+                <div class="mock-body">
+                    <div class="mock-row"><span class="step-badge">1</span><span class="mock-label">Rule based on</span><span class="mock-input mock-select mock-hl">Group membership</span><span class="mock-btn">Update</span></div>
+                    <div class="mock-row"><span class="step-badge">2</span><span class="mock-label">Name</span><span class="mock-input mock-hl">Map-VPN-IT</span></div>
+                    <div class="mock-section">Rule</div>
+                    <div class="mock-row"><span class="step-badge">3</span><span class="mock-label">If user is a member of</span><span class="mock-list mock-hl">VPN-IT</span><span class="mock-btn">Groups...</span></div>
+                    <div class="mock-section">...then assign these roles</div>
+                    <div class="mock-row"><span class="step-badge">4</span>
+                        <span><span class="block text-xs text-gray-500 mb-1">Available roles</span><span class="mock-list block">Role-Staff</span></span>
+                        <span class="flex flex-col gap-1"><span class="mock-btn">Add →</span><span class="mock-btn">← Remove</span></span>
+                        <span><span class="block text-xs text-gray-500 mb-1">Selected roles</span><span class="mock-list block mock-hl">Role-IT-Full</span></span>
+                    </div>
+                    <div class="mock-row"><span class="step-badge">5</span><span>☐ Stop processing rules when this rule matches</span></div>
+                    <div class="mock-row" style="justify-content:flex-end;"><span class="step-badge">6</span><span class="mock-btn primary mock-hl">Save Changes</span></div>
+                </div>
+                <div class="mock-caption"><i class="fas fa-circle-info mr-1"></i>示意畫面:欄位名稱依 Ivanti 官方文件與舊版教材,版面、按鈕位置與欄位文字以實機為準。</div>
+            </div>
+
+            <ol class="step-list mt-4 text-gray-700">
+                <li><span class="step-badge">1</span><span><strong>Rule based on</strong> 選 <code>Group membership</code>,按 <strong>Update</strong>,畫面會換成群組規則的欄位。</span></li>
+                <li><span class="step-badge">2</span><span><strong>Name</strong> 取一個看得懂的名字,例如 <code>Map-VPN-IT</code>。</span></li>
+                <li><span class="step-badge">3</span><span>按 <strong>Groups...</strong>,在跳出的視窗按 Search 找到 AD 群組 <code>VPN-IT</code> 並加入。</span></li>
+                <li><span class="step-badge">4</span><span>在角色清單把 <code>Role-IT-Full</code> 從 Available roles 移到 Selected roles。</span></li>
+                <li><span class="step-badge">5</span><span><strong>Stop processing rules when this rule matches</strong> 先不要勾。為什麼?第五節的模擬器會讓你親眼看到。</span></li>
+                <li><span class="step-badge">6</span><span>按 <strong>Save Changes</strong>。照同樣步驟再建第二條:Name 取 <code>Map-VPN-Users</code>,群組 <code>VPN-Users</code> → <code>Role-Staff</code>。</span></li>
+            </ol>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">建好兩條規則後的清單</h3>
+            <div class="mock-window">
+                <div class="mock-titlebar">
+                    <span class="mock-dots"><span></span><span></span><span></span></span>
+                    <span class="mock-url">https://10.0.30.10/admin</span>
+                </div>
+                <div class="mock-crumb">Users &gt; User Realms &gt; Realm-AD &gt; Role Mapping</div>
+                <div class="mock-tabs"><span>General</span><span>Authentication Policy</span><span class="on">Role Mapping</span></div>
+                <div class="mock-body">
+                    <div class="mock-section">When users are assigned to multiple roles</div>
+                    <div class="mock-row"><span class="step-badge">1</span><span class="mock-hl">◉ Merge settings for all assigned roles</span></div>
+                    <div class="mock-row mock-indent"><span>○ User must select from among assigned roles</span></div>
+                    <div class="mock-row mock-indent"><span>○ User must select the sets of merged roles assigned by each rule</span></div>
+                    <div class="mock-row" style="margin-top:0.5rem;"><span class="mock-btn">New Rule...</span><span class="mock-btn">Duplicate</span><span class="mock-btn">Delete</span><span class="step-badge">2</span><span class="mock-btn mock-hl">↑</span><span class="mock-btn mock-hl">↓</span></div>
+                    <div class="overflow-x-auto">
+                        <table class="mock-table">
+                            <thead><tr><th>#</th><th>Condition</th><th>Assign roles</th><th>Rule name</th><th>Stop</th></tr></thead>
+                            <tbody>
+                                <tr><td>1</td><td>group is VPN-IT</td><td>Role-IT-Full</td><td>Map-VPN-IT</td><td>—</td></tr>
+                                <tr><td>2</td><td>group is VPN-Users</td><td>Role-Staff</td><td>Map-VPN-Users</td><td>—</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="mock-caption"><i class="fas fa-circle-info mr-1"></i>示意畫面:多角色選項的文字依官方文件;清單欄位與按鈕為示意,以實機為準。</div>
+            </div>
+            <ol class="step-list mt-4 text-gray-700">
+                <li><span class="step-badge">1</span><span>使用者同時符合兩條規則時怎麼辦?這裡先選 <strong>Merge settings for all assigned roles</strong>(第六節說明)。</span></li>
+                <li><span class="step-badge">2</span><span>用上下箭頭調整規則順序。<strong>規則由上而下比對,順序會影響結果。</strong></span></li>
+            </ol>
+        </div>
+
+        <!-- 五、模擬器 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">五、動手玩:角色對應模擬器</h2>
+            <p class="text-gray-700 mb-2">勾選王小明所在的群組、調整規則順序與 Stop,看看他最後拿到哪些角色。下面的規則多加了一條「所有人都給 Role-Web-Only」,方便觀察萬用規則的效果(教學用範例)。</p>
+
+            <div class="grid md:grid-cols-2 gap-4 mt-4">
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-user mr-1 text-rose-600"></i>王小明在哪些 AD 群組?</h3>
+                    <label class="block mb-1"><input type="checkbox" id="g-it" class="mr-2">VPN-IT</label>
+                    <label class="block mb-3"><input type="checkbox" id="g-users" class="mr-2" checked>VPN-Users</label>
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-layer-group mr-1 text-rose-600"></i>多個角色時</h3>
+                    <select id="merge-mode" class="border rounded px-2 py-1 w-full">
+                        <option value="merge">Merge settings for all assigned roles</option>
+                        <option value="select">User must select from among assigned roles</option>
+                    </select>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-flask mr-1 text-rose-600"></i>快速情境</h3>
+                    <div class="flex flex-col gap-2">
+                        <button type="button" id="preset-bug" class="text-left border rounded px-3 py-2 bg-white hover:bg-rose-50">把萬用規則移到第一條並勾 Stop(重現舊手冊的錯誤)</button>
+                        <button type="button" id="preset-none" class="text-left border rounded px-3 py-2 bg-white hover:bg-rose-50">停用萬用規則,並取消所有群組(沒有角色會怎樣?)</button>
+                        <button type="button" id="preset-reset" class="text-left border rounded px-3 py-2 bg-white hover:bg-rose-50">還原預設</button>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="font-bold text-gray-800 mt-6 mb-2">Role Mapping 規則(由上而下)</h3>
+            <div id="sim-rules"></div>
+
+            <div class="grid md:grid-cols-2 gap-4 mt-4">
+                <div class="bg-white border rounded-lg p-4">
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-shoe-prints mr-1 text-blue-600"></i>比對過程</h3>
+                    <div id="sim-trace" class="text-sm text-gray-700"></div>
+                </div>
+                <div id="sim-result" class="border rounded-lg p-4"></div>
+            </div>
+        </div>
+
+        <!-- 六、多個角色 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">六、使用者拿到多個角色時</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">選項</th><th class="py-2 px-4 border text-left">行為</th><th class="py-2 px-4 border text-left">適合</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">Merge settings for all assigned roles</td><td class="py-2 px-4 border">把所有角色合併成一個(permissive merge)</td><td class="py-2 px-4 border">大多數情境,使用者不必多做選擇</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">User must select from among assigned roles</td><td class="py-2 px-4 border">登入時讓使用者自己挑一個角色</td><td class="py-2 px-4 border">同一人有截然不同的身分,例如平常是一般員工、值班時是資訊人員</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">User must select the sets of merged roles assigned by each rule</td><td class="py-2 px-4 border">讓使用者挑「某一條規則發的那組角色」</td><td class="py-2 px-4 border">一條規則會發多個角色,又要讓使用者切換時</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="highlight-box">
+                <p class="font-bold text-rose-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>permissive merge 的三條規則</p>
+                <ul class="list-disc pl-6 text-gray-800 space-y-1">
+                    <li>任何一個角色啟用的功能就會生效(功能取聯集)。</li>
+                    <li>Session 逾時取最大值。</li>
+                    <li>UI 選項採用第一個角色的設定。</li>
+                </ul>
+                <p class="text-sm text-gray-700 mt-2">VPN 的路由優先權不建議靠合併決定。同一位使用者可能拿到的角色,VPN 選項最好設成一致(第 9 章)。</p>
+            </div>
+        </div>
+
+        <!-- 七、踩坑 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">七、常見踩坑</h2>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>萬用規則放第一條又勾 Stop</p>
+                <p class="text-gray-800">舊版設定手冊的範例:第一條規則是 <code>username is *</code> 並勾了 Stop,結果第二條規則永遠比對不到,每個人都只拿到第一條的角色。萬用規則要放在最後,或者不要勾 Stop。</p>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>拿 AD 內建群組發 VPN 角色</p>
+                <p class="text-gray-800">舊版安裝教材把 AD 內建的 <code>Users</code> 與 <code>Administrators</code> 群組都對應到有 VPN 的角色,等於全公司都能連 VPN。請建立專用群組(例如 <code>VPN-Users</code>),只把需要的人加進去。</p>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>Directory/Attribute 沒設</p>
+                <p class="text-gray-800">用群組寫規則,但 Realm 的 Directory/Attribute 留空,系統查不到群組,這類群組規則就不會命中;如果也沒有其他規則命中,使用者拿不到角色,登入會失敗。</p>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異</p>
+                <ul class="list-disc pl-6 text-gray-800 space-y-1">
+                    <li>Realm、Role、Role Mapping 的選單位置,從 9.1R17、22.x 到 25.1 都沒有變。舊教材的觀念可以直接沿用。</li>
+                    <li>25.1.3.0 起,用 Entra ID 這類 OAuth 登入時,可以在 Custom Expressions 比對 token 裡的群組,例如 <code>groups = ('123' OR '456')</code>。Entra 回傳群組 GUID 時,只能比對 GUID。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
+                隨堂測驗
+            </h2>
+            <p class="mb-6 text-gray-600">請點選您認為正確的選項,系統將會顯示解析。</p>
+            <div class="space-y-6" id="quiz-container"></div>
+        </div>
+
+    </main>
+
+    <footer class="footer-signature">
+        Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver.2026.10.31.22.32
+    </footer>
+
+
+    <script>
+        // ===== 角色對應模擬器 =====
+        const ROLE_FEATURES = {
+            'Role-IT-Full': ['Web', 'VPN Tunneling', 'HTML5 Access'],
+            'Role-Staff': ['Web', 'VPN Tunneling'],
+            'Role-Web-Only': ['Web']
+        };
+        // 範例值:各角色的 Max. Session Length(分鐘),用來示範「逾時取最大值」
+        const ROLE_SESSION = { 'Role-IT-Full': 120, 'Role-Staff': 60, 'Role-Web-Only': 30 };
+
+        const DEFAULT_RULES = [
+            { id: 'it', label: 'Group membership:VPN-IT', role: 'Role-IT-Full', enabled: true, stop: false },
+            { id: 'users', label: 'Group membership:VPN-Users', role: 'Role-Staff', enabled: true, stop: false },
+            { id: 'all', label: 'Username is *(所有人)', role: 'Role-Web-Only', enabled: true, stop: false }
+        ];
+        let rules = DEFAULT_RULES.map(r => ({ ...r }));
+
+        const gIt = document.getElementById('g-it');
+        const gUsers = document.getElementById('g-users');
+        const mergeMode = document.getElementById('merge-mode');
+        const rulesBox = document.getElementById('sim-rules');
+        const traceBox = document.getElementById('sim-trace');
+        const resultBox = document.getElementById('sim-result');
+
+        function matches(rule) {
+            if (rule.id === 'it') return gIt.checked;
+            if (rule.id === 'users') return gUsers.checked;
+            return true;
+        }
+
+        function renderRules() {
+            rulesBox.innerHTML = '';
+            rules.forEach((rule, i) => {
+                const row = document.createElement('div');
+                row.className = 'sim-rule' + (rule.enabled ? '' : ' opacity-50');
+                row.innerHTML = `
+                    <span class="num">規則 ${i + 1}</span>
+                    <span class="desc">${rule.label} → <strong>${rule.role}</strong></span>
+                    <label class="text-sm"><input type="checkbox" data-act="enabled" data-i="${i}" ${rule.enabled ? 'checked' : ''} class="mr-1">啟用</label>
+                    <label class="text-sm"><input type="checkbox" data-act="stop" data-i="${i}" ${rule.stop ? 'checked' : ''} class="mr-1">Stop</label>
+                    <button type="button" class="sim-arrow" data-act="up" data-i="${i}" aria-label="規則 ${i + 1} 往上移" ${i === 0 ? 'disabled' : ''}>↑</button>
+                    <button type="button" class="sim-arrow" data-act="down" data-i="${i}" aria-label="規則 ${i + 1} 往下移" ${i === rules.length - 1 ? 'disabled' : ''}>↓</button>
+                `;
+                rulesBox.appendChild(row);
+            });
+        }
+
+        function evaluate() {
+            const lines = [];
+            const roles = [];
+            for (let i = 0; i < rules.length; i++) {
+                const rule = rules[i];
+                const n = `規則 ${i + 1}`;
+                if (!rule.enabled) { lines.push(`${n}:已停用,略過`); continue; }
+                if (matches(rule)) {
+                    if (!roles.includes(rule.role)) roles.push(rule.role);
+                    if (rule.stop) {
+                        lines.push(`${n}:<span class="text-green-700 font-semibold">命中</span>,取得 ${rule.role}。<span class="text-rose-700 font-semibold">勾了 Stop,後面的規則不再比對</span>`);
+                        for (let j = i + 1; j < rules.length; j++) lines.push(`規則 ${j + 1}:<span class="text-gray-400">沒有比對</span>`);
+                        break;
+                    }
+                    lines.push(`${n}:<span class="text-green-700 font-semibold">命中</span>,取得 ${rule.role}`);
+                } else {
+                    lines.push(`${n}:沒命中`);
+                }
+            }
+            traceBox.innerHTML = lines.map(l => `<div class="trace-line">${l}</div>`).join('');
+
+            if (roles.length === 0) {
+                resultBox.className = 'border rounded-lg p-4 bg-red-50 border-red-300';
+                resultBox.innerHTML = `<h3 class="font-bold text-red-700 mb-2"><i class="fas fa-circle-xmark mr-1"></i>沒有任何角色</h3>
+                    <p class="text-sm text-gray-800">登入失敗。帳密雖然正確,但 Role Mapping 沒發出任何角色,系統不讓他進來(登入評估流程第 6 項)。</p>`;
+                return;
+            }
+            if (mergeMode.value === 'select' && roles.length > 1) {
+                resultBox.className = 'border rounded-lg p-4 bg-blue-50 border-blue-300';
+                resultBox.innerHTML = `<h3 class="font-bold text-blue-700 mb-2"><i class="fas fa-hand-pointer mr-1"></i>登入時要自己選角色</h3>
+                    <p class="text-sm text-gray-800 mb-1">可選:${roles.map(r => `<strong>${r}</strong>`).join('、')}</p>
+                    <p class="text-sm text-gray-800">選了哪個,這次 Session 就只有那個角色的功能。</p>`;
+                return;
+            }
+            const features = [];
+            roles.forEach(r => ROLE_FEATURES[r].forEach(f => { if (!features.includes(f)) features.push(f); }));
+            const session = Math.max(...roles.map(r => ROLE_SESSION[r]));
+            resultBox.className = 'border rounded-lg p-4 bg-green-50 border-green-300';
+            resultBox.innerHTML = `<h3 class="font-bold text-green-700 mb-2"><i class="fas fa-circle-check mr-1"></i>登入成功</h3>
+                <p class="text-sm text-gray-800 mb-1">取得角色:${roles.map(r => `<strong>${r}</strong>`).join('、')}</p>
+                <p class="text-sm text-gray-800 mb-1">可用功能:${features.join('、')}</p>
+                <p class="text-sm text-gray-800">Session 最長:${session} 分鐘${roles.length > 1 ? '(合併時取最大值)' : ''}</p>
+                <p class="text-xs text-gray-500 mt-2">Session 時間為教學範例值。</p>`;
+        }
+
+        function refresh() { renderRules(); evaluate(); }
+
+        rulesBox.addEventListener('click', e => {
+            const btn = e.target.closest('button[data-act]');
+            if (!btn) return;
+            const i = Number(btn.dataset.i);
+            const j = btn.dataset.act === 'up' ? i - 1 : i + 1;
+            if (j < 0 || j >= rules.length) return;
+            [rules[i], rules[j]] = [rules[j], rules[i]];
+            refresh();
+        });
+        rulesBox.addEventListener('change', e => {
+            const box = e.target.closest('input[data-act]');
+            if (!box) return;
+            rules[Number(box.dataset.i)][box.dataset.act] = box.checked;
+            refresh();
+        });
+        [gIt, gUsers, mergeMode].forEach(el => el.addEventListener('change', evaluate));
+
+        document.getElementById('preset-bug').addEventListener('click', () => {
+            rules = DEFAULT_RULES.map(r => ({ ...r }));
+            const all = rules.pop();
+            all.stop = true;
+            rules.unshift(all);
+            gIt.checked = true; gUsers.checked = true;
+            refresh();
+        });
+        document.getElementById('preset-none').addEventListener('click', () => {
+            rules = DEFAULT_RULES.map(r => ({ ...r, enabled: r.id !== 'all' }));
+            gIt.checked = false; gUsers.checked = false;
+            refresh();
+        });
+        document.getElementById('preset-reset').addEventListener('click', () => {
+            rules = DEFAULT_RULES.map(r => ({ ...r }));
+            gIt.checked = false; gUsers.checked = true; mergeMode.value = 'merge';
+            refresh();
+        });
+
+        refresh();
+
+        // ===== 隨堂測驗 =====
+        const quizData = [
+            {
+                question: "Q1. 下列哪一句最能說明 User Realm 與 User Role 的分工?",
+                options: ["A. Realm 決定能用哪些功能,Role 決定用哪台伺服器驗證", "B. Realm 是「一群使用者」的登入設定,Role 是「一組權限」", "C. Realm 只給管理員用,Role 只給一般使用者用", "D. 兩者是同一件事的不同名稱"],
+                correct: 1,
+                desc: "正解:B。Realm 決定這群人用哪台伺服器驗證、去哪查群組、要不要第二因素、怎麼對應角色;Role 決定拿到之後能用哪些功能、Session 多久。"
+            },
+            {
+                question: "Q2. 規則 1 是 Username is *(所有人)並勾了 Stop,規則 2 是群組 VPN-IT → Role-IT-Full。VPN-IT 群組的成員登入後會拿到什麼?",
+                options: ["A. 兩個規則的角色都拿到", "B. 只拿到 Role-IT-Full", "C. 只拿到規則 1 的角色", "D. 登入失敗"],
+                correct: 2,
+                desc: "正解:C。規則由上而下比對,規則 1 對所有人都命中,勾了 Stop 就不再比對後面的規則,所以規則 2 永遠不會生效。萬用規則要放最後,或者不要勾 Stop。"
+            },
+            {
+                question: "Q3. 使用者同時拿到 Role-IT-Full(Session 120 分鐘)與 Role-Staff(Session 60 分鐘),Realm 選 Merge settings for all assigned roles。結果為何?",
+                options: ["A. 只有兩個角色都啟用的功能才會生效,Session 60 分鐘", "B. 任一角色啟用的功能都生效,Session 120 分鐘", "C. 只採用第一個角色的全部設定", "D. 系統要求使用者自選一個角色"],
+                correct: 1,
+                desc: "正解:B。permissive merge 的規則是:功能取聯集、Session 逾時取最大值、UI 選項採用第一個角色。"
+            },
+            {
+                question: "Q4. 一位資訊人員用個人電腦登入,沒通過 Role-IT-Full 的 Restrictions(要求通過 Host Checker)。他同時也在 VPN-Users 群組。會發生什麼事?",
+                options: ["A. 登入失敗", "B. 仍能登入,但只拿到 Role-Staff", "C. 仍能登入,並拿到 Role-IT-Full", "D. 系統自動幫他安裝 Host Checker 後放行"],
+                correct: 1,
+                desc: "正解:B。角色的 Restrictions 沒通過,只是拿不到那個角色;其他符合條件的角色照常發給。如果條件設在 Realm 的 Authentication Policy,沒通過才會整個登入失敗。"
+            },
+            {
+                question: "Q5. Role Mapping 用 Group membership 寫規則,但規則從來沒有命中過。最可能漏了什麼?",
+                options: ["A. 沒有勾 Stop processing", "B. Realm 的 Directory/Attribute 沒有設定,系統查不到群組", "C. 沒有啟用 Dynamic policy evaluation", "D. Sign-in Policy 沒有開放管理員網址"],
+                correct: 1,
+                desc: "正解:B。群組規則需要 LDAP(或 AD 驗證伺服器)提供群組資訊。用 LDAP 驗證時,Directory/Attribute 要選 Same as above,系統才查得到使用者的群組。"
+            }
+        ];
+
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionBox = document.createElement('div');
+            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
+
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border mb-2 text-gray-700" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            questionBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
+                <div class="space-y-2 mb-4">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
+                    <p class="font-bold result-title"></p>
+                    <p class="text-sm text-gray-600 mt-1">${item.desc}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionBox);
+        });
+
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            if (element.parentElement.dataset.answered) return;
+            element.parentElement.dataset.answered = "true";
+
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+                opt.classList.add('disabled');
+            });
+
+            if (optIndex === data.correct) {
+                element.classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了!";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                element.classList.add('bg-red-100', 'border-red-500');
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了!";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+    </script>
+</body>
+</html>

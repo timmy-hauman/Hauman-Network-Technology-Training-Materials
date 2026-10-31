@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ivanti Connect Secure SSL VPN 實戰課程 - 安全公告與加固</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        /* 卡片主體樣式 (Ivanti Red) */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #e11d48;
+        }
+
+        /* 重點提示框 (紅) */
+        .highlight-box {
+            background-color: #fff1f2;
+            border-left: 4px solid #e11d48;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 技術名詞標記 */
+        .tech-term {
+            color: #be123c;
+            font-weight: 700;
+            background-color: #ffe4e6;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
+        }
+
+        /* 比喻說明框 (綠) */
+        .analogy-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 版本差異框 (紫) */
+        .version-box {
+            background-color: #faf5ff;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 常見踩坑框 (橘,避開主色紅) */
+        .pitfall-box {
+            background-color: #fff7ed;
+            border-left: 4px solid #ea580c;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .diagram-container {
+            display: block;
+            background-color: #ffffff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-top: 1rem;
+        }
+
+        .diagram-container svg {
+            display: block;
+            width: 100%;
+            max-width: 520px;
+            margin: 0 auto;
+        }
+
+        /* 示意畫面 (仿管理介面) */
+        .mock-window {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            background: #ffffff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            margin-top: 1rem;
+        }
+        .mock-titlebar {
+            background: #e2e8f0;
+            padding: 0.4rem 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: #475569;
+        }
+        .mock-dots span {
+            display: inline-block;
+            width: 0.6rem;
+            height: 0.6rem;
+            border-radius: 50%;
+            background: #94a3b8;
+            margin-right: 0.2rem;
+        }
+        .mock-url {
+            background: #ffffff;
+            border-radius: 0.25rem;
+            padding: 0.1rem 0.5rem;
+            flex: 1;
+            min-width: 0;
+            font-family: ui-monospace, Consolas, monospace;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .mock-nav {
+            background: #1f2937;
+            color: #cbd5e1;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.25rem 1rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+        }
+        .mock-nav .brand { font-weight: 700; color: #ffffff; margin-right: 0.5rem; }
+        .mock-nav .on { color: #ffffff; border-bottom: 2px solid #e11d48; padding-bottom: 0.1rem; }
+        .mock-crumb {
+            font-size: 0.8rem;
+            color: #475569;
+            padding: 0.5rem 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f8fafc;
+        }
+        .mock-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            padding: 0.5rem 0.75rem 0;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.8rem;
+        }
+        .mock-tabs span {
+            padding: 0.3rem 0.7rem;
+            border: 1px solid #e5e7eb;
+            border-bottom: none;
+            border-radius: 0.3rem 0.3rem 0 0;
+            background: #f1f5f9;
+            color: #475569;
+        }
+        .mock-tabs span.on { background: #ffffff; color: #111827; font-weight: 600; }
+        .mock-body { padding: 0.75rem; font-size: 0.85rem; }
+        .mock-section { font-weight: 700; color: #334155; margin: 0.75rem 0 0.25rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.2rem; }
+        .mock-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.35rem 0.6rem;
+            padding: 0.35rem 0;
+        }
+        .mock-label { width: 12rem; color: #374151; font-weight: 500; }
+        .mock-input {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+            padding: 0.2rem 0.5rem;
+            min-width: 12rem;
+            background: #ffffff;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #111827;
+        }
+        .mock-select::after { content: " ▾"; color: #64748b; }
+        .mock-indent { padding-left: 2rem; }
+        .mock-btn {
+            display: inline-block;
+            border: 1px solid #94a3b8;
+            background: #f8fafc;
+            border-radius: 0.25rem;
+            padding: 0.2rem 0.7rem;
+            font-size: 0.8rem;
+            color: #1f2937;
+        }
+        .mock-btn.primary { background: #1f2937; color: #ffffff; border-color: #1f2937; }
+        .mock-hl { outline: 2px solid #e11d48; outline-offset: 2px; border-radius: 0.25rem; }
+        .mock-list {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+            min-width: 9rem;
+            min-height: 4.2rem;
+            padding: 0.25rem 0.5rem;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.8rem;
+            background: #ffffff;
+        }
+        .mock-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 0.5rem; }
+        .mock-table th { background: #f1f5f9; text-align: left; padding: 0.35rem 0.5rem; border: 1px solid #e2e8f0; color: #334155; }
+        .mock-table td { padding: 0.35rem 0.5rem; border: 1px solid #e2e8f0; }
+        .mock-caption {
+            font-size: 0.75rem;
+            color: #6b7280;
+            padding: 0.5rem 0.75rem;
+            background: #f9fafb;
+            border-top: 1px dashed #e5e7eb;
+        }
+        .step-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.4rem;
+            height: 1.4rem;
+            border-radius: 9999px;
+            background: #e11d48;
+            color: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .step-list li { display: flex; gap: 0.6rem; align-items: flex-start; margin-bottom: 0.6rem; }
+
+        /* 模擬器 */
+        .sim-rule {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.4rem 0.75rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            margin-bottom: 0.5rem;
+            background: #ffffff;
+        }
+        .sim-rule .num { font-weight: 700; color: #be123c; width: 3.5rem; }
+        .sim-rule .desc { flex: 1; min-width: 12rem; }
+        .sim-arrow { border: 1px solid #cbd5e1; border-radius: 0.25rem; padding: 0 0.45rem; background: #f8fafc; }
+        .sim-arrow:disabled { opacity: 0.35; cursor: not-allowed; }
+        .trace-line { padding: 0.3rem 0; border-bottom: 1px dashed #e5e7eb; }
+
+        @media (max-width: 640px) {
+            main { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+            .section-card { padding: 1rem; }
+            .diagram-container { padding: 0.25rem; }
+            .mock-label { width: calc(100% - 2.2rem); }
+            .mock-indent .mock-label { width: 100%; }
+            .mock-input { min-width: 0; width: 100%; }
+            .mock-indent { padding-left: 0.75rem; }
+            .mock-body { padding: 0.5rem; }
+        }
+
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover:not(.disabled) {
+            background-color: #f3f4f6;
+        }
+
+        .footer-signature {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+            margin-top: 4rem;
+        }
+
+        /* ===== 本章追加 ===== */
+        .chk-item {
+            display: flex;
+            gap: 0.6rem;
+            align-items: flex-start;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 0.6rem 0.75rem;
+            margin-bottom: 0.5rem;
+            background: #ffffff;
+            cursor: pointer;
+        }
+        .chk-item input { margin-top: 0.3rem; width: 1.1rem; height: 1.1rem; flex-shrink: 0; }
+        .chk-item.done { background: #f0fdf4; border-color: #86efac; }
+        .prog-track { background: #e5e7eb; border-radius: 9999px; height: 0.75rem; overflow: hidden; }
+        .prog-bar { background: #16a34a; height: 100%; width: 0; transition: width 0.3s; }
+        /* Long URLs and code wrap on narrow screens */
+        main { overflow-wrap: break-word; } main code { overflow-wrap: anywhere; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-rose-700 to-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-shield-halved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold">Ivanti Connect Secure SSL VPN 實戰課程</h1>
+                    <p class="text-rose-100 mt-1">單元 17:安全公告與加固</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <!-- Introduction -->
+        <div class="mb-8">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
+                <h2 class="text-xl font-bold text-blue-800 mb-2 flex items-center">
+                    <i class="fas fa-user-tie mr-2"></i>講師導言
+                </h2>
+                <p class="text-blue-900 leading-relaxed">
+                    SSL VPN 閘道直接面對 Internet,又握有進入內網的鑰匙,所以是攻擊者最想拿下的設備。2024 年以來,Connect Secure 多次出現「不用登入就能遠端執行程式」的漏洞,而且常常在修補推出之前就已經被拿來攻擊。
+                    這一章不要你背 CVE 編號,而是學會三件事:<strong>怎麼查自己的版本有沒有中</strong>、<strong>懷疑被入侵時依什麼順序處理</strong>、<strong>平常要把哪十件事做好</strong>。
+                </p>
+            </div>
+        </div>
+
+        <!-- 資料時效 -->
+        <div class="pitfall-box" style="margin-bottom: 2rem;">
+            <p class="font-bold text-orange-800 mb-1"><i class="fas fa-calendar-check mr-1"></i>資料時效</p>
+            <p class="text-gray-800">本章的漏洞、版本與日期,<strong>資料以 2026-10-31 查證為準,上課前請重查 Ivanti 最新安全公告</strong>。這一章的內容會持續變動,公告一更新,下面的對照表與工具結果就要跟著檢查。</p>
+        </div>
+
+        <!-- 學習目標 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-gray-100 text-gray-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Goals</span>
+                本章學習目標
+            </h2>
+            <ul class="list-disc pl-6 space-y-1 text-gray-700">
+                <li>說明為什麼 SSL VPN 閘道是攻擊者的首要目標,以及「0-day」是什麼意思</li>
+                <li>看懂近年重大漏洞表,並用版本對照工具找出自己的版本受哪些漏洞影響</li>
+                <li>說出 Integrity Checker Tool(ICT)能做什麼、不能做什麼,以及 Ivanti 與 CISA / Volexity 的說法有什麼不同</li>
+                <li>依順序說出疑似遭入侵時的五個處置步驟</li>
+                <li>用十項加固檢查清單檢查自己的設備</li>
+            </ul>
+            <p class="text-sm text-gray-500 mt-4"><i class="fas fa-map-signs mr-1"></i>本章是觀念與流程章,沒有對應的設定畫面。升級的操作方法在第 16 章,本章講「為什麼要升、什麼時候要升」。</p>
+        </div>
+
+        <!-- 一、為什麼要獨立一章 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">一、為什麼要獨立一章</h2>
+
+            <div class="analogy-box">
+                <p class="font-bold text-green-800 mb-1"><i class="fas fa-door-closed mr-1"></i>用大樓大門來想</p>
+                <ul class="list-disc pl-6 text-green-900 space-y-1">
+                    <li>SSL VPN 閘道像公司大樓<strong>面向馬路的大門</strong>,誰都看得到,門後又放著通往每一層樓的鑰匙。</li>
+                    <li><strong>0-day</strong> 像是鎖廠還沒發現鎖有缺陷,小偷就已經學會開了。等廠商推出新鎖(修補),門可能早就被開過。</li>
+                    <li><strong>修補</strong>只是換新鎖;被開過的門,還要檢查有沒有留下複製的鑰匙,這就是「重建設備、換掉所有密碼」的原因。</li>
+                </ul>
+            </div>
+
+            <p class="text-gray-700 leading-relaxed">
+                先記住兩個詞:<span class="tech-term">CVE</span>(漏洞的公開編號)和 <span class="tech-term">0-day</span>(修補還沒推出,攻擊就已經發生)。其他名詞看下面的名詞小卡。
+            </p>
+            <p class="text-gray-700 leading-relaxed mt-2">
+                三份舊版教材都沒有這部分內容。但設備一旦被入侵,攻擊者拿到的不只是一台 VPN,而是進入內網的入口,所以新版教材必須獨立補上這一章。
+            </p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">名詞小卡</h3>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-hashtag text-rose-600 mr-2"></i>CVE</h4>
+                    <p class="text-sm text-gray-700">資安漏洞的公開編號,格式是 CVE-年份-流水號。看到編號,就能到公告裡查影響哪些版本、修補版本是哪一版。</p>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-bomb text-rose-600 mr-2"></i>0-day</h4>
+                    <p class="text-sm text-gray-700">廠商還沒推出修補,攻擊就已經發生的漏洞。「當時已完全修補」的設備也擋不住,所以不能只靠更新。</p>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-list-check text-rose-600 mr-2"></i>KEV</h4>
+                    <p class="text-sm text-gray-700">美國 CISA 公布的「已知遭利用漏洞清單」。下面漏洞表的「已遭利用」一欄,就是依這份清單。</p>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-terminal text-rose-600 mr-2"></i>未驗證遠端執行</h4>
+                    <p class="text-sm text-gray-700">攻擊者不用登入,就能從網路上讓設備執行他指定的指令。對放在 Internet 邊界的 VPN 來說,這是最危險的一類。</p>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-fingerprint text-rose-600 mr-2"></i>ICT</h4>
+                    <p class="text-sm text-gray-700">Integrity Checker Tool(完整性檢查工具)。把設備上的檔案和預期的快照比對,找出被新增或修改的檔案。第三節會講它的限制。</p>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1"><i class="fas fa-magnifying-glass-chart text-rose-600 mr-2"></i>IoC</h4>
+                    <p class="text-sm text-gray-700">入侵指標(Indicator of Compromise)。入侵留下的特徵,資安團隊會拿它來比對設備上有沒有出現同樣的跡象。</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 二、近年重大漏洞 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">二、近年重大漏洞</h2>
+
+            <div class="highlight-box">
+                <p class="font-bold text-rose-800 mb-1"><i class="fas fa-calendar-check mr-1"></i>先看日期</p>
+                <p class="text-gray-800">下表<strong>資料以 2026-10-31 查證為準,上課前請重查 Ivanti 最新安全公告</strong>。「已遭利用」一欄依 CISA 已知遭利用漏洞清單(KEV)。</p>
+            </div>
+
+            <div class="overflow-x-auto mt-4">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="py-2 px-4 border text-left">CVE</th>
+                            <th class="py-2 px-4 border text-left">公開日</th>
+                            <th class="py-2 px-4 border text-left">類型</th>
+                            <th class="py-2 px-4 border text-left">影響版本</th>
+                            <th class="py-2 px-4 border text-left">修補版本</th>
+                            <th class="py-2 px-4 border text-left">已遭利用</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold whitespace-nowrap">CVE-2023-46805</td><td class="py-2 px-4 border whitespace-nowrap">2024-01-10</td><td class="py-2 px-4 border">驗證繞過</td><td class="py-2 px-4 border">9.x、22.x</td><td class="py-2 px-4 border">2024-01 至 02 月陸續推出(例:9.1R18.4、22.6R2.2)</td><td class="py-2 px-4 border">是</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold whitespace-nowrap">CVE-2024-21887</td><td class="py-2 px-4 border whitespace-nowrap">2024-01-10</td><td class="py-2 px-4 border">指令注入,和上一個串接就能在未驗證狀態下遠端執行</td><td class="py-2 px-4 border">9.x、22.x</td><td class="py-2 px-4 border">同上</td><td class="py-2 px-4 border">是</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold whitespace-nowrap">CVE-2024-21893</td><td class="py-2 px-4 border whitespace-nowrap">2024-01-31</td><td class="py-2 px-4 border">SAML 元件 SSRF</td><td class="py-2 px-4 border">9.x、22.x</td><td class="py-2 px-4 border">2024-02</td><td class="py-2 px-4 border">是</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold whitespace-nowrap">CVE-2025-0282</td><td class="py-2 px-4 border whitespace-nowrap">2025-01-08</td><td class="py-2 px-4 border">堆疊緩衝區溢位,未驗證遠端執行</td><td class="py-2 px-4 border">22.7R2 至 22.7R2.4</td><td class="py-2 px-4 border">22.7R2.5</td><td class="py-2 px-4 border">是</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold whitespace-nowrap">CVE-2025-22457</td><td class="py-2 px-4 border whitespace-nowrap">2025-04-03</td><td class="py-2 px-4 border">堆疊緩衝區溢位,未驗證遠端執行</td><td class="py-2 px-4 border">22.7R2.5 以前;已終止支援的 9.1R18.9 以前</td><td class="py-2 px-4 border">22.7R2.6;<strong>9.1x 沒有修補</strong></td><td class="py-2 px-4 border">是</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold whitespace-nowrap">CVE-2026-104935</td><td class="py-2 px-4 border whitespace-nowrap">2026-10-13</td><td class="py-2 px-4 border">驗證繞過,未驗證遠端執行指令</td><td class="py-2 px-4 border">25.1.1.1、25.1.2.2、22.8R2.4 以前(22.7 不受影響)</td><td class="py-2 px-4 border">25.1.1.2、25.1.3.0 / 25.1.3.1、22.8R2.5</td><td class="py-2 px-4 border">是(0-day)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold whitespace-nowrap">CVE-2026-111357</td><td class="py-2 px-4 border whitespace-nowrap">2026-10</td><td class="py-2 px-4 border">本機提權為 root</td><td class="py-2 px-4 border">25.1.1.2、25.1.2.2、22.8R2.5 以前</td><td class="py-2 px-4 border">25.1.1.3、25.1.3.x、22.8R2.6</td><td class="py-2 px-4 border">是,與上一個串接</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold whitespace-nowrap">CVE-2026-118527</td><td class="py-2 px-4 border whitespace-nowrap">2026-10</td><td class="py-2 px-4 border">可預測檔名,已驗證者可上傳檔案</td><td class="py-2 px-4 border">同上</td><td class="py-2 px-4 border">同上</td><td class="py-2 px-4 border">是,串接</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">教學重點</h3>
+            <ul class="list-disc pl-6 space-y-2 text-gray-700">
+                <li><strong>CVE-2025-22457 的受害者包括已終止支援的 9.1x 設備</strong>,而 9.1x 不會有修補。這是「為什麼不能繼續用舊版」最直接的例子。</li>
+                <li><strong>2026-10 的攻擊仍在進行中。</strong>研究機構 Volexity 指出,攻擊者自 2026-10-03 起利用這組漏洞,10 月第一週已有「當時已完全修補」的設備被入侵,因為這是 0-day。</li>
+                <li>這一節的版本與日期會持續變動,<strong>上課前請重新查一次 Ivanti 最新安全公告</strong>。第六節的版本對照工具,也是依這張表整理的。</li>
+            </ul>
+        </div>
+
+        <!-- 三、ICT -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">三、Integrity Checker Tool(ICT):用途與限制</h2>
+
+            <p class="text-gray-700 leading-relaxed mb-2">
+                <span class="tech-term">Integrity Checker Tool(ICT)</span>把設備上的檔案和預期的<span class="tech-term">快照(snapshot)</span>比對,找出被新增或修改的檔案。
+            </p>
+
+            <div class="analogy-box">
+                <p class="font-bold text-green-800 mb-1"><i class="fas fa-camera mr-1"></i>用現場照片來想</p>
+                <p class="text-green-900">ICT 像保全替機房拍的「現場照片」,和標準照片一比,就看得出多了一個箱子、少了一個櫃子(檔案被新增或修改)。但如果小偷拍照前就把痕跡清乾淨,或是只把東西放在腦子裡、沒有留在房間(惡意指令只在記憶體裡跑),照片就比對不出來。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">ICT 能做什麼</h3>
+            <ul class="list-disc pl-6 space-y-2 text-gray-700">
+                <li>分為<strong>內建(internal)</strong>與<strong>外部(external)</strong>兩種。官方說明與下載見 Ivanti KB44755。</li>
+                <li>外部 ICT 會產生可自行檢視的快照;2024-05 之後的版本執行外部掃描,不再需要重開機。</li>
+                <li>22.7R2.8 起,外部 ICT 可以用 REST API 觸發掃描並下載結果,同一時間只能跑一個掃描。</li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">ICT 的限制:兩種說法並陳</h3>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 class="font-bold text-blue-800 mb-2"><i class="fas fa-building-shield mr-2"></i>Ivanti 的說法</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-800 space-y-1">
+                        <li>官方自己寫明:它只是某個時間點的快照。攻擊者若事先清除痕跡,就偵測不到。</li>
+                        <li>它不掃描惡意程式,也不比對入侵指標(IoC)。</li>
+                        <li>曾有攻擊者試圖竄改內建 ICT,所以官方建議跑<strong>外部 ICT</strong>,並搭配持續監控。</li>
+                        <li>針對 2026-10 這一波,Ivanti 的公告<strong>仍建議定期執行 ICT</strong>。</li>
+                    </ul>
+                </div>
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <h4 class="font-bold text-red-800 mb-2"><i class="fas fa-user-secret mr-2"></i>CISA 與 Volexity 的說法</h4>
+                    <ul class="list-disc pl-5 text-sm text-gray-800 space-y-1">
+                        <li>針對 2026-10 這一波,兩者都指出 ICT <strong>可能偵測不到</strong>。</li>
+                        <li>原因是惡意指令是在<strong>記憶體</strong>裡執行,沒有留下 ICT 比對得出來的檔案變動。</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="highlight-box">
+                <p class="font-bold text-rose-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>教學時兩種說法都要講</p>
+                <p class="text-gray-800">不要只講其中一邊。實務上可以定期跑外部 ICT,但<strong>它沒發現異常,不能當成「設備沒事」的證明</strong>。這也是第五節清單把「定期執行外部 ICT,但不要只靠 ICT」寫在一起的原因。</p>
+            </div>
+        </div>
+
+        <!-- 四、處置流程 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">四、疑似遭入侵的處置流程</h2>
+            <p class="text-gray-700 leading-relaxed">
+                發現可疑跡象時,最怕的是慌張之下直接重置、換密碼,結果證據全沒了,也不知道攻擊者拿走了什麼。下面是整理自 Ivanti 與 CISA 公告的五個步驟,<strong>順序不能顛倒</strong>。
+            </p>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 360 600" role="img" aria-labelledby="svg1-title" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans TC, sans-serif">
+                    <title id="svg1-title">疑似遭入侵的處置流程,由上而下五步:一、保全證據;二、重建設備;三、安裝最新修補版本後再還原設定;四、全面更換密碼與憑證;五、持續監控</title>
+                    <defs>
+                        <marker id="arrow1" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+                        </marker>
+                    </defs>
+
+                    <rect x="20" y="10" width="320" height="80" rx="10" fill="#fff1f2" stroke="#e11d48" stroke-width="2"/>
+                    <text x="36" y="34" font-size="15" font-weight="700" fill="#be123c">① 保全證據</text>
+                    <text x="36" y="56" font-size="14" fill="#1f2937">通報資安單位、隔離設備</text>
+                    <text x="36" y="76" font-size="14" fill="#1f2937">保存鑑識映像,再動手修復</text>
+                    <line x1="180" y1="90" x2="180" y2="112" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+
+                    <rect x="20" y="116" width="320" height="100" rx="10" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
+                    <text x="36" y="140" font-size="15" font-weight="700" fill="#c2410c">② 重建設備</text>
+                    <text x="36" y="162" font-size="14" fill="#1f2937">實體設備:Factory Reset</text>
+                    <text x="36" y="182" font-size="14" fill="#b91c1c">虛擬機與雲端:不要 Factory Reset</text>
+                    <text x="36" y="202" font-size="14" fill="#1f2937">改部署全新的映像</text>
+                    <line x1="180" y1="216" x2="180" y2="238" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+
+                    <rect x="20" y="242" width="320" height="80" rx="10" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+                    <text x="36" y="266" font-size="15" font-weight="700" fill="#1d4ed8">③ 安裝最新修補版本</text>
+                    <text x="36" y="288" font-size="14" fill="#1f2937">先安裝最新的修補版本</text>
+                    <text x="36" y="308" font-size="14" fill="#1f2937">裝完之後,才還原設定</text>
+                    <line x1="180" y1="322" x2="180" y2="344" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+
+                    <rect x="20" y="348" width="320" height="136" rx="10" fill="#faf5ff" stroke="#7c3aed" stroke-width="2"/>
+                    <text x="36" y="372" font-size="15" font-weight="700" fill="#6d28d9">④ 全面更換密碼與憑證</text>
+                    <text x="36" y="394" font-size="14" fill="#1f2937">管理員密碼、API 金鑰、本機與服務帳號</text>
+                    <text x="36" y="414" font-size="14" fill="#1f2937">網域帳號重設兩次</text>
+                    <text x="36" y="434" font-size="14" fill="#1f2937">撤銷 Kerberos 票證與雲端 token</text>
+                    <text x="36" y="454" font-size="14" fill="#1f2937">撤銷並重新簽發設備上的憑證</text>
+                    <text x="36" y="474" font-size="14" fill="#1f2937">重設授權伺服器的連線帳密</text>
+                    <line x1="180" y1="484" x2="180" y2="506" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+
+                    <rect x="20" y="510" width="320" height="80" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+                    <text x="36" y="534" font-size="15" font-weight="700" fill="#15803d">⑤ 持續監控</text>
+                    <text x="36" y="556" font-size="13" fill="#1f2937">攻擊者可能取得能撐過 Factory Reset 的持久性</text>
+                    <text x="36" y="576" font-size="13" fill="#475569">(CISA 在 2024 年曾指出)</text>
+                </svg>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">每一步在做什麼</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">步驟</th><th class="py-2 px-4 border text-left">做法</th><th class="py-2 px-4 border text-left">為什麼</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold whitespace-nowrap">① 保全證據</td><td class="py-2 px-4 border">先通報資安單位、隔離設備、保存鑑識映像,再動手修復</td><td class="py-2 px-4 border">重置之後證據就沒了,無法回頭查攻擊者做了什麼</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold whitespace-nowrap">② 重建設備</td><td class="py-2 px-4 border">實體設備做 Factory Reset;虛擬機與雲端<strong>不要</strong> Factory Reset,改部署全新的映像</td><td class="py-2 px-4 border">公告的指示:兩種環境的重建方式不同</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold whitespace-nowrap">③ 安裝修補</td><td class="py-2 px-4 border">安裝最新的修補版本後,再還原設定</td><td class="py-2 px-4 border">先換上已修補的版本,再放回設定,設備才不會帶著漏洞重新上線</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold whitespace-nowrap">④ 更換密碼與憑證</td><td class="py-2 px-4 border">管理員密碼、API 金鑰、本機使用者與服務帳號密碼;網域帳號重設<strong>兩次</strong>,並撤銷 Kerberos 票證與雲端 token;撤銷並重新簽發設備上儲存的憑證,重設授權伺服器的連線帳密</td><td class="py-2 px-4 border">設備上的帳密與憑證都可能已被攻擊者看過</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold whitespace-nowrap">⑤ 持續監控</td><td class="py-2 px-4 border">重建完成後仍要持續監控,不要以為做完前四步就結束</td><td class="py-2 px-4 border">CISA 在 2024 年曾指出,攻擊者可能取得能撐過 Factory Reset 的持久性</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 五、加固檢查清單 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">五、加固檢查清單:十個重點</h2>
+            <p class="text-gray-700 leading-relaxed">
+                <span class="tech-term">加固(hardening)</span>就是把設備的設定調到最安全的狀態,讓攻擊者能下手的地方變少。下面十項是平常就要做的事,第六節有可以勾選的版本。
+            </p>
+
+            <div class="overflow-x-auto mt-4">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">項目</th><th class="py-2 px-4 border text-left">做法</th><th class="py-2 px-4 border text-left">白話原因</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold whitespace-nowrap">版本</td><td class="py-2 px-4 border">維持在支援中的版本線,訂閱 Ivanti 安全公告,修補一推出就排程更新</td><td class="py-2 px-4 border">第二節的漏洞都有被實際利用,有些還在修補推出前就被利用</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold whitespace-nowrap">舊設備</td><td class="py-2 px-4 border">已終止支援的 PSA、9.1Rx 設備盡快汰換</td><td class="py-2 px-4 border">9.1x 不會有修補,CVE-2025-22457 就是例子</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold whitespace-nowrap">管理介面</td><td class="py-2 px-4 border">只從 Internal / Management port 管理,Admin Realm 限制來源 IP,管理員加第二因素</td><td class="py-2 px-4 border">管理介面權限最大,只讓管理網段連得到,再加第二因素,密碼被偷也進不去</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold whitespace-nowrap">TLS</td><td class="py-2 px-4 border">只開 TLS 1.2 / 1.3,啟用 OCSP / CRL</td><td class="py-2 px-4 border">舊版協定的安全性較差,只留現行版本;OCSP / CRL 讓設備能查出已被撤銷的憑證</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold whitespace-nowrap">憑證</td><td class="py-2 px-4 border">到期前 30–60 天更新,SAN 涵蓋所有網址</td><td class="py-2 px-4 border">憑證過期,使用者會看到警告或連不上;網址沒列在 SAN,瀏覽器會說憑證不符</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold whitespace-nowrap">驗證</td><td class="py-2 px-4 border">LDAP 用 LDAPS,查詢帳號用唯讀服務帳號,使用者一律雙因素</td><td class="py-2 px-4 border">明文 LDAP 的帳密在網路上看得到;唯讀帳號被偷也改不了目錄;雙因素讓只偷到密碼的人進不來</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold whitespace-nowrap">存取控制</td><td class="py-2 px-4 border">VPN Access Control 最小權限,預設全部走隧道</td><td class="py-2 px-4 border">只放行必要的 IP、埠與協定,帳號被盜用時能碰到的範圍也有限(第 9 章)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold whitespace-nowrap">設定檔</td><td class="py-2 px-4 border">匯出的設定檔加密碼保護並妥善保管</td><td class="py-2 px-4 border">設定檔含有設備的完整設定,外流就等於把內部細節交給別人</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold whitespace-nowrap">日誌</td><td class="py-2 px-4 border">Syslog 送到 SIEM(TCP / TLS 並開 Fault tolerance),SNMP 監控暴力登入告警</td><td class="py-2 px-4 border">日誌另存在別台機器,設備出事時紀錄還在;暴力登入告警能及早發現有人在猜密碼</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold whitespace-nowrap">完整性</td><td class="py-2 px-4 border">定期執行外部 ICT,但不要只靠 ICT</td><td class="py-2 px-4 border">ICT 有盲點(第三節),只能當其中一道防線</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>【25.x】25.1.3.0 已收緊的預設值</p>
+                <ul class="list-disc pl-6 text-gray-800 space-y-1">
+                    <li>IKEv2 預設 AES-256 / SHA-256 / DH 2048 以上。</li>
+                    <li>SAML 2.0 簽章驗證預設啟用。</li>
+                    <li>新建的 LDAP 伺服器預設驗證憑證。</li>
+                    <li>Session 結束時刪除所有 cookie。</li>
+                    <li>暫時移除自訂登入頁上傳。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 六、模擬器 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">六、動手玩:版本影響查詢與加固檢查清單</h2>
+            <p class="text-gray-700 mb-2">兩個小工具:先看自己的版本受哪些漏洞影響,再逐項檢查加固做到了沒有。</p>
+
+            <!-- 工具 1 -->
+            <div class="bg-gray-50 border rounded-lg p-4 mt-4">
+                <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-magnifying-glass mr-1 text-rose-600"></i>工具 1:我的版本受哪些漏洞影響?</h3>
+                <p class="text-sm text-gray-600 mb-3">對照表依第二節整理,資料以 2026-10-31 查證為準。不在選單裡的版本線,請直接查 Ivanti 安全公告。</p>
+                <label for="ver-select" class="block text-sm font-semibold text-gray-700 mb-1">設備目前的版本</label>
+                <select id="ver-select" class="border rounded px-2 py-2 w-full bg-white"></select>
+                <div id="ver-result" class="border rounded-lg p-4 mt-3"></div>
+                <div class="mt-3">
+                    <button type="button" id="ver-reset" class="border rounded px-3 py-2 bg-white hover:bg-rose-50 text-sm"><i class="fas fa-rotate-left mr-1"></i>還原</button>
+                </div>
+            </div>
+
+            <!-- 工具 2 -->
+            <div class="bg-gray-50 border rounded-lg p-4 mt-4">
+                <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-list-check mr-1 text-rose-600"></i>工具 2:加固檢查清單</h3>
+                <p class="text-sm text-gray-600 mb-3">逐項檢查自己的設備,做到了就勾起來。勾選狀態只存在這個頁面,重新整理就會清空。</p>
+                <div class="flex items-center justify-between text-sm mb-1">
+                    <span id="hc-count" class="font-semibold text-gray-700">已完成 0 / 10</span>
+                    <span id="hc-pct" class="text-gray-500">0%</span>
+                </div>
+                <div class="prog-track" role="progressbar" aria-label="加固檢查完成進度" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0" id="hc-track">
+                    <div class="prog-bar" id="hc-bar"></div>
+                </div>
+                <div id="hc-list" class="mt-3"></div>
+                <div id="hc-msg" class="border rounded-lg p-3 mt-3 text-sm"></div>
+                <div class="mt-3">
+                    <button type="button" id="hc-reset" class="border rounded px-3 py-2 bg-white hover:bg-rose-50 text-sm"><i class="fas fa-rotate-left mr-1"></i>還原</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 七、踩坑 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">七、常見踩坑與版本差異</h2>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>ICT 沒報異常,就當作設備沒事</p>
+                <p class="text-gray-800">ICT 只是某個時間點的快照,不掃惡意程式、不比對 IoC;2026-10 這一波還可能因為惡意指令在記憶體執行而偵測不到。ICT 乾淨,只代表「比對得出來的部分」沒問題。</p>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>以為裝到最新版就不會被入侵</p>
+                <p class="text-gray-800">2026-10 這一波,10 月第一週已有「當時已完全修補」的設備被入侵,因為是 0-day。所以更新之外,還要靠加固清單縮小攻擊面、靠日誌與監控及早發現。</p>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>虛擬機被入侵,卻直接 Factory Reset</p>
+                <p class="text-gray-800">虛擬機與雲端環境不要 Factory Reset,要部署全新的映像。而且重建之前要先保全證據,不要一發現就急著重置。</p>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>換密碼換得不夠徹底</p>
+                <p class="text-gray-800">網域帳號要重設<strong>兩次</strong>,並撤銷 Kerberos 票證與雲端 token;設備上儲存的憑證要撤銷並重新簽發,連授權伺服器的連線帳密也要重設。只換管理員密碼是不夠的。</p>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>9.1x 設備「先放著,等修補」</p>
+                <p class="text-gray-800">9.1x 已終止支援,CVE-2025-22457 不會有修補。唯一的處理方式是汰換成支援中的版本線。</p>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>版本差異</p>
+                <ul class="list-disc pl-6 text-gray-800 space-y-1">
+                    <li>9.1x 已終止支援;22.x 是過渡版本,2027-01-31 終止支援;新版基準是 25.1.x。</li>
+                    <li>CVE-2026-104935 的影響版本註明「22.7 不受影響」;但 CVE-2026-111357、CVE-2026-118527 的影響版本沒有列出 22.7,是否受影響要查 Ivanti 公告。所以第六節對照表對 22.7R2.6 以後的 22.7 只顯示「待確認」,不會判定為安全。2025 年以前的表列漏洞已在 22.7R2.6 修補。</li>
+                    <li>ICT 的 REST API 觸發掃描,從 22.7R2.8 起提供;外部掃描不用重開機,則是 2024-05 之後的版本。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
+                隨堂測驗
+            </h2>
+            <p class="mb-6 text-gray-600">請點選您認為正確的選項,系統將會顯示解析。</p>
+            <div class="space-y-6" id="quiz-container"></div>
+        </div>
+
+    </main>
+
+    <footer class="footer-signature">
+        Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver.2026.10.31.22.32
+    </footer>
+
+
+    <script>
+        // ===== 工具 1:版本影響查詢 =====
+        // 對照表依第 17 章 17.2 整理,資料以 2026-10-31 查證為準
+        const CVE_INFO = {
+            'CVE-2023-46805': { type: '驗證繞過', used: '是' },
+            'CVE-2024-21887': { type: '指令注入,和 CVE-2023-46805 串接就能在未驗證狀態下遠端執行', used: '是' },
+            'CVE-2024-21893': { type: 'SAML 元件 SSRF', used: '是' },
+            'CVE-2025-0282': { type: '堆疊緩衝區溢位,未驗證遠端執行', used: '是' },
+            'CVE-2025-22457': { type: '堆疊緩衝區溢位,未驗證遠端執行', used: '是' },
+            'CVE-2026-104935': { type: '驗證繞過,未驗證遠端執行指令', used: '是(0-day)' },
+            'CVE-2026-111357': { type: '本機提權為 root', used: '是,與驗證繞過漏洞串接' },
+            'CVE-2026-118527': { type: '可預測檔名,已驗證者可上傳檔案', used: '是,串接' }
+        };
+
+        const VERSION_OPTIONS = [
+            { id: 'v91a', label: '9.1R18.x,低於 9.1R18.4(已終止支援)',
+              hits: [['CVE-2025-22457', '沒有修補,只能汰換'], ['CVE-2023-46805', '2024-01 至 02 月推出的修補(例:9.1R18.4)'], ['CVE-2024-21887', '同上'], ['CVE-2024-21893', '2024-02 推出的修補']],
+              advice: '9.1x 已終止支援,CVE-2025-22457 沒有修補,只能汰換成支援中的版本線(新版基準是 25.1.x)。其他 9.1 版本線一律受 CVE-2025-22457 影響,沒有修補。' },
+            { id: 'v91b', label: '9.1R18.x,9.1R18.4 以上(已終止支援;CVE-2024-21893 的修補版本以公告為準)',
+              hits: [['CVE-2025-22457', '沒有修補,只能汰換']],
+              advice: '9.1x 已終止支援,CVE-2025-22457 沒有修補,只能汰換成支援中的版本線(新版基準是 25.1.x)。其他 9.1 版本線一律受 CVE-2025-22457 影響,沒有修補。CVE-2024-21893 的修補版本以公告為準。' },
+            { id: 'v227a', label: '22.7R2 ~ 22.7R2.4',
+              hits: [['CVE-2025-0282', '22.7R2.5'], ['CVE-2025-22457', '22.7R2.6']],
+              advice: '升級到 22.7R2.6 以上。22.x 是過渡版本,2027-01-31 終止支援,也要規劃往 25.1.x 遷移。' },
+            { id: 'v227b', label: '22.7R2.5',
+              hits: [['CVE-2025-22457', '22.7R2.6']],
+              advice: '升級到 22.7R2.6 以上。22.x 是過渡版本,2027-01-31 終止支援,也要規劃往 25.1.x 遷移。' },
+            { id: 'v227c', label: '22.7R2.6 以後的 22.7', hits: [],
+              verify: 'CVE-2026-104935 註明 22.7 不受影響;CVE-2026-111357、CVE-2026-118527 的影響版本沒有列出 22.7,是否受影響請查 Ivanti 公告。2025 年以前的表列漏洞已在此版本修補。',
+              note: '22.x 是過渡版本,2027-01-31 終止支援。' },
+            { id: 'v228a', label: '22.8R2.4 以前',
+              hits: [['CVE-2026-104935', '22.8R2.5'], ['CVE-2026-111357', '22.8R2.6'], ['CVE-2026-118527', '22.8R2.6']],
+              advice: '升級到 22.8R2.6。這一波攻擊仍在進行中,升級前後都要檢查有沒有被入侵(第四節)。' },
+            { id: 'v228b', label: '22.8R2.5',
+              hits: [['CVE-2026-111357', '22.8R2.6'], ['CVE-2026-118527', '22.8R2.6']],
+              advice: '升級到 22.8R2.6。這一波攻擊仍在進行中,升級前後都要檢查有沒有被入侵(第四節)。' },
+            { id: 'v228c', label: '22.8R2.6', hits: [], note: '22.x 是過渡版本,2027-01-31 終止支援。' },
+            { id: 'v251a', label: '25.1.1.1 以前(是否包含 25.1.0.x 公告沒寫明,使用 25.1.0.x 請直接查公告)',
+              hits: [['CVE-2026-104935', '25.1.1.2'], ['CVE-2026-111357', '25.1.1.3'], ['CVE-2026-118527', '25.1.1.3']],
+              advice: '升級到 25.1.1.3。這一波攻擊仍在進行中,升級前後都要檢查有沒有被入侵(第四節)。' },
+            { id: 'v251b', label: '25.1.1.2',
+              hits: [['CVE-2026-111357', '25.1.1.3'], ['CVE-2026-118527', '25.1.1.3']],
+              advice: '升級到 25.1.1.3。這一波攻擊仍在進行中,升級前後都要檢查有沒有被入侵(第四節)。' },
+            { id: 'v251c', label: '25.1.1.3', hits: [] },
+            { id: 'v251d', label: '25.1.2.2 以前(25.1.2.x 線)',
+              hits: [['CVE-2026-104935', '25.1.3.0 / 25.1.3.1'], ['CVE-2026-111357', '25.1.3.x'], ['CVE-2026-118527', '25.1.3.x']],
+              advice: '三個 2026 漏洞都受影響,升級到 25.1.3.x。這一波攻擊仍在進行中,升級前後都要檢查有沒有被入侵(第四節)。' },
+            { id: 'v251e', label: '25.1.3.x', hits: [] }
+        ];
+
+        const verSelect = document.getElementById('ver-select');
+        const verResult = document.getElementById('ver-result');
+
+        function buildVersionSelect() {
+            verSelect.innerHTML = '';
+            const first = document.createElement('option');
+            first.value = '';
+            first.textContent = '請選擇版本…';
+            verSelect.appendChild(first);
+            VERSION_OPTIONS.forEach(v => {
+                const opt = document.createElement('option');
+                opt.value = v.id;
+                opt.textContent = v.label;
+                verSelect.appendChild(opt);
+            });
+        }
+
+        function renderVersion() {
+            const v = VERSION_OPTIONS.find(o => o.id === verSelect.value);
+            if (!v) {
+                verResult.className = 'border rounded-lg p-4 mt-3 bg-blue-50 border-blue-300';
+                verResult.innerHTML = `<h4 class="font-bold text-blue-700 mb-1"><i class="fas fa-circle-info mr-1"></i>請先選擇版本</h4>
+                    <p class="text-sm text-gray-800">選好之後,這裡會列出受影響的 CVE 與修補版本。</p>`;
+                return;
+            }
+            if (v.hits.length === 0 && v.verify) {
+                verResult.className = 'border rounded-lg p-4 mt-3 bg-amber-50 border-amber-300';
+                verResult.innerHTML = `<h4 class="font-bold text-amber-700 mb-1"><i class="fas fa-circle-question mr-1"></i>${v.label}:待確認</h4>
+                    <p class="text-sm text-gray-800">${v.verify}</p>
+                    ${v.note ? `<p class="text-sm text-gray-700 mt-1">${v.note}</p>` : ''}
+                    <p class="text-xs text-gray-500 mt-2">對照表資料以 2026-10-31 查證為準,上課前請重查 Ivanti 最新安全公告。</p>`;
+                return;
+            }
+            if (v.hits.length === 0) {
+                verResult.className = 'border rounded-lg p-4 mt-3 bg-green-50 border-green-300';
+                verResult.innerHTML = `<h4 class="font-bold text-green-700 mb-1"><i class="fas fa-circle-check mr-1"></i>${v.label}</h4>
+                    <p class="text-sm text-gray-800">本表列出的漏洞不影響此版本,但仍要追蹤之後的公告。</p>
+                    ${v.note ? `<p class="text-sm text-gray-700 mt-1">${v.note}</p>` : ''}
+                    <p class="text-xs text-gray-500 mt-2">對照表資料以 2026-10-31 查證為準,上課前請重查 Ivanti 最新安全公告。</p>`;
+                return;
+            }
+            const items = v.hits.map(h => {
+                const info = CVE_INFO[h[0]];
+                return `<div class="trace-line"><strong>${h[0]}</strong>(${info.type})<br>
+                    <span class="text-sm">修補版本:<strong>${h[1]}</strong>;已遭利用:${info.used}</span></div>`;
+            }).join('');
+            verResult.className = 'border rounded-lg p-4 mt-3 bg-red-50 border-red-300';
+            verResult.innerHTML = `<h4 class="font-bold text-red-700 mb-2"><i class="fas fa-circle-xmark mr-1"></i>${v.label}:受 ${v.hits.length} 個表列漏洞影響</h4>
+                <div class="text-sm text-gray-800">${items}</div>
+                <p class="text-sm text-gray-800 mt-3"><strong>建議:</strong>${v.advice}</p>
+                <p class="text-xs text-gray-500 mt-2">對照表資料以 2026-10-31 查證為準,上課前請重查 Ivanti 最新安全公告。</p>`;
+        }
+
+        verSelect.addEventListener('change', renderVersion);
+        document.getElementById('ver-reset').addEventListener('click', () => {
+            verSelect.value = '';
+            renderVersion();
+        });
+        buildVersionSelect();
+        renderVersion();
+
+        // ===== 工具 2:加固檢查清單 =====
+        const HARDEN_ITEMS = [
+            { t: '版本', d: '維持在支援中的版本線,訂閱 Ivanti 安全公告,修補一推出就排程更新' },
+            { t: '舊設備', d: '已終止支援的 PSA、9.1Rx 設備盡快汰換' },
+            { t: '管理介面', d: '只從 Internal / Management port 管理,Admin Realm 限制來源 IP,管理員加第二因素' },
+            { t: 'TLS', d: '只開 TLS 1.2 / 1.3,啟用 OCSP / CRL' },
+            { t: '憑證', d: '到期前 30–60 天更新,SAN 涵蓋所有網址' },
+            { t: '驗證', d: 'LDAP 用 LDAPS,查詢帳號用唯讀服務帳號,使用者一律雙因素' },
+            { t: '存取控制', d: 'VPN Access Control 最小權限,預設全部走隧道' },
+            { t: '設定檔', d: '匯出的設定檔加密碼保護並妥善保管' },
+            { t: '日誌', d: 'Syslog 送到 SIEM(TCP / TLS 並開 Fault tolerance),SNMP 監控暴力登入告警' },
+            { t: '完整性', d: '定期執行外部 ICT,但不要只靠 ICT' }
+        ];
+
+        const hcList = document.getElementById('hc-list');
+        const hcCount = document.getElementById('hc-count');
+        const hcPct = document.getElementById('hc-pct');
+        const hcBar = document.getElementById('hc-bar');
+        const hcTrack = document.getElementById('hc-track');
+        const hcMsg = document.getElementById('hc-msg');
+
+        HARDEN_ITEMS.forEach((it, i) => {
+            const label = document.createElement('label');
+            label.className = 'chk-item';
+            label.innerHTML = `<input type="checkbox" id="hc-item-${i}" data-i="${i}"><span><strong>${i + 1}. ${it.t}</strong>:${it.d}</span>`;
+            hcList.appendChild(label);
+        });
+
+        function updateHardening() {
+            const boxes = hcList.querySelectorAll('input[type="checkbox"]');
+            let done = 0;
+            boxes.forEach(b => {
+                if (b.checked) done++;
+                b.closest('.chk-item').classList.toggle('done', b.checked);
+            });
+            const total = HARDEN_ITEMS.length;
+            const pct = Math.round(done / total * 100);
+            hcCount.textContent = `已完成 ${done} / ${total}`;
+            hcPct.textContent = `${pct}%`;
+            hcBar.style.width = `${pct}%`;
+            hcTrack.setAttribute('aria-valuenow', String(done));
+            if (done === total) {
+                hcMsg.className = 'border rounded-lg p-3 mt-3 text-sm bg-green-50 border-green-300 text-gray-800';
+                hcMsg.innerHTML = '<strong class="text-green-700"><i class="fas fa-circle-check mr-1"></i>十項都勾完了。</strong>加固不是做一次就結束,公告一更新,就要回頭重新檢查這張清單。';
+            } else if (done === 0) {
+                hcMsg.className = 'border rounded-lg p-3 mt-3 text-sm bg-blue-50 border-blue-300 text-gray-800';
+                hcMsg.innerHTML = '<i class="fas fa-circle-info mr-1 text-blue-600"></i>逐項檢查自己的設備,做到了就勾起來。';
+            } else {
+                hcMsg.className = 'border rounded-lg p-3 mt-3 text-sm bg-blue-50 border-blue-300 text-gray-800';
+                hcMsg.innerHTML = `<i class="fas fa-circle-info mr-1 text-blue-600"></i>還有 ${total - done} 項沒勾,沒勾的就是接下來要排進工作清單的項目。`;
+            }
+        }
+
+        hcList.addEventListener('change', updateHardening);
+        document.getElementById('hc-reset').addEventListener('click', () => {
+            hcList.querySelectorAll('input[type="checkbox"]').forEach(b => { b.checked = false; });
+            updateHardening();
+        });
+        updateHardening();
+
+        // ===== 隨堂測驗 =====
+        const quizData = [
+            {
+                question: "Q1. 公司還有一台 9.1R18.9 的設備。管理員說:「等 Ivanti 推出 CVE-2025-22457 的修補再升級。」下列哪個回應最適當?",
+                options: ["A. 沒問題,Ivanti 通常會補上修補", "B. 9.1x 已終止支援,這個漏洞沒有修補,只能汰換成支援中的版本線", "C. 只要把管理介面關掉就安全了", "D. 改裝成 22.7R2.5 就不受影響了"],
+                correct: 1,
+                desc: "正解:B。9.1x 已終止支援,CVE-2025-22457 的受害者就包括 9.1x 設備,而它不會有修補。D 不對:22.7R2.5 仍受 CVE-2025-22457 影響,修補版本是 22.7R2.6。"
+            },
+            {
+                question: "Q2. 一台虛擬機版的 ICS 疑似被入侵。已經通報資安單位、隔離設備並保存鑑識映像,下一步重建設備該怎麼做?",
+                options: ["A. 重開機就好", "B. 直接做 Factory Reset", "C. 不要 Factory Reset,改部署全新的映像", "D. 只更換管理員密碼"],
+                correct: 2,
+                desc: "正解:C。實體設備做 Factory Reset;虛擬機與雲端環境不要 Factory Reset,改部署全新的映像。接著安裝最新修補版本、還原設定,再全面更換密碼與憑證。"
+            },
+            {
+                question: "Q3. 外部 ICT 掃描後「沒有發現異常」。下列哪個結論最合理?",
+                options: ["A. 設備確定沒有被入侵", "B. 可以停止監控日誌了", "C. 只有 ICT 報異常時才需要處理", "D. ICT 只是某個時間點的快照,不掃惡意程式也不比對 IoC,2026-10 這一波還可能因惡意指令在記憶體執行而偵測不到,所以仍要搭配持續監控"],
+                correct: 3,
+                desc: "正解:D。Ivanti 官方自己寫明 ICT 的限制,CISA 與 Volexity 也指出 2026-10 這一波 ICT 可能偵測不到。Ivanti 的公告仍建議定期執行 ICT,但不能只靠 ICT。"
+            },
+            {
+                question: "Q4. 確認設備遭入侵、重建完成後要換密碼。網域帳號應該怎麼處理?",
+                options: ["A. 重設兩次,並撤銷 Kerberos 票證與雲端 token", "B. 重設一次就夠了", "C. 不用處理,只換設備本機的密碼", "D. 等使用者自己發現再改"],
+                correct: 0,
+                desc: "正解:A。網域帳號要重設兩次,並撤銷 Kerberos 票證與雲端 token。設備上儲存的憑證也要撤銷並重新簽發,授權伺服器的連線帳密也要重設。"
+            },
+            {
+                question: "Q5. 設備版本是 22.8R2.5。依本章的版本對照表,結果為何?",
+                options: ["A. 表列漏洞都不影響", "B. 受 CVE-2026-111357 與 CVE-2026-118527 影響,修補版本是 22.8R2.6", "C. 只受 CVE-2026-104935 影響,修補版本是 22.8R2.5", "D. 受 CVE-2025-0282 影響,修補版本是 22.7R2.5"],
+                correct: 1,
+                desc: "正解:B。CVE-2026-104935 在 22.8R2.5 已修補,但 CVE-2026-111357(本機提權)與 CVE-2026-118527(可預測檔名上傳檔案)要到 22.8R2.6 才修補。CVE-2025-0282 影響的是 22.7R2 至 22.7R2.4。"
+            }
+        ];
+
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionBox = document.createElement('div');
+            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
+
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border mb-2 text-gray-700" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            questionBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
+                <div class="space-y-2 mb-4">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
+                    <p class="font-bold result-title"></p>
+                    <p class="text-sm text-gray-600 mt-1">${item.desc}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionBox);
+        });
+
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            if (element.parentElement.dataset.answered) return;
+            element.parentElement.dataset.answered = "true";
+
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+                opt.classList.add('disabled');
+            });
+
+            if (optIndex === data.correct) {
+                element.classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了!";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                element.classList.add('bg-red-100', 'border-red-500');
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了!";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+    </script>
+</body>
+</html>
