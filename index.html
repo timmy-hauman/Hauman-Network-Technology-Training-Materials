@@ -307,6 +307,25 @@
             box-shadow: 0 2px 5px rgba(103, 58, 183, 0.3);
         }
 
+        /* 多個按鈕並排 (導讀圖說 / 教學影片 / 教學網頁) */
+        .badge-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        /* 尚未提供影片網址的按鈕 */
+        .preview-badge[data-yt=""] {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .preview-badge[data-yt=""]:hover {
+            background-color: transparent;
+            color: var(--brand-purple);
+            box-shadow: none;
+        }
+
         /* 箭頭圖標 (右下角裝飾) */
         .card-icon {
             position: absolute;
@@ -518,7 +537,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">線材與接頭</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('nw_layer1/layer1.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('nw_layer1/layer1.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=x19pjHzqKQQ&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('nw_layer1/index.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -532,7 +555,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">Hub vs. Bridge vs. Switch</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept01.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept01.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=hrNzKtJ9vqo&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/HUB-vs-BRIDGE-vs-SWITCH_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -546,7 +573,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">IP Address</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept02.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept02.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=4aASC9gLiPs&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/IP_Adressing_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -560,7 +591,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">ARP Protocol</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept03.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept03.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=vQeuyUqNdX8&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/ARP_Protocol_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -574,7 +609,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">Layer2 Packet Forwarding</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept04.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept04.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=ZCurAXjFIXs&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/L2_Packet_Forwarding_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -588,7 +627,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">Routing</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept05.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept05.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=1jqQ9D2XUA4&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/Routing_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -602,7 +645,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">Layer3 Packet Forwarding</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept06.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept06.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=I5W7uDWHCHs&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/L3_Packet_Forwarding_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -616,7 +663,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">Static Route, RIP, OSPF</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept07.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept07.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=1wHKOFHQK4w&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/Static-Route_RIP_OSPF_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -630,7 +681,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">ECMP (Equal-Cost Multi-Path)</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept08.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept08.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=CgkZrlS2acc&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/ECMP_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -644,7 +699,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">Loopback IP</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept09.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept09.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=HECIQMVKHQc&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/Loopback_IP_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -658,7 +717,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">Lab: ECMP + Loopback IP</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept10.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept10.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=bxQg8VlL4q4&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/Lab_ECMP_Loopback-IP.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -672,7 +735,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">VLAN Tagging</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept11.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept11.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=8ZY2-wqbMkY&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/VLAN_Tagging_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -686,7 +753,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">Broadcast Storm & STP</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept12.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept12.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=puu70bITzRQ&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/BroadcastStorm_and_STP_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -700,7 +771,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">STP (802.1D / 802.1W)</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept13.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept13.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=Hob_QhLItVQ&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/STP_8021d_8021w_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -714,7 +789,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">Per-VLAN STP (P-VSTP)</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept14.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept14.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=_emAHaP6WPU&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/STP_PerVlan-STP_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -728,7 +807,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">MSTP(802.1S)</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept15.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept15.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=czMA8KNdcsU&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/MSTP.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -742,7 +825,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">Link Aggregation</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept16.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept16.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=6VysRZ7Ft7o&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/Link_Aggregation _Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -756,7 +843,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">Extreme MLAG(Multi-Switch Link Aggregation)</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept17.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept17.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=wCXvJQ_8g6A&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/Extreme_MLAG_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -770,7 +861,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">ICMP / TCP / UDP</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept18.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept18.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=jHvDHjqh8h4&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/ICMP_TCP_UDP_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -784,7 +879,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">Troubleshooting & Diagnostics on EXTREME XOS</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept19.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept19.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=woOpy-Q7QP4&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/Extreme_TS_DIAG_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -798,7 +897,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">VRRP (Virtual Router Redundancy Protocol)</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept20.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept20.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=4dLG5QyCU4Q&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/VRRP_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -812,7 +915,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">VRRP + MLAG Topology Design</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept21.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept21.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=GBzhJUAIEJY&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/VRRP_MLAG_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -826,7 +933,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">ESRP (Extreme Standby Router Protocol)</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept22.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept22.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=zj5nXPrrkzY&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/ESRP_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -840,7 +951,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">ESRP+MLAG+OSPF Topology Design</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept23.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept23.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=tjekqtk3oNI&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/ESRP_MLAG_OSPF_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -854,7 +969,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">SNMP (Simple Network Management Protocol)</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept24.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept24.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=jgyqxvpObWA&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/SNMP_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -868,7 +987,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">DNS (Domain Name System)</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept25.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept25.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=AKhV-W2rtGw&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/DNS_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -882,7 +1005,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">DHCP (Dynamic Host Configuration Protocol)</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept26.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept26.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=UGWzHsvR7Hw&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/DHCP_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -896,7 +1023,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">MTU / MSS / Jumbo Frame</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept27.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept27.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=WFGn5a3Rp0Q&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/MTU_MSS_JumboFrame_Ver1.0.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -910,7 +1041,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">Extreme XOS Access-list</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept28.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept28.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=wJUNeQgk3sY&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/Extreme_ACL.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -924,7 +1059,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">Extreme XOS Policy-Base Routing</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept29.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept29.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=MOPxLNqygeU&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/Extreme_PBR.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -938,7 +1077,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">GARP (Gratuitous ARP)</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept30.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept30.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=oQEyo3arE6E&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/GARP.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -952,7 +1095,11 @@
                         <div class="card-text-wrapper">
                             <h3 class="card-title">BGP (Border Gateway Protocol)</h3>
                             <object>
-                                <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept31.png')">導讀圖說 🔍</span>
+                                <div class="badge-row">
+                                    <span class="preview-badge" onclick="event.preventDefault(); openLightbox('network_lead-comic/concept31.png')">導讀圖說 🔍</span>
+                                    <span class="preview-badge" data-yt="https://www.youtube.com/watch?v=HMSLTH-RYSA&amp;list=PLYptgnpzpgqo" onclick="event.preventDefault(); openVideo(this)">教學影片 ▶</span>
+                                    <span class="preview-badge" onclick="event.preventDefault(); window.open('network_concept_and_extreme/BGP.html', '_blank')">教學網頁 📄</span>
+                                </div>
                             </object>
                         </div>
                     </div>
@@ -1745,6 +1892,14 @@
             var lightboxImg = document.getElementById('lightboxImage');
             lightbox.style.display = "flex";
             lightboxImg.src = imageSrc;
+        }
+
+        // 開啟教學影片；data-yt 尚未填網址時不動作
+        function openVideo(badge) {
+            var url = badge.getAttribute('data-yt');
+            if (url) {
+                window.open(url, '_blank');
+            }
         }
 
         function closeLightbox(event) {
