@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imperva WAF Gateway 實戰課程 - 安全政策與處置</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        /* 卡片主體樣式 (Imperva Blue) */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #0284c7;
+        }
+
+        /* 重點提示框 (藍) */
+        .highlight-box {
+            background-color: #f0f9ff;
+            border-left: 4px solid #0284c7;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 技術名詞標記 */
+        .tech-term {
+            color: #075985;
+            font-weight: 700;
+            background-color: #e0f2fe;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
+        }
+
+        /* 比喻說明框 (綠) */
+        .analogy-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 版本差異框 (紫) */
+        .version-box {
+            background-color: #faf5ff;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 常見踩坑框 (橘,避開主色藍) */
+        .pitfall-box {
+            background-color: #fff7ed;
+            border-left: 4px solid #ea580c;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .diagram-container {
+            display: block;
+            background-color: #ffffff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-top: 1rem;
+        }
+
+        .diagram-container svg {
+            display: block;
+            width: 100%;
+            max-width: 520px;
+            margin: 0 auto;
+        }
+
+        /* 示意畫面 (仿管理介面) */
+        .mock-window {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            background: #ffffff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            margin-top: 1rem;
+        }
+        .mock-titlebar {
+            background: #e2e8f0;
+            padding: 0.4rem 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: #475569;
+        }
+        .mock-dots span {
+            display: inline-block;
+            width: 0.6rem;
+            height: 0.6rem;
+            border-radius: 50%;
+            background: #94a3b8;
+            margin-right: 0.2rem;
+        }
+        .mock-url {
+            background: #ffffff;
+            border-radius: 0.25rem;
+            padding: 0.1rem 0.5rem;
+            flex: 1;
+            min-width: 0;
+            font-family: ui-monospace, Consolas, monospace;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .mock-nav {
+            background: #1f2937;
+            color: #cbd5e1;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.25rem 1rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+        }
+        .mock-nav .brand { font-weight: 700; color: #ffffff; margin-right: 0.5rem; }
+        .mock-nav .on { color: #ffffff; border-bottom: 2px solid #38bdf8; padding-bottom: 0.1rem; }
+        .mock-crumb {
+            font-size: 0.8rem;
+            color: #475569;
+            padding: 0.5rem 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f8fafc;
+        }
+        .mock-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            padding: 0.5rem 0.75rem 0;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.8rem;
+        }
+        .mock-tabs span {
+            padding: 0.3rem 0.7rem;
+            border: 1px solid #e5e7eb;
+            border-bottom: none;
+            border-radius: 0.3rem 0.3rem 0 0;
+            background: #f1f5f9;
+            color: #475569;
+        }
+        .mock-tabs span.on { background: #ffffff; color: #111827; font-weight: 600; }
+        .mock-body { padding: 0.75rem; font-size: 0.85rem; }
+        .mock-section { font-weight: 700; color: #334155; margin: 0.75rem 0 0.25rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.2rem; }
+        .mock-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.35rem 0.6rem;
+            padding: 0.35rem 0;
+        }
+        .mock-label { width: 12rem; color: #374151; font-weight: 500; }
+        .mock-input {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+            padding: 0.2rem 0.5rem;
+            min-width: 12rem;
+            background: #ffffff;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #111827;
+        }
+        .mock-select::after { content: " ▾"; color: #64748b; }
+        .mock-indent { padding-left: 2rem; }
+        .mock-btn {
+            display: inline-block;
+            border: 1px solid #94a3b8;
+            background: #f8fafc;
+            border-radius: 0.25rem;
+            padding: 0.2rem 0.7rem;
+            font-size: 0.8rem;
+            color: #1f2937;
+        }
+        .mock-btn.primary { background: #1f2937; color: #ffffff; border-color: #1f2937; }
+        .mock-hl { outline: 2px solid #0284c7; outline-offset: 2px; border-radius: 0.25rem; }
+        .mock-list {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+            min-width: 9rem;
+            min-height: 4.2rem;
+            padding: 0.25rem 0.5rem;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.8rem;
+            background: #ffffff;
+        }
+        .mock-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 0.5rem; }
+        .mock-table th { background: #f1f5f9; text-align: left; padding: 0.35rem 0.5rem; border: 1px solid #e2e8f0; color: #334155; }
+        .mock-table td { padding: 0.35rem 0.5rem; border: 1px solid #e2e8f0; }
+        .mock-caption {
+            font-size: 0.75rem;
+            color: #6b7280;
+            padding: 0.5rem 0.75rem;
+            background: #f9fafb;
+            border-top: 1px dashed #e5e7eb;
+        }
+        .step-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.4rem;
+            height: 1.4rem;
+            border-radius: 9999px;
+            background: #0284c7;
+            color: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .step-list li { display: flex; gap: 0.6rem; align-items: flex-start; margin-bottom: 0.6rem; }
+
+        /* 模擬器 */
+        .sim-rule {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.4rem 0.75rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            margin-bottom: 0.5rem;
+            background: #ffffff;
+        }
+        .sim-rule .num { font-weight: 700; color: #075985; width: 3.5rem; }
+        .sim-rule .desc { flex: 1; min-width: 12rem; }
+        .sim-arrow { border: 1px solid #cbd5e1; border-radius: 0.25rem; padding: 0 0.45rem; background: #f8fafc; }
+        .sim-arrow:disabled { opacity: 0.35; cursor: not-allowed; }
+        .trace-line { padding: 0.3rem 0; border-bottom: 1px dashed #e5e7eb; }
+
+        @media (max-width: 640px) {
+            main { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+            .section-card { padding: 1rem; }
+            .diagram-container { padding: 0.25rem; }
+            .mock-label { width: calc(100% - 2.2rem); }
+            .mock-indent .mock-label { width: 100%; }
+            .mock-input { min-width: 0; width: 100%; }
+            .mock-indent { padding-left: 0.75rem; }
+            .mock-body { padding: 0.5rem; }
+        }
+
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover:not(.disabled) {
+            background-color: #f3f4f6;
+        }
+
+        .footer-signature {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+            margin-top: 4rem;
+        }
+        /* Long URLs and code wrap on narrow screens */
+        main { overflow-wrap: break-word; } main code { overflow-wrap: anywhere; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-sky-800 to-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-shield-halved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold">Imperva WAF Gateway 實戰課程</h1>
+                    <p class="text-sky-100 mt-1">單元 9:安全政策與處置</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <nav class="bg-white border-b border-gray-200" aria-label="章節導覽">
+        <div class="container mx-auto px-4 py-2 max-w-5xl flex flex-wrap items-center justify-between gap-2 text-sm">
+            <a href="Imperva08.html" class="text-sky-700 hover:underline"><i class="fas fa-arrow-left mr-1"></i>上一章</a>
+            <a href="Imperva00.html" class="text-sky-700 hover:underline"><i class="fas fa-list mr-1"></i>課程目錄</a>
+            <a href="Imperva10.html" class="text-sky-700 hover:underline">下一章<i class="fas fa-arrow-right ml-1"></i></a>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <!-- Introduction -->
+        <div class="mb-8">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
+                <h2 class="text-xl font-bold text-blue-800 mb-2 flex items-center">
+                    <i class="fas fa-user-tie mr-2"></i>講師導言
+                </h2>
+                <p class="text-blue-900 leading-relaxed">
+                    上一章的 Dynamic Profiling 負責抓「偏離正常」的請求;這一章的其他政策負責兩件事:<strong>已知攻擊</strong>(協定驗證、簽章、關聯分析)和<strong>你自己定的規則</strong>(自訂政策)。
+                    每條政策都由四個零件組成:套用對象(Apply To)、比對條件、動作(Action)和後續動作(Followed Action)。
+                    最後我們還會走一遍「從一條告警走到調整政策」的處理流程,這是上線後最常用到的功夫。
+                </p>
+            </div>
+        </div>
+
+        <!-- 學習目標 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-gray-100 text-gray-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Goals</span>
+                本章學習目標
+            </h2>
+            <ul class="list-disc pl-6 space-y-1 text-gray-700">
+                <li>說出政策的四個零件,以及 Basic 與 Additional 兩種類別的差別</li>
+                <li>依 Server Group、Web Service、Web Application 三個層級,找到對應的政策類型</li>
+                <li>知道簽章政策的內容從哪來,以及 Emergency Feed 出廠停用,要啟用服務並套用政策才會生效</li>
+                <li>分辨 Action、Action Set、Followed Action 與 Action Interface</li>
+                <li>建立一條自訂政策的範例,並依「告警 → 判斷 → 修正」的流程處理誤報</li>
+            </ul>
+            <p class="text-sm text-gray-500 mt-4"><i class="fas fa-map-signs mr-1"></i>承接第 8 章(Dynamic Profiling),並為第 10 章(威脅情資與反自動化)打底。</p>
+        </div>
+
+        <!-- 一、政策的組成 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">一、政策的組成與兩種類別</h2>
+
+            <div class="analogy-box">
+                <p class="font-bold text-green-800 mb-1"><i class="fas fa-building mr-1"></i>用大樓警衛來想</p>
+                <ul class="list-disc pl-6 text-green-900 space-y-1">
+                    <li><strong>Apply To</strong> 像「這位警衛站哪一層樓」。</li>
+                    <li><strong>比對條件</strong> 像「看到什麼樣子的人要注意」。</li>
+                    <li><strong>Action</strong> 像「當場怎麼處理」,<strong>Followed Action</strong> 像「事後還要通報誰」。</li>
+                </ul>
+            </div>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 360 330" role="img" aria-labelledby="svg1-title" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans TC, sans-serif">
+                    <title id="svg1-title">一條安全政策的四個零件:套用對象 Apply To、比對條件、動作 Action、後續動作 Followed Action</title>
+                    <defs>
+                        <marker id="arrow1" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+                        </marker>
+                    </defs>
+                    <text x="180" y="22" text-anchor="middle" font-size="16" font-weight="700" fill="#075985">一條安全政策 = 四個零件</text>
+
+                    <rect x="20" y="36" width="320" height="52" rx="10" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="36" y="58" font-size="15" font-weight="700" fill="#075985">① Apply To(套用對象)</text>
+                    <text x="36" y="78" font-size="13" fill="#1f2937">Site / Server Group / Service / Application</text>
+                    <line x1="180" y1="88" x2="180" y2="106" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+
+                    <rect x="20" y="110" width="320" height="52" rx="10" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="36" y="132" font-size="15" font-weight="700" fill="#075985">② 比對條件(match criteria)</text>
+                    <text x="36" y="152" font-size="13" fill="#1f2937">請求長什麼樣子才算命中</text>
+                    <line x1="180" y1="162" x2="180" y2="180" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+
+                    <rect x="20" y="184" width="320" height="52" rx="10" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
+                    <text x="36" y="206" font-size="15" font-weight="700" fill="#9a3412">③ Action(動作)</text>
+                    <text x="36" y="226" font-size="13" fill="#1f2937">命中時的立即反應,例如阻擋來源連線</text>
+                    <line x1="180" y1="236" x2="180" y2="254" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+
+                    <rect x="20" y="258" width="320" height="52" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+                    <text x="36" y="280" font-size="15" font-weight="700" fill="#15803d">④ Followed Action(後續動作)</text>
+                    <text x="36" y="300" font-size="13" fill="#1f2937">掛上去的 Action Set,例如送 syslog</text>
+                </svg>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">兩種類別</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">類別</th><th class="py-2 px-4 border text-left">說明</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">Basic Security Policy</td><td class="py-2 px-4 border">同一物件上每種類型只能套用一條<span class="text-xs text-gray-500">【待實機確認】</span></td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Additional Security Policy</td><td class="py-2 px-4 border">同一物件可套用多條同類型或不同類型的政策</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-gray-700 mt-3">政策集中在 <code>Main &gt; Policies &gt; Security</code>(第 10 章的 ABP 政策也在這裡)。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">怎麼套用(官方步驟)</h3>
+            <div class="mock-window">
+                <div class="mock-titlebar">
+                    <span class="mock-dots"><span></span><span></span><span></span></span>
+                    <span class="mock-url">https://10.0.30.10:8083</span>
+                </div>
+                <div class="mock-nav">
+                    <span class="brand">MX Management</span>
+                    <span class="on">Main</span>
+                </div>
+                <div class="mock-crumb">Main &gt; Policies &gt; Security &gt; (某條政策)</div>
+                <div class="mock-tabs"><span>(其他分頁)</span><span class="on">Apply To</span></div>
+                <div class="mock-body">
+                    <div class="mock-row"><span class="step-badge">1</span><span>開啟該政策,點 <strong>Apply To</strong> 分頁</span></div>
+                    <div class="mock-section">Site Tree</div>
+                    <div class="mock-row"><span class="step-badge">2</span><span class="mock-hl">☑ HQ &gt; SG-Shop &gt; HTTPS-Shop &gt; member</span></div>
+                    <div class="mock-row mock-indent"><span>☐ HQ &gt; SG-Shop &gt; HTTPS-Shop &gt; shop</span></div>
+                    <div class="mock-row"><span class="step-badge">3</span><span class="text-gray-500">上層節點(HTTPS-Shop 等)只套用部分子物件時,顯示為「部分套用」(灰色)</span></div>
+                    <div class="mock-row" style="justify-content:flex-end;"><span class="step-badge">4</span><span class="mock-btn primary mock-hl">Save</span></div>
+                </div>
+                <div class="mock-caption"><i class="fas fa-circle-info mr-1"></i>示意畫面:欄位名稱依 Imperva 官方文件,版面、按鈕位置與配色以實機為準。</div>
+            </div>
+            <ol class="step-list mt-4 text-gray-700">
+                <li><span class="step-badge">1</span><span>開啟該政策,點 <strong>Apply To</strong> 分頁。</span></li>
+                <li><span class="step-badge">2</span><span>勾選要套用的 Site Tree 物件(Site / Server Group / Service / Application)。</span></li>
+                <li><span class="step-badge">3</span><span>只套用到部分子物件時,上層節點會顯示為「部分套用」(灰色)。</span></li>
+                <li><span class="step-badge">4</span><span>Save(delayed activation 模式下再 Activate)。</span></li>
+            </ol>
+
+            <div class="highlight-box">
+                <p class="font-bold text-sky-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>再次提醒:政策不往下繼承</p>
+                <p class="text-gray-800">政策套到 Server Group 之後才新建的 service,<strong>不會繼承</strong>該政策(第 7 章)。新站上線記得回來補套。</p>
+            </div>
+        </div>
+
+        <!-- 二、政策類型總表 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">二、政策類型總表:三個層級</h2>
+            <p class="text-gray-700 leading-relaxed mb-2">政策依 Site Tree 的層級分類。先認出「這個攻擊該在哪一層處理」,再去找對應的政策。</p>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 360 440" role="img" aria-labelledby="svg2-title" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans TC, sans-serif">
+                    <title id="svg2-title">政策類型依層級分布:Server Group 層有防火牆與網路協定驗證,Web Service 層有 HTTP 協定驗證與簽章,Web Application 層有 Web Profile 與應用簽章</title>
+                    <defs>
+                        <marker id="arrow2" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+                        </marker>
+                    </defs>
+                    <rect x="10" y="10" width="340" height="120" rx="10" fill="#f8fafc" stroke="#64748b" stroke-width="2"/>
+                    <text x="24" y="34" font-size="15" font-weight="700" fill="#334155">Server Group 層</text>
+                    <text x="24" y="58" font-size="14" fill="#1f2937">Firewall Policy</text>
+                    <text x="24" y="80" font-size="14" fill="#1f2937">Network Protocol Validation</text>
+                    <text x="24" y="102" font-size="14" fill="#1f2937">Stream Signature</text>
+                    <text x="24" y="122" font-size="13" fill="#6b7280">TCP/IP 與一般服務</text>
+                    <line x1="180" y1="130" x2="180" y2="146" stroke="#64748b" stroke-width="2" marker-end="url(#arrow2)"/>
+
+                    <rect x="10" y="150" width="340" height="132" rx="10" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="24" y="174" font-size="15" font-weight="700" fill="#075985">Web Service 層</text>
+                    <text x="24" y="196" font-size="14" fill="#1f2937">HTTP Protocol Validation</text>
+                    <text x="24" y="216" font-size="14" fill="#1f2937">Web Service Correlated Validation</text>
+                    <text x="24" y="236" font-size="14" fill="#1f2937">HTTP Protocol Signatures</text>
+                    <text x="24" y="256" font-size="14" fill="#1f2937">Web Service Custom</text>
+                    <text x="24" y="274" font-size="13" fill="#6b7280">HTTP 本身的檢查</text>
+                    <line x1="180" y1="282" x2="180" y2="298" stroke="#64748b" stroke-width="2" marker-end="url(#arrow2)"/>
+
+                    <rect x="10" y="302" width="340" height="130" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+                    <text x="24" y="326" font-size="15" font-weight="700" fill="#15803d">Web Application 層</text>
+                    <text x="24" y="348" font-size="14" fill="#1f2937">Web Profile(第 8 章)</text>
+                    <text x="24" y="368" font-size="14" fill="#1f2937">Web Application Signatures</text>
+                    <text x="24" y="388" font-size="14" fill="#1f2937">Web Application Custom、Web Worm</text>
+                    <text x="24" y="408" font-size="14" fill="#1f2937">反自動化、OCSP(第 10 章)</text>
+                    <text x="24" y="426" font-size="13" fill="#6b7280">應用程式內容的檢查</text>
+                </svg>
+            </div>
+
+            <div class="overflow-x-auto mt-4">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">層級</th><th class="py-2 px-4 border text-left">政策類型</th><th class="py-2 px-4 border text-left">用途</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold" rowspan="3">Server Group</td><td class="py-2 px-4 border">Firewall Policy</td><td class="py-2 px-4 border">定義允許用來存取受保護伺服器的服務</td></tr>
+                        <tr><td class="py-2 px-4 border">Network Protocol Validation</td><td class="py-2 px-4 border">依 RFC 驗證 TCP/IP 使用是否正確</td></tr>
+                        <tr><td class="py-2 px-4 border">Stream Signature</td><td class="py-2 px-4 border">以簽章辨識一般服務的已知攻擊</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold" rowspan="5">Web Service</td><td class="py-2 px-4 border">HTTP Protocol Validation</td><td class="py-2 px-4 border">依 RFC 驗證 HTTP 使用是否正確</td></tr>
+                        <tr><td class="py-2 px-4 border">Web Service Correlated Validation</td><td class="py-2 px-4 border">防多階段 Web 攻擊</td></tr>
+                        <tr><td class="py-2 px-4 border">HTTP Protocol Signatures</td><td class="py-2 px-4 border">以簽章防已知協定攻擊</td></tr>
+                        <tr><td class="py-2 px-4 border">Web Service Custom</td><td class="py-2 px-4 border">自訂比對條件組合的 service 層政策</td></tr>
+                        <tr><td class="py-2 px-4 border">Cookie Signing Validation</td><td class="py-2 px-4 border">文件寫「Kernel Reverse Proxy 模式下」的 cookie 簽章;KRP 已於 v14.1 移除,現行能否用於 NGRP【待實機確認】</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold" rowspan="6">Web Application</td><td class="py-2 px-4 border">Web Profile</td><td class="py-2 px-4 border">偏離 profile 的告警 / 阻擋(第 8 章)</td></tr>
+                        <tr><td class="py-2 px-4 border">Web Application Signatures</td><td class="py-2 px-4 border">以簽章防已知應用攻擊</td></tr>
+                        <tr><td class="py-2 px-4 border">Web Application Custom</td><td class="py-2 px-4 border">自訂比對條件組合的 application 層政策</td></tr>
+                        <tr><td class="py-2 px-4 border">Web Worm</td><td class="py-2 px-4 border">防零時差 web worm</td></tr>
+                        <tr><td class="py-2 px-4 border">Anti Scraping、Bot Mitigation、ThreatRadar Bot Protection</td><td class="py-2 px-4 border">反自動化(第 10 章)</td></tr>
+                        <tr><td class="py-2 px-4 border">OCSP Protocol Validation</td><td class="py-2 px-4 border">驗證 X.509 憑證撤銷狀態</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">CAPTCHA</td><td class="py-2 px-4 border">Event Based</td><td class="py-2 px-4 border">特定事件觸發 CAPTCHA 挑戰(第 10 章)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Account Take Over</td><td class="py-2 px-4 border">Device Intelligence、Privileged Account、Credential Stuffing、Dictionary Attack</td><td class="py-2 px-4 border">帳號接管防護(第 10 章)</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 三、簽章、ADC、Emergency Feed -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">三、簽章、ADC 與 Emergency Feed</h2>
+            <p class="text-gray-700 leading-relaxed">
+                <span class="tech-term">簽章政策</span>(HTTP Protocol Signatures、Web Application Signatures、Stream Signature)的內容來自 <strong>ADC 內容更新</strong>(第 6 章 6.6),約每兩週一次。更新後部分內容要 <strong>Apply Settings</strong> 才生效。
+            </p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Emergency Feed Services:重大漏洞的緊急簽章</h3>
+            <p class="text-gray-700 leading-relaxed mb-2">
+                ADC 正式內容製作通常要三天以上,而且難以回收。遇到重大漏洞時,Imperva 先經 Threat Intelligence 推送緊急簽章,等正式 ADC 內容出來再取代。
+            </p>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>簽章放在專用的預定義字典,由 Threat Intelligence 週期性更新。</li>
+                <li>對應的預建 ADC custom policy 在載入 ADC 內容時建立,<strong>出廠為停用</strong>。</li>
+                <li>要生效必須同時做到兩件事:<strong>啟用 Emergency Feed 服務</strong>,並把政策<strong>套用到 site / server group / service / application</strong>。</li>
+            </ul>
+
+            <div class="overflow-x-auto mt-4">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">Emergency Feed 政策</th><th class="py-2 px-4 border text-left">範圍</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border">Emergency - Detection</td><td class="py-2 px-4 border">只偵測</td></tr>
+                        <tr><td class="py-2 px-4 border">Emergency - Blocking GET requests</td><td class="py-2 px-4 border">阻擋 GET</td></tr>
+                        <tr><td class="py-2 px-4 border">Emergency - Blocking POST requests</td><td class="py-2 px-4 border">阻擋 POST</td></tr>
+                        <tr><td class="py-2 px-4 border">Emergency - Blocking General requests</td><td class="py-2 px-4 border">阻擋一般請求</td></tr>
+                        <tr><td class="py-2 px-4 border">Emergency - Blocking Authenticated Sessions</td><td class="py-2 px-4 border">阻擋已驗證 session 中的請求</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="highlight-box">
+                <p class="font-bold text-sky-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>建議作法</p>
+                <p class="text-gray-800">平時把 <strong>Emergency - Detection</strong> 套到全部站台;重大漏洞公告時觀察告警,確認無誤報後,再套對應的 Blocking 政策。</p>
+                <p class="text-sm text-gray-600 mt-2">啟用 Emergency Feed 服務的 GUI 位置【待實機確認】。</p>
+            </div>
+        </div>
+
+        <!-- 四、HTTP Protocol Validation 與 Correlation -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">四、HTTP Protocol Validation 與 Correlation</h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">HTTP Protocol Validation:先擋掉畸形請求</h3>
+            <p class="text-gray-700 leading-relaxed">
+                這條政策依 RFC 檢查 HTTP 本身:畸形請求、異常 header、編碼規避等。它在 service 層,<strong>profile 還沒學好之前</strong>就能擋掉大量掃描工具與規避手法。調校重點:
+            </p>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 mt-2">
+                <li>老舊或自製的 client(IoT、舊版 App)常有不合 RFC 的 header,先在 Simulation 觀察。</li>
+                <li>例外限定在特定 URL 或來源,不要整條關掉【待實機確認:各違規子項的開關與例外欄位】。</li>
+            </ul>
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>【15.5】新功能</p>
+                <p class="text-gray-800">Patch 20 新增 Ghost Bits 編碼正規化,處理以非標準編碼規避檢查的手法(第 12 章另有新功能整理)。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Correlation:確認是攻擊再阻擋</h3>
+            <p class="text-gray-700 leading-relaxed">
+                舊版的核心觀念仍然成立:單一跡象不足以判定攻擊時,把多層、多時間點的偵測結果交給關聯引擎,以多個條件組合判定「確定的攻擊」,降低阻擋的誤報。
+            </p>
+            <div class="overflow-x-auto mt-2">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">現行名稱</th><th class="py-2 px-4 border text-left">層級</th><th class="py-2 px-4 border text-left">說明</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">Web Service Correlated Validation</td><td class="py-2 px-4 border">Web Service</td><td class="py-2 px-4 border">防多階段 Web 應用攻擊</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Web Correlation Policy</td><td class="py-2 px-4 border">—</td><td class="py-2 px-4 border">關聯規則政策,REST API 也提供 CRUD</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-sm text-gray-600 mt-2">舊簡報列出的 ADC 預建關聯規則(XSS、Forceful Browsing、SQL injection、Session Attribute Changes、相同回應碼過多,跨時間、跨政策),在現行 ADC 內容中的實際規則名稱與清單【待實機確認】。</p>
+        </div>
+
+        <!-- 五、自訂政策 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">五、動手做:自訂政策與比對條件</h2>
+            <p class="text-gray-700 leading-relaxed">
+                Web Service Custom 與 Web Application Custom 由多個 <span class="tech-term">match criteria</span> 組成。全部條件需同時成立【推論:沿用舊簡報的 AND 觀念,現行文件未逐字確認】。現行官方的比對條件(節錄):
+            </p>
+            <div class="overflow-x-auto mt-2">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">比對條件</th><th class="py-2 px-4 border text-left">用途</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">HTTP Request</td><td class="py-2 px-4 border">比對 header、參數或 URL 中的樣式 / 子字串;可 Match All / Any / None,適合黑名單字元</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Generic Dictionary Search</td><td class="py-2 px-4 border">以 Global Objects 中的字典比對 URL、參數、header、回應內容、未正規化 URL;Exact 或 Contains</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Application User</td><td class="py-2 px-4 border">比對應用層登入帳號</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Authenticated Session / Authentication Result / Authentication URL</td><td class="py-2 px-4 border">與 Application User Tracking 搭配(登入成功 / 失敗、是否為登入 URL)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Enrichment Data、Data Set: Attribute Lookup</td><td class="py-2 px-4 border">以 Lookup Data Set 查表(第 11 章)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Client Type [ThreatRadar Bot Protection]</td><td class="py-2 px-4 border">依 bot 分類比對(第 10 章)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">CAPTCHA Challenge Response</td><td class="py-2 px-4 border">依 CAPTCHA 是否解出比對</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Account Takeover Protection Results、Fraud Prevention Results</td><td class="py-2 px-4 border">與 ATO / FPS 服務搭配(第 10 章)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">回應 header 值、request body 參數數量上限</td><td class="py-2 px-4 border">【15.5】v15.5 Patch 21 新增</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-sm text-gray-600 mt-2">來源 IP、URL、HTTP 方法、Reputation 類條件的完整清單【待實機確認】。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">範例:限制 member 的管理路徑只允許管理網段</h3>
+            <p class="text-gray-700 mb-2">做一條 Web Application Custom 政策 <span class="tech-term">Member-Admin-Restrict</span>:來自管理網段以外的人,不能碰 <code>/member/admin</code>。</p>
+
+            <div class="mock-window">
+                <div class="mock-titlebar">
+                    <span class="mock-dots"><span></span><span></span><span></span></span>
+                    <span class="mock-url">https://10.0.30.10:8083</span>
+                </div>
+                <div class="mock-nav">
+                    <span class="brand">MX Management</span>
+                    <span class="on">Main</span>
+                </div>
+                <div class="mock-crumb">Main &gt; Policies &gt; Security &gt; Web Application Custom(新增按鈕與建立對話框【待實機確認】)</div>
+                <div class="mock-body">
+                    <div class="mock-row"><span class="step-badge">1</span><span class="mock-label">Policy Name</span><span class="mock-input mock-hl">Member-Admin-Restrict</span></div>
+                    <div class="mock-section">Match Criteria(全部條件同時成立【推論】)</div>
+                    <div class="mock-row"><span class="step-badge">2</span><span class="mock-label">HTTP Request</span><span class="mock-input mock-hl">Part: URL,前綴 /member/admin</span></div>
+                    <div class="mock-row"><span class="step-badge" style="visibility:hidden">0</span><span class="mock-label">來源 IP</span><span class="mock-input mock-hl">不屬於 10.0.30.0/24【條件名稱待實機確認】</span></div>
+                    <div class="mock-section">Action</div>
+                    <div class="mock-row"><span class="step-badge">3</span><span class="mock-label">Action</span><span class="mock-input mock-select mock-hl">Block</span></div>
+                    <div class="mock-row"><span class="step-badge">3</span><span class="mock-label">Followed Action</span><span class="mock-input mock-select mock-hl">AS-Syslog-Splunk</span></div>
+                    <div class="mock-section">Apply To</div>
+                    <div class="mock-row"><span class="step-badge">4</span><span class="mock-hl">☑ HQ &gt; SG-Shop &gt; HTTPS-Shop &gt; member</span></div>
+                    <div class="mock-row"><span class="step-badge">5</span><span>模式:Simulation(觀察一週後再改 Active)</span></div>
+                </div>
+                <div class="mock-caption"><i class="fas fa-circle-info mr-1"></i>示意畫面:部分欄位名稱待實機確認(新增按鈕、對話框、來源 IP 條件名稱、Followed Action 欄位位置),版面與按鈕位置以實機為準。</div>
+            </div>
+
+            <ol class="step-list mt-4 text-gray-700">
+                <li><span class="step-badge">1</span><span><code>Main &gt; Policies &gt; Security</code>,新增 Web Application Custom 政策 <code>Member-Admin-Restrict</code>【待實機確認:新增按鈕與建立對話框】。</span></li>
+                <li><span class="step-badge">2</span><span>條件:HTTP Request,Part 選 URL,比對 <code>/member/admin</code> 前綴;再加「來源 IP 不屬於 <code>10.0.30.0/24</code>」【待實機確認:來源 IP 條件名稱】。</span></li>
+                <li><span class="step-badge">3</span><span>動作:Block;Followed Action 選送 Syslog 的 Action Set(第六節)。</span></li>
+                <li><span class="step-badge">4</span><span>Apply To:勾選 <code>HQ &gt; SG-Shop &gt; HTTPS-Shop &gt; member</code>。</span></li>
+                <li><span class="step-badge">5</span><span>先在 Simulation 觀察一週,確認沒有合法來源被命中,再改 Active。</span></li>
+            </ol>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>官方注意:Authentication Result 條件在回應上判斷</p>
+                <p class="text-gray-800"><strong>Authentication Result</strong> 條件是在伺服器回應上判斷的,不要對這類政策設 Block 動作,回應階段無法執行阻擋。</p>
+            </div>
+        </div>
+
+        <!-- 六、Action / Action Set / Followed Action -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">六、Action、Action Set 與 Followed Action</h2>
+            <p class="text-gray-700 leading-relaxed mb-2">四個名詞很容易搞混,先看圖:政策命中後,<strong>Action</strong> 馬上反應;<strong>Followed Action</strong> 掛的是一個 <strong>Action Set</strong>,裡面由一個或多個 <strong>Action Interface</strong> 組成。</p>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 360 410" role="img" aria-labelledby="svg3-title" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans TC, sans-serif">
+                    <title id="svg3-title">政策命中後的處置:Action 立即反應,Followed Action 執行 Action Set,Action Set 由多個 Action Interface 組成</title>
+                    <defs>
+                        <marker id="arrow3" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+                        </marker>
+                    </defs>
+                    <rect x="80" y="10" width="200" height="44" rx="8" fill="#f1f5f9" stroke="#94a3b8"/>
+                    <text x="180" y="38" text-anchor="middle" font-size="15" fill="#1f2937">政策命中</text>
+                    <line x1="130" y1="54" x2="90" y2="84" stroke="#64748b" stroke-width="2" marker-end="url(#arrow3)"/>
+                    <line x1="230" y1="54" x2="270" y2="84" stroke="#64748b" stroke-width="2" marker-end="url(#arrow3)"/>
+
+                    <rect x="10" y="88" width="160" height="92" rx="10" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
+                    <text x="90" y="112" text-anchor="middle" font-size="15" font-weight="700" fill="#9a3412">Action</text>
+                    <text x="90" y="134" text-anchor="middle" font-size="13" fill="#1f2937">立即反應</text>
+                    <text x="90" y="154" text-anchor="middle" font-size="13" fill="#1f2937">例如阻擋連線</text>
+                    <text x="90" y="172" text-anchor="middle" font-size="13" fill="#6b7280">在政策中設定</text>
+
+                    <rect x="190" y="88" width="160" height="92" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+                    <text x="270" y="112" text-anchor="middle" font-size="15" font-weight="700" fill="#15803d">Followed Action</text>
+                    <text x="270" y="134" text-anchor="middle" font-size="13" fill="#1f2937">掛上去的</text>
+                    <text x="270" y="154" text-anchor="middle" font-size="13" fill="#1f2937">Action Set</text>
+                    <line x1="270" y1="180" x2="270" y2="206" stroke="#64748b" stroke-width="2" marker-end="url(#arrow3)"/>
+
+                    <rect x="130" y="210" width="220" height="188" rx="10" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="240" y="234" text-anchor="middle" font-size="15" font-weight="700" fill="#075985">Action Set(例)</text>
+                    <text x="240" y="254" text-anchor="middle" font-size="13" fill="#1f2937">可含多個 interface,例如:</text>
+                    <rect x="146" y="266" width="188" height="30" rx="6" fill="#ffffff" stroke="#7dd3fc"/>
+                    <text x="240" y="286" text-anchor="middle" font-size="13" fill="#1f2937">寄 e-mail</text>
+                    <rect x="146" y="302" width="188" height="30" rx="6" fill="#ffffff" stroke="#7dd3fc"/>
+                    <text x="240" y="322" text-anchor="middle" font-size="13" fill="#1f2937">執行 shell 指令</text>
+                    <rect x="146" y="338" width="188" height="48" rx="6" fill="#ffffff" stroke="#7dd3fc"/>
+                    <text x="240" y="358" text-anchor="middle" font-size="13" fill="#1f2937">送 syslog(CEF /</text>
+                    <text x="240" y="376" text-anchor="middle" font-size="13" fill="#1f2937">Splunk placeholder)</text>
+                    <text x="10" y="270" font-size="13" fill="#475569">下層是</text>
+                    <text x="10" y="290" font-size="13" fill="#475569">Action</text>
+                    <text x="10" y="310" font-size="13" fill="#475569">Interface</text>
+                </svg>
+            </div>
+
+            <div class="overflow-x-auto mt-4">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">名詞</th><th class="py-2 px-4 border text-left">意義</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">Action</td><td class="py-2 px-4 border">政策命中時的立即反應,例如阻擋來源連線(Web client 可同時給錯誤頁)。Action 不屬於 Action Set,而是在政策中設定</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Action Set</td><td class="py-2 px-4 border">一個或多個 action interface 的組合,作為 followed action 掛到物件上;系統內建若干預定義 Action Set</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Followed Action</td><td class="py-2 px-4 border">已掛到某物件(政策、系統事件、報表、排程工作)上的 Action Set,條件成立時執行。例:除了立即阻擋 session 劫持,再封鎖該來源 30 分鐘</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Action Interface</td><td class="py-2 px-4 border">執行方式,如寄 e-mail、執行 shell 指令、送 syslog;另支援 CEF / ArcSight、Splunk placeholder(第 12 章)</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">動手做:建立送 Splunk 的 Action Set</h3>
+            <div class="mock-window">
+                <div class="mock-titlebar">
+                    <span class="mock-dots"><span></span><span></span><span></span></span>
+                    <span class="mock-url">https://10.0.30.10:8083</span>
+                </div>
+                <div class="mock-nav">
+                    <span class="brand">MX Management</span>
+                    <span class="on">Main</span>
+                </div>
+                <div class="mock-crumb">Main &gt; Policies &gt; Action Sets</div>
+                <div class="mock-body">
+                    <div class="mock-section">Action Sets(視窗上方)</div>
+                    <div class="mock-row"><span class="step-badge">1</span><span class="mock-btn mock-hl">新增自訂 Action Set【按鈕待實機確認】</span></div>
+                    <div class="overflow-x-auto">
+                        <table class="mock-table">
+                            <thead><tr><th>Action Set</th><th>Action Interface</th></tr></thead>
+                            <tbody>
+                                <tr><td class="mock-hl">AS-Syslog-Splunk</td><td>syslog → 10.0.30.50:514</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mock-section">Action Interfaces(視窗下方,列出可用項目)</div>
+                    <div class="mock-row"><span class="step-badge">2</span><span class="mock-hl">加入 syslog 類 Action Interface:目的 10.0.30.50、埠 514</span></div>
+                    <div class="mock-row"><span class="step-badge">3</span><span>訊息格式:Splunk placeholder 或 CEF(第 12 章)</span></div>
+                </div>
+                <div class="mock-caption"><i class="fas fa-circle-info mr-1"></i>示意畫面:部分欄位名稱待實機確認(新增按鈕與「套用對象類型」欄位),版面以實機為準。</div>
+            </div>
+            <ol class="step-list mt-4 text-gray-700">
+                <li><span class="step-badge">1</span><span><code>Main &gt; Policies &gt; Action Sets</code> 開啟 Action Sets 視窗(上方列 Action Sets,下方列可用的 Action Interfaces),新增自訂 Action Set <code>AS-Syslog-Splunk</code>(Creating Custom Action Sets)【待實機確認:新增按鈕與「套用對象類型」欄位】。</span></li>
+                <li><span class="step-badge">2</span><span>加入 syslog 類 Action Interface,目的 <code>10.0.30.50</code>、埠 514,訊息格式用 Splunk placeholder 或 CEF(格式細節見第 12 章)。</span></li>
+                <li><span class="step-badge">3</span><span>回到各安全政策,把 <code>AS-Syslog-Splunk</code> 設為 Followed Action(Assigning Followed Actions)【待實機確認:政策中的欄位位置】。</span></li>
+            </ol>
+        </div>
+
+        <!-- 七、從告警到調整政策 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">七、從告警到調整政策</h2>
+            <p class="text-gray-700 mb-3">收到告警別急著關政策。照下面六步走,通常可以用最小的改動解決問題。</p>
+            <ol class="step-list text-gray-700">
+                <li><span class="step-badge">1</span><span><strong>看告警</strong>:在 MX 的告警檢視找到該事件,記下政策名稱、violation 類型、URL、參數、來源 IP【待實機確認:告警檢視的 GUI 路徑,第 12 章會整理】。</span></li>
+                <li><span class="step-badge">2</span><span><strong>判斷真偽</strong>:對照請求內容。看到 SQL 語法、路徑穿越、已知掃描器 User-Agent 是真攻擊;正常業務參數則是誤報。</span></li>
+                <li><span class="step-badge">3</span><span><strong>找出是哪一層判定</strong>:Profile violation 看第 8 章 8.7;簽章看第三節;協定驗證看第四節;自訂政策則檢查條件是否寫太寬。</span></li>
+                <li><span class="step-badge">4</span><span><strong>最小範圍修正</strong>:優先修 profile 或縮小政策的 Apply To;不得已才加例外,例外限定 URL + 參數 + 來源。</span></li>
+                <li><span class="step-badge">5</span><span><strong>紀錄</strong>:工單記錄修改內容;系統事件也會留下誰改了什麼(第 12 章)。</span></li>
+                <li><span class="step-badge">6</span><span><strong>觀察 24 到 72 小時</strong>:確認同類告警消失、沒有新的漏報【推論:實務建議】。</span></li>
+            </ol>
+        </div>
+
+        <!-- 八、模擬器 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">八、動手玩:政策判定流程模擬器</h2>
+            <p class="text-gray-700 mb-2">選一個範例請求,再調整政策的套用狀態、模式、Action 與 Followed Action,看看它經過哪些政策層、最後怎麼處置。</p>
+            <p class="text-xs text-gray-500 mb-2"><i class="fas fa-circle-info mr-1"></i>簡化示意:依官方檢查順序,先 Server Group、再 Service、最後 Application;本模擬假設每個請求最多命中一條政策;Simulation 模式視為「只觀察、不阻擋」。</p>
+
+            <div class="grid md:grid-cols-2 gap-4 mt-4">
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-envelope-open-text mr-1 text-sky-600"></i>範例請求</h3>
+                    <select id="p-req" class="border rounded px-2 py-1 w-full mb-2" aria-label="範例請求"></select>
+                    <p id="p-req-desc" class="text-sm text-gray-600"></p>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-sliders mr-1 text-sky-600"></i>政策設定</h3>
+                    <label class="block mb-1 text-sm"><input type="checkbox" id="p-applied" class="mr-2" checked>該政策已套用到這個 service / application(Apply To)</label>
+                    <label class="block mb-1 text-sm"><input type="checkbox" id="p-emg" class="mr-2">Emergency Feed 服務已啟用(僅 Emergency 情境會用到)</label>
+                    <label class="block mb-1 text-sm" id="p-emgtype-wrap" style="display:none">Emergency Feed 政策
+                        <select id="p-emgtype" class="border rounded px-2 py-1 w-full">
+                            <option value="blocking">Blocking(Emergency - Blocking …)</option>
+                            <option value="detection">Detection(Emergency - Detection,只偵測)</option>
+                        </select>
+                    </label>
+                    <label class="block mb-1 text-sm">模式
+                        <select id="p-mode" class="border rounded px-2 py-1 w-full">
+                            <option value="active">Active</option>
+                            <option value="sim">Simulation(只觀察)</option>
+                        </select>
+                    </label>
+                    <label class="block mb-1 text-sm">Action
+                        <select id="p-action" class="border rounded px-2 py-1 w-full">
+                            <option value="block">Block</option>
+                            <option value="alert">只告警(不阻擋)</option>
+                        </select>
+                    </label>
+                    <label class="block text-sm">Followed Action
+                        <select id="p-fa" class="border rounded px-2 py-1 w-full">
+                            <option value="none">未設定</option>
+                            <option value="as">AS-Syslog-Splunk</option>
+                        </select>
+                    </label>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-4 mt-4">
+                <div class="bg-white border rounded-lg p-4">
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-shoe-prints mr-1 text-blue-600"></i>經過的政策層</h3>
+                    <div id="p-trace" class="text-sm text-gray-700"></div>
+                </div>
+                <div id="p-result" class="border rounded-lg p-4"></div>
+            </div>
+        </div>
+
+        <!-- 九、踩坑 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">九、常見踩坑</h2>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>新 service 沒套政策</p>
+                <p class="text-gray-800">政策不往下繼承,新站上線後只有 profile 在學,簽章與自訂政策都沒套。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>Emergency Feed 以為會自動生效</p>
+                <p class="text-gray-800">出廠停用,要啟用服務並套用政策。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>Authentication Result 條件配 Block</p>
+                <p class="text-gray-800">回應階段擋不了,政策看似無效。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>用關整條政策處理單一誤報</p>
+                <p class="text-gray-800">應縮小 Apply To 或加精準例外。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>Followed Action 送 syslog 卻沒到 Splunk</p>
+                <p class="text-gray-800">先查 MX / GW 到 <code>10.0.30.50</code> 的 514 是否被防火牆擋,以及送出端是 MX 還是 GW(第 12 章)。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>還在找 Cookie Signing</p>
+                <p class="text-gray-800">文件仍寫 KRP 模式,而 KRP 已移除;需要 cookie 防竄改時,先看 Web Profile 的 cookie 保護(第 8 章)。</p>
+            </div>
+        </div>
+
+        <!-- 十、新舊對照 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">十、新舊對照</h2>
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-2"><i class="fas fa-code-branch mr-1"></i>舊簡報說法與現況</p>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm border bg-white">
+                        <thead class="bg-gray-100">
+                            <tr><th class="py-2 px-4 border text-left">舊簡報說法</th><th class="py-2 px-4 border text-left">現況</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td class="py-2 px-4 border">Correlation:各層偵測結果進入關聯引擎</td><td class="py-2 px-4 border">仍存在,名稱為 Web Service Correlated Validation 與 Web Correlation Policy</td></tr>
+                            <tr><td class="py-2 px-4 border">ADC 預建關聯規則清單</td><td class="py-2 px-4 border">規則名稱需以現行 ADC 內容為準【待實機確認】</td></tr>
+                            <tr><td class="py-2 px-4 border">Custom Policies 多個條件 AND</td><td class="py-2 px-4 border">仍存在;條件擴充到 ATO、FPS、CAPTCHA、bot 分類、Lookup Data Set、回應 header 值等</td></tr>
+                            <tr><td class="py-2 px-4 border">Mitigation policy 建在 Main &gt; Policies &gt; Security</td><td class="py-2 px-4 border">安全政策仍在 Main &gt; Policies &gt; Security</td></tr>
+                            <tr><td class="py-2 px-4 border">未提緊急簽章</td><td class="py-2 px-4 border">有 Emergency Feed Services,出廠停用,需手動啟用</td></tr>
+                            <tr><td class="py-2 px-4 border">Web Worm Policy</td><td class="py-2 px-4 border">仍是 Web Application 層政策類型</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
+                隨堂測驗
+            </h2>
+            <p class="mb-6 text-gray-600">請點選您認為正確的選項,系統將會顯示解析。</p>
+            <div class="space-y-6" id="quiz-container"></div>
+        </div>
+
+    </main>
+
+    <footer class="footer-signature">
+        Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver.2026.11.02.12.07
+    </footer>
+
+
+    <script>
+        // ===== 政策判定流程模擬器(簡化示意) =====
+        const LAYERS = [
+            { id: 'sg', name: 'Server Group 層', hint: 'Firewall Policy、Network Protocol Validation、Stream Signature' },
+            { id: 'ws', name: 'Web Service 層', hint: 'HTTP Protocol Validation、Correlated Validation、HTTP Protocol Signatures、Web Service Custom' },
+            { id: 'wa', name: 'Web Application 層', hint: 'Web Profile、Web Application Signatures、Web Application Custom、Web Worm' }
+        ];
+
+        const REQS = [
+            { id: 'normal', label: '一般瀏覽:GET /shop/ 正常請求', desc: '沒有任何異常的商品頁請求。', layer: null, policy: null, note: '沒有政策命中,請求放行。' },
+            { id: 'sqli', label: 'URL 參數帶 SQL 語法(像是 OR 1=1)', desc: '判斷原則:看到 SQL 語法即為真攻擊。這類已知攻擊由簽章辨識。', layer: 'wa', policy: 'Web Application Signatures', note: '簽章內容來自 ADC 內容更新。' },
+            { id: 'malformed', label: '畸形 HTTP 請求(不合 RFC 的 header)', desc: '異常 header、畸形請求,由 HTTP Protocol Validation 檢查。注意老舊 client 也可能不合 RFC。', layer: 'ws', policy: 'HTTP Protocol Validation', note: '舊版 App 或 IoT 可能誤報,先在 Simulation 觀察。' },
+            { id: 'admin-out', label: '管理網段以外的人要 /member/admin/users', desc: '來源 198.51.100.7(不在 10.0.30.0/24),要打 member 的管理路徑。', layer: 'wa', policy: 'Web Application Custom:Member-Admin-Restrict', note: '自訂政策:URL 前綴 /member/admin + 來源 IP 不屬於 10.0.30.0/24。' },
+            { id: 'admin-in', label: '管理網段內的人要 /member/admin/users', desc: '來源 10.0.30.25(在 10.0.30.0/24),合法的管理員。', layer: null, policy: null, note: '來源 IP 屬於管理網段,自訂政策的條件不成立,不命中。' },
+            { id: 'profile', label: '參數值偏離 Web Profile', desc: '請求的參數與該 URL 已學到的 profile 不符(第 8 章)。', layer: 'wa', policy: 'Web Profile', note: '偏離 profile 才會產生 violation。' },
+            { id: 'emg', label: '重大漏洞攻擊(Emergency Feed 簽章可辨識)', desc: '假設 Imperva 已為此漏洞推送緊急簽章。', layer: 'wa', policy: 'Emergency Feed 對應政策', note: '出廠停用:要啟用 Emergency Feed 服務並套用政策才會命中。', needsEmg: true },
+            { id: 'authres', label: '登入失敗的回應(Authentication Result 條件)', desc: '政策用 Authentication Result 條件判斷登入失敗,而這是在伺服器回應上判斷。', layer: 'wa', policy: 'Web Application Custom(Authentication Result 條件)', note: '官方注意:回應階段無法執行阻擋。', responseStage: true }
+        ];
+
+        const selReq = document.getElementById('p-req');
+        const reqDesc = document.getElementById('p-req-desc');
+        const chkApplied = document.getElementById('p-applied');
+        const chkEmg = document.getElementById('p-emg');
+        const selMode = document.getElementById('p-mode');
+        const selAction = document.getElementById('p-action');
+        const selFa = document.getElementById('p-fa');
+        const selEmgType = document.getElementById('p-emgtype');
+        const emgTypeWrap = document.getElementById('p-emgtype-wrap');
+        const traceBox = document.getElementById('p-trace');
+        const resultBox = document.getElementById('p-result');
+
+        REQS.forEach(r => {
+            const o = document.createElement('option');
+            o.value = r.id; o.textContent = r.label;
+            selReq.appendChild(o);
+        });
+
+        function evaluatePolicy() {
+            const req = REQS.find(r => r.id === selReq.value);
+            reqDesc.textContent = req.desc;
+            emgTypeWrap.style.display = req.needsEmg ? 'block' : 'none';
+
+            let effective = req.layer !== null;
+            let reason = '';
+            if (effective && !chkApplied.checked) { effective = false; reason = 'notapplied'; }
+            if (effective && req.needsEmg && !chkEmg.checked) { effective = false; reason = 'emg'; }
+
+            const lines = LAYERS.map(L => {
+                if (effective && L.id === req.layer) {
+                    return `<div class="trace-line"><strong>${L.name}</strong>:<span class="text-red-700 font-semibold">命中 ${req.policy}</span></div>`;
+                }
+                if (!effective && req.layer === L.id && reason === 'notapplied') {
+                    return `<div class="trace-line"><strong>${L.name}</strong>:<span class="text-orange-700 font-semibold">${req.policy} 沒套用到這裡,不會比對</span></div>`;
+                }
+                if (!effective && req.layer === L.id && reason === 'emg') {
+                    return `<div class="trace-line"><strong>${L.name}</strong>:<span class="text-orange-700 font-semibold">${req.policy} 出廠停用,服務沒啟用,不會比對</span></div>`;
+                }
+                return `<div class="trace-line"><strong>${L.name}</strong>:<span class="text-gray-500">沒有政策命中</span></div>`;
+            });
+            traceBox.innerHTML = lines.join('') + `<p class="text-xs text-gray-500 mt-2">${req.note}</p>`;
+
+            if (!effective) {
+                if (reason === 'notapplied') {
+                    resultBox.className = 'border rounded-lg p-4 bg-orange-50 border-orange-300';
+                    resultBox.innerHTML = `<h3 class="font-bold text-orange-700 mb-2"><i class="fas fa-triangle-exclamation mr-1"></i>漏接:請求放行</h3>
+                        <p class="text-sm text-gray-800">政策沒有套用到這個 service / application,所以不會比對。政策<strong>不往下繼承</strong>,新建的 service 要回頭補套。</p>`;
+                } else if (reason === 'emg') {
+                    resultBox.className = 'border rounded-lg p-4 bg-orange-50 border-orange-300';
+                    resultBox.innerHTML = `<h3 class="font-bold text-orange-700 mb-2"><i class="fas fa-triangle-exclamation mr-1"></i>緊急簽章沒生效:請求放行</h3>
+                        <p class="text-sm text-gray-800">預建的 Emergency Feed 政策<strong>出廠為停用</strong>。要<strong>啟用 Emergency Feed 服務</strong>,並把政策套用到 site / server group / service / application。</p>`;
+                } else {
+                    resultBox.className = 'border rounded-lg p-4 bg-green-50 border-green-300';
+                    resultBox.innerHTML = `<h3 class="font-bold text-green-700 mb-2"><i class="fas fa-circle-check mr-1"></i>沒有政策命中:請求放行</h3>
+                        <p class="text-sm text-gray-800">沒有 Action,也沒有 Followed Action。</p>`;
+                }
+                return;
+            }
+
+            let actionText;
+            let cls = 'bg-red-50 border-red-300';
+            let titleCls = 'text-red-700';
+            let icon = 'fa-ban';
+            let title = '政策命中:請求被阻擋';
+            if (selMode.value === 'sim') {
+                actionText = '目前是 <strong>Simulation</strong>:只記錄告警、不阻擋,請求照常放行。觀察一段時間確認沒有誤報,再改 Active。';
+                cls = 'bg-yellow-50 border-yellow-300'; titleCls = 'text-yellow-700'; icon = 'fa-eye'; title = '政策命中:Simulation 只觀察';
+            } else if (req.needsEmg && selEmgType.value === 'detection') {
+                actionText = '套用的是 <strong>Emergency - Detection</strong>:只偵測、只告警,請求放行(不論 Action 選什麼)。確認無誤報後,再套對應的 Blocking 政策。';
+                cls = 'bg-yellow-50 border-yellow-300'; titleCls = 'text-yellow-700'; icon = 'fa-bell'; title = '政策命中:Detection 只告警';
+            } else if (req.responseStage && selAction.value === 'block') {
+                actionText = '政策設了 Block,但 Authentication Result 條件是在<strong>伺服器回應</strong>上判斷,回應階段<strong>無法執行阻擋</strong>,政策看似無效。這類政策不要設 Block。';
+                cls = 'bg-orange-50 border-orange-300'; titleCls = 'text-orange-700'; icon = 'fa-triangle-exclamation'; title = '政策命中,但 Block 擋不了';
+            } else if (selAction.value === 'block') {
+                actionText = 'Action 為 <strong>Block</strong>:立即阻擋來源連線(Web client 可同時給錯誤頁)。';
+            } else {
+                actionText = 'Action 為只告警:記錄告警,請求放行。';
+                cls = 'bg-yellow-50 border-yellow-300'; titleCls = 'text-yellow-700'; icon = 'fa-bell'; title = '政策命中:只告警';
+            }
+            const faText = selFa.value === 'as'
+                ? '<strong>Followed Action</strong>:執行 Action Set <code>AS-Syslog-Splunk</code>,送 syslog 到 10.0.30.50:514。若 Splunk 沒收到,先查 MX / GW 到 10.0.30.50 的 514 是否被防火牆擋,以及送出端是 MX 還是 GW。'
+                : '<strong>Followed Action</strong>:未設定,只有政策本身的 Action。';
+            resultBox.className = 'border rounded-lg p-4 ' + cls;
+            resultBox.innerHTML = `<h3 class="font-bold ${titleCls} mb-2"><i class="fas ${icon} mr-1"></i>${title}</h3>
+                <p class="text-sm text-gray-800 mb-2">${actionText}</p>
+                <p class="text-sm text-gray-800">${faText}</p>`;
+        }
+
+        [selReq, chkApplied, chkEmg, selEmgType, selMode, selAction, selFa].forEach(el => el.addEventListener('change', evaluatePolicy));
+        evaluatePolicy();
+
+        // ===== 隨堂測驗 =====
+        const quizData = [
+            {
+                question: "Q1. 政策套到 Server Group 之後,才新建了一個 service。這個新 service 會怎樣?",
+                options: ["A. 自動繼承該政策", "B. 不會繼承該政策,需要另外套用", "C. 會繼承,但要等 ADC 更新", "D. 整個 Server Group 的政策都會失效"],
+                correct: 1,
+                desc: "正解:B。政策套到 Server Group 之後才新建的 service 不會繼承該政策。新站上線後要回頭補套,否則只有 profile 在學。"
+            },
+            {
+                question: "Q2. 重大漏洞公告後,你發現 Emergency Feed 的預建政策完全沒有命中任何請求。最可能的原因是?",
+                options: ["A. 該漏洞沒有人攻擊", "B. 政策出廠停用,服務沒啟用或政策沒套用", "C. 要等下次 ADC 更新才會生效", "D. Emergency Feed 只能套用到 Server Group"],
+                correct: 1,
+                desc: "正解:B。預建的 ADC custom policy 出廠為停用。要生效必須啟用 Emergency Feed 服務,並把政策套用到 site / server group / service / application。建議平時先把 Emergency - Detection 套到全部站台。"
+            },
+            {
+                question: "Q3. 下列哪一項描述 Action 與 Action Set 的關係是正確的?",
+                options: ["A. Action 屬於 Action Set,是它的一部分", "B. Action 在政策中設定,不屬於 Action Set;Action Set 作為 Followed Action 掛到物件上", "C. Action Set 是立即阻擋,Action 是事後通報", "D. 兩者是同一個東西的不同名稱"],
+                correct: 1,
+                desc: "正解:B。Action 是政策命中時的立即反應,在政策中設定,不屬於 Action Set。Action Set 是一個或多個 Action Interface 的組合,作為 Followed Action 掛到政策、系統事件、報表或排程工作上。"
+            },
+            {
+                question: "Q4. 你寫了一條用 Authentication Result 條件偵測「登入失敗」的自訂政策,並把 Action 設成 Block,結果看似無效。原因是?",
+                options: ["A. Block 只能用在 Web Profile", "B. 這個條件是在伺服器回應上判斷,回應階段無法執行阻擋", "C. 必須先關閉 Simulation", "D. Authentication Result 只能搭配 e-mail 通知"],
+                correct: 1,
+                desc: "正解:B。官方注意事項:Authentication Result 條件是在伺服器回應上判斷,不要對這類政策設 Block 動作。"
+            },
+            {
+                question: "Q5. 某個合法業務參數一直被某條政策誤報。依本章的處理流程,最合適的作法是?",
+                options: ["A. 立刻把整條政策關掉", "B. 先找出是哪一層判定,再優先修 profile 或縮小 Apply To;不得已才加例外,並限定 URL + 參數 + 來源", "C. 把來源 IP 全部加入例外", "D. 把所有站台的 Simulation 都關掉"],
+                correct: 1,
+                desc: "正解:B。流程是看告警、判斷真偽、找出哪一層判定、最小範圍修正、紀錄、觀察 24 到 72 小時。用關整條政策處理單一誤報是常見踩坑,應縮小 Apply To 或加精準例外。"
+            }
+        ];
+
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionBox = document.createElement('div');
+            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
+
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border mb-2 text-gray-700" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            questionBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
+                <div class="space-y-2 mb-4">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
+                    <p class="font-bold result-title"></p>
+                    <p class="text-sm text-gray-600 mt-1">${item.desc}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionBox);
+        });
+
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            if (element.parentElement.dataset.answered) return;
+            element.parentElement.dataset.answered = "true";
+
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+                opt.classList.add('disabled');
+            });
+
+            if (optIndex === data.correct) {
+                element.classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了!";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                element.classList.add('bg-red-100', 'border-red-500');
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了!";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+    </script>
+</body>
+</html>

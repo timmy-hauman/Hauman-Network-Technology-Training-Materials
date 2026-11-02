@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imperva WAF Gateway 實戰課程 - Dynamic Profiling</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        /* 卡片主體樣式 (Imperva Blue) */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #0284c7;
+        }
+
+        /* 重點提示框 (藍) */
+        .highlight-box {
+            background-color: #f0f9ff;
+            border-left: 4px solid #0284c7;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 技術名詞標記 */
+        .tech-term {
+            color: #075985;
+            font-weight: 700;
+            background-color: #e0f2fe;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
+        }
+
+        /* 比喻說明框 (綠) */
+        .analogy-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 版本差異框 (紫) */
+        .version-box {
+            background-color: #faf5ff;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 常見踩坑框 (橘) */
+        .pitfall-box {
+            background-color: #fff7ed;
+            border-left: 4px solid #ea580c;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .diagram-container {
+            display: block;
+            background-color: #ffffff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-top: 1rem;
+        }
+
+        .diagram-container svg {
+            display: block;
+            width: 100%;
+            max-width: 520px;
+            margin: 0 auto;
+        }
+
+        /* 示意畫面 (仿管理介面) */
+        .mock-window {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            background: #ffffff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            margin-top: 1rem;
+        }
+        .mock-titlebar {
+            background: #e2e8f0;
+            padding: 0.4rem 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: #475569;
+        }
+        .mock-dots span {
+            display: inline-block;
+            width: 0.6rem;
+            height: 0.6rem;
+            border-radius: 50%;
+            background: #94a3b8;
+            margin-right: 0.2rem;
+        }
+        .mock-url {
+            background: #ffffff;
+            border-radius: 0.25rem;
+            padding: 0.1rem 0.5rem;
+            flex: 1;
+            min-width: 0;
+            font-family: ui-monospace, Consolas, monospace;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .mock-nav {
+            background: #1f2937;
+            color: #cbd5e1;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.25rem 1rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+        }
+        .mock-nav .brand { font-weight: 700; color: #ffffff; margin-right: 0.5rem; }
+        .mock-nav .on { color: #ffffff; border-bottom: 2px solid #0284c7; padding-bottom: 0.1rem; }
+        .mock-crumb {
+            font-size: 0.8rem;
+            color: #475569;
+            padding: 0.5rem 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f8fafc;
+        }
+        .mock-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            padding: 0.5rem 0.75rem 0;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.8rem;
+        }
+        .mock-tabs span {
+            padding: 0.3rem 0.7rem;
+            border: 1px solid #e5e7eb;
+            border-bottom: none;
+            border-radius: 0.3rem 0.3rem 0 0;
+            background: #f1f5f9;
+            color: #475569;
+        }
+        .mock-tabs span.on { background: #ffffff; color: #111827; font-weight: 600; }
+        .mock-body { padding: 0.75rem; font-size: 0.85rem; }
+        .mock-section { font-weight: 700; color: #334155; margin: 0.75rem 0 0.25rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.2rem; }
+        .mock-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.35rem 0.6rem;
+            padding: 0.35rem 0;
+        }
+        .mock-label { width: 12rem; color: #374151; font-weight: 500; }
+        .mock-input {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+            padding: 0.2rem 0.5rem;
+            min-width: 12rem;
+            background: #ffffff;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #111827;
+        }
+        .mock-select::after { content: " ▾"; color: #64748b; }
+        .mock-indent { padding-left: 2rem; }
+        .mock-btn {
+            display: inline-block;
+            border: 1px solid #94a3b8;
+            background: #f8fafc;
+            border-radius: 0.25rem;
+            padding: 0.2rem 0.7rem;
+            font-size: 0.8rem;
+            color: #1f2937;
+        }
+        .mock-btn.primary { background: #1f2937; color: #ffffff; border-color: #1f2937; }
+        .mock-hl { outline: 2px solid #0284c7; outline-offset: 2px; border-radius: 0.25rem; }
+        .mock-list {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+            min-width: 9rem;
+            min-height: 4.2rem;
+            padding: 0.25rem 0.5rem;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.8rem;
+            background: #ffffff;
+        }
+        .mock-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 0.5rem; }
+        .mock-table th { background: #f1f5f9; text-align: left; padding: 0.35rem 0.5rem; border: 1px solid #e2e8f0; color: #334155; }
+        .mock-table td { padding: 0.35rem 0.5rem; border: 1px solid #e2e8f0; }
+        .mock-caption {
+            font-size: 0.75rem;
+            color: #6b7280;
+            padding: 0.5rem 0.75rem;
+            background: #f9fafb;
+            border-top: 1px dashed #e5e7eb;
+        }
+        .step-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.4rem;
+            height: 1.4rem;
+            border-radius: 9999px;
+            background: #0284c7;
+            color: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .step-list li { display: flex; gap: 0.6rem; align-items: flex-start; margin-bottom: 0.6rem; }
+
+        /* 模擬器 */
+        .sim-rule {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.4rem 0.75rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            margin-bottom: 0.5rem;
+            background: #ffffff;
+        }
+        .sim-rule .num { font-weight: 700; color: #075985; width: 3.5rem; }
+        .sim-rule .desc { flex: 1; min-width: 12rem; }
+        .sim-arrow { border: 1px solid #cbd5e1; border-radius: 0.25rem; padding: 0 0.45rem; background: #f8fafc; }
+        .sim-arrow:disabled { opacity: 0.35; cursor: not-allowed; }
+        .trace-line { padding: 0.3rem 0; border-bottom: 1px dashed #e5e7eb; }
+
+        @media (max-width: 640px) {
+            main { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+            .section-card { padding: 1rem; }
+            .diagram-container { padding: 0.25rem; }
+            .mock-label { width: calc(100% - 2.2rem); }
+            .mock-indent .mock-label { width: 100%; }
+            .mock-input { min-width: 0; width: 100%; }
+            .mock-indent { padding-left: 0.75rem; }
+            .mock-body { padding: 0.5rem; }
+        }
+
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover:not(.disabled) {
+            background-color: #f3f4f6;
+        }
+
+        .footer-signature {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+            margin-top: 4rem;
+        }
+        /* Long URLs and code wrap on narrow screens */
+        main { overflow-wrap: break-word; } main code { overflow-wrap: anywhere; }
+
+        /* 終端機示意 (impcfg) */
+        .mock-console { background: #0f172a; color: #e2e8f0; font-family: ui-monospace, Consolas, monospace; font-size: 0.8rem; padding: 0.75rem; line-height: 1.7; overflow-x: auto; }
+        .mock-console .dim { color: #94a3b8; }
+        .mock-console .hl { outline: 2px solid #38bdf8; outline-offset: 1px; border-radius: 0.2rem; padding: 0 0.2rem; }
+        .mock-console .step-badge { margin-right: 0.4rem; }
+        .sim-opt { display: block; width: 100%; text-align: left; border: 1px solid #cbd5e1; border-radius: 0.5rem; padding: 0.5rem 0.75rem; margin-bottom: 0.5rem; background: #ffffff; }
+        .sim-opt:hover:not(:disabled) { background: #f0f9ff; }
+        .sim-opt.ok { background: #dcfce7; border-color: #16a34a; }
+        .sim-opt.bad { background: #fee2e2; border-color: #dc2626; }
+        .bar { position: relative; height: 1.1rem; background: #e2e8f0; border-radius: 9999px; }
+        .bar .fill { position: absolute; left: 0; top: 0; bottom: 0; background: #0284c7; border-radius: 9999px; }
+        .bar .mark { position: absolute; top: -0.3rem; bottom: -0.3rem; width: 3px; background: #ea580c; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-sky-800 to-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-shield-halved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold">Imperva WAF Gateway 實戰課程</h1>
+                    <p class="text-sky-100 mt-1">單元 8:Dynamic Profiling(動態剖析)</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <nav class="bg-white border-b shadow-sm">
+        <div class="container mx-auto px-4 py-2 max-w-5xl flex flex-wrap items-center justify-between gap-2 text-sm">
+            <a href="Imperva07.html" class="text-sky-700 hover:underline"><i class="fas fa-arrow-left mr-1"></i>上一章</a>
+            <a href="Imperva00.html" class="text-sky-700 hover:underline"><i class="fas fa-list mr-1"></i>課程目錄</a>
+            <a href="Imperva09.html" class="text-sky-700 hover:underline">下一章<i class="fas fa-arrow-right ml-1"></i></a>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+        <!-- Introduction -->
+        <div class="mb-8">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
+                <h2 class="text-xl font-bold text-blue-800 mb-2 flex items-center">
+                    <i class="fas fa-user-tie mr-2"></i>講師導言
+                </h2>
+                <p class="text-blue-900 leading-relaxed">
+                    簽章只能抓「已知的壞東西」。<strong>Dynamic Profiling(動態剖析)</strong>走的是另一條路:先從真實流量學出每個 URL「正常長什麼樣」,再對偏離者告警或阻擋。
+                    它能抓到簽章抓不到的、針對自家程式碼的攻擊,但有三個前提:<strong>學習期的流量要乾淨、門檻要設得合理、上線前要調校</strong>。
+                    這一章就是帶你走完 Web Profile 學什麼、Learning 怎麼變成 Protect,以及上線前怎麼降誤報。
+                </p>
+            </div>
+        </div>
+
+        <!-- 學習目標 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-gray-100 text-gray-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Goals</span>
+                本章學習目標
+            </h2>
+            <ul class="list-disc pl-6 space-y-1 text-gray-700">
+                <li>說出一份 Web Profile 學哪些東西,以及「違規流量不會被學進去」的意義</li>
+                <li>分辨 URL 的 Learning、Protect(與 cookie 的 Ignore)三種模式</li>
+                <li>說出自動切換到 Protect 的預設門檻(240 小時等),並判斷哪些 URL 會被漏掉</li>
+                <li>依 10 個步驟完成「Simulation → 調校 → Active」的上線流程</li>
+                <li>遇到 profile violation 時,依序判斷是真攻擊還是誤報,並選對處理方式</li>
+            </ul>
+            <p class="text-sm text-gray-500 mt-4"><i class="fas fa-map-signs mr-1"></i>承接第 7 章:一份 Web Profile 對應一個 Web Application(<code>shop</code>、<code>member</code>)。</p>
+        </div>
+
+        <!-- 一、Web Profile 學什麼 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">一、Web Profile 學什麼</h2>
+
+            <div class="analogy-box">
+                <p class="font-bold text-green-800 mb-1"><i class="fas fa-user-shield mr-1"></i>用保全認人來想</p>
+                <p class="text-green-900">簽章像「黑名單」,看到通緝犯才攔。Profile 像保全記住每位住戶的長相與作息:不管你是不是通緝犯,只要你的行為「不像這棟樓的人」就會被注意。前提是,保全剛上班時看到的必須是正常住戶,不能把闖空門的也當成住戶記起來。</p>
+            </div>
+
+            <div class="overflow-x-auto mt-3">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">類別</th><th class="py-2 px-4 border text-left">學習內容</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">結構</td><td class="py-2 px-4 border">目錄、URL(含 URL Patterns,把 <code>/item/123</code> 這類動態路徑歸成一類)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">方法</td><td class="py-2 px-4 border">每個 URL 允許的 HTTP 方法(GET、POST、PUT、DELETE…)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">參數</td><td class="py-2 px-4 border">名稱、是否必填、長度範圍、值型別、是否 read-only</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Cookie</td><td class="py-2 px-4 border">哪些 cookie 由伺服器設定、是否會被用戶端改動(防竄改 / 注入)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">登入</td><td class="py-2 px-4 border">登入 URL、帳號欄位、成功 / 失敗判斷(Application User Tracking,供第 9 章自訂政策與第 11 章使用)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">XML / SOAP</td><td class="py-2 px-4 border">每個 URL 允許的 SOAP action 與 XML 結構</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 360 480" role="img" aria-labelledby="svg1-title" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans TC, sans-serif">
+                    <title id="svg1-title">學習流程:請求進來先看有沒有違反既有政策,違規的不會被學進 Web Profile,正常的才累積成 profile;學習期間仍受簽章與自訂政策保護</title>
+                    <defs>
+                        <marker id="arrow1" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+                        </marker>
+                    </defs>
+                    <rect x="60" y="10" width="240" height="46" rx="8" fill="#f1f5f9" stroke="#94a3b8"/>
+                    <text x="180" y="39" text-anchor="middle" font-size="15" fill="#1f2937">一個請求進來(shop / member)</text>
+                    <line x1="180" y1="56" x2="180" y2="84" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+
+                    <rect x="20" y="88" width="320" height="96" rx="10" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="180" y="114" text-anchor="middle" font-size="15" font-weight="700" fill="#075985">先過既有政策</text>
+                    <text x="180" y="138" text-anchor="middle" font-size="13" fill="#1f2937">ADC 簽章、協定驗證、自訂政策</text>
+                    <text x="180" y="160" text-anchor="middle" font-size="13" fill="#1f2937">學習期間不是裸奔</text>
+                    <line x1="100" y1="184" x2="100" y2="226" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+                    <text x="108" y="212" font-size="13" fill="#475569">違規</text>
+                    <line x1="260" y1="184" x2="260" y2="226" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+                    <text x="268" y="212" font-size="13" fill="#475569">正常</text>
+
+                    <rect x="20" y="230" width="150" height="110" rx="10" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
+                    <text x="95" y="256" text-anchor="middle" font-size="14" font-weight="700" fill="#c2410c">不會被學進去</text>
+                    <text x="95" y="280" text-anchor="middle" font-size="13" fill="#1f2937">異常 HTTP 行為</text>
+                    <text x="95" y="300" text-anchor="middle" font-size="13" fill="#1f2937">被判定為 worm</text>
+                    <text x="95" y="322" text-anchor="middle" font-size="13" fill="#1f2937">照政策處理</text>
+
+                    <rect x="190" y="230" width="150" height="110" rx="10" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+                    <text x="265" y="256" text-anchor="middle" font-size="14" font-weight="700" fill="#1d4ed8">進入 Web Profile</text>
+                    <text x="265" y="280" text-anchor="middle" font-size="13" fill="#1f2937">URL、方法、參數</text>
+                    <text x="265" y="300" text-anchor="middle" font-size="13" fill="#1f2937">cookie、登入、XML</text>
+                    <text x="265" y="322" text-anchor="middle" font-size="13" fill="#1f2937">持續累積</text>
+
+                    <line x1="265" y1="340" x2="265" y2="372" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+                    <rect x="20" y="376" width="320" height="94" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+                    <text x="180" y="402" text-anchor="middle" font-size="15" font-weight="700" fill="#15803d">學夠了 → 切到 Protect</text>
+                    <text x="180" y="426" text-anchor="middle" font-size="13" fill="#1f2937">偏離 profile 即產生 violation</text>
+                    <text x="180" y="448" text-anchor="middle" font-size="13" fill="#1f2937">profile 也可人工新增、刪除項目</text>
+                </svg>
+            </div>
+
+            <div class="highlight-box">
+                <p class="font-bold text-sky-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>官方說明的幾個關鍵行為</p>
+                <ul class="list-disc pl-6 text-gray-800 space-y-1">
+                    <li><strong>安裝後就開始學</strong>:系統一裝好便開始學習 web 使用行為,達到合適的學習量後切到 Protect。</li>
+                    <li><strong>profile 可人工修改</strong>:可新增、刪除項目來微調。</li>
+                    <li><strong>學習期間不是裸奔</strong>:profile 建立期間,應用仍受 ADC 內容(簽章)與自訂政策保護。</li>
+                    <li><strong>違規流量不會被學進去</strong>:例如帶有異常 HTTP 行為或被判定為 worm 的請求,不會成為 profile 的一部分。</li>
+                </ul>
+                <p class="text-gray-800 mt-2"><strong>技巧:用政策限縮學習範圍。</strong>既然「違反既有政策的行為不會被學習」,只想讓 profile 學 GET 與 POST,就先定義一條把其他方法標為違規的政策(第 9 章)。</p>
+            </div>
+        </div>
+
+        <!-- 二、URL 模式 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">二、URL 的模式:Learning 與 Protect</h2>
+            <p class="text-gray-700 leading-relaxed">每個 URL 各自處在一種模式(以 URL 為粒度,<strong>不是整個站一起切</strong>):</p>
+
+            <div class="overflow-x-auto mt-2">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">模式</th><th class="py-2 px-4 border text-left">行為</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold"><span class="tech-term">Learning</span></td><td class="py-2 px-4 border">不對此 URL 強制 profile 政策,仍在學它怎麼被存取</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold"><span class="tech-term">Protect</span></td><td class="py-2 px-4 border">強制 profile 政策,偏離即產生 violation,依 Web Profile Policy 的動作處理</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold"><span class="tech-term">Ignore</span></td><td class="py-2 px-4 border">只用在 cookie 保護</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 360 320" role="img" aria-labelledby="svg2-title" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans TC, sans-serif">
+                    <title id="svg2-title">URL 模式切換:Learning 依出現次數、是否帶參數、首次出現後經過的時間自動轉 Protect,冷門 URL 預設最晚 240 小時強制轉;也可以手動切換</title>
+                    <defs>
+                        <marker id="arrow2" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+                        </marker>
+                    </defs>
+                    <rect x="20" y="20" width="130" height="90" rx="10" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+                    <text x="85" y="50" text-anchor="middle" font-size="16" font-weight="700" fill="#1d4ed8">Learning</text>
+                    <text x="85" y="74" text-anchor="middle" font-size="13" fill="#1f2937">不強制 profile</text>
+                    <text x="85" y="94" text-anchor="middle" font-size="13" fill="#1f2937">仍在學</text>
+                    <rect x="210" y="20" width="130" height="90" rx="10" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="275" y="50" text-anchor="middle" font-size="16" font-weight="700" fill="#075985">Protect</text>
+                    <text x="275" y="74" text-anchor="middle" font-size="13" fill="#1f2937">強制 profile</text>
+                    <text x="275" y="94" text-anchor="middle" font-size="13" fill="#1f2937">偏離即 violation</text>
+                    <line x1="150" y1="50" x2="206" y2="50" stroke="#64748b" stroke-width="2" marker-end="url(#arrow2)"/>
+                    <text x="180" y="40" text-anchor="middle" font-size="13" fill="#475569">自動</text>
+                    <line x1="206" y1="84" x2="154" y2="84" stroke="#64748b" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#arrow2)"/>
+                    <text x="180" y="104" text-anchor="middle" font-size="13" fill="#475569">手動</text>
+
+                    <rect x="20" y="140" width="320" height="170" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="2"/>
+                    <text x="180" y="166" text-anchor="middle" font-size="15" font-weight="700" fill="#1f2937">何時自動轉 Protect?三個因素</text>
+                    <text x="40" y="196" font-size="14" fill="#1f2937">① 在流量中出現的次數</text>
+                    <text x="40" y="220" font-size="14" fill="#1f2937">② 是否帶參數</text>
+                    <text x="40" y="244" font-size="14" fill="#1f2937">③ 首次出現後經過的時間</text>
+                    <text x="40" y="274" font-size="14" font-weight="700" fill="#c2410c">越常出現的 URL 越早轉</text>
+                    <text x="40" y="298" font-size="13" fill="#475569">240 小時是冷門 URL 的最晚期限</text>
+                </svg>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>關於「Protect and Lock」</p>
+                <p class="text-gray-800">舊版說法有第三種狀態「Protect and Lock」(管理者手動鎖定,停止自動調整)。現行文件可手動切換 URL 模式(單一 URL 或多個 URL),但本次查證未看到「Lock」這個名稱<span class="text-xs text-gray-500">【待實機確認】</span>。</p>
+            </div>
+        </div>
+
+        <!-- 三、門檻 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">三、自動切換門檻</h2>
+            <p class="text-gray-700 leading-relaxed">
+                門檻在 <strong>Switching to Protect Mode Thresholds (Web)</strong> 視窗設定(Administration Guide 的 Dynamic Profiling 視窗之一)<span class="text-xs text-gray-500">【待實機確認:GUI 路徑,推測在 Admin workspace 的系統設定下】</span>。
+            </p>
+
+            <div class="mock-window">
+                <div class="mock-titlebar">
+                    <span class="mock-dots"><span></span><span></span><span></span></span>
+                    <span class="mock-url">https://10.0.30.10:8083</span>
+                </div>
+                <div class="mock-nav">
+                    <span class="brand">Imperva MX</span>
+                    <span>Main</span><span class="on">Admin</span>
+                </div>
+                <div class="mock-crumb">Switching to Protect Mode Thresholds (Web)(路徑待實機確認)</div>
+                <div class="mock-body">
+                    <div class="mock-row"><span class="step-badge">1</span><span class="mock-label">Duration (in hours) required to switch all URLs to Protect mode</span><span class="mock-input mock-hl">240</span></div>
+                    <div class="mock-row"><span class="step-badge">2</span><span class="mock-label">Duration (in hours) required to switch all Cookies to protect or ignored mode</span><span class="mock-input">240</span></div>
+                    <div class="mock-row"><span class="step-badge">3</span><span class="mock-label">Minimum occurrences required to switch a cookie into Protect mode</span><span class="mock-input">10</span></div>
+                    <div class="mock-row"><span class="step-badge">4</span><span class="mock-label">Success rate required to set a specific parameter as read-only</span><span class="mock-input mock-hl">99.9</span></div>
+                    <div class="mock-row"><span class="step-badge">5</span><span class="mock-label">Number of occurrences required to determine if a parameter is read-only</span><span class="mock-input mock-hl">10</span></div>
+                </div>
+                <div class="mock-caption"><i class="fas fa-circle-info mr-1"></i>示意畫面:部分欄位名稱待實機確認(視窗路徑、欄位排列與單位標示),數值為官方預設值,版面以實機為準。</div>
+            </div>
+
+            <div class="overflow-x-auto mt-4">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">參數</th><th class="py-2 px-4 border text-left">預設</th><th class="py-2 px-4 border text-left">意義</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border">Duration (in hours) required to switch all URLs to Protect mode</td><td class="py-2 px-4 border font-semibold">240</td><td class="py-2 px-4 border">URL 首次出現後滿這麼多小時,不論出現次數,一律轉 Protect</td></tr>
+                        <tr><td class="py-2 px-4 border">Duration (in hours) required to switch all Cookies to protect or ignored mode</td><td class="py-2 px-4 border font-semibold">240(最小 24)</td><td class="py-2 px-4 border">cookie 的時間門檻;設小於 24 視為 24</td></tr>
+                        <tr><td class="py-2 px-4 border">Minimum occurrences required to switch a cookie into Protect mode</td><td class="py-2 px-4 border font-semibold">10</td><td class="py-2 px-4 border">cookie 出現次數門檻</td></tr>
+                        <tr><td class="py-2 px-4 border">Traceability Percentage … partial Protect mode</td><td class="py-2 px-4 border font-semibold">95.0%</td><td class="py-2 px-4 border">cookie 在這比例的 session 中未被改動 → 轉 Protect(不含防注入)</td></tr>
+                        <tr><td class="py-2 px-4 border">Traceability Percentage … full Protect mode</td><td class="py-2 px-4 border font-semibold">95.0%</td><td class="py-2 px-4 border">另看到伺服器 SET 該 cookie 達此比例 → 轉 Protect(含防注入)</td></tr>
+                        <tr><td class="py-2 px-4 border">Success rate required to set a specific parameter as read-only</td><td class="py-2 px-4 border font-semibold">99.9%</td><td class="py-2 px-4 border">參數判定為 read-only 的成功率</td></tr>
+                        <tr><td class="py-2 px-4 border">Number of occurrences required to determine if a parameter is read-only</td><td class="py-2 px-4 border font-semibold">10</td><td class="py-2 px-4 border">參數判定 read-only 需要的出現次數</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="highlight-box">
+                <p class="font-bold text-sky-800 mb-1"><i class="fas fa-calculator mr-1"></i>換算一下</p>
+                <p class="text-gray-800">240 小時 = 10 天。<code>shop.example.com</code> 若有月底結帳、季末活動之類低頻功能,10 天內可能根本沒出現,這些 URL 會在被真正使用時才開始學。這正是第六節上線前調校要處理的。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>實驗室與正式環境</p>
+                <p class="text-gray-800">官方建議:<strong>實驗室流量少</strong>時,可把 read-only 成功率暫調為 50、出現次數調為 6,以便測試;但這兩個值越低,誤報與漏報都越多,<strong>正式環境請改回預設</strong>。</p>
+            </div>
+        </div>
+
+        <!-- 四、其他視窗 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">四、Learning Exceptions、Profile Size Limits 與 XML / SOAP</h2>
+            <p class="text-gray-700 leading-relaxed">Administration Guide 的 Dynamic Profiling 區有四個視窗:<strong>Learning Exceptions</strong>、<strong>Profile Optimization</strong>、<strong>Profile Size Limits</strong>、<strong>Switching to Protect Mode Thresholds (Web)</strong>。</p>
+            <div class="overflow-x-auto mt-2">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">視窗</th><th class="py-2 px-4 border text-left">用途</th><th class="py-2 px-4 border text-left">何時要動</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">Learning Exceptions</td><td class="py-2 px-4 border">指定不要學習的流量</td><td class="py-2 px-4 border">弱點掃描器、壓測、監控探針的來源 IP 必須排除,否則它們的異常請求會被當成「正常」學進去<span class="text-xs text-gray-500">【推論:依功能名稱;欄位細節【待實機確認】】</span></td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Profile Size Limits</td><td class="py-2 px-4 border">限制 profile 的大小(URL、參數數量)</td><td class="py-2 px-4 border">有大量動態 URL 的站台,避免 profile 爆量拖慢 MX</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Profile Optimization</td><td class="py-2 px-4 border">整併 / 最佳化 profile 內容</td><td class="py-2 px-4 border">URL Patterns 沒歸好、profile 過於零碎時</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Protect Mode Thresholds</td><td class="py-2 px-4 border">第三節的門檻</td><td class="py-2 px-4 border">低流量站台或學習期需要拉長時</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-sm text-gray-600 mt-2">此外,可以關閉自動 Web Profiling(只用簽章與自訂政策),適用於流量極低、無法學出可靠 profile 的應用<span class="text-xs text-gray-500">【待實機確認:開關位置】</span>。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">XML / SOAP</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>profile 會自動辨識承載 SOAP / XML 的 URL,逐 URL 學習允許的 SOAP action 與 XML 結構(舊簡報的觀念仍適用)。</li>
+                <li>舊版列出的解析選項(Parse SOAP XML Only、Ignore Attributes、Parse Empty Elements、Maximum Parsing Depth)在現行版本的名稱與位置<span class="text-xs text-gray-500">【待實機確認】</span>。</li>
+                <li>現代站台多為 JSON API;JSON 參數如何進 profile、與 API Security 整合的分工見第 11 章<span class="text-xs text-gray-500">【待實機確認:JSON profiling 的細節】</span>。</li>
+            </ul>
+        </div>
+
+        <!-- 五、模擬器 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">五、動手玩:Profiling 學習時間軸</h2>
+            <p class="text-gray-700 mb-3">拖動滑桿看時間過了多久、URL 什麼時候轉 Protect;再送出一個「偏離 profile」的請求,看是否產生 violation、最後是告警還是阻擋。官方只說明三個因素決定轉換時機,並沒有列出提早轉換的確切條件,所以「高頻 URL 是否已提早轉 Protect」交給你假設。</p>
+
+            <div class="bg-gray-50 border rounded-lg p-4">
+                <label class="block font-bold text-gray-800 mb-1" for="t-hours">學習開始後經過:<span id="t-hours-label">0 小時(0 天)</span></label>
+                <input type="range" id="t-hours" min="0" max="336" step="6" value="0" class="w-full" aria-label="學習開始後經過的小時數">
+                <div class="bar mt-3"><div class="fill" id="t-fill" style="width:0%"></div><div class="mark" id="t-mark" style="left:71.4%"></div></div>
+                <div class="flex justify-between text-xs text-gray-500 mt-1"><span>0</span><span id="t-mark-label" class="text-orange-700">門檻 240 小時(10 天)</span><span>336 小時(14 天)</span></div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-4 mt-4">
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-sliders mr-1 text-sky-600"></i>設定</h3>
+                    <label class="block text-sm mb-1" for="t-th">URL 轉 Protect 的時間門檻(小時,預設 240)</label>
+                    <input type="number" id="t-th" min="24" max="336" value="240" class="border rounded px-2 py-1 w-full mb-2">
+                    <label class="block mb-2 text-sm"><input type="checkbox" id="t-early" class="mr-2">假設高頻 URL 已因出現次數足夠,在門檻前就提早轉 Protect</label>
+                    <label class="block text-sm mb-1" for="t-mode">SG-Shop 的 Operation Mode</label>
+                    <select id="t-mode" class="border rounded px-2 py-1 w-full mb-2">
+                        <option value="simulation">Simulation(只告警,推論)</option>
+                        <option value="active">Active</option>
+                    </select>
+                    <label class="block text-sm mb-1" for="t-act">Web Profile Policy 的動作</label>
+                    <select id="t-act" class="border rounded px-2 py-1 w-full mb-2">
+                        <option value="alert">告警</option>
+                        <option value="block">阻擋</option>
+                    </select>
+                    <label class="block text-sm"><input type="checkbox" id="t-scan" class="mr-2">學習期間跑過弱點掃描,且沒設 Learning Exceptions</label>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-paper-plane mr-1 text-sky-600"></i>送出一個請求</h3>
+                    <p class="text-xs text-gray-500 mb-2">假設 profile 學到 /shop/list 只用 GET / POST,參數 keyword 長度正常。</p>
+                    <label class="block mb-1 text-sm"><input type="radio" name="t-req" value="normal" class="mr-2" checked>GET /shop/list?keyword=abc(正常)</label>
+                    <label class="block mb-1 text-sm"><input type="radio" name="t-req" value="method" class="mr-2">PUT /shop/list(方法沒被學過)</label>
+                    <label class="block mb-1 text-sm"><input type="radio" name="t-req" value="long" class="mr-2">GET /shop/list?keyword=(5000 字元的超長值)</label>
+                    <label class="block mb-1 text-sm"><input type="radio" name="t-req" value="newurl" class="mr-2">GET /report/month-end(月結功能,學習期內從未出現)</label>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-4 mt-4">
+                <div class="bg-white border rounded-lg p-4">
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-list mr-1 text-blue-600"></i>這個時間點的 URL 模式</h3>
+                    <div id="t-urls" class="text-sm text-gray-700"></div>
+                </div>
+                <div id="t-result" class="border rounded-lg p-4"></div>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">規則依官方:URL 首次出現後滿門檻小時一律轉 Protect;Learning 不強制 profile,Protect 偏離即 violation;Simulation 只告警(推論),Active 才依動作處理。</p>
+        </div>
+
+        <!-- 六、上線流程 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">六、從 Learning 到 Protect:上線流程</h2>
+            <p class="text-gray-700 mb-3">以 <code>shop</code>、<code>member</code> 兩個 application 為例:</p>
+
+            <div class="mock-window">
+                <div class="mock-titlebar">
+                    <span class="mock-dots"><span></span><span></span><span></span></span>
+                    <span class="mock-url">https://10.0.30.10:8083</span>
+                </div>
+                <div class="mock-crumb">Main &gt; Setup &gt; Sites &gt; SG-Shop &gt; Definitions</div>
+                <div class="mock-body">
+                    <div class="mock-row"><span class="step-badge">2</span><span class="mock-label">Operation Mode</span><span class="mock-input mock-select mock-hl">Simulation</span></div>
+                    <div class="mock-row"><span class="step-badge">9</span><span class="mock-label">(調校完成後)</span><span class="mock-input mock-select mock-hl">Active</span></div>
+                </div>
+                <div class="mock-caption"><i class="fas fa-circle-info mr-1"></i>示意畫面:欄位名稱依 Imperva 官方文件,步驟編號對應下方上線流程,版面以實機為準。</div>
+            </div>
+
+            <ol class="step-list mt-4 text-gray-700">
+                <li><span class="step-badge">1</span><span><strong>確認 Site Tree 正確</strong>(第 7 章):Servers IP 完整、TLS 能解(否則 profile 只學到殘缺資料)、host 對應把 <code>/member/</code> 分到 <code>member</code>。</span></li>
+                <li><span class="step-badge">2</span><span><strong>Server Group 設 Simulation</strong>:Main &gt; Setup &gt; Sites &gt; <code>SG-Shop</code> &gt; Definitions &gt; Operation Mode 選 <strong>Simulation</strong>,學習與初期觀察期間不阻擋。</span></li>
+                <li><span class="step-badge">3</span><span><strong>排除非正常流量</strong>:在 Learning Exceptions 排除掃描器、壓測、監控探針的來源<span class="text-xs text-gray-500">【待實機確認】</span>。</span></li>
+                <li><span class="step-badge">4</span><span><strong>用政策限縮學習</strong>:例如先啟用一條只允許 GET / POST / HEAD 的政策,其他方法不會被學進 profile。</span></li>
+                <li><span class="step-badge">5</span><span><strong>讓業務流程跑完一輪</strong>:請 QA 或業務單位在學習期內走過註冊、登入、加入購物車、結帳、改密碼、退貨等完整流程;低頻功能(月結、活動頁)也要點到。</span></li>
+                <li><span class="step-badge">6</span><span><strong>檢查 profile</strong>:看 Learned URLs 與 Web Profile 報表,確認沒有學到明顯的攻擊樣式(例如某參數長度上限被學成 5000)<span class="text-xs text-gray-500">【待實機確認:Main workspace 中 profile 檢視的路徑】</span>。</span></li>
+                <li><span class="step-badge">7</span><span><strong>觀察 Protect 後的 violation</strong>:URL 陸續自動轉 Protect;此時仍在 Simulation,violation 只告警。</span></li>
+                <li><span class="step-badge">8</span><span><strong>逐條調校</strong>(下一節),直到 violation 幾乎都是真攻擊。</span></li>
+                <li><span class="step-badge">9</span><span><strong>改 Active</strong>:Operation Mode 改回 <strong>Active</strong>,並逐步把 Web Profile Policy 的動作從告警改為阻擋(第 9 章);先從 <code>member</code> 的高風險 URL(登入、改密碼)開始。</span></li>
+                <li><span class="step-badge">10</span><span><strong>應用改版時</strong>:新 URL 會自動進 Learning;大改版前可把受影響 URL 手動切回 Learning<span class="text-xs text-gray-500">【待實機確認:Switching Between the URL Modes 的操作位置】</span>。</span></li>
+            </ol>
+        </div>
+
+        <!-- 七、降誤報 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">七、降誤報調校步驟</h2>
+            <p class="text-gray-700 mb-2">遇到一條 profile violation,依序判斷:</p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">判斷</th><th class="py-2 px-4 border text-left">處理</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">真攻擊</td><td class="py-2 px-4 border">不動 profile;確認動作正確即可</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">合法但 profile 沒學到(低頻 URL、新參數)</td><td class="py-2 px-4 border">把該 URL / 參數加入 profile,或把 URL 切回 Learning 讓它重學</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">參數型別學太窄(例如姓名欄位只學到英文)</td><td class="py-2 px-4 border">手動放寬參數的值型別 / 長度</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">動態路徑被當成大量獨立 URL</td><td class="py-2 px-4 border">調整 URL Patterns,把 <code>/item/{id}</code> 歸一類</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">特定來源的正常行為(內部系統呼叫 API)</td><td class="py-2 px-4 border">在 Web Profile Policy 加例外(限定來源、URL),<strong>範圍越小越好</strong><span class="text-xs text-gray-500">【待實機確認:例外欄位】</span></td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">cookie 被前端 JS 正常改寫</td><td class="py-2 px-4 border">檢查該 cookie 的模式,必要時設為 Ignore</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="highlight-box">
+                <p class="font-bold text-sky-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>三個原則</p>
+                <ul class="list-disc pl-6 text-gray-800 space-y-1">
+                    <li><strong>先修 profile、後加例外</strong>:例外會永久開洞,profile 修正只影響該參數。</li>
+                    <li><strong>不要用「關掉整條 Web Profile Policy」解決單一誤報</strong>:那等於回到純簽章防護。</li>
+                    <li><strong>每次調整記錄原因與工單號</strong>:v15.0 起系統事件會記錄「誰改了什麼」(第 12 章),兩者對得起來。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 八、踩坑 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">八、常見踩坑</h2>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>學習期混進掃描流量</p>
+                <p class="text-gray-800">弱點掃描或壓測在學習期間跑,攻擊樣式被學成「正常」;排程要錯開或用 Learning Exceptions 排除。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>實驗室門檻帶到正式環境</p>
+                <p class="text-gray-800">read-only 50 / 6 的測試值留著,誤報與漏報都上升。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>TLS 解不開就開始學</p>
+                <p class="text-gray-800">profile 只有網路層資訊,轉 Protect 後幾乎沒有防護力;先確認第 7 章的 TLS 設定。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>低頻功能沒走到</p>
+                <p class="text-gray-800">240 小時內沒出現的 URL,不會在 profile 內,要等上線後第一次被用才開始被學。Protect 期間出現的新 URL 預設會自動進 Learning 開始學;是否另外觸發未授權 URL 類的違規,依設定而定<span class="text-xs text-gray-500">【待實機確認】</span>。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>一個 application 塞進多個站</p>
+                <p class="text-gray-800">profile 被最寬鬆的站撐大,失去正面模型的意義(第 7 章)。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>直接 Active</p>
+                <p class="text-gray-800">沒經 Simulation 觀察就阻擋,第一天就會遇到「Turn It Off」的壓力。</p>
+            </div>
+        </div>
+
+        <!-- 九、新舊對照 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">九、新舊對照</h2>
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-2"><i class="fas fa-code-branch mr-1"></i>舊版說法與現況</p>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm border bg-white">
+                        <thead class="bg-gray-100">
+                            <tr><th class="py-2 px-4 border text-left">舊說法</th><th class="py-2 px-4 border text-left">現況</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td class="py-2 px-4 border">以 URL 為粒度:Learning → Protect → Protect and Lock</td><td class="py-2 px-4 border">Learning、Protect 兩種 URL 模式(cookie 另有 Ignore),可手動切換;「Lock」名稱未在現行文件查到<span class="text-xs text-gray-500">【待實機確認】</span></td></tr>
+                            <tr><td class="py-2 px-4 border">觀察足夠後自動轉為保護</td><td class="py-2 px-4 border">仍成立,依出現次數、是否有參數、經過時間判定;冷門 URL 預設 240 小時後強制轉</td></tr>
+                            <tr><td class="py-2 px-4 border">學習期忽略會觸發其他違規的事件</td><td class="py-2 px-4 border">仍成立:違反既有政策的行為不會被學;可用政策限縮學習</td></tr>
+                            <tr><td class="py-2 px-4 border">學習參數必填、長度、型別、read-only</td><td class="py-2 px-4 border">仍成立;read-only 判定預設 99.9% / 10 次</td></tr>
+                            <tr><td class="py-2 px-4 border">SOAP / XML Profiling 與解析選項</td><td class="py-2 px-4 border">概念仍在;選項名稱與位置<span class="text-xs text-gray-500">【待實機確認】</span></td></tr>
+                            <tr><td class="py-2 px-4 border">未提 profile 大小與學習排除</td><td class="py-2 px-4 border">有 Learning Exceptions、Profile Size Limits、Profile Optimization,且可關閉自動 Web Profiling</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
+                隨堂測驗
+            </h2>
+            <p class="mb-6 text-gray-600">請點選您認為正確的選項,系統將會顯示解析。</p>
+            <div class="space-y-6" id="quiz-container"></div>
+        </div>
+
+    </main>
+
+    <footer class="footer-signature">
+        Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver.2026.11.02.12.07
+    </footer>
+
+    <script>
+        // ===== Profiling 學習時間軸模擬器 =====
+        const $ = id => document.getElementById(id);
+        const tHours = $('t-hours'), tTh = $('t-th'), tEarly = $('t-early'), tMode = $('t-mode'), tAct = $('t-act'), tScan = $('t-scan');
+        const tFill = $('t-fill'), tMark = $('t-mark'), tMarkLabel = $('t-mark-label'), tHoursLabel = $('t-hours-label');
+        const tUrls = $('t-urls'), tResult = $('t-result');
+        const MAXH = 336;
+
+        function dayText(h) { return (h / 24).toFixed(h % 24 === 0 ? 0 : 1) + ' 天'; }
+
+        function threshold() {
+            let v = Number(tTh.value);
+            if (!isFinite(v) || v < 1) v = 240;
+            return v;
+        }
+
+        // 高頻 URL 的模式:滿門檻一律轉 Protect;未滿門檻時,是否提早轉由使用者假設
+        function highMode(h) {
+            const th = threshold();
+            if (h >= th) return { protect: true, text: 'Protect(滿 ' + th + ' 小時,一律轉)' };
+            if (tEarly.checked && h > 0) return { protect: true, text: 'Protect(假設出現次數足夠,提早轉)' };
+            return { protect: false, text: 'Learning' };
+        }
+
+        function outcome() {
+            if (tMode.value === 'simulation') return '<strong>只告警,不阻擋</strong>(SG-Shop 是 Simulation)';
+            return tAct.value === 'block' ? '<strong>阻擋</strong>(Active,動作為阻擋)' : '<strong>告警</strong>(Active,動作為告警)';
+        }
+
+        function render() {
+            const h = Number(tHours.value);
+            const th = threshold();
+            tHoursLabel.textContent = h + ' 小時(' + dayText(h) + ')';
+            tFill.style.width = (h / MAXH * 100) + '%';
+            tMark.style.left = Math.min(th / MAXH * 100, 100) + '%';
+            tMarkLabel.textContent = '門檻 ' + th + ' 小時(' + dayText(th) + ')' + (th > MAXH ? ',超出滑桿範圍,尚未達門檻' : '');
+
+            const hm = highMode(h);
+            const badge = p => p ? '<span class="tech-term">' : '<span class="px-1 rounded bg-blue-100 text-blue-800 font-semibold">';
+            tUrls.innerHTML =
+                '<div class="trace-line"><code>/shop/list</code>(高頻、帶參數):' + badge(hm.protect) + hm.text + '</span></div>' +
+                '<div class="trace-line"><code>/member/login</code>(高頻、帶參數):' + badge(hm.protect) + hm.text + '</span></div>' +
+                '<div class="trace-line"><code>/report/month-end</code>(低頻,學習期內沒人用):<span class="px-1 rounded bg-gray-200 text-gray-800 font-semibold">不在 profile 內</span>,第一次被用時才開始學</div>';
+
+            const req = document.querySelector('input[name="t-req"]:checked').value;
+            let cls, html;
+            if (req === 'newurl') {
+                cls = 'border rounded-lg p-4 bg-blue-50 border-blue-300';
+                html = '<h3 class="font-bold text-blue-700 mb-2"><i class="fas fa-book-open mr-1"></i>進 Learning(預設),開始被學</h3>' +
+                    '<p class="text-sm text-gray-800">Protect 期間出現的新 URL 預設會自動進 Learning 開始學,第一次被用時才開始學。這就是學習期要請業務單位把低頻功能(月結、活動頁)也點過一輪的原因。</p>' +
+                    '<p class="text-xs text-gray-500 mt-1">是否另外觸發未授權 URL 類的違規,依設定而定【待實機確認】。</p>';
+            } else if (!hm.protect) {
+                cls = 'border rounded-lg p-4 bg-blue-50 border-blue-300';
+                const what = req === 'normal' ? '這是正常請求,會被繼續學進 profile。' :
+                    req === 'method' ? '不會產生 profile violation。若你已用政策把 PUT 標為違規,它會被那條政策處理,而且不會被學進 profile。' :
+                    '不會產生 profile violation(仍受簽章與自訂政策保護)。';
+                html = '<h3 class="font-bold text-blue-700 mb-2"><i class="fas fa-book-open mr-1"></i>URL 在 Learning:不強制 profile</h3>' +
+                    '<p class="text-sm text-gray-800">Learning 模式不對此 URL 強制 profile 政策,仍在學它怎麼被存取。' + what + '</p>';
+            } else if (req === 'normal') {
+                cls = 'border rounded-lg p-4 bg-green-50 border-green-300';
+                html = '<h3 class="font-bold text-green-700 mb-2"><i class="fas fa-circle-check mr-1"></i>符合 profile</h3>' +
+                    '<p class="text-sm text-gray-800">URL 已在 Protect,這個請求的方法與參數都在學到的範圍內,沒有 violation。</p>';
+            } else if (req === 'long' && tScan.checked) {
+                cls = 'border rounded-lg p-4 bg-orange-50 border-orange-300';
+                html = '<h3 class="font-bold text-orange-700 mb-2"><i class="fas fa-triangle-exclamation mr-1"></i>沒有 violation(漏報)</h3>' +
+                    '<p class="text-sm text-gray-800">學習期間掃描流量沒被排除,攻擊樣式被學成「正常」,例如參數長度上限被學成 5000,於是這個超長值被當成合法。</p>' +
+                    '<p class="text-sm text-gray-800 mt-1">解法:用 Learning Exceptions 排除掃描器,並在轉 Protect 前檢查 profile,看有沒有學到明顯的攻擊樣式。</p>';
+            } else {
+                cls = 'border rounded-lg p-4 bg-red-50 border-red-300';
+                const reason = req === 'method' ? 'PUT 不在這個 URL 學到的 HTTP 方法內' : 'keyword 長度超出學到的長度範圍';
+                html = '<h3 class="font-bold text-red-700 mb-2"><i class="fas fa-circle-exclamation mr-1"></i>產生 violation</h3>' +
+                    '<p class="text-sm text-gray-800 mb-1">URL 已在 Protect,偏離 profile 即產生 violation:' + reason + '。</p>' +
+                    '<p class="text-sm text-gray-800">處理結果:' + outcome() + '。</p>' +
+                    (tMode.value === 'simulation' ? '<p class="text-xs text-gray-500 mt-2">要真的擋下來,調校完成後把 Operation Mode 改 Active,並把動作改為阻擋(先從 member 的高風險 URL 開始)。</p>' : '');
+            }
+            tResult.className = cls;
+            tResult.innerHTML = html;
+        }
+
+        [tHours, tTh, tEarly, tMode, tAct, tScan].forEach(el => el.addEventListener('input', render));
+        [tEarly, tMode, tAct, tScan].forEach(el => el.addEventListener('change', render));
+        document.querySelectorAll('input[name="t-req"]').forEach(el => el.addEventListener('change', render));
+        render();
+
+        const quizData = [
+            {
+                question: "Q1. 學習期間,一個帶有異常 HTTP 行為、被判定為 worm 的請求,會怎樣?",
+                options: ["A. 被學進 profile,成為正常行為", "B. 不會成為 profile 的一部分,仍照既有政策處理", "C. 使整個 Web Application 回到 Learning", "D. 自動被加進 Learning Exceptions"],
+                correct: 1,
+                desc: "正解:B。違反既有政策的行為不會被學進 profile;這也是「用政策限縮學習範圍」技巧的基礎。"
+            },
+            {
+                question: "Q2. 下列關於 URL 模式的敘述,哪個正確?",
+                options: ["A. 整個站台一起從 Learning 切到 Protect", "B. 每個 URL 各自處在 Learning 或 Protect;Ignore 只用在 cookie 保護", "C. 所有 URL 一律每 24 小時切換一次", "D. Protect 模式下偏離 profile 不會產生任何紀錄"],
+                correct: 1,
+                desc: "正解:B。模式以 URL 為粒度。Learning 不強制 profile;Protect 偏離即產生 violation;Ignore 只用在 cookie。"
+            },
+            {
+                question: "Q3. 預設情況下,冷門 URL 最晚會在什麼時候被強制轉 Protect?",
+                options: ["A. 首次出現後滿 24 小時", "B. 首次出現後滿 240 小時(10 天),不論出現次數", "C. 出現 10 次後立刻轉", "D. 永遠不會自動轉,必須手動切換"],
+                correct: 1,
+                desc: "正解:B。Duration required to switch all URLs to Protect mode 預設 240 小時;越常出現的 URL 越早轉,240 小時是冷門 URL 的最晚期限。"
+            },
+            {
+                question: "Q4. 學習期間有人跑了弱點掃描,又沒設 Learning Exceptions。最可能的後果?",
+                options: ["A. profile 更精準", "B. 攻擊樣式被學成「正常」,轉 Protect 後該擋的擋不到(漏報)", "C. 所有 URL 立刻轉 Protect", "D. Simulation 自動變成 Active"],
+                correct: 1,
+                desc: "正解:B。掃描器與壓測的異常請求會被當成正常學進去,例如參數長度上限被學成 5000。排程要錯開,或用 Learning Exceptions 排除來源。"
+            },
+            {
+                question: "Q5. 上線流程中,Server Group 應該在哪個階段才改成 Active?",
+                options: ["A. 一開始就設 Active,才能收集真實流量", "B. 在 Simulation 觀察、逐條調校到 violation 幾乎都是真攻擊之後,再改 Active 並逐步改為阻擋", "C. URL 剛轉 Protect 的瞬間", "D. 永遠不要改,保持 Simulation"],
+                correct: 1,
+                desc: "正解:B。直接 Active 會在第一天就遇到「Turn It Off」的壓力。先 Simulation 觀察與調校,再改 Active,並從 member 的高風險 URL(登入、改密碼)開始阻擋。"
+            }
+        ];
+
+
+        // ===== 隨堂測驗 =====
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionBox = document.createElement('div');
+            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
+
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border mb-2 text-gray-700" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            questionBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
+                <div class="space-y-2 mb-4">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
+                    <p class="font-bold result-title"></p>
+                    <p class="text-sm text-gray-600 mt-1">${item.desc}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionBox);
+        });
+
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            if (element.parentElement.dataset.answered) return;
+            element.parentElement.dataset.answered = "true";
+
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+                opt.classList.add('disabled');
+            });
+
+            if (optIndex === data.correct) {
+                element.classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了!";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                element.classList.add('bg-red-100', 'border-red-500');
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了!";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+    </script>
+</body>
+</html>

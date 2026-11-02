@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imperva WAF Gateway 實戰課程 - 課程目錄</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        /* 卡片主體樣式 (Imperva Blue) */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #0284c7;
+        }
+
+        .highlight-box {
+            background-color: #f0f9ff;
+            border-left: 4px solid #0284c7;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .chapter-link {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            transition: background-color 0.15s, border-color 0.15s;
+        }
+        .chapter-link:hover { background-color: #f0f9ff; border-color: #7dd3fc; }
+        .chapter-no {
+            flex: 0 0 auto;
+            width: 2.25rem;
+            height: 2.25rem;
+            border-radius: 9999px;
+            background-color: #0284c7;
+            color: #ffffff;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .footer-signature {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #6b7280;
+            padding: 1.5rem 1rem 2rem;
+        }
+
+        main { overflow-wrap: break-word; } main code { overflow-wrap: anywhere; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-gradient-to-r from-sky-800 to-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-shield-halved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold">Imperva WAF Gateway 實戰課程</h1>
+                    <p class="text-sky-100 mt-1">課程目錄(新版基準 v15.5 LTS)</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">關於這套課程</h2>
+            <p class="text-gray-700 leading-relaxed">
+                本課程以舊版 SecureSphere 9.0 教育訓練的觀念為骨架,改以目前的 <strong>Imperva WAF Gateway v15.5 LTS</strong> 重寫。
+                內容以地端 WAF Gateway 為主,第 14 章另外介紹 Imperva Cloud WAF。v16.0 目前只開放申請試用,各章遇到差異時會另外標示。
+            </p>
+            <div class="highlight-box text-sm text-gray-700">
+                <p><strong>標示約定</strong>:【15.5】只適用 v15.5 LTS;【16.0】只適用 v16.0;【待實機確認】表示官方文件查不到或互相矛盾,上課示範前請先在實機確認;【推論】表示由官方資料推得,但原文沒有直接寫。</p>
+                <p class="mt-2">示意畫面依官方文件的欄位名稱繪製,版面與配色以實機為準。</p>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">第一部 認識產品</h2>
+            <div class="grid gap-3 md:grid-cols-2">
+                <a class="chapter-link" href="Imperva01.html"><span class="chapter-no">1</span><span><strong>產品沿革與現況</strong><br><span class="text-sm text-gray-500">SecureSphere 到 WAF Gateway、版本與支援期限</span></span></a>
+                <a class="chapter-link" href="Imperva02.html"><span class="chapter-no">2</span><span><strong>WAF 技術定位</strong><br><span class="text-sm text-gray-500">和防火牆、IPS、NGFW、CDN 的分工</span></span></a>
+                <a class="chapter-link" href="Imperva03.html"><span class="chapter-no">3</span><span><strong>架構與元件</strong><br><span class="text-sm text-gray-500">MX、Gateway、Gateway Group、通訊埠</span></span></a>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">第二部 規劃與建置</h2>
+            <div class="grid gap-3 md:grid-cols-2">
+                <a class="chapter-link" href="Imperva04.html"><span class="chapter-no">4</span><span><strong>部署模式</strong><br><span class="text-sm text-gray-500">Bridge、Sniffing、Reverse Proxy、ABR 與 TLS 解密限制</span></span></a>
+                <a class="chapter-link" href="Imperva05.html"><span class="chapter-no">5</span><span><strong>部署規劃:平台、選型與 HA</strong><br><span class="text-sm text-gray-500">7G 硬體、虛擬與公有雲、Fail Open、VRRP、MX-HA</span></span></a>
+                <a class="chapter-link" href="Imperva06.html"><span class="chapter-no">6</span><span><strong>安裝與初始化</strong><br><span class="text-sm text-gray-500">impcfg 首次設定、註冊 Gateway、授權與 ADC 更新</span></span></a>
+                <a class="chapter-link" href="Imperva07.html"><span class="chapter-no">7</span><span><strong>Site Tree 與 Web Service 設定</strong><br><span class="text-sm text-gray-500">Site、Server Group、Web Service、Web Application</span></span></a>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">第三部 防護與調校</h2>
+            <div class="grid gap-3 md:grid-cols-2">
+                <a class="chapter-link" href="Imperva08.html"><span class="chapter-no">8</span><span><strong>Dynamic Profiling</strong><br><span class="text-sm text-gray-500">學習期、轉保護與降誤報</span></span></a>
+                <a class="chapter-link" href="Imperva09.html"><span class="chapter-no">9</span><span><strong>安全政策與處置</strong><br><span class="text-sm text-gray-500">簽章、Correlation、Custom Policy、Action Set</span></span></a>
+                <a class="chapter-link" href="Imperva10.html"><span class="chapter-no">10</span><span><strong>威脅情資與反自動化</strong><br><span class="text-sm text-gray-500">Threat Intelligence Services、Bot、ABP</span></span></a>
+                <a class="chapter-link" href="Imperva11.html"><span class="chapter-no">11</span><span><strong>進階情境</strong><br><span class="text-sm text-gray-500">Lookup Data Set、User Tracking、Data Masking、Virtual Patching</span></span></a>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">第四部 維運與延伸</h2>
+            <div class="grid gap-3 md:grid-cols-2">
+                <a class="chapter-link" href="Imperva12.html"><span class="chapter-no">12</span><span><strong>監控、稽核與整合</strong><br><span class="text-sm text-gray-500">告警、報表、Syslog / CEF / Splunk、REST API</span></span></a>
+                <a class="chapter-link" href="Imperva13.html"><span class="chapter-no">13</span><span><strong>CLI 與日常維運</strong><br><span class="text-sm text-gray-500">impcfg、impctl、impcli、備份、升級、疑難排解</span></span></a>
+                <a class="chapter-link" href="Imperva14.html"><span class="chapter-no">14</span><span><strong>Imperva Cloud WAF</strong><br><span class="text-sm text-gray-500">DNS 導流、Onboarding、Origin 保護、與地端比較</span></span></a>
+                <a class="chapter-link" href="Imperva15.html"><span class="chapter-no">15</span><span><strong>綜合實作:shop.example.com 上線</strong><br><span class="text-sm text-gray-500">從規劃到上線檢查表,串起全課程</span></span></a>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="footer-signature">
+        Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver.2026.11.02.12.07
+    </footer>
+</body>
+</html>

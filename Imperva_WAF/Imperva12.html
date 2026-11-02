@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imperva WAF Gateway 實戰課程 - 監控、稽核與整合</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        /* 卡片主體樣式 (Imperva Blue) */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #0284c7;
+        }
+
+        /* 重點提示框 (藍) */
+        .highlight-box {
+            background-color: #f0f9ff;
+            border-left: 4px solid #0284c7;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 技術名詞標記 */
+        .tech-term {
+            color: #075985;
+            font-weight: 700;
+            background-color: #e0f2fe;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
+        }
+
+        /* 比喻說明框 (綠) */
+        .analogy-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 版本差異框 (紫) */
+        .version-box {
+            background-color: #faf5ff;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 常見踩坑框 (橘,避開主色藍) */
+        .pitfall-box {
+            background-color: #fff7ed;
+            border-left: 4px solid #ea580c;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .diagram-container {
+            display: block;
+            background-color: #ffffff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-top: 1rem;
+        }
+
+        .diagram-container svg {
+            display: block;
+            width: 100%;
+            max-width: 520px;
+            margin: 0 auto;
+        }
+
+        /* 示意畫面 (仿管理介面) */
+        .mock-window {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            background: #ffffff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            margin-top: 1rem;
+        }
+        .mock-titlebar {
+            background: #e2e8f0;
+            padding: 0.4rem 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: #475569;
+        }
+        .mock-dots span {
+            display: inline-block;
+            width: 0.6rem;
+            height: 0.6rem;
+            border-radius: 50%;
+            background: #94a3b8;
+            margin-right: 0.2rem;
+        }
+        .mock-url {
+            background: #ffffff;
+            border-radius: 0.25rem;
+            padding: 0.1rem 0.5rem;
+            flex: 1;
+            min-width: 0;
+            font-family: ui-monospace, Consolas, monospace;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .mock-nav {
+            background: #1f2937;
+            color: #cbd5e1;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.25rem 1rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+        }
+        .mock-nav .brand { font-weight: 700; color: #ffffff; margin-right: 0.5rem; }
+        .mock-nav .on { color: #ffffff; border-bottom: 2px solid #0284c7; padding-bottom: 0.1rem; }
+        .mock-crumb {
+            font-size: 0.8rem;
+            color: #475569;
+            padding: 0.5rem 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f8fafc;
+        }
+        .mock-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            padding: 0.5rem 0.75rem 0;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.8rem;
+        }
+        .mock-tabs span {
+            padding: 0.3rem 0.7rem;
+            border: 1px solid #e5e7eb;
+            border-bottom: none;
+            border-radius: 0.3rem 0.3rem 0 0;
+            background: #f1f5f9;
+            color: #475569;
+        }
+        .mock-tabs span.on { background: #ffffff; color: #111827; font-weight: 600; }
+        .mock-body { padding: 0.75rem; font-size: 0.85rem; }
+        .mock-section { font-weight: 700; color: #334155; margin: 0.75rem 0 0.25rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.2rem; }
+        .mock-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.35rem 0.6rem;
+            padding: 0.35rem 0;
+        }
+        .mock-label { width: 12rem; color: #374151; font-weight: 500; }
+        .mock-input {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+            padding: 0.2rem 0.5rem;
+            min-width: 12rem;
+            background: #ffffff;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #111827;
+        }
+        .mock-select::after { content: " ▾"; color: #64748b; }
+        .mock-indent { padding-left: 2rem; }
+        .mock-btn {
+            display: inline-block;
+            border: 1px solid #94a3b8;
+            background: #f8fafc;
+            border-radius: 0.25rem;
+            padding: 0.2rem 0.7rem;
+            font-size: 0.8rem;
+            color: #1f2937;
+        }
+        .mock-btn.primary { background: #1f2937; color: #ffffff; border-color: #1f2937; }
+        .mock-hl { outline: 2px solid #0284c7; outline-offset: 2px; border-radius: 0.25rem; }
+        .mock-list {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+            min-width: 9rem;
+            min-height: 4.2rem;
+            padding: 0.25rem 0.5rem;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.8rem;
+            background: #ffffff;
+        }
+        .mock-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 0.5rem; }
+        .mock-table th { background: #f1f5f9; text-align: left; padding: 0.35rem 0.5rem; border: 1px solid #e2e8f0; color: #334155; }
+        .mock-table td { padding: 0.35rem 0.5rem; border: 1px solid #e2e8f0; }
+        .mock-caption {
+            font-size: 0.75rem;
+            color: #6b7280;
+            padding: 0.5rem 0.75rem;
+            background: #f9fafb;
+            border-top: 1px dashed #e5e7eb;
+        }
+        .step-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.4rem;
+            height: 1.4rem;
+            border-radius: 9999px;
+            background: #0284c7;
+            color: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .step-list li { display: flex; gap: 0.6rem; align-items: flex-start; margin-bottom: 0.6rem; }
+
+        /* 模擬器 */
+        .sim-rule {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.4rem 0.75rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            margin-bottom: 0.5rem;
+            background: #ffffff;
+        }
+        .sim-rule .num { font-weight: 700; color: #075985; width: 3.5rem; }
+        .sim-rule .desc { flex: 1; min-width: 12rem; }
+        .sim-arrow { border: 1px solid #cbd5e1; border-radius: 0.25rem; padding: 0 0.45rem; background: #f8fafc; }
+        .sim-arrow:disabled { opacity: 0.35; cursor: not-allowed; }
+        .trace-line { padding: 0.3rem 0; border-bottom: 1px dashed #e5e7eb; }
+
+        @media (max-width: 640px) {
+            main { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+            .section-card { padding: 1rem; }
+            .diagram-container { padding: 0.25rem; }
+            .mock-label { width: calc(100% - 2.2rem); }
+            .mock-indent .mock-label { width: 100%; }
+            .mock-input { min-width: 0; width: 100%; }
+            .mock-indent { padding-left: 0.75rem; }
+            .mock-body { padding: 0.5rem; }
+        }
+
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover:not(.disabled) {
+            background-color: #f3f4f6;
+        }
+
+        .footer-signature {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+            margin-top: 4rem;
+        }
+        /* Long URLs and code wrap on narrow screens */
+        main { overflow-wrap: break-word; } main code { overflow-wrap: anywhere; }
+
+        .tbc { font-size: 0.8em; color: #92400e; background: #fef3c7; padding: 0 0.3rem; border-radius: 0.2rem; white-space: nowrap; }
+        .danger-box { background-color: #fef2f2; border-left: 4px solid #dc2626; padding: 1rem; margin: 1rem 0; border-radius: 0.25rem; }
+        .course-nav { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem; font-size: 0.9rem; }
+        .course-nav a { color: #075985; font-weight: 500; padding: 0.25rem 0.5rem; border-radius: 0.3rem; }
+        .course-nav a:hover { background: #e0f2fe; }
+        .term { background: #0f172a; color: #e2e8f0; font-family: ui-monospace, Consolas, monospace; font-size: 0.8rem; padding: 0.75rem; line-height: 1.7; overflow-x: auto; white-space: pre; }
+        .term .c { color: #94a3b8; } .term .p { color: #38bdf8; } .term .hl { outline: 2px solid #0284c7; outline-offset: 1px; border-radius: 0.2rem; }
+        .code-block { background: #0f172a; color: #e2e8f0; font-family: ui-monospace, Consolas, monospace; font-size: 0.8rem; padding: 0.75rem; line-height: 1.6; overflow-x: auto; white-space: pre; border-radius: 0.4rem; margin-top: 0.75rem; }
+        .code-block .c { color: #94a3b8; }
+
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-sky-800 to-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-shield-halved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold">Imperva WAF Gateway 實戰課程</h1>
+                    <p class="text-sky-100 mt-1">單元 12:監控、稽核與整合</p>
+                </div>
+            </div>
+        </div>
+    </header>
+    <nav class="bg-white border-b border-gray-200" aria-label="章節導覽">
+        <div class="container mx-auto px-4 py-2 max-w-5xl course-nav">
+            <a href="Imperva11.html"><i class="fas fa-arrow-left mr-1"></i>上一章</a>
+            <a href="Imperva00.html"><i class="fas fa-list mr-1"></i>課程目錄</a>
+            <a href="Imperva13.html">下一章<i class="fas fa-arrow-right ml-1"></i></a>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+        <!-- Introduction -->
+        <div class="mb-8">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
+                <h2 class="text-xl font-bold text-blue-800 mb-2 flex items-center">
+                    <i class="fas fa-user-tie mr-2"></i>講師導言
+                </h2>
+                <p class="text-blue-900 leading-relaxed">
+                    WAF 上線之後,工程師每天面對的是<strong>告警</strong>,而不是政策設定畫面。這一章要搞清楚幾件事:告警(Alert)和違規(Violation)差在哪裡、報表怎麼用、怎麼用 Action Set 把事件送到 Syslog / Splunk / SIEM、怎麼把地端告警匯出到雲端 Attack Analytics,以及怎麼用 REST API 自動化。
+                    一句話總結重點:<strong>告警要送得出去、看得懂、能追到是誰改了設定</strong>。
+                </p>
+            </div>
+        </div>
+
+        <!-- 學習目標 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-gray-100 text-gray-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Goals</span>
+                本章學習目標
+            </h2>
+            <ul class="list-disc pl-6 space-y-1 text-gray-700">
+                <li>分辨 Violation、Alert、Audit,並說明 <code>${Alert.dn}</code> 從 MX 與從 Gateway 送出時意義不同</li>
+                <li>說出 Action Set 與 Action Interface 的關係,以及常用 Action Interface 由誰送出</li>
+                <li>比較「MX 送 Syslog」與「Gateway 送 Syslog」,並列出各自需要開的防火牆</li>
+                <li>依步驟建立送往 Splunk 的 Action Set,並知道 placeholder 存不了檔時先查什麼</li>
+                <li>說出 Attack Analytics 匯出的前提</li>
+                <li>用 REST API 登入、登出,並知道 session 逾時與常見失敗代碼</li>
+            </ul>
+        </div>
+
+        <!-- 一、Violation / Alert / Audit -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">一、Violation、Alert 與 Audit</h2>
+
+            <div class="analogy-box">
+                <p class="font-bold text-green-800 mb-1"><i class="fas fa-bell mr-1"></i>用社區警衛室來想</p>
+                <p class="text-green-900">每次有人違規,Gateway 都像巡邏警衛記下一張「違規單」;MX 像警衛室主管,把相似的違規單彙總成一則「告警」並累計次數。稽核記錄則像門禁刷卡紀錄,記下「誰來過」,不一定是壞人。</p>
+            </div>
+
+            <div class="overflow-x-auto mt-3"><table class="min-w-full text-sm border"><thead class="bg-gray-100"><tr><th class="py-2 px-4 border text-left">名詞</th><th class="py-2 px-4 border text-left">意義</th><th class="py-2 px-4 border text-left">實務上的差別</th></tr></thead><tbody><tr><td class="py-2 px-4 border font-semibold">Violation(違規)</td><td class="py-2 px-4 border">單一請求觸發政策規則</td><td class="py-2 px-4 border">Gateway 端產生,一次違規一筆</td></tr><tr><td class="py-2 px-4 border font-semibold">Alert(告警)</td><td class="py-2 px-4 border">MX 把相似違規彙總後的事件</td><td class="py-2 px-4 border">有累計次數;MX 端的 <code>${Alert.dn}</code> 是告警編號</td></tr><tr><td class="py-2 px-4 border font-semibold">Audit(稽核記錄)</td><td class="py-2 px-4 border">依稽核政策記錄的存取資料</td><td class="py-2 px-4 border">用於鑑識與合規,不一定是攻擊</td></tr></tbody></table></div>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 360 430" role="img" aria-labelledby="svg1-title" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans TC, sans-serif">
+                    <title id="svg1-title">違規與告警:Gateway 每次違規產生一筆,MX 彙總成告警;同一個 placeholder 從 Gateway 送出代表違規 ID,從 MX 送出代表告警編號</title>
+                    <defs>
+                        <marker id="arrow1" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+                        </marker>
+                    </defs>
+                    <rect x="20" y="10" width="92" height="46" rx="8" fill="#f1f5f9" stroke="#94a3b8"/>
+                    <text x="66" y="38" text-anchor="middle" font-size="14" fill="#1f2937">違規 1</text>
+                    <rect x="134" y="10" width="92" height="46" rx="8" fill="#f1f5f9" stroke="#94a3b8"/>
+                    <text x="180" y="38" text-anchor="middle" font-size="14" fill="#1f2937">違規 2</text>
+                    <rect x="248" y="10" width="92" height="46" rx="8" fill="#f1f5f9" stroke="#94a3b8"/>
+                    <text x="294" y="38" text-anchor="middle" font-size="14" fill="#1f2937">違規 3</text>
+                    <text x="180" y="80" text-anchor="middle" font-size="13" fill="#475569">Gateway 端:一次違規一筆(不做彙總)</text>
+                    <line x1="66" y1="56" x2="150" y2="104" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+                    <line x1="180" y1="86" x2="180" y2="104" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+                    <line x1="294" y1="56" x2="210" y2="104" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+
+                    <rect x="20" y="108" width="320" height="76" rx="10" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="180" y="136" text-anchor="middle" font-size="15" font-weight="700" fill="#075985">MX:彙總成一則告警</text>
+                    <text x="180" y="160" text-anchor="middle" font-size="13" fill="#1f2937">有累計次數(occurrences)</text>
+                    <text x="180" y="176" text-anchor="middle" font-size="13" fill="#1f2937">例如累計 3 次</text>
+
+                    <text x="180" y="222" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2937">同一個 placeholder:${Alert.dn}</text>
+                    <rect x="20" y="236" width="150" height="110" rx="10" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
+                    <text x="95" y="264" text-anchor="middle" font-size="14" font-weight="700" fill="#c2410c">從 Gateway 送出</text>
+                    <text x="95" y="290" text-anchor="middle" font-size="13" fill="#1f2937">= 違規 ID</text>
+                    <text x="95" y="314" text-anchor="middle" font-size="13" fill="#1f2937">occurrences</text>
+                    <text x="95" y="334" text-anchor="middle" font-size="13" fill="#1f2937">永遠是 1</text>
+                    <rect x="190" y="236" width="150" height="110" rx="10" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="265" y="264" text-anchor="middle" font-size="14" font-weight="700" fill="#075985">從 MX 送出</text>
+                    <text x="265" y="290" text-anchor="middle" font-size="13" fill="#1f2937">= 告警編號</text>
+                    <text x="265" y="314" text-anchor="middle" font-size="13" fill="#1f2937">occurrences</text>
+                    <text x="265" y="334" text-anchor="middle" font-size="13" fill="#1f2937">是累計次數</text>
+                    <text x="180" y="380" text-anchor="middle" font-size="13" fill="#475569">SIEM 關聯規則要把兩種 ID</text>
+                    <text x="180" y="400" text-anchor="middle" font-size="13" fill="#475569">分開處理</text>
+                </svg>
+            </div>
+
+            <p class="text-gray-700 mt-3">官方說明可以佐證這個區分:同一個 placeholder <code>${Alert.dn}</code>,從 MX 送出時代表<strong>告警編號</strong>,從 Gateway 送出時代表<strong>違規 ID</strong>;<code>${Alert.aggregationInfo.occurrences}</code> 在 MX 是累計次數,在 Gateway 永遠是 1,因為 Gateway 不做彙總。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">看告警的建議流程</h3>
+            <ol class="step-list text-gray-700">
+                <li><span class="step-badge">1</span><span>在 MX 的告警檢視(Monitor 類頁籤)依嚴重度與 Server Group 篩選<span class="tbc">【待實機確認】</span>。</span></li>
+                <li><span class="step-badge">2</span><span>打開告警看違規明細:哪條政策、哪個 URL / 參數、請求內容、來源 IP、使用者(若有開 User Tracking,見第 11 章)。</span></li>
+                <li><span class="step-badge">3</span><span>判斷是攻擊還是誤報:同一 URL、大量不同正常使用者觸發,多半是誤報,回到 Web Profile 或政策調整(見第 8、9 章);少數來源、payload 明顯是攻擊字串,確認處置是否為阻擋,必要時加 IP Block。</span></li>
+                <li><span class="step-badge">4</span><span>調整後記錄原因,留給第八節的系統事件記錄追蹤。</span></li>
+            </ol>
+        </div>
+
+        <!-- 二、報表 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">二、報表</h2>
+            <div class="overflow-x-auto mt-3"><table class="min-w-full text-sm border"><thead class="bg-gray-100"><tr><th class="py-2 px-4 border text-left">報表</th><th class="py-2 px-4 border text-left">用途</th><th class="py-2 px-4 border text-left">版本</th></tr></thead><tbody><tr><td class="py-2 px-4 border font-semibold">告警/違規統計類報表</td><td class="py-2 px-4 border">週報、月報,看趨勢與熱點</td><td class="py-2 px-4 border">各版皆有</td></tr><tr><td class="py-2 px-4 border font-semibold">Web Profile – Web Application User Tracking</td><td class="py-2 px-4 border">檢查登入追蹤判斷是否正確(第 11 章)</td><td class="py-2 px-4 border">各版皆有</td></tr><tr><td class="py-2 px-4 border font-semibold">OWASP Top 10 報表</td><td class="py-2 px-4 border">依 OWASP Top 10 分類呈現告警</td><td class="py-2 px-4 border">v15.4 起,標示為 Controlled Availability</td></tr><tr><td class="py-2 px-4 border font-semibold">System Security Reference 合規報表</td><td class="py-2 px-4 border">系統安全設定的合規檢查</td><td class="py-2 px-4 border">v15.5 起</td></tr></tbody></table></div>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 mt-3">
+                <li>報表可排程並用 Send an E-mail 的 Action Interface 寄出,預設附上報表檔;若要改寄連結,在 Admin &gt; System Definitions &gt; Report Settings 設定,同時要填入連結用的 URL。</li>
+                <li>升級前要另外備份已產生的報表檔(位置見第 13 章備份一節)。</li>
+            </ul>
+        </div>
+
+        <!-- 三、Action Set -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">三、Action Set 與 Action Interface</h2>
+            <p class="text-gray-700 leading-relaxed">
+                政策命中後要「做什麼」由 <span class="tech-term">Action Set</span> 決定;Action Set 裡的每一個動作叫 <span class="tech-term">Action Interface</span>。Action Interface 依情境出現(context sensitive),例如安全事件類的 Action Set 才會出現 Gateway 送 Syslog 的選項。
+            </p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">常用 Action Interface</h3>
+            <p class="text-sm text-gray-500">節錄自官方 Configuring Action Interface Parameters。</p>
+            <div class="overflow-x-auto mt-3"><table class="min-w-full text-sm border"><thead class="bg-gray-100"><tr><th class="py-2 px-4 border text-left">Action Interface</th><th class="py-2 px-4 border text-left">由誰送出</th><th class="py-2 px-4 border text-left">重點參數與行為</th></tr></thead><tbody><tr><td class="py-2 px-4 border font-semibold">Send an E-mail</td><td class="py-2 px-4 border">MX</td><td class="py-2 px-4 border">SMTP Server Address/Port(常見 587)、Authentication Type(NO_AUTH、TLS、SSL)、To/CC、Email Format</td></tr><tr><td class="py-2 px-4 border font-semibold">Run a Shell Command</td><td class="py-2 px-4 border">MX</td><td class="py-2 px-4 border">以 mxserver 使用者權限執行;可用來送 SNMP trap(例如 Gateway 斷線時)。<strong>Sealed 模式下不可用</strong>(第 13 章)</td></tr><tr><td class="py-2 px-4 border font-semibold">IP / User / Session Monitor</td><td class="py-2 px-4 border">—</td><td class="py-2 px-4 border">在 Duration 期間持續記錄該 IP、使用者或 HTTP session 的所有活動</td></tr><tr><td class="py-2 px-4 border font-semibold">IP Block / User Block / HTTP Session Block</td><td class="py-2 px-4 border">Gateway</td><td class="py-2 px-4 border">Duration(秒)、Trusted IPs(只有 IP Block 有);發現違規的 Gateway 立即封鎖,再經 MX 通知其他 Gateway</td></tr><tr><td class="py-2 px-4 border font-semibold">Server System Log > Log to System Log (syslog)</td><td class="py-2 px-4 border"><strong>MX</strong></td><td class="py-2 px-4 border">Syslog Host(預設埠 514,其他埠寫成 <code>host:port</code>)、Log Level、Message、Facility</td></tr><tr><td class="py-2 px-4 border font-semibold">Server System Log(CEF 類)</td><td class="py-2 px-4 border">MX</td><td class="py-2 px-4 border">以 CEF 格式送安全事件、系統事件給 ArcSight 類 SIEM</td></tr><tr><td class="py-2 px-4 border font-semibold">Gateway System Security Log</td><td class="py-2 px-4 border"><strong>Gateway</strong></td><td class="py-2 px-4 border">Protocol(UDP/TCP)、Primary/Secondary Host 與 Port、Log Level、Message、Facility;<strong>每筆違規送一次</strong></td></tr><tr><td class="py-2 px-4 border font-semibold">SNMP Trap</td><td class="py-2 px-4 border">MX</td><td class="py-2 px-4 border">SNMP 位址、埠等</td></tr><tr><td class="py-2 px-4 border font-semibold">Archive to SCP Location / Archive to Amazon S3</td><td class="py-2 px-4 border">MX</td><td class="py-2 px-4 border">只用於封存工作</td></tr></tbody></table></div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Gateway System Security Log 可選格式</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>Gateway Log - Security Event - System Log (syslog) - <strong>CEF Format (Extended)</strong></li>
+                <li>Gateway Log - Security Event - System Log (syslog) - <strong>JSON Format (Extended)</strong></li>
+                <li>Gateway Log security event / custom security event / network security event to System Log (syslog) using the CEF standard</li>
+                <li>Gateway Log security event to RSA enVision</li>
+            </ul>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>兩個容易忽略的細節</p>
+                <ul class="list-disc pl-6 text-gray-800 space-y-1">
+                    <li><strong>封鎖時間不精確</strong>:Block 動作是立即的,但解除是 Gateway 每 60 秒檢查一次。設 15 秒封鎖,實際可能封到 60 秒。</li>
+                    <li><strong>Secondary 連線用 TCP</strong>:要設第二台 SIEM 收集器做備援時,官方要求 Protocol 用 TCP。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 四、Syslog / Splunk -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">四、送到 Syslog / Splunk</h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">先決定:由 MX 送,還是由 Gateway 送?</h3>
+            <div class="overflow-x-auto mt-3"><table class="min-w-full text-sm border"><thead class="bg-gray-100"><tr><th class="py-2 px-4 border text-left">比較</th><th class="py-2 px-4 border text-left">MX 送(Server System Log)</th><th class="py-2 px-4 border text-left">Gateway 送(Gateway System Security Log)</th></tr></thead><tbody><tr><td class="py-2 px-4 border font-semibold">單位</td><td class="py-2 px-4 border">告警(有彙總)</td><td class="py-2 px-4 border">每筆違規</td></tr><tr><td class="py-2 px-4 border font-semibold">數量</td><td class="py-2 px-4 border">少</td><td class="py-2 px-4 border">多,需評估 SIEM 授權量</td></tr><tr><td class="py-2 px-4 border font-semibold">防火牆</td><td class="py-2 px-4 border">MX → Syslog</td><td class="py-2 px-4 border"><strong>每台 Gateway</strong> → Syslog</td></tr><tr><td class="py-2 px-4 border font-semibold">適合</td><td class="py-2 px-4 border">值班告警、工單</td><td class="py-2 px-4 border">SIEM 關聯分析、鑑識</td></tr></tbody></table></div>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 360 290" role="img" aria-labelledby="svg2-title" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans TC, sans-serif">
+                    <title id="svg2-title">Syslog 送出路徑:MX 送彙總告警,每台 Gateway 各自送每筆違規,防火牆要允許每一條路徑到 Splunk 的 TCP 514</title>
+                    <defs>
+                        <marker id="arrow2" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+                        </marker>
+                    </defs>
+                    <rect x="20" y="10" width="100" height="62" rx="8" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="70" y="36" text-anchor="middle" font-size="14" font-weight="700" fill="#075985">mx01</text>
+                    <text x="70" y="58" text-anchor="middle" font-size="13" fill="#1f2937">10.0.30.10</text>
+                    <rect x="130" y="10" width="100" height="62" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
+                    <text x="180" y="36" text-anchor="middle" font-size="14" font-weight="700" fill="#c2410c">gw01</text>
+                    <text x="180" y="58" text-anchor="middle" font-size="13" fill="#1f2937">10.0.30.11</text>
+                    <rect x="240" y="10" width="100" height="62" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
+                    <text x="290" y="36" text-anchor="middle" font-size="14" font-weight="700" fill="#c2410c">gw02</text>
+                    <text x="290" y="58" text-anchor="middle" font-size="13" fill="#1f2937">10.0.30.12</text>
+
+                    <line x1="70" y1="72" x2="70" y2="170" stroke="#64748b" stroke-width="2" marker-end="url(#arrow2)"/>
+                    <line x1="180" y1="72" x2="180" y2="170" stroke="#64748b" stroke-width="2" marker-end="url(#arrow2)"/>
+                    <line x1="290" y1="72" x2="290" y2="170" stroke="#64748b" stroke-width="2" marker-end="url(#arrow2)"/>
+                    <text x="78" y="110" font-size="13" fill="#475569">彙總告警</text>
+                    <text x="78" y="130" font-size="13" fill="#475569">(少)</text>
+                    <text x="188" y="110" font-size="13" fill="#475569">每筆違規</text>
+                    <text x="188" y="130" font-size="13" fill="#475569">(多)</text>
+                    <text x="298" y="110" font-size="13" fill="#475569">每筆違規</text>
+                    <text x="298" y="130" font-size="13" fill="#475569">(多)</text>
+
+                    <rect x="20" y="174" width="320" height="56" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+                    <text x="180" y="198" text-anchor="middle" font-size="14" font-weight="700" fill="#15803d">Splunk 10.0.30.50</text>
+                    <text x="180" y="218" text-anchor="middle" font-size="13" fill="#1f2937">TCP 514</text>
+                    <text x="180" y="256" text-anchor="middle" font-size="13" fill="#475569">改由 Gateway 送之後,防火牆要為</text>
+                    <text x="180" y="276" text-anchor="middle" font-size="13" fill="#475569">每台 Gateway 各開一條</text>
+                </svg>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Splunk 整合</h3>
+            <p class="text-gray-700 leading-relaxed">官方以 Syslog 送出 Splunk 用的 placeholder 訊息;MX 提供預先定義的 Splunk Action Set。官方建議把預設訊息字串當<strong>範本</strong>,複製成自己的 Action Set 再修改,不要直接改預設那一份。官方同一頁一處寫 JSON 只用於稽核事件,另一處又列出安全事件的 JSON (Extended) Action Interface,兩者說法不一致,選用 JSON 前請在實機確認<span class="tbc">【待實機確認】</span>。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">設定步驟:Gateway 以 CEF Extended 送到 Splunk <code>10.0.30.50</code> TCP 514</h3>
+
+            <div class="mock-window">
+                <div class="mock-titlebar">
+                    <span class="mock-dots"><span></span><span></span><span></span></span>
+                    <span class="mock-url">https://10.0.30.10:8083</span>
+                </div>
+                <div class="mock-nav">
+                    <span class="brand">Imperva MX</span>
+                    <span class="on">Main</span><span>Admin</span>
+                </div>
+                <div class="mock-crumb">Main &gt; Policies &gt; Action Sets &gt; AS-Splunk-GW</div>
+                <div class="mock-body">
+                    <div class="mock-row"><span class="step-badge">3</span><span class="mock-label">Action Set Name</span><span class="mock-input mock-hl">AS-Splunk-GW</span></div>
+                    <div class="mock-section">Action Interface</div>
+                    <div class="mock-row"><span class="step-badge">4</span><span class="mock-label">Action Interface</span><span class="mock-input mock-select mock-hl" style="white-space:normal;">Gateway Log - Security Event - System Log (syslog) - CEF Format (Extended)</span></div>
+                    <div class="mock-row mock-indent"><span class="mock-label">Protocol</span><span class="mock-input mock-select">TCP</span></div>
+                    <div class="mock-row mock-indent"><span class="mock-label">Primary Host</span><span class="mock-input">10.0.30.50</span></div>
+                    <div class="mock-row mock-indent"><span class="mock-label">Primary Port</span><span class="mock-input">514</span></div>
+                    <div class="mock-row mock-indent"><span class="mock-label">Syslog Log Level</span><span class="mock-input mock-select">Info</span></div>
+                    <div class="mock-row mock-indent"><span class="mock-label">Message</span><span class="mock-input mock-hl" style="white-space:normal;">(以預設 Splunk 訊息為範本,不要手打 placeholder)</span></div>
+                    <div class="mock-row mock-indent"><span class="mock-label">Facility</span><span class="mock-input mock-select">(依公司規範)</span></div>
+                    <div class="mock-row" style="justify-content:flex-end;"><span class="step-badge">5</span><span class="mock-btn primary mock-hl">Save</span></div>
+                </div>
+                <div class="mock-caption"><i class="fas fa-circle-info mr-1"></i>示意畫面:部分欄位名稱待實機確認(Action Set Name 即 Action Set 的名稱;Main 工作區名稱與 Action Sets 的確切位置以實機為準),版面與按鈕位置以實機為準。</div>
+            </div>
+
+            <ol class="step-list mt-4 text-gray-700">
+                <li><span class="step-badge">1</span><span>確認防火牆允許 <code>gw01</code>(<code>10.0.30.11</code>)、<code>gw02</code>(<code>10.0.30.12</code>)→ <code>10.0.30.50</code> TCP 514;若同時由 MX 送,也要開 <code>mx01</code>(<code>10.0.30.10</code>)→ <code>10.0.30.50</code>。</span></li>
+                <li><span class="step-badge">2</span><span>Splunk 端建立接收 TCP 514 的資料輸入,並規劃 index 與 sourcetype(Splunk 端設定不在本教材範圍)。</span></li>
+                <li><span class="step-badge">3</span><span>在 MX 進入 <strong>Main &gt; Policies &gt; Action Sets</strong>,新增安全事件類的 Action Set,命名 <code>AS-Splunk-GW</code>(Policies &gt; Action Sets 的位置見官方 AWS 備份說明;Main 工作區名稱<span class="tbc">【待實機確認】</span>)。</span></li>
+                <li><span class="step-badge">4</span><span>加入 Action Interface「Gateway Log - Security Event - System Log (syslog) - CEF Format (Extended)」,展開設定:Protocol <code>TCP</code>;Primary Host <code>10.0.30.50</code>、Primary Port <code>514</code>;Syslog Log Level <code>Info</code>;Message 以預設 Splunk 訊息為範本,不要手打 placeholder;Facility 依公司規範。</span></li>
+                <li><span class="step-badge">5</span><span>右上角 Save。</span></li>
+                <li><span class="step-badge">6</span><span>到各安全政策(第 9 章)的 Followed Action 選擇 <code>AS-Splunk-GW</code>。</span></li>
+                <li><span class="step-badge">7</span><span>用測試請求觸發一條低風險政策,在 Splunk 搜尋確認收到,並核對違規 ID 能對回 MX。</span></li>
+            </ol>
+
+            <div class="highlight-box">
+                <p class="font-bold text-sky-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>placeholder 驗證</p>
+                <p class="text-gray-800">Gateway 端的 Action Interface 加入 placeholder 時,系統會檢查 Gateway 能否取得該欄位,不能取得就<strong>不允許儲存</strong>。看到存檔失敗,先檢查是否用了只有 MX 才有的 placeholder。</p>
+            </div>
+        </div>
+
+        <!-- 五、模擬器 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">五、動手玩:Syslog 訊息組合器</h2>
+            <p class="text-gray-700 mb-2">選擇由 MX 還是 Gateway 送,勾選要放進訊息的 placeholder,看看預覽訊息、實際取得的值,以及防火牆要開哪些路徑。可用的 placeholder 是本章前面提到的兩個;訊息範本與數值皆為教學範例,真正的預設 Splunk 訊息請以 MX 上的範本為準。</p>
+
+            <div class="grid md:grid-cols-2 gap-4 mt-4">
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-paper-plane mr-1 text-sky-600"></i>由誰送出?</h3>
+                    <label class="block mb-1 text-sm"><input type="radio" name="sl-sender" value="mx" class="mr-2">MX(Server System Log:彙總後的告警)</label>
+                    <label class="block mb-3 text-sm"><input type="radio" name="sl-sender" value="gw" class="mr-2" checked>Gateway(Gateway System Security Log:每筆違規)</label>
+
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-puzzle-piece mr-1 text-sky-600"></i>選擇 placeholder</h3>
+                    <label class="block mb-1 text-sm"><input type="checkbox" id="sl-dn" class="mr-2" checked><code>${Alert.dn}</code></label>
+                    <label class="block mb-1 text-sm"><input type="checkbox" id="sl-occ" class="mr-2" checked><code>${Alert.aggregationInfo.occurrences}</code></label>
+                    <label class="block mb-3 text-sm"><input type="checkbox" id="sl-mxonly" class="mr-2">示意:某個「只有 MX 才有」的欄位(不是真實名稱)</label>
+
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-sliders mr-1 text-sky-600"></i>傳送設定</h3>
+                    <div class="flex flex-wrap gap-3 text-sm mb-2">
+                        <label>Protocol
+                            <select id="sl-proto" class="border rounded px-2 py-1 ml-1">
+                                <option value="TCP">TCP</option>
+                                <option value="UDP">UDP</option>
+                            </select>
+                        </label>
+                    </div>
+                    <label class="block text-sm"><input type="checkbox" id="sl-secondary" class="mr-2">加第二台 SIEM 收集器當備援(Secondary)</label>
+                </div>
+                <div class="bg-white border rounded-lg p-4">
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-eye mr-1 text-sky-600"></i>預覽</h3>
+                    <p class="text-xs text-gray-500 mb-1">訊息範本(Message)</p>
+                    <pre id="sl-template" class="text-xs bg-gray-50 border rounded p-2 mb-2" style="white-space:pre-wrap;overflow-wrap:anywhere;"></pre>
+                    <p class="text-xs text-gray-500 mb-1">送出的訊息(範例值代入後)</p>
+                    <pre id="sl-preview" class="text-xs bg-gray-50 border rounded p-2 mb-2" style="white-space:pre-wrap;overflow-wrap:anywhere;"></pre>
+                    <div id="sl-notes" class="text-sm"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 六、Attack Analytics -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">六、Attack Analytics 匯出</h2>
+            <p class="text-gray-700 leading-relaxed">
+                <span class="tech-term">Attack Analytics</span> 是 Imperva 雲端服務,把大量告警依共同特徵分群成「資安事件(incident)」,也能和 Cloud WAF 的事件一起分析(見第 14 章)。
+            </p>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 360 330" role="img" aria-labelledby="svg3-title" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans TC, sans-serif">
+                    <title id="svg3-title">Attack Analytics 匯出的連線:Gateway 上傳告警到雲端,MX 向雲端做授權驗證,雲端把告警分群成資安事件</title>
+                    <defs>
+                        <marker id="arrow3" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+                        </marker>
+                    </defs>
+                    <rect x="20" y="10" width="140" height="62" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
+                    <text x="90" y="36" text-anchor="middle" font-size="14" font-weight="700" fill="#c2410c">Gateway</text>
+                    <text x="90" y="58" text-anchor="middle" font-size="13" fill="#1f2937">上傳告警</text>
+                    <rect x="200" y="10" width="140" height="62" rx="8" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="270" y="36" text-anchor="middle" font-size="14" font-weight="700" fill="#075985">MX</text>
+                    <text x="270" y="58" text-anchor="middle" font-size="13" fill="#1f2937">授權驗證</text>
+                    <line x1="90" y1="72" x2="130" y2="150" stroke="#64748b" stroke-width="2" marker-end="url(#arrow3)"/>
+                    <line x1="270" y1="72" x2="230" y2="150" stroke="#64748b" stroke-width="2" marker-end="url(#arrow3)"/>
+                    <text x="20" y="116" font-size="13" fill="#475569">HTTPS 443</text>
+                    <text x="270" y="116" font-size="13" fill="#475569">HTTPS 443</text>
+                    <rect x="20" y="154" width="320" height="70" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+                    <text x="180" y="182" text-anchor="middle" font-size="15" font-weight="700" fill="#15803d">Imperva 雲端 Attack Analytics</text>
+                    <text x="180" y="206" text-anchor="middle" font-size="13" fill="#1f2937">依共同特徵分群成資安事件</text>
+                    <text x="180" y="256" text-anchor="middle" font-size="13" fill="#475569">兩邊都要能連網際網路;</text>
+                    <text x="180" y="276" text-anchor="middle" font-size="13" fill="#475569">購買後至少等 30 分鐘再檢查 MX</text>
+                </svg>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">前提</h3>
+            <p class="text-sm text-gray-500">官方 Attack Analytics 頁。</p>
+            <ol class="step-list text-gray-700">
+                <li><span class="step-badge">1</span><span>MX 與 Gateway 都要能連網際網路。對應連線:Gateway → <code>ses-uploader.service.imperva.com:443</code>(上傳告警)、MX → entitlement / <code>auth.service.imperva.com:443</code>(授權驗證)(埠表見第 3 章)。</span></li>
+                <li><span class="step-badge">2</span><span>已購買 Attack Analytics;購買後至少等 30 分鐘再檢查 MX,並重新整理 SecureSphere 主畫面。</span></li>
+            </ol>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">操作</h3>
+            <div class="mock-window">
+                <div class="mock-titlebar">
+                    <span class="mock-dots"><span></span><span></span><span></span></span>
+                    <span class="mock-url">https://10.0.30.10:8083</span>
+                </div>
+                <div class="mock-nav">
+                    <span class="brand">Imperva MX</span>
+                    <span>Main</span><span class="on">Admin</span>
+                </div>
+                <div class="mock-crumb">Admin &gt; System Definitions &gt; Cloud Settings &gt; General Settings</div>
+                <div class="mock-body">
+                    <div class="mock-row"><span class="step-badge">2</span><span class="mock-label">Attack Analytics</span><span class="mock-input mock-select mock-hl">(切換開關)</span></div>
+                </div>
+                <div class="mock-caption"><i class="fas fa-circle-info mr-1"></i>示意畫面:欄位名稱依 Imperva 官方文件,版面、按鈕位置與配色以實機為準。</div>
+            </div>
+            <ol class="step-list mt-4 text-gray-700">
+                <li><span class="step-badge">1</span><span>在 Main 工作區選 <strong>Attack Analytics</strong>,會開啟 my.imperva.com 上的 Attack Analytics 頁面。</span></li>
+                <li><span class="step-badge">2</span><span>開關位置:Admin 工作區 &gt; System Definitions &gt; Cloud Settings &gt; General Settings,切換 Attack Analytics。</span></li>
+                <li><span class="step-badge">3</span><span>在 Attack Analytics 端的設定開啟「Export On-Premises WAF alerts」(依 Attack Analytics 文件)。</span></li>
+            </ol>
+
+            <div class="highlight-box">
+                <p class="font-bold text-sky-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>規劃提醒</p>
+                <p class="text-gray-800">告警會送到雲端,內容包含請求資訊。先跟法遵確認資料出境與保存規範;敏感欄位先用第 11 章的 Data Masking 遮罩。</p>
+            </div>
+        </div>
+
+        <!-- 七、REST API -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">七、REST API</h2>
+            <h3 class="text-lg font-bold text-gray-800 mb-2">登入流程</h3>
+            <p class="text-sm text-gray-500">官方 Authentication、Login 頁。</p>
+            <ol class="step-list text-gray-700">
+                <li><span class="step-badge">1</span><span>以 Basic Authentication 呼叫 Login,取得 session cookie(JSESSIONID)。</span></li>
+                <li><span class="step-badge">2</span><span>之後每個請求在 <code>Cookie</code> header 帶上 session。</span></li>
+                <li><span class="step-badge">3</span><span>Session 閒置 <strong>30 分鐘</strong>逾時,或呼叫 Logout 結束。</span></li>
+            </ol>
+            <div class="overflow-x-auto mt-3"><table class="min-w-full text-sm border"><thead class="bg-gray-100"><tr><th class="py-2 px-4 border text-left">動作</th><th class="py-2 px-4 border text-left">Method</th><th class="py-2 px-4 border text-left">URL</th></tr></thead><tbody><tr><td class="py-2 px-4 border font-semibold">Login</td><td class="py-2 px-4 border"><code>POST</code></td><td class="py-2 px-4 border"><code>https://{host:port}/SecureSphere/api/v1/auth/session</code></td></tr><tr><td class="py-2 px-4 border font-semibold">Logout</td><td class="py-2 px-4 border"><code>DELETE</code></td><td class="py-2 px-4 border">同上,header 帶 <code>Cookie: {sessionId}</code></td></tr></tbody></table></div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">範例:管理者電腦 <code>10.0.30.100</code> 對 <code>mx01</code></h3>
+<pre class="code-block"><span class="c"># Login: credentials are read from environment variables, not typed on the command line</span>
+curl -sk -X POST https://10.0.30.10:8083/SecureSphere/api/v1/auth/session \
+     -u "$MX_API_USER:$MX_API_PASS"
+<span class="c"># Response body: {"session-id": "JSESSIONID=0123456789ABCDEF..."}</span>
+
+<span class="c"># Subsequent call (endpoint path below is illustrative)</span>
+curl -sk https://10.0.30.10:8083/SecureSphere/api/v1/conf/sites \
+     -H "Cookie: JSESSIONID=0123456789ABCDEF..."
+
+<span class="c"># Logout</span>
+curl -sk -X DELETE https://10.0.30.10:8083/SecureSphere/api/v1/auth/session \
+     -H "Cookie: JSESSIONID=0123456789ABCDEF..."</pre>
+            <p class="text-gray-700 mt-3">上例的登入、登出路徑出自官方文件;查詢 Sites 的路徑僅示意,實際 endpoint 請查 WAF API Reference Guide<span class="tbc">【待實機確認】</span>。<code>-k</code> 只在 MX 仍用自簽憑證的實驗環境使用,正式環境應匯入 MX 憑證的 CA。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">登入失敗代碼(節錄)</h3>
+            <div class="overflow-x-auto mt-3"><table class="min-w-full text-sm border"><thead class="bg-gray-100"><tr><th class="py-2 px-4 border text-left">IMP Code</th><th class="py-2 px-4 border text-left">意義</th></tr></thead><tbody><tr><td class="py-2 px-4 border font-semibold">IMP-10063</td><td class="py-2 px-4 border">未登入或帳密錯誤</td></tr><tr><td class="py-2 px-4 border font-semibold">IMP-12300</td><td class="py-2 px-4 border">憑證(密碼)已過期</td></tr><tr><td class="py-2 px-4 border font-semibold">IMP-12301</td><td class="py-2 px-4 border">使用者已停用</td></tr><tr><td class="py-2 px-4 border font-semibold">IMP-12302</td><td class="py-2 px-4 border">與驗證伺服器通訊失敗</td></tr><tr><td class="py-2 px-4 border font-semibold">IMP-12303</td><td class="py-2 px-4 border">帳號被鎖</td></tr><tr><td class="py-2 px-4 border font-semibold">IMP-12304 / IMP-12305</td><td class="py-2 px-4 border">此使用者 / 系統的 session 數已達上限</td></tr></tbody></table></div>
+            <div class="highlight-box">
+                <p class="font-bold text-sky-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>實務建議</p>
+                <p class="text-gray-800">API 用專屬帳號、最小權限;腳本結束一定呼叫 Logout,否則容易撞到 IMP-12304 的 session 上限。</p>
+            </div>
+        </div>
+
+        <!-- 八、系統事件記錄 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">八、系統事件記錄</h2>
+            <ul class="list-disc pl-6 text-gray-700 space-y-2">
+                <li>v15.0 起,系統事件記錄可追「誰在什麼時候改了什麼設定」。轉保護、調政策、改 Action Set 都應該能在這裡對到人與時間<span class="tbc">【待實機確認:GUI 位置】</span>。</li>
+                <li>系統事件(例如 Gateway 斷線)也能透過 Server System Log 的系統事件 CEF Action Interface 送 SIEM,或用 Run a Shell Command 送 SNMP trap。</li>
+                <li>支援 SNMPv3(設定見 WAF Administration Guide 的 SNMPv3 章節)。</li>
+            </ul>
+        </div>
+
+        <!-- 九、踩坑 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">九、常見踩坑</h2>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>只開 MX → Syslog 的防火牆</p>
+                <p class="text-gray-800">改用 Gateway System Security Log 後,訊息是從每台 Gateway 送出,防火牆沒開就整批收不到。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>Gateway 送每筆違規,SIEM 授權量暴增</p>
+                <p class="text-gray-800">先估算違規量,或改由 MX 送彙總告警。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>placeholder 存不了檔</p>
+                <p class="text-gray-800">在 Gateway 類 Action Interface 用了 Gateway 取不到的欄位。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>把 <code>${Alert.dn}</code> 當成同一種 ID</p>
+                <p class="text-gray-800">MX 送出的是告警編號,Gateway 送出的是違規 ID,SIEM 關聯規則要分開處理。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>API session 用完不登出</p>
+                <p class="text-gray-800">累積到 session 上限,自動化腳本開始收到 401。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>Attack Analytics 沒資料</p>
+                <p class="text-gray-800">Gateway 不能連 <code>ses-uploader.service.imperva.com:443</code>,或購買後未等授權生效。</p>
+            </div>
+        </div>
+
+        <!-- 十、新舊對照 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">十、新舊對照</h2>
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>舊簡報 vs 現行版本</p>
+                <p class="text-sm text-gray-700">下表左欄是舊簡報的說法,右欄是現行文件查到的現況。</p>
+            </div>
+            <div class="overflow-x-auto mt-3"><table class="min-w-full text-sm border"><thead class="bg-gray-100"><tr><th class="py-2 px-4 border text-left">舊簡報說法</th><th class="py-2 px-4 border text-left">現況</th><th class="py-2 px-4 border text-left">依據</th></tr></thead><tbody><tr><td class="py-2 px-4 border font-semibold">共用平台提供 Management、Analytics、Reporting、Alerting(舊簡報 p.14),未談 SIEM 整合</td><td class="py-2 px-4 border">Action Interface 支援 Syslog、CEF / CEF Extended、JSON Extended、Splunk placeholder;Gateway 可直接送 Syslog</td><td class="py-2 px-4 border">Configuring Action Interface Parameters、Splunk Placeholders</td></tr><tr><td class="py-2 px-4 border font-semibold">(無)</td><td class="py-2 px-4 border">地端告警可匯出到雲端 Attack Analytics,與 Cloud WAF 一起分析</td><td class="py-2 px-4 border">Attack Analytics(WAF User Guide)</td></tr><tr><td class="py-2 px-4 border font-semibold">(無)</td><td class="py-2 px-4 border">MX REST API:Basic Auth 取得 JSESSIONID,閒置 30 分鐘逾時</td><td class="py-2 px-4 border">WAF API Reference Guide – Authentication</td></tr><tr><td class="py-2 px-4 border font-semibold">(無)</td><td class="py-2 px-4 border">OWASP Top 10 報表(15.4 CA)、System Security Reference 報表(15.5)、系統事件「誰改了什麼」(15.0)</td><td class="py-2 px-4 border">v15.5 Release Notes</td></tr></tbody></table></div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
+                隨堂測驗
+            </h2>
+            <p class="mb-6 text-gray-600">請點選您認為正確的選項,系統將會顯示解析。</p>
+            <div class="space-y-6" id="quiz-container"></div>
+        </div>
+
+    </main>
+
+    <footer class="footer-signature">
+        Planning &amp; Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver.2026.11.02.12.07
+    </footer>
+
+
+    <script>
+        function esc(s) {
+            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        // ===== Syslog 訊息組合器 =====
+        // 範例值(教學用):Gateway 送出的違規 ID、MX 送出的告警編號與累計次數
+        const SAMPLE = {
+            gw: { dn: '90417', occ: '1' },
+            mx: { dn: '2088', occ: '37' }
+        };
+        const PH_DN = '${Alert.dn}';
+        const PH_OCC = '${Alert.aggregationInfo.occurrences}';
+        const PH_MXONLY = '${<只有 MX 才有的欄位>}';
+
+        const slSenders = document.querySelectorAll('input[name="sl-sender"]');
+        const slDn = document.getElementById('sl-dn');
+        const slOcc = document.getElementById('sl-occ');
+        const slMxOnly = document.getElementById('sl-mxonly');
+        const slProto = document.getElementById('sl-proto');
+        const slSecondary = document.getElementById('sl-secondary');
+        const slTemplate = document.getElementById('sl-template');
+        const slPreview = document.getElementById('sl-preview');
+        const slNotes = document.getElementById('sl-notes');
+
+        function sender() {
+            return Array.from(slSenders).find(r => r.checked).value;
+        }
+
+        function renderSyslog() {
+            const s = sender();
+            const parts = [], values = [];
+            if (slDn.checked) { parts.push('id=' + PH_DN); values.push('id=' + SAMPLE[s].dn); }
+            if (slOcc.checked) { parts.push('occurrences=' + PH_OCC); values.push('occurrences=' + SAMPLE[s].occ); }
+            let blocked = false;
+            if (slMxOnly.checked) {
+                parts.push('extra=' + PH_MXONLY);
+                if (s === 'gw') blocked = true; else values.push('extra=(MX 端的值)');
+            }
+            slProto.disabled = (s === 'mx');
+            slTemplate.textContent = parts.length ? parts.join(' ') : '(沒有選任何 placeholder)';
+            slPreview.textContent = blocked ? '(無法儲存:見下方說明)' : (values.length ? values.join(' ') : '(空訊息)');
+
+            let n = '';
+            if (blocked) {
+                n += '<p class="text-red-700 font-semibold mb-2"><i class="fas fa-circle-xmark mr-1"></i>Gateway 端的 Action Interface 加入 placeholder 時,系統會檢查 Gateway 能否取得該欄位;取不到就不允許儲存。存檔失敗時,先檢查是否用了只有 MX 才有的 placeholder。</p>';
+            }
+            if (s === 'gw') {
+                n += '<p class="text-gray-800 mb-1"><strong>Gateway System Security Log</strong>:每筆違規送一次,數量多,要評估 SIEM 授權量。</p>';
+                n += '<p class="text-gray-800 mb-1">' + esc(PH_DN) + ' 代表<strong>違規 ID</strong>;' + esc(PH_OCC) + ' 永遠是 1(Gateway 不做彙總)。</p>';
+                n += '<p class="text-gray-800 mb-1">防火牆:<strong>每台 Gateway</strong>(gw01 10.0.30.11、gw02 10.0.30.12)→ 10.0.30.50 ' + esc(slProto.value) + ' 514。</p>';
+                if (slSecondary.checked && slProto.value !== 'TCP') {
+                    n += '<p class="text-orange-800 font-semibold mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>要設第二台 SIEM 收集器做備援時,官方要求 Protocol 用 TCP。</p>';
+                } else if (slSecondary.checked) {
+                    n += '<p class="text-green-700 mb-1"><i class="fas fa-circle-check mr-1"></i>Secondary 備援:Protocol 為 TCP,符合官方要求。</p>';
+                }
+            } else {
+                n += '<p class="text-gray-800 mb-1"><strong>Server System Log</strong>(MX 送):送的是彙總後的告警,數量少,適合值班告警與工單。</p>';
+                n += '<p class="text-gray-800 mb-1">' + esc(PH_DN) + ' 代表<strong>告警編號</strong>;' + esc(PH_OCC) + ' 是累計次數。</p>';
+                n += '<p class="text-gray-800 mb-1">防火牆:mx01(10.0.30.10)→ 10.0.30.50。Syslog Host 預設埠 514,其他埠寫成 host:port。</p>';
+                if (slSecondary.checked) {
+                    n += '<p class="text-gray-600 mb-1">Primary / Secondary 與 Protocol 是 Gateway System Security Log 的參數,MX 的 Server System Log 沒有 Primary / Secondary 和 Protocol 欄位。</p>';
+                }
+            }
+            n += '<p class="text-xs text-gray-500 mt-2">id=、occurrences=、extra= 與所有數值只是教學範例,並非官方預設訊息格式。</p>';
+            slNotes.innerHTML = n;
+        }
+        slSenders.forEach(r => r.addEventListener('change', renderSyslog));
+        [slDn, slOcc, slMxOnly, slProto, slSecondary].forEach(el => el.addEventListener('change', renderSyslog));
+        renderSyslog();
+
+        // ===== 隨堂測驗資料 =====
+        const quizData = [
+            {
+                question: "Q1. 同一個 placeholder ${Alert.dn},從 Gateway 送出時代表什麼?",
+                options: ["A. 告警編號", "B. 違規 ID", "C. 累計次數", "D. 使用者帳號"],
+                correct: 1,
+                desc: "正解:B。${Alert.dn} 從 MX 送出代表告警編號,從 Gateway 送出代表違規 ID,所以 SIEM 關聯規則要分開處理。"
+            },
+            {
+                question: "Q2. 原本只開了 mx01 → Syslog 的防火牆,後來改用 Gateway System Security Log 送出訊息,結果 SIEM 完全收不到。最可能的原因是?",
+                options: ["A. 防火牆還要為每台 Gateway 各開到 Syslog 埠的路徑", "B. MX 的時間不同步", "C. Gateway 不支援 Syslog", "D. 違規筆數太少"],
+                correct: 0,
+                desc: "正解:A。Gateway System Security Log 的訊息是從每台 Gateway 送出,不是從 MX 送出;防火牆沒開就整批收不到。"
+            },
+            {
+                question: "Q3. 在 Gateway 類的 Action Interface 加入 placeholder 後存檔失敗,應該先檢查什麼?",
+                options: ["A. 是否用了只有 MX 才有、Gateway 取不到的 placeholder", "B. Splunk 的 index 名稱", "C. 報表排程", "D. SNMPv3 設定"],
+                correct: 0,
+                desc: "正解:A。Gateway 端加入 placeholder 時系統會檢查 Gateway 能否取得該欄位,取不到就不允許儲存。"
+            },
+            {
+                question: "Q4. 自動化腳本跑一陣子之後開始收到 IMP-12304 與 401。最可能的原因是?",
+                options: ["A. 帳號被鎖(IMP-12303)", "B. 腳本結束時沒有呼叫 Logout,累積到 session 數上限", "C. MX 憑證過期", "D. Session 閒置逾時是 30 小時"],
+                correct: 1,
+                desc: "正解:B。IMP-12304 / IMP-12305 代表 session 數已達上限。腳本結束一定要呼叫 Logout;session 閒置 30 分鐘也會逾時。"
+            },
+            {
+                question: "Q5. 設定 IP Block 的 Duration 為 15 秒,實際封鎖時間可能是?",
+                options: ["A. 剛好 15 秒", "B. 最長 5 秒", "C. 可能到 60 秒,因為解除是 Gateway 每 60 秒檢查一次", "D. 永久封鎖"],
+                correct: 2,
+                desc: "正解:C。Block 動作是立即的,但解除是 Gateway 每 60 秒檢查一次,所以設 15 秒實際可能封到 60 秒。"
+            }
+        ];
+
+
+        // ===== 隨堂測驗 =====
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionBox = document.createElement('div');
+            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
+
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border mb-2 text-gray-700" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            questionBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
+                <div class="space-y-2 mb-4">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
+                    <p class="font-bold result-title"></p>
+                    <p class="text-sm text-gray-600 mt-1">${item.desc}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionBox);
+        });
+
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            if (element.parentElement.dataset.answered) return;
+            element.parentElement.dataset.answered = "true";
+
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+                opt.classList.add('disabled');
+            });
+
+            if (optIndex === data.correct) {
+                element.classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了!";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                element.classList.add('bg-red-100', 'border-red-500');
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了!";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+
+    </script>
+</body>
+</html>

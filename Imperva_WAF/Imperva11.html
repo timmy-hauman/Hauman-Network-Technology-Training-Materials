@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imperva WAF Gateway 實戰課程 - 進階情境</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        /* 卡片主體樣式 (Imperva Blue) */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #0284c7;
+        }
+
+        /* 重點提示框 (藍) */
+        .highlight-box {
+            background-color: #f0f9ff;
+            border-left: 4px solid #0284c7;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 技術名詞標記 */
+        .tech-term {
+            color: #075985;
+            font-weight: 700;
+            background-color: #e0f2fe;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
+        }
+
+        /* 比喻說明框 (綠) */
+        .analogy-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 版本差異框 (紫) */
+        .version-box {
+            background-color: #faf5ff;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 常見踩坑框 (橘,避開主色藍) */
+        .pitfall-box {
+            background-color: #fff7ed;
+            border-left: 4px solid #ea580c;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .diagram-container {
+            display: block;
+            background-color: #ffffff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-top: 1rem;
+        }
+
+        .diagram-container svg {
+            display: block;
+            width: 100%;
+            max-width: 520px;
+            margin: 0 auto;
+        }
+
+        /* 示意畫面 (仿管理介面) */
+        .mock-window {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            background: #ffffff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            margin-top: 1rem;
+        }
+        .mock-titlebar {
+            background: #e2e8f0;
+            padding: 0.4rem 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: #475569;
+        }
+        .mock-dots span {
+            display: inline-block;
+            width: 0.6rem;
+            height: 0.6rem;
+            border-radius: 50%;
+            background: #94a3b8;
+            margin-right: 0.2rem;
+        }
+        .mock-url {
+            background: #ffffff;
+            border-radius: 0.25rem;
+            padding: 0.1rem 0.5rem;
+            flex: 1;
+            min-width: 0;
+            font-family: ui-monospace, Consolas, monospace;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .mock-nav {
+            background: #1f2937;
+            color: #cbd5e1;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.25rem 1rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+        }
+        .mock-nav .brand { font-weight: 700; color: #ffffff; margin-right: 0.5rem; }
+        .mock-nav .on { color: #ffffff; border-bottom: 2px solid #0284c7; padding-bottom: 0.1rem; }
+        .mock-crumb {
+            font-size: 0.8rem;
+            color: #475569;
+            padding: 0.5rem 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f8fafc;
+        }
+        .mock-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            padding: 0.5rem 0.75rem 0;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.8rem;
+        }
+        .mock-tabs span {
+            padding: 0.3rem 0.7rem;
+            border: 1px solid #e5e7eb;
+            border-bottom: none;
+            border-radius: 0.3rem 0.3rem 0 0;
+            background: #f1f5f9;
+            color: #475569;
+        }
+        .mock-tabs span.on { background: #ffffff; color: #111827; font-weight: 600; }
+        .mock-body { padding: 0.75rem; font-size: 0.85rem; }
+        .mock-section { font-weight: 700; color: #334155; margin: 0.75rem 0 0.25rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.2rem; }
+        .mock-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.35rem 0.6rem;
+            padding: 0.35rem 0;
+        }
+        .mock-label { width: 12rem; color: #374151; font-weight: 500; }
+        .mock-input {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+            padding: 0.2rem 0.5rem;
+            min-width: 12rem;
+            background: #ffffff;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #111827;
+        }
+        .mock-select::after { content: " ▾"; color: #64748b; }
+        .mock-indent { padding-left: 2rem; }
+        .mock-btn {
+            display: inline-block;
+            border: 1px solid #94a3b8;
+            background: #f8fafc;
+            border-radius: 0.25rem;
+            padding: 0.2rem 0.7rem;
+            font-size: 0.8rem;
+            color: #1f2937;
+        }
+        .mock-btn.primary { background: #1f2937; color: #ffffff; border-color: #1f2937; }
+        .mock-hl { outline: 2px solid #0284c7; outline-offset: 2px; border-radius: 0.25rem; }
+        .mock-list {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+            min-width: 9rem;
+            min-height: 4.2rem;
+            padding: 0.25rem 0.5rem;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.8rem;
+            background: #ffffff;
+        }
+        .mock-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 0.5rem; }
+        .mock-table th { background: #f1f5f9; text-align: left; padding: 0.35rem 0.5rem; border: 1px solid #e2e8f0; color: #334155; }
+        .mock-table td { padding: 0.35rem 0.5rem; border: 1px solid #e2e8f0; }
+        .mock-caption {
+            font-size: 0.75rem;
+            color: #6b7280;
+            padding: 0.5rem 0.75rem;
+            background: #f9fafb;
+            border-top: 1px dashed #e5e7eb;
+        }
+        .step-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.4rem;
+            height: 1.4rem;
+            border-radius: 9999px;
+            background: #0284c7;
+            color: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .step-list li { display: flex; gap: 0.6rem; align-items: flex-start; margin-bottom: 0.6rem; }
+
+        /* 模擬器 */
+        .sim-rule {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.4rem 0.75rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            margin-bottom: 0.5rem;
+            background: #ffffff;
+        }
+        .sim-rule .num { font-weight: 700; color: #075985; width: 3.5rem; }
+        .sim-rule .desc { flex: 1; min-width: 12rem; }
+        .sim-arrow { border: 1px solid #cbd5e1; border-radius: 0.25rem; padding: 0 0.45rem; background: #f8fafc; }
+        .sim-arrow:disabled { opacity: 0.35; cursor: not-allowed; }
+        .trace-line { padding: 0.3rem 0; border-bottom: 1px dashed #e5e7eb; }
+
+        @media (max-width: 640px) {
+            main { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+            .section-card { padding: 1rem; }
+            .diagram-container { padding: 0.25rem; }
+            .mock-label { width: calc(100% - 2.2rem); }
+            .mock-indent .mock-label { width: 100%; }
+            .mock-input { min-width: 0; width: 100%; }
+            .mock-indent { padding-left: 0.75rem; }
+            .mock-body { padding: 0.5rem; }
+        }
+
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover:not(.disabled) {
+            background-color: #f3f4f6;
+        }
+
+        .footer-signature {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+            margin-top: 4rem;
+        }
+        /* Long URLs and code wrap on narrow screens */
+        main { overflow-wrap: break-word; } main code { overflow-wrap: anywhere; }
+
+        .tbc { font-size: 0.8em; color: #92400e; background: #fef3c7; padding: 0 0.3rem; border-radius: 0.2rem; white-space: nowrap; }
+        .danger-box { background-color: #fef2f2; border-left: 4px solid #dc2626; padding: 1rem; margin: 1rem 0; border-radius: 0.25rem; }
+        .course-nav { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem; font-size: 0.9rem; }
+        .course-nav a { color: #075985; font-weight: 500; padding: 0.25rem 0.5rem; border-radius: 0.3rem; }
+        .course-nav a:hover { background: #e0f2fe; }
+        .term { background: #0f172a; color: #e2e8f0; font-family: ui-monospace, Consolas, monospace; font-size: 0.8rem; padding: 0.75rem; line-height: 1.7; overflow-x: auto; white-space: pre; }
+        .term .c { color: #94a3b8; } .term .p { color: #38bdf8; } .term .hl { outline: 2px solid #0284c7; outline-offset: 1px; border-radius: 0.2rem; }
+        .code-block { background: #0f172a; color: #e2e8f0; font-family: ui-monospace, Consolas, monospace; font-size: 0.8rem; padding: 0.75rem; line-height: 1.6; overflow-x: auto; white-space: pre; border-radius: 0.4rem; margin-top: 0.75rem; }
+        .code-block .c { color: #94a3b8; }
+
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-sky-800 to-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-shield-halved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold">Imperva WAF Gateway 實戰課程</h1>
+                    <p class="text-sky-100 mt-1">單元 11:進階情境</p>
+                </div>
+            </div>
+        </div>
+    </header>
+    <nav class="bg-white border-b border-gray-200" aria-label="章節導覽">
+        <div class="container mx-auto px-4 py-2 max-w-5xl course-nav">
+            <a href="Imperva10.html"><i class="fas fa-arrow-left mr-1"></i>上一章</a>
+            <a href="Imperva00.html"><i class="fas fa-list mr-1"></i>課程目錄</a>
+            <a href="Imperva12.html">下一章<i class="fas fa-arrow-right ml-1"></i></a>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+        <!-- Introduction -->
+        <div class="mb-8">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
+                <h2 class="text-xl font-bold text-blue-800 mb-2 flex items-center">
+                    <i class="fas fa-user-tie mr-2"></i>講師導言
+                </h2>
+                <p class="text-blue-900 leading-relaxed">
+                    前面幾章把「站台怎麼掛上去、怎麼學、怎麼擋」都講完了。這一章收錄五個<strong>進階功能</strong>:用外部資料豐富比對條件的 Lookup Data Sets、追蹤登入者身分的 User Tracking、在記錄裡遮蔽敏感資料的 Data Masking、把弱點掃描結果轉成防護的 Web Scanner 整合,以及把 WAF Gateway 當成 API 流量感測器的 API Security Anywhere sensor。
+                    它們都不是上線第一天必須開的功能,但碰到基本政策處理不了的情境時,就是你的備用武器。
+                </p>
+            </div>
+        </div>
+
+        <!-- 學習目標 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-gray-100 text-gray-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Goals</span>
+                本章學習目標
+            </h2>
+            <ul class="list-disc pl-6 space-y-1 text-gray-700">
+                <li>說出五個進階功能各自解決什麼問題、需要什麼前提</li>
+                <li>建立 Lookup Data Set,並說明為什麼名單要有擁有者與更新週期</li>
+                <li>說明 User Tracking 如何判斷登入成功與失敗,以及為什麼上線前要用測試帳號驗證</li>
+                <li>分辨 Sensitive Data Dictionaries 與 Masking Data in Elements,並知道 Data Masking 只影響 WAF 自己的記錄</li>
+                <li>描述 Web Scanner 整合的三個步驟,以及 Virtual Patching 的定位</li>
+                <li>說出 API Security Anywhere sensor 的工作模式限制與預設值</li>
+            </ul>
+        </div>
+
+        <!-- 一、功能地圖 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">一、功能地圖:五個進階功能</h2>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 360 400" role="img" aria-labelledby="svg1-title" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans TC, sans-serif">
+                    <title id="svg1-title">進階功能地圖:Lookup Data Sets、User Tracking、Data Masking、Web Scanner 整合、API Security Anywhere sensor 各自解決的問題</title>
+                    <rect x="20" y="10" width="320" height="64" rx="10" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <circle cx="44" cy="42" r="13" fill="#0284c7"/><text x="44" y="47" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">1</text>
+                    <text x="68" y="35" font-size="15" font-weight="700" fill="#075985">Lookup Data Sets</text>
+                    <text x="68" y="58" font-size="13" fill="#1f2937">政策要比對名單或外部屬性</text>
+
+                    <rect x="20" y="84" width="320" height="64" rx="10" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <circle cx="44" cy="116" r="13" fill="#0284c7"/><text x="44" y="121" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">2</text>
+                    <text x="68" y="109" font-size="15" font-weight="700" fill="#075985">User Tracking</text>
+                    <text x="68" y="132" font-size="13" fill="#1f2937">告警看到「哪個帳號」,依帳號封鎖</text>
+
+                    <rect x="20" y="158" width="320" height="64" rx="10" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <circle cx="44" cy="190" r="13" fill="#0284c7"/><text x="44" y="195" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">3</text>
+                    <text x="68" y="183" font-size="15" font-weight="700" fill="#075985">Data Masking</text>
+                    <text x="68" y="206" font-size="13" fill="#1f2937">記錄裡不留密碼、卡號</text>
+
+                    <rect x="20" y="232" width="320" height="64" rx="10" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <circle cx="44" cy="264" r="13" fill="#0284c7"/><text x="44" y="269" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">4</text>
+                    <text x="68" y="257" font-size="15" font-weight="700" fill="#075985">Web Scanner 整合</text>
+                    <text x="68" y="280" font-size="13" fill="#1f2937">程式還沒修,先用 WAF 虛擬修補</text>
+
+                    <rect x="20" y="306" width="320" height="82" rx="10" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <circle cx="44" cy="338" r="13" fill="#0284c7"/><text x="44" y="343" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">5</text>
+                    <text x="68" y="331" font-size="15" font-weight="700" fill="#075985">API Security Anywhere</text>
+                    <text x="68" y="354" font-size="13" fill="#1f2937">Gateway 當 API 流量感測器</text>
+                    <text x="68" y="375" font-size="13" fill="#6b7280">只支援 ABR、NGRP</text>
+                </svg>
+            </div>
+
+            <div class="overflow-x-auto mt-3"><table class="min-w-full text-sm border"><thead class="bg-gray-100"><tr><th class="py-2 px-4 border text-left">功能</th><th class="py-2 px-4 border text-left">解決什麼問題</th><th class="py-2 px-4 border text-left">前提</th><th class="py-2 px-4 border text-left">現況</th></tr></thead><tbody><tr><td class="py-2 px-4 border font-semibold">Lookup Data Sets(查詢資料集)</td><td class="py-2 px-4 border">政策要比對「名單」或「外部屬性」(例如合作夥伴 IP、停權帳號)</td><td class="py-2 px-4 border">無,屬 Global Object(全域物件)</td><td class="py-2 px-4 border">仍存在,有預設資料集與 REST API</td></tr><tr><td class="py-2 px-4 border font-semibold">Web Application User Tracking(應用程式使用者追蹤)</td><td class="py-2 px-4 border">告警裡要看到「哪個帳號」而不只是 IP;依帳號封鎖</td><td class="py-2 px-4 border">網站有表單登入</td><td class="py-2 px-4 border">仍存在;<strong>Universal User Tracking (UUT) 已於 v14.2 移除</strong></td></tr><tr><td class="py-2 px-4 border font-semibold">Data Masking(資料遮罩)</td><td class="py-2 px-4 border">告警與稽核記錄不能留下密碼、卡號等敏感資料</td><td class="py-2 px-4 border">無</td><td class="py-2 px-4 border">仍存在</td></tr><tr><td class="py-2 px-4 border font-semibold">Web Scanner 整合</td><td class="py-2 px-4 border">弱點已被掃到、程式還沒修,先用 WAF 擋(Virtual Patching,虛擬修補)</td><td class="py-2 px-4 border">支援的第三方掃描器報告</td><td class="py-2 px-4 border">仍存在</td></tr><tr><td class="py-2 px-4 border font-semibold">API Security Anywhere sensor</td><td class="py-2 px-4 border">需要 API 盤點、BOLA 等 API 專屬防護</td><td class="py-2 px-4 border">地端 Controller;Gateway 跑 <strong>NGRP 或 ABR</strong></td><td class="py-2 px-4 border">v15.3 Patch 10 起;v15.4 起強化</td></tr></tbody></table></div>
+        </div>
+
+        <!-- 二、Lookup Data Sets -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">二、Lookup Data Sets:讓政策去「查名單」</h2>
+
+            <div class="analogy-box">
+                <p class="font-bold text-green-800 mb-1"><i class="fas fa-address-book mr-1"></i>用門口的訪客名冊來想</p>
+                <p class="text-green-900">警衛只看來客的臉,沒辦法知道他是不是合作夥伴。但手邊有一本名冊,拿來客的名字去查,就知道該不該放行。Lookup Data Set 就是那本名冊。</p>
+            </div>
+
+            <p class="text-gray-700 leading-relaxed">
+                <span class="tech-term">Lookup Data Set</span> 是一張「鍵值 + 屬性」的表。政策比對時,用請求裡的某個值(例如來源 IP、帳號)去查表,取回屬性再判斷。它讓「只靠請求本身資訊做不到」的政策變得可行,舊簡報稱之為 Data Enrichment(資料豐富化)(舊簡報 p.69–70)。
+            </p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">建立來源</h3>
+            <p class="text-sm text-gray-500">依官方 Creating a Lookup Data Set。</p>
+            <div class="overflow-x-auto mt-3"><table class="min-w-full text-sm border"><thead class="bg-gray-100"><tr><th class="py-2 px-4 border text-left">來源</th><th class="py-2 px-4 border text-left">適用情境</th></tr></thead><tbody><tr><td class="py-2 px-4 border font-semibold">Manually</td><td class="py-2 px-4 border">筆數少、變動少的名單(例如 5 個合作夥伴 IP)</td></tr><tr><td class="py-2 px-4 border font-semibold">From a CSV File</td><td class="py-2 px-4 border">由其他系統匯出的清單,定期重新匯入</td></tr><tr><td class="py-2 px-4 border font-semibold">From ThreatRadar</td><td class="py-2 px-4 border">威脅情資服務使用的資料集(見第 10 章)</td></tr><tr><td class="py-2 px-4 border font-semibold">From an External System</td><td class="py-2 px-4 border">直接連資料庫或外部系統抓資料</td></tr><tr><td class="py-2 px-4 border font-semibold">From ADC Template</td><td class="py-2 px-4 border">由 ADC 維護的範本(標準資料庫結構、LDAP 資訊)</td></tr></tbody></table></div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">預設資料集(節錄,WAF 相關)</h3>
+            <div class="overflow-x-auto mt-3"><table class="min-w-full text-sm border"><thead class="bg-gray-100"><tr><th class="py-2 px-4 border text-left">名稱</th><th class="py-2 px-4 border text-left">用途</th></tr></thead><tbody><tr><td class="py-2 px-4 border font-semibold">IP Addresses of Known Anonymous Proxies</td><td class="py-2 px-4 border">已知匿名代理 IP;屬威脅情資的一部分,由 ADC 自動更新</td></tr><tr><td class="py-2 px-4 border font-semibold">User Roles - From Active Directory (no domain / with domain)</td><td class="py-2 px-4 border">從 LDAP 取使用者、部門、群組,讓告警與報表顯示易讀的使用者名稱;需先在 Query 頁指定 External System</td></tr></tbody></table></div>
+            <p class="text-sm text-gray-600 mt-2">其餘預設資料集(如 Default Database Account Mapping)屬資料庫稽核用途,WAF 用不到。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">動手做:會員 API 停權帳號清單</h3>
+            <p class="text-gray-700 mb-2">目標:讓 <code>member</code> 應用程式的登入請求,若帳號在停權名單裡就觸發政策。</p>
+
+            <div class="mock-window">
+                <div class="mock-titlebar">
+                    <span class="mock-dots"><span></span><span></span><span></span></span>
+                    <span class="mock-url">https://10.0.30.10:8083</span>
+                </div>
+                <div class="mock-nav">
+                    <span class="brand">Imperva MX</span>
+                    <span class="on">Main</span><span>Admin</span>
+                </div>
+                <div class="mock-crumb">Main &gt; Setup &gt; Global Objects</div>
+                <div class="mock-body">
+                    <div class="mock-row"><span class="step-badge">2</span><span class="mock-label">Category</span><span class="mock-input mock-select mock-hl">Lookup Data Sets</span></div>
+                    <div class="mock-row"><span class="step-badge">2</span><span class="mock-label">Source</span><span class="mock-input mock-select mock-hl">From a CSV File</span></div>
+                    <div class="mock-row"><span class="step-badge" style="visibility:hidden">0</span><span class="mock-label">Data Set Name</span><span class="mock-input">blocked-accounts</span></div>
+                    <div class="mock-row"><span class="step-badge">3</span><span class="mock-label">Key Column</span><span class="mock-input mock-hl">First column (account)</span></div>
+                    <div class="mock-row"><span class="step-badge" style="visibility:hidden">0</span><span class="mock-label">Attribute Column</span><span class="mock-input mock-select">(select as needed)</span></div>
+                    <div class="mock-row" style="justify-content:flex-end;"><span class="step-badge">3</span><span class="mock-btn primary mock-hl">Import</span></div>
+                </div>
+                <div class="mock-caption"><i class="fas fa-circle-info mr-1"></i>示意畫面:官方文件僅寫到「選 From a CSV File、指定鍵值欄位與屬性欄位」,因此畫面上 Category、Source、Data Set Name、Key Column、Attribute Column、Import 等英文標籤待實機確認(依序為類別、資料來源、資料集名稱、鍵值欄位、屬性欄位、匯入),版面與按鈕位置以實機為準。</div>
+            </div>
+
+            <ol class="step-list mt-4 text-gray-700">
+                <li><span class="step-badge">1</span><span>由會員系統匯出停權帳號,存成 <code>blocked-accounts.csv</code>(第一欄為帳號)。</span></li>
+                <li><span class="step-badge">2</span><span>進入 <strong>Main &gt; Setup &gt; Global Objects</strong>,選 Lookup Data Sets 類別,新增資料集並選 <strong>From a CSV File</strong><span class="tbc">【待實機確認】</span>。</span></li>
+                <li><span class="step-badge">3</span><span>指定鍵值欄位與屬性欄位,匯入後檢查筆數。</span></li>
+                <li><span class="step-badge">4</span><span>到 <strong>Main &gt; Policies &gt; Security</strong>,新增 Web Service Custom(或 Web Application Custom)政策,比對條件選擇 lookup 類條件,指定「帳號參數值存在於 <code>blocked-accounts</code>」<span class="tbc">【待實機確認】</span>。</span></li>
+                <li><span class="step-badge">5</span><span>套用到 Site Tree 的 <code>SG-Shop</code> &gt; <code>HTTPS-Shop</code> &gt; <code>member</code>,Action 先設為<strong>只告警</strong>,觀察一週後再改阻擋(處置設定見第 9 章)。</span></li>
+            </ol>
+
+            <div class="highlight-box">
+                <p class="font-bold text-sky-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>實務建議</p>
+                <ul class="list-disc pl-6 text-gray-800 space-y-1">
+                    <li>名單要有「擁有者」與更新週期。CSV 匯入是一次性的,來源系統更新後要重新匯入,否則政策會依過期資料判斷。</li>
+                    <li>資料集也能透過 REST API 維護(WAF API Reference Guide 有 Lookup Data Set 相關方法),適合讓會員系統在停權時自動推送(REST API 登入方式見第 12 章)。</li>
+                    <li>舊簡報寫上限為 1 百萬筆(舊簡報 p.69);現行版本的筆數上限未查到官方數字<span class="tbc">【待實機確認】</span>。大型名單先在測試環境確認匯入時間與 MX 負載。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 三、User Tracking -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">三、Web Application User Tracking:告警裡看得到「是誰」</h2>
+            <p class="text-gray-700 leading-relaxed">
+                WAF 預設只知道 IP 與 session。啟用 <span class="tech-term">User Tracking</span> 後,Gateway 會辨識「登入動作」:哪個 URL 是登入表單送出的位置(Action URL)、哪個欄位是帳號、登入成功或失敗。之後同一個 session 的違規告警就會帶上使用者名稱,並可對「使用者」做監控或封鎖(Action Interface 的 User Monitor、User Block,見第 12 章)。
+            </p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">系統判斷登入結果的依據</h3>
+            <p class="text-sm text-gray-500">官方 Web Profile – Web Application User Tracking Report 的欄位,可看出系統記錄哪些資訊。</p>
+
+            <div class="mock-window">
+                <div class="mock-titlebar">
+                    <span class="mock-dots"><span></span><span></span><span></span></span>
+                    <span class="mock-url">https://10.0.30.10:8083</span>
+                </div>
+                <div class="mock-nav">
+                    <span class="brand">Imperva MX</span>
+                    <span class="on">Main</span><span>Admin</span>
+                </div>
+                <div class="mock-crumb">Web Profile – Web Application User Tracking Report</div>
+                <div class="mock-body">
+                    <div class="overflow-x-auto">
+                        <table class="mock-table">
+                            <thead><tr><th>Login URL / Action URL</th><th>Action URL Field 1 / Field 2</th><th>Redirect URL Value</th><th>Response Code Value</th><th>Login Result</th><th>Status</th></tr></thead>
+                            <tbody>
+                                <tr><td>/member/login</td><td>email / password</td><td class="mock-hl">/member/home</td><td class="mock-hl">302</td><td>Succeeded</td><td>in protection</td></tr>
+                                <tr><td>/member/login</td><td>email / password</td><td>/member/login</td><td>200</td><td>Failed</td><td>in protection</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="mock-caption"><i class="fas fa-circle-info mr-1"></i>示意畫面:欄位名稱依 Imperva 官方文件,列內容為依範例環境推演的示意值,版面以實機為準。</div>
+            </div>
+
+            <div class="overflow-x-auto mt-3"><table class="min-w-full text-sm border"><thead class="bg-gray-100"><tr><th class="py-2 px-4 border text-left">欄位</th><th class="py-2 px-4 border text-left">意義</th></tr></thead><tbody><tr><td class="py-2 px-4 border font-semibold">Login URL / Action URL</td><td class="py-2 px-4 border">登入頁 / 表單實際送出的 URL</td></tr><tr><td class="py-2 px-4 border font-semibold">Action URL Field 1 / Field 2</td><td class="py-2 px-4 border">使用者識別欄位,例如帳號、密碼欄位名稱</td></tr><tr><td class="py-2 px-4 border font-semibold">Redirect URL Value</td><td class="py-2 px-4 border">登入後被導向的 URL(成功與失敗通常不同)</td></tr><tr><td class="py-2 px-4 border font-semibold">Response Code Value</td><td class="py-2 px-4 border">登入後回應碼</td></tr><tr><td class="py-2 px-4 border font-semibold">Login Result / Default Decision</td><td class="py-2 px-4 border">Succeeded、Failed、Can't Tell</td></tr><tr><td class="py-2 px-4 border font-semibold">Status</td><td class="py-2 px-4 border">learning、in protection、manual</td></tr></tbody></table></div>
+            <p class="text-gray-700 mt-3">從 Status 欄位可知,登入行為也是 Dynamic Profiling 學出來的(learning → in protection),也可以手動指定(manual)。學習機制見第 8 章。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">範例環境的登入特徵</h3>
+            <div class="overflow-x-auto mt-3"><table class="min-w-full text-sm border"><thead class="bg-gray-100"><tr><th class="py-2 px-4 border text-left">項目</th><th class="py-2 px-4 border text-left"><code>member</code> 應用程式</th></tr></thead><tbody><tr><td class="py-2 px-4 border font-semibold">登入頁</td><td class="py-2 px-4 border"><code>https://shop.example.com/member/login</code></td></tr><tr><td class="py-2 px-4 border font-semibold">表單送出</td><td class="py-2 px-4 border"><code>POST /member/login</code>,欄位 <code>email</code>、<code>password</code></td></tr><tr><td class="py-2 px-4 border font-semibold">成功</td><td class="py-2 px-4 border"><code>302</code> 導向 <code>/member/home</code></td></tr><tr><td class="py-2 px-4 border font-semibold">失敗</td><td class="py-2 px-4 border"><code>200</code>,停留在 <code>/member/login</code></td></tr></tbody></table></div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">設定步驟</h3>
+            <ol class="step-list text-gray-700">
+                <li><span class="step-badge">1</span><span>先讓 <code>member</code> 應用程式學習至少一段時間,確認 Web Profile 已出現 <code>/member/login</code>。</span></li>
+                <li><span class="step-badge">2</span><span>在 Site Tree 選 <code>member</code> 應用程式,開啟 User Tracking 相關設定頁<span class="tbc">【待實機確認】</span>。</span></li>
+                <li><span class="step-badge">3</span><span>若系統沒有自動學到,手動指定 Action URL、帳號欄位(<code>email</code>),以及成功的判斷條件(導向 <code>/member/home</code> 或回應碼 302)<span class="tbc">【待實機確認】</span>。</span></li>
+                <li><span class="step-badge">4</span><span>以測試帳號各做一次成功與失敗登入,到 Web Profile – Web Application User Tracking 報表確認 Login Result 判斷正確。</span></li>
+            </ol>
+
+            <div class="highlight-box">
+                <p class="font-bold text-sky-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>注意</p>
+                <p class="text-gray-800">密碼欄位雖然會被識別,但一定要搭配下一節的 Data Masking,避免密碼值出現在告警明細。</p>
+            </div>
+        </div>
+
+        <!-- 四、Data Masking -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">四、Data Masking 與敏感資料字典</h2>
+            <p class="text-gray-700 leading-relaxed">
+                WAF 告警會記錄觸發違規的參數值。如果違規剛好發生在登入或結帳頁,記錄裡可能出現密碼、信用卡號、身分證字號。<span class="tech-term">Data Masking</span> 讓這些值在寫入 SecureSphere 記錄前就被換成星號。官方說明:遮罩後原始資料從記錄中<strong>刪除且無法取回</strong>,星號數等於被隱藏的位元組數。
+            </p>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 360 330" role="img" aria-labelledby="svg2-title" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans TC, sans-serif">
+                    <title id="svg2-title">Data Masking 只影響 WAF 記錄:請求原樣送往伺服器,寫入記錄前敏感值被換成星號</title>
+                    <defs>
+                        <marker id="arrow2" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+                        </marker>
+                    </defs>
+                    <rect x="40" y="10" width="280" height="60" rx="8" fill="#f1f5f9" stroke="#94a3b8"/>
+                    <text x="180" y="36" text-anchor="middle" font-size="14" fill="#1f2937">使用者送出登入請求</text>
+                    <text x="180" y="58" text-anchor="middle" font-size="13" fill="#475569">password=Abc12345</text>
+                    <line x1="180" y1="70" x2="180" y2="98" stroke="#64748b" stroke-width="2" marker-end="url(#arrow2)"/>
+
+                    <rect x="20" y="102" width="320" height="64" rx="10" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="180" y="130" text-anchor="middle" font-size="15" font-weight="700" fill="#075985">WAF Gateway</text>
+                    <text x="180" y="152" text-anchor="middle" font-size="13" fill="#1f2937">依遮罩設定處理「要寫進記錄的值」</text>
+
+                    <line x1="95" y1="166" x2="95" y2="206" stroke="#64748b" stroke-width="2" marker-end="url(#arrow2)"/>
+                    <line x1="265" y1="166" x2="265" y2="206" stroke="#64748b" stroke-width="2" marker-end="url(#arrow2)"/>
+                    <text x="105" y="191" font-size="13" fill="#475569">原樣</text>
+                    <text x="275" y="191" font-size="13" fill="#475569">先遮罩</text>
+
+                    <rect x="20" y="210" width="150" height="100" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+                    <text x="95" y="238" text-anchor="middle" font-size="14" font-weight="700" fill="#15803d">伺服器</text>
+                    <text x="95" y="262" text-anchor="middle" font-size="13" fill="#1f2937">收到的內容</text>
+                    <text x="95" y="284" text-anchor="middle" font-size="13" fill="#1f2937">完全不變</text>
+
+                    <rect x="190" y="210" width="150" height="100" rx="10" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
+                    <text x="265" y="238" text-anchor="middle" font-size="14" font-weight="700" fill="#c2410c">WAF 記錄</text>
+                    <text x="265" y="262" text-anchor="middle" font-size="13" fill="#1f2937">password=********</text>
+                    <text x="265" y="284" text-anchor="middle" font-size="13" fill="#1f2937">無法取回</text>
+                </svg>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">兩種做法</h3>
+            <p class="text-sm text-gray-500">官方 Configuring Sensitive Data Protection。</p>
+            <div class="overflow-x-auto mt-3"><table class="min-w-full text-sm border"><thead class="bg-gray-100"><tr><th class="py-2 px-4 border text-left">做法</th><th class="py-2 px-4 border text-left">比對依據</th><th class="py-2 px-4 border text-left">範例</th></tr></thead><tbody><tr><td class="py-2 px-4 border font-semibold">Sensitive Data Dictionaries(敏感資料字典)</td><td class="py-2 px-4 border">值的樣式(pattern)</td><td class="py-2 px-4 border">信用卡號、美國社會安全碼等預設樣式;也可自訂</td></tr><tr><td class="py-2 px-4 border font-semibold">Masking Data in Elements(依元素遮罩)</td><td class="py-2 px-4 border">參數/元素名稱</td><td class="py-2 px-4 border"><code>password</code>、<code>cvv</code> 不管內容是什麼都遮</td></tr></tbody></table></div>
+            <p class="text-gray-700 mt-3">字典可以被政策引用,也可以直接掛在 service 上;字典以 Sensitive Data Dictionary Groups 管理,依元素遮罩則用 Data Masking List 管理。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">範例環境建議清單</h3>
+            <div class="overflow-x-auto mt-3"><table class="min-w-full text-sm border"><thead class="bg-gray-100"><tr><th class="py-2 px-4 border text-left">類型</th><th class="py-2 px-4 border text-left">項目</th><th class="py-2 px-4 border text-left">理由</th></tr></thead><tbody><tr><td class="py-2 px-4 border font-semibold">依元素遮罩</td><td class="py-2 px-4 border"><code>password</code>、<code>new_password</code>、<code>cvv</code>、<code>otp</code></td><td class="py-2 px-4 border">欄位名固定,用名稱比對最準</td></tr><tr><td class="py-2 px-4 border font-semibold">字典</td><td class="py-2 px-4 border">信用卡號(預設)</td><td class="py-2 px-4 border">卡號可能出現在任何參數</td></tr><tr><td class="py-2 px-4 border font-semibold">自訂字典</td><td class="py-2 px-4 border">台灣身分證字號樣式(1 碼英文 + 9 碼數字)</td><td class="py-2 px-4 border">預設字典以美國格式為主,需自訂<span class="tbc">【推論】</span></td></tr></tbody></table></div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">要分清楚的三件事</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>Data Masking 只影響「WAF 自己的記錄」,不會改動送往伺服器或回給使用者的內容。</li>
+                <li>若要「阻擋回應中洩漏的敏感資料」,屬於政策層面的偵測(字典被政策引用),而且必須是 inline 模式;Sniffing 模式無法阻擋資料外洩(見第 4 章)。</li>
+                <li>權限:使用者只能檢視或修改自己有 Edit 權限的字典,分權管理時要留意。</li>
+            </ul>
+        </div>
+
+        <!-- 五、Web Scanner -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">五、Web Scanner 整合與 Virtual Patching</h2>
+            <p class="text-gray-700 leading-relaxed">
+                弱點掃描找到 SQL injection 之後,程式修補、測試、上線常要數週。這段期間,WAF 可以依掃描報告產生針對性政策先擋住,這就是 <span class="tech-term">Virtual Patching</span>(虛擬修補)。
+            </p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">官方流程三步驟</h3>
+            <div class="overflow-x-auto mt-3"><table class="min-w-full text-sm border"><thead class="bg-gray-100"><tr><th class="py-2 px-4 border text-left">步驟</th><th class="py-2 px-4 border text-left">動作</th><th class="py-2 px-4 border text-left">說明</th></tr></thead><tbody><tr><td class="py-2 px-4 border font-semibold">1</td><td class="py-2 px-4 border">Run a Scan and Prepare Results</td><td class="py-2 px-4 border">用支援的第三方掃描器掃描,匯出結果檔</td></tr><tr><td class="py-2 px-4 border font-semibold">2</td><td class="py-2 px-4 border">Create a Scanner Integration Policy</td><td class="py-2 px-4 border">匯入掃描結果,建立整合政策</td></tr><tr><td class="py-2 px-4 border font-semibold">3</td><td class="py-2 px-4 border">Run Web Scanner Assessment Job</td><td class="py-2 px-4 border">執行評估工作,對掃到的弱點產生防護</td></tr></tbody></table></div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">範例:<code>/member/orders?id=</code> 有 SQL injection</h3>
+            <p class="text-gray-700 mb-2">對 <code>shop.example.com</code> 掃描後發現 <code>/member/orders?id=</code> 有 SQL injection。</p>
+            <ol class="step-list text-gray-700">
+                <li><span class="step-badge">1</span><span>掃描範圍限定 <code>https://shop.example.com/member/</code>,並在掃描期間把掃描來源 IP 設為 Learning Exception,避免掃描流量污染 Web Profile(見第 8 章)。</span></li>
+                <li><span class="step-badge">2</span><span>建立 Scanner Integration Policy,匯入結果檔,套用對象指定 <code>SG-Shop</code> &gt; <code>HTTPS-Shop</code> &gt; <code>member</code>。</span></li>
+                <li><span class="step-badge">3</span><span>執行 Web Scanner Assessment Job,檢查產生的防護政策與對應弱點。</span></li>
+                <li><span class="step-badge">4</span><span>開發修好之後重新掃描、重新匯入,確認該弱點已不在清單。</span></li>
+            </ol>
+
+            <div class="highlight-box">
+                <p class="font-bold text-sky-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>注意事項</p>
+                <ul class="list-disc pl-6 text-gray-800 space-y-1">
+                    <li>套用對象要對到正確的 Site Tree 節點,否則產生的政策掛錯地方等於沒有防護(舊簡報 p.88 的「Apply To」提醒仍適用<span class="tbc">【推論】</span>)。</li>
+                    <li>舊簡報列出的掃描器清單(舊簡報 p.84)多家廠商已併購或改名;現行文件仍保留 WhiteHat Sentinel 章節,完整支援清單與報告格式<span class="tbc">【待實機確認】</span>。</li>
+                    <li>Virtual Patching 是<strong>爭取時間,不是修補</strong>。追蹤表上要同時記錄「WAF 已防護」與「程式預計修補日」。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 六、API Security Anywhere -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">六、API Security Anywhere sensor</h2>
+            <p class="text-gray-700 leading-relaxed">
+                WAF 擅長擋「攻擊」;API 安全產品擅長「理解 API」(盤點有哪些 endpoint、哪些欄位含敏感資料、是否存在 BOLA 這類授權缺陷)。API Security Anywhere 的做法是讓 WAF Gateway 當<span class="tech-term">感測器(sensor)</span>,把<strong>非惡意</strong>流量(request 與 response)複製給地端的 Controller 分析。
+            </p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">架構重點</h3>
+            <p class="text-sm text-gray-500">官方 Integration with API Security Anywhere。</p>
+            <div class="overflow-x-auto mt-3"><table class="min-w-full text-sm border"><thead class="bg-gray-100"><tr><th class="py-2 px-4 border text-left">元件</th><th class="py-2 px-4 border text-left">說明</th></tr></thead><tbody><tr><td class="py-2 px-4 border font-semibold">API Security Anywhere Controller</td><td class="py-2 px-4 border">以 Kubernetes 為基礎,可裝成獨立 VM 或放在 Kubernetes 叢集;建在 WAF 旁邊</td></tr><tr><td class="py-2 px-4 border font-semibold">WAF Gateway(sensor)</td><td class="py-2 px-4 border">轉送非惡意的 request + response;每個 Gateway Group 一組 sensor 設定</td></tr><tr><td class="py-2 px-4 border font-semibold">MX</td><td class="py-2 px-4 border">設定政策,填入 Controller 與 sensor 資訊</td></tr><tr><td class="py-2 px-4 border font-semibold">管理介面</td><td class="py-2 px-4 border">Cloud Management Console 管 Controller/sensor;API Management Console(雲端或自管)管 API 盤點</td></tr></tbody></table></div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">連線建立順序</h3>
+            <div class="diagram-container">
+                <svg viewBox="0 0 360 400" role="img" aria-labelledby="svg3-title" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans TC, sans-serif">
+                    <title id="svg3-title">API Security Anywhere 連線建立順序:MX 設定政策、向 Controller 取 token、把 token 發給 Gateway、Gateway 以 gRPC 連到 Controller</title>
+                    <defs>
+                        <marker id="arrow3" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+                        </marker>
+                    </defs>
+                    <rect x="20" y="10" width="320" height="60" rx="10" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2"/>
+                    <text x="40" y="36" font-size="14" font-weight="700" fill="#1f2937">① 管理者在 MX 設定政策</text>
+                    <text x="40" y="58" font-size="13" fill="#475569">填入 Controller 與 sensor 資訊</text>
+                    <line x1="180" y1="70" x2="180" y2="94" stroke="#64748b" stroke-width="2" marker-end="url(#arrow3)"/>
+
+                    <rect x="20" y="98" width="320" height="60" rx="10" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="40" y="124" font-size="14" font-weight="700" fill="#075985">② MX 連到 Controller</text>
+                    <text x="40" y="146" font-size="13" fill="#1f2937">取得 token</text>
+                    <line x1="180" y1="158" x2="180" y2="182" stroke="#64748b" stroke-width="2" marker-end="url(#arrow3)"/>
+
+                    <rect x="20" y="186" width="320" height="60" rx="10" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="40" y="212" font-size="14" font-weight="700" fill="#075985">③ MX 把 token 發給所屬 Gateway</text>
+                    <text x="40" y="234" font-size="13" fill="#1f2937">gw01、gw02 拿到連線憑據</text>
+                    <line x1="180" y1="246" x2="180" y2="270" stroke="#64748b" stroke-width="2" marker-end="url(#arrow3)"/>
+
+                    <rect x="20" y="274" width="320" height="60" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+                    <text x="40" y="300" font-size="14" font-weight="700" fill="#15803d">④ Gateway 以 gRPC(HTTP/2)</text>
+                    <text x="40" y="322" font-size="13" fill="#1f2937">連到 Controller,開始送流量</text>
+
+                    <text x="180" y="362" text-anchor="middle" font-size="13" fill="#475569">安全模式需在 Controller 與 WAF 兩端</text>
+                    <text x="180" y="382" text-anchor="middle" font-size="13" fill="#475569">額外設定 ingress controller 或負載平衡器</text>
+                </svg>
+            </div>
+            <p class="text-gray-700 mt-3">連線分預設的安全模式與 insecure 模式;安全模式需要在 Controller 與 WAF 兩端額外設定 ingress controller 或負載平衡器。</p>
+
+            <div class="highlight-box">
+                <p class="font-bold text-sky-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>限制與預設值</p>
+                <ul class="list-disc pl-6 text-gray-800 space-y-1">
+                    <li>只支援 <strong>ABR、NGRP</strong> 兩種工作模式;Bridge、Sniffing 的 Gateway Group 不能當 sensor(模式說明見第 4 章)。</li>
+                    <li>每個 Server Group 與 Gateway Group 只能有一個政策。</li>
+                    <li>Gateway 預設最多送 <strong>1000 RPS 或 200 Mbps</strong> 給 Controller,可用 Gateway 進階設定調整。</li>
+                    <li>Gateway CPU 達預設 90% 時暫停 API 流量轉送,降到 85% 才恢復,以確保 WAF 本業優先。</li>
+                    <li>v15.4 起可依 application 粒度設定轉送、預設只送 API 流量,並可接收 Controller 回傳的 <strong>BOLA</strong> 阻擋決策。</li>
+                </ul>
+            </div>
+
+            <p class="text-gray-700"><strong>範例環境規劃:</strong><code>api.example.com</code>(<code>203.0.113.21</code> → <code>10.0.10.31</code>)若要納入,<code>GG-Shop</code> 必須跑 NGRP 或 ABR;Controller 放在管理網段旁的獨立網段,<code>gw01</code>、<code>gw02</code> 要能連到 Controller 的接收埠(埠號依 Controller 部署方式,<span class="tbc">【待實機確認】</span>)。</p>
+        </div>
+
+        <!-- 七、模擬器 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">七、動手玩:Lookup 比對與 Data Masking 演示</h2>
+            <p class="text-gray-700 mb-2">下面兩個小工具都是教學示意:帳號、名單與測試字串都是範例值,不是真實資料。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-4 mb-2"><i class="fas fa-address-book mr-1 text-sky-600"></i>演示 A:Lookup Data Set 比對</h3>
+            <p class="text-sm text-gray-600 mb-2">會員系統目前的停權帳號:<strong>alice</strong>(停權中)、<strong>carol</strong>(新停權);<strong>bob</strong> 之前被停權、現在已解除。政策條件是「帳號參數值存在於 <code>blocked-accounts</code>」。</p>
+            <div class="grid md:grid-cols-2 gap-4 mt-3">
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <label class="block text-sm font-semibold mb-1" for="lk-csv">blocked-accounts 目前的內容</label>
+                    <select id="lk-csv" class="border rounded px-2 py-1 w-full mb-3">
+                        <option value="old">上週匯入的舊 CSV(alice、bob)</option>
+                        <option value="new">剛重新匯入(alice、carol)</option>
+                    </select>
+                    <label class="block text-sm font-semibold mb-1" for="lk-acct">登入請求的帳號</label>
+                    <select id="lk-acct" class="border rounded px-2 py-1 w-full mb-3">
+                        <option value="alice">alice</option>
+                        <option value="bob">bob</option>
+                        <option value="carol">carol</option>
+                        <option value="dave">dave</option>
+                    </select>
+                    <label class="block text-sm font-semibold mb-1" for="lk-action">政策的 Action</label>
+                    <select id="lk-action" class="border rounded px-2 py-1 w-full">
+                        <option value="alert">只告警</option>
+                        <option value="block">阻擋</option>
+                    </select>
+                </div>
+                <div id="lk-result" class="border rounded-lg p-4"></div>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-8 mb-2"><i class="fas fa-eye-slash mr-1 text-sky-600"></i>演示 B:Data Masking</h3>
+            <p class="text-sm text-gray-600 mb-2">改一改下面的請求參數值,再勾選遮罩設定,看看「寫進 WAF 記錄」的內容有什麼不同。遮罩只影響記錄,送往伺服器的內容不變。</p>
+            <div class="grid md:grid-cols-2 gap-4 mt-3">
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-2">請求參數(可編輯)</h4>
+                    <div id="dm-fields"></div>
+                    <h4 class="font-bold text-gray-800 mt-3 mb-2">遮罩設定</h4>
+                    <label class="block text-sm mb-1"><input type="checkbox" id="dm-elem" class="mr-2" checked>依元素遮罩:<code>password</code>、<code>new_password</code>、<code>cvv</code>、<code>otp</code></label>
+                    <label class="block text-sm mb-1"><input type="checkbox" id="dm-card" class="mr-2" checked>字典:信用卡號(預設)</label>
+                    <label class="block text-sm"><input type="checkbox" id="dm-tw" class="mr-2">自訂字典:台灣身分證字號樣式(1 碼英文 + 9 碼數字)</label>
+                </div>
+                <div class="bg-white border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-1">送往伺服器的內容(不變)</h4>
+                    <pre id="dm-server" class="text-xs bg-gray-50 border rounded p-2 mb-3" style="white-space:pre-wrap;overflow-wrap:anywhere;"></pre>
+                    <h4 class="font-bold text-gray-800 mb-1">寫入 WAF 記錄的內容</h4>
+                    <pre id="dm-log" class="text-xs bg-gray-50 border rounded p-2 mb-2" style="white-space:pre-wrap;overflow-wrap:anywhere;"></pre>
+                    <div id="dm-note" class="text-sm"></div>
+                </div>
+            </div>
+            <p class="text-xs text-gray-500 mt-3">演示 B 為教學示意:字典比對的細節(例如信用卡號以 Luhn 檢查、遮到哪一段)以實機行為為準。</p>
+        </div>
+
+        <!-- 八、踩坑 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">八、常見踩坑</h2>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>Lookup 名單過期</p>
+                <p class="text-gray-800">CSV 匯入後就沒人更新,停權已解除的會員還是被擋。名單要排程或用 API 同步。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>User Tracking 判斷錯誤</p>
+                <p class="text-gray-800">網站登入失敗也回 302(例如導回登入頁加參數),系統把失敗當成功。上線前一定要用測試帳號驗證成功與失敗各一次。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>只開 User Tracking、沒開遮罩</p>
+                <p class="text-gray-800">密碼欄位值出現在告警明細,稽核反而變成洩漏點。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>誤以為 Data Masking 會改流量</p>
+                <p class="text-gray-800">它只遮 WAF 的記錄;要阻擋回應中的敏感資料外洩,要靠政策,而且要 inline 模式。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>掃描流量污染 Profile</p>
+                <p class="text-gray-800">弱點掃描期間沒設 Learning Exception,Web Profile 學到大量攻擊性參數值。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>Bridge 模式想接 API Security Anywhere</p>
+                <p class="text-gray-800">sensor 只支援 ABR、NGRP,要先規劃模式轉換(見第 4 章)。</p>
+            </div>
+        </div>
+
+        <!-- 九、新舊對照 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">九、新舊對照</h2>
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>舊簡報 vs 現行版本</p>
+                <p class="text-sm text-gray-700">下表左欄是舊簡報的說法,右欄是現行文件查到的現況。</p>
+            </div>
+            <div class="overflow-x-auto mt-3"><table class="min-w-full text-sm border"><thead class="bg-gray-100"><tr><th class="py-2 px-4 border text-left">舊簡報說法</th><th class="py-2 px-4 border text-left">現況</th></tr></thead><tbody><tr><td class="py-2 px-4 border font-semibold">Web Tagging & Data Enrichment 是一個使用案例,含 Configure Web Tagging(舊簡報 p.68–73)</td><td class="py-2 px-4 border">Lookup Data Sets 仍在;「Web Tagging」查無獨立功能名,現行只見 custom policy 的 tag 比對</td></tr><tr><td class="py-2 px-4 border font-semibold">Lookup Data Set 上限 1 百萬筆(舊簡報 p.69)</td><td class="py-2 px-4 border">現行上限未查到<span class="tbc">【待實機確認】</span></td></tr><tr><td class="py-2 px-4 border font-semibold">Universal User Tracking 是競爭優勢之一(舊簡報 p.101–102)</td><td class="py-2 px-4 border">UUT 已於 v14.2 移除,保留 Web Application User Tracking(依據:v16.0 Upgrade Guide)</td></tr><tr><td class="py-2 px-4 border font-semibold">Data Masking 預設字典:信用卡(Luhn)、美國 SSN、Custom(舊簡報 p.140)</td><td class="py-2 px-4 border">仍存在,改以 Sensitive Data Dictionary Groups 與 Masking Data in Elements 兩種方式管理(依據:Configuring Sensitive Data Protection)</td></tr><tr><td class="py-2 px-4 border font-semibold">支援 IBM AppScan、HP WebInspect、NTObjectives、Cenzic、WhiteHat(舊簡報 p.84)</td><td class="py-2 px-4 border">流程仍是匯入結果 → Integration Policy → Assessment Job;支援清單需重查(依據:Integrating Web Scanners Task Overview)<span class="tbc">【待實機確認】</span></td></tr><tr><td class="py-2 px-4 border font-semibold">(無)</td><td class="py-2 px-4 border">新增 API Security Anywhere sensor(ABR/NGRP)(依據:Integration with API Security Anywhere)</td></tr></tbody></table></div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
+                隨堂測驗
+            </h2>
+            <p class="mb-6 text-gray-600">請點選您認為正確的選項,系統將會顯示解析。</p>
+            <div class="space-y-6" id="quiz-container"></div>
+        </div>
+
+    </main>
+
+    <footer class="footer-signature">
+        Planning &amp; Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver.2026.11.02.12.07
+    </footer>
+
+
+    <script>
+        function esc(s) {
+            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        // ===== 演示 A:Lookup Data Set 比對 =====
+        // 範例值:來源系統(會員系統)目前的停權帳號,以及兩種 CSV 內容
+        const SOURCE_BLOCKED = ['alice', 'carol'];
+        const CSV_STATE = { old: ['alice', 'bob'], new: ['alice', 'carol'] };
+
+        const lkCsv = document.getElementById('lk-csv');
+        const lkAcct = document.getElementById('lk-acct');
+        const lkAction = document.getElementById('lk-action');
+        const lkResult = document.getElementById('lk-result');
+
+        function renderLookup() {
+            const dataset = CSV_STATE[lkCsv.value];
+            const acct = lkAcct.value;
+            const hit = dataset.includes(acct);
+            const trulyBlocked = SOURCE_BLOCKED.includes(acct);
+            let head, cls, body = '';
+            if (hit) {
+                if (lkAction.value === 'block') {
+                    cls = 'bg-red-50 border-red-300';
+                    head = '<h4 class="font-bold text-red-700 mb-2"><i class="fas fa-ban mr-1"></i>政策命中:請求被阻擋</h4>';
+                } else {
+                    cls = 'bg-yellow-50 border-yellow-300';
+                    head = '<h4 class="font-bold text-yellow-800 mb-2"><i class="fas fa-bell mr-1"></i>政策命中:只產生告警,請求放行</h4>';
+                }
+                body += `<p class="text-sm text-gray-800 mb-1">帳號 <strong>${esc(acct)}</strong> 存在於 blocked-accounts,符合「帳號參數值存在於 blocked-accounts」。</p>`;
+            } else {
+                cls = 'bg-green-50 border-green-300';
+                head = '<h4 class="font-bold text-green-700 mb-2"><i class="fas fa-circle-check mr-1"></i>政策沒命中:正常放行</h4>';
+                body += `<p class="text-sm text-gray-800 mb-1">帳號 <strong>${esc(acct)}</strong> 不在 blocked-accounts 裡。</p>`;
+            }
+            if (hit && !trulyBlocked) {
+                body += '<p class="text-sm text-orange-800 font-semibold mt-2"><i class="fas fa-triangle-exclamation mr-1"></i>名單過期:會員系統已解除停權,但 CSV 還是舊的。CSV 匯入是一次性的,要重新匯入或用 REST API 同步,否則政策會依過期資料判斷。</p>';
+            } else if (!hit && trulyBlocked) {
+                body += '<p class="text-sm text-orange-800 font-semibold mt-2"><i class="fas fa-triangle-exclamation mr-1"></i>名單過期:會員系統已停權這個帳號,但名單裡還沒有,政策比對不到。</p>';
+            } else {
+                body += '<p class="text-sm text-gray-600 mt-2">名單內容與會員系統目前的狀態一致。</p>';
+            }
+            body += `<p class="text-xs text-gray-500 mt-2">資料集內容:${dataset.map(esc).join('、')}(教學範例值)</p>`;
+            lkResult.className = 'border rounded-lg p-4 ' + cls;
+            lkResult.innerHTML = head + body;
+        }
+        [lkCsv, lkAcct, lkAction].forEach(el => el.addEventListener('change', renderLookup));
+        renderLookup();
+
+        // ===== 演示 B:Data Masking =====
+        const DM_FIELDS = [
+            { name: 'email', value: 'test@example.com' },
+            { name: 'password', value: 'Abc12345' },
+            { name: 'cvv', value: '123' },
+            { name: 'note', value: '請寄到門市,卡號 4111 1111 1111 1111' },
+            { name: 'remark', value: 'A123456789' }
+        ];
+        const ELEM_MASK_NAMES = ['password', 'new_password', 'cvv', 'otp'];
+        const dmFieldsBox = document.getElementById('dm-fields');
+        const dmElem = document.getElementById('dm-elem');
+        const dmCard = document.getElementById('dm-card');
+        const dmTw = document.getElementById('dm-tw');
+        const dmServer = document.getElementById('dm-server');
+        const dmLog = document.getElementById('dm-log');
+        const dmNote = document.getElementById('dm-note');
+
+        DM_FIELDS.forEach((f, i) => {
+            const row = document.createElement('div');
+            row.className = 'mb-2';
+            row.innerHTML = `<label class="block text-xs font-semibold text-gray-600" for="dm-f${i}"><code>${esc(f.name)}</code></label>
+                <input id="dm-f${i}" type="text" class="border rounded px-2 py-1 w-full text-sm" value="${esc(f.value)}">`;
+            dmFieldsBox.appendChild(row);
+            row.querySelector('input').addEventListener('input', renderMask);
+        });
+
+        function byteLen(s) { return new TextEncoder().encode(s).length; }
+        function stars(s) { return '*'.repeat(byteLen(s)); }
+        function luhnOk(digits) {
+            let sum = 0, alt = false;
+            for (let i = digits.length - 1; i >= 0; i--) {
+                let d = Number(digits[i]);
+                if (alt) { d *= 2; if (d > 9) d -= 9; }
+                sum += d; alt = !alt;
+            }
+            return sum % 10 === 0;
+        }
+
+        function renderMask() {
+            const serverLines = [], logLines = [];
+            let hidden = 0, leaked = [];
+            DM_FIELDS.forEach((f, i) => {
+                const raw = document.getElementById('dm-f' + i).value;
+                serverLines.push(`${f.name}=${raw}`);
+                let v = raw;
+                if (dmElem.checked && ELEM_MASK_NAMES.includes(f.name)) {
+                    hidden += byteLen(v);
+                    v = stars(v);
+                } else {
+                    if (dmCard.checked) {
+                        v = v.replace(/\d(?:[ -]?\d){12,18}/g, m => {
+                            const digits = m.replace(/[ -]/g, '');
+                            if (!luhnOk(digits)) return m;
+                            hidden += byteLen(m);
+                            return stars(m);
+                        });
+                    }
+                    if (dmTw.checked) {
+                        v = v.replace(/[A-Z]\d{9}/g, m => { hidden += byteLen(m); return stars(m); });
+                    }
+                    if (ELEM_MASK_NAMES.includes(f.name) && raw.length > 0) leaked.push(f.name);
+                }
+                logLines.push(`${f.name}=${v}`);
+            });
+            dmServer.textContent = serverLines.join('\n');
+            dmLog.textContent = logLines.join('\n');
+            let note = `<p class="text-gray-700">被隱藏的位元組數:<strong>${hidden}</strong>(星號數等於被隱藏的位元組數,原始值從記錄中刪除且無法取回)。</p>`;
+            if (leaked.length) {
+                note += `<p class="text-red-700 font-semibold mt-1"><i class="fas fa-triangle-exclamation mr-1"></i>${leaked.map(esc).join('、')} 的值以明碼出現在記錄裡。只開 User Tracking、沒開遮罩,稽核記錄就會變成洩漏點。</p>`;
+            }
+            const rawNote = DM_FIELDS.findIndex((f, i) => f.name === 'remark');
+            if (!dmTw.checked && /[A-Z]\d{9}/.test(document.getElementById('dm-f' + rawNote).value)) {
+                note += '<p class="text-orange-800 mt-1">remark 欄位長得像身分證字號,但預設字典以美國格式為主,要勾選「自訂字典」才會遮。</p>';
+            }
+            dmNote.innerHTML = note;
+        }
+        [dmElem, dmCard, dmTw].forEach(el => el.addEventListener('change', renderMask));
+        renderMask();
+
+        // ===== 隨堂測驗資料 =====
+        const quizData = [
+            {
+                question: "Q1. 下列哪一項功能已於 v14.2 移除?",
+                options: ["A. Lookup Data Sets", "B. Web Application User Tracking", "C. Universal User Tracking (UUT)", "D. Data Masking"],
+                correct: 2,
+                desc: "正解:C。UUT 已於 v14.2 移除,現行保留的是 Web Application User Tracking。Lookup Data Sets 與 Data Masking 仍然存在。"
+            },
+            {
+                question: "Q2. 對 password 欄位設定了 Masking Data in Elements,下列敘述何者正確?",
+                options: ["A. 送往伺服器的密碼也會變成星號", "B. 只影響 WAF 自己的記錄,星號數等於被隱藏的位元組數,原始資料無法取回", "C. 之後可以在告警明細按鈕還原明碼", "D. 同時會阻擋回應中洩漏的敏感資料"],
+                correct: 1,
+                desc: "正解:B。Data Masking 只改 WAF 的記錄,不會改動送往伺服器或回給使用者的內容。要阻擋回應中洩漏的敏感資料,屬於政策層面的偵測,而且必須是 inline 模式。"
+            },
+            {
+                question: "Q3. 某個 Gateway Group 目前跑 Bridge 模式,想把它當 API Security Anywhere 的 sensor,結果如何?",
+                options: ["A. 可以,任何模式都支援", "B. 可以,但只能送 request 不能送 response", "C. 不行,sensor 只支援 ABR、NGRP,要先規劃模式轉換", "D. 不行,必須改成 Sniffing"],
+                correct: 2,
+                desc: "正解:C。Bridge、Sniffing 的 Gateway Group 不能當 sensor;只支援 ABR 與 NGRP(模式說明見第 4 章)。"
+            },
+            {
+                question: "Q4. 會員已被解除停權,卻仍然被 blocked-accounts 政策擋下。最可能的原因是?",
+                options: ["A. CSV 匯入是一次性的,來源系統更新後沒有重新匯入", "B. 政策的 Action 設成只告警", "C. Data Masking 把帳號遮掉了", "D. Lookup Data Set 不能放帳號"],
+                correct: 0,
+                desc: "正解:A。CSV 匯入後就不會跟著來源系統更新,政策會依過期資料判斷。名單要有擁有者與更新週期,或用 REST API 同步。"
+            },
+            {
+                question: "Q5. 關於 Virtual Patching,下列哪一項說法最正確?",
+                options: ["A. 啟用後就等於程式已修補,可以不用再追蹤", "B. 它是爭取時間,追蹤表要同時記錄「WAF 已防護」與「程式預計修補日」", "C. 只要掃描一次,弱點就永遠不會再出現", "D. 掃描期間不需要處理掃描來源 IP"],
+                correct: 1,
+                desc: "正解:B。Virtual Patching 是爭取時間,不是修補。另外,掃描期間要把掃描來源 IP 設為 Learning Exception,避免污染 Web Profile。"
+            }
+        ];
+
+
+        // ===== 隨堂測驗 =====
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionBox = document.createElement('div');
+            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
+
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border mb-2 text-gray-700" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            questionBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
+                <div class="space-y-2 mb-4">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
+                    <p class="font-bold result-title"></p>
+                    <p class="text-sm text-gray-600 mt-1">${item.desc}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionBox);
+        });
+
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            if (element.parentElement.dataset.answered) return;
+            element.parentElement.dataset.answered = "true";
+
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+                opt.classList.add('disabled');
+            });
+
+            if (optIndex === data.correct) {
+                element.classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了!";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                element.classList.add('bg-red-100', 'border-red-500');
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了!";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imperva WAF Gateway 實戰課程 - 部署規劃:平台、選型與 HA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        /* 卡片主體樣式 (Imperva Blue) */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #0284c7;
+        }
+
+        /* 重點提示框 (藍) */
+        .highlight-box {
+            background-color: #f0f9ff;
+            border-left: 4px solid #0284c7;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 技術名詞標記 */
+        .tech-term {
+            color: #075985;
+            font-weight: 700;
+            background-color: #e0f2fe;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
+        }
+
+        /* 比喻說明框 (綠) */
+        .analogy-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 版本差異框 (紫) */
+        .version-box {
+            background-color: #faf5ff;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 常見踩坑框 (橘,避開主色藍) */
+        .pitfall-box {
+            background-color: #fff7ed;
+            border-left: 4px solid #ea580c;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .diagram-container {
+            display: block;
+            background-color: #ffffff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-top: 1rem;
+        }
+
+        .diagram-container svg {
+            display: block;
+            width: 100%;
+            max-width: 520px;
+            margin: 0 auto;
+        }
+
+        /* 示意畫面 (仿管理介面) */
+        .mock-window {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            background: #ffffff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            margin-top: 1rem;
+        }
+        .mock-titlebar {
+            background: #e2e8f0;
+            padding: 0.4rem 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: #475569;
+        }
+        .mock-dots span {
+            display: inline-block;
+            width: 0.6rem;
+            height: 0.6rem;
+            border-radius: 50%;
+            background: #94a3b8;
+            margin-right: 0.2rem;
+        }
+        .mock-url {
+            background: #ffffff;
+            border-radius: 0.25rem;
+            padding: 0.1rem 0.5rem;
+            flex: 1;
+            min-width: 0;
+            font-family: ui-monospace, Consolas, monospace;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .mock-nav {
+            background: #1f2937;
+            color: #cbd5e1;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.25rem 1rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+        }
+        .mock-nav .brand { font-weight: 700; color: #ffffff; margin-right: 0.5rem; }
+        .mock-nav .on { color: #ffffff; border-bottom: 2px solid #0284c7; padding-bottom: 0.1rem; }
+        .mock-crumb {
+            font-size: 0.8rem;
+            color: #475569;
+            padding: 0.5rem 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f8fafc;
+        }
+        .mock-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            padding: 0.5rem 0.75rem 0;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.8rem;
+        }
+        .mock-tabs span {
+            padding: 0.3rem 0.7rem;
+            border: 1px solid #e5e7eb;
+            border-bottom: none;
+            border-radius: 0.3rem 0.3rem 0 0;
+            background: #f1f5f9;
+            color: #475569;
+        }
+        .mock-tabs span.on { background: #ffffff; color: #111827; font-weight: 600; }
+        .mock-body { padding: 0.75rem; font-size: 0.85rem; }
+        .mock-section { font-weight: 700; color: #334155; margin: 0.75rem 0 0.25rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.2rem; }
+        .mock-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.35rem 0.6rem;
+            padding: 0.35rem 0;
+        }
+        .mock-label { width: 12rem; color: #374151; font-weight: 500; }
+        .mock-input {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+            padding: 0.2rem 0.5rem;
+            min-width: 12rem;
+            background: #ffffff;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #111827;
+        }
+        .mock-select::after { content: " ▾"; color: #64748b; }
+        .mock-indent { padding-left: 2rem; }
+        .mock-btn {
+            display: inline-block;
+            border: 1px solid #94a3b8;
+            background: #f8fafc;
+            border-radius: 0.25rem;
+            padding: 0.2rem 0.7rem;
+            font-size: 0.8rem;
+            color: #1f2937;
+        }
+        .mock-btn.primary { background: #1f2937; color: #ffffff; border-color: #1f2937; }
+        .mock-hl { outline: 2px solid #0284c7; outline-offset: 2px; border-radius: 0.25rem; }
+        .mock-list {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+            min-width: 9rem;
+            min-height: 4.2rem;
+            padding: 0.25rem 0.5rem;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.8rem;
+            background: #ffffff;
+        }
+        .mock-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 0.5rem; }
+        .mock-table th { background: #f1f5f9; text-align: left; padding: 0.35rem 0.5rem; border: 1px solid #e2e8f0; color: #334155; }
+        .mock-table td { padding: 0.35rem 0.5rem; border: 1px solid #e2e8f0; }
+        .mock-caption {
+            font-size: 0.75rem;
+            color: #6b7280;
+            padding: 0.5rem 0.75rem;
+            background: #f9fafb;
+            border-top: 1px dashed #e5e7eb;
+        }
+        .step-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.4rem;
+            height: 1.4rem;
+            border-radius: 9999px;
+            background: #0284c7;
+            color: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .step-list li { display: flex; gap: 0.6rem; align-items: flex-start; margin-bottom: 0.6rem; }
+
+        /* 模擬器 */
+        .sim-field label.lbl { display: block; font-size: 0.8rem; font-weight: 700; color: #334155; margin-bottom: 0.2rem; }
+        .sim-field input[type="number"], .sim-field select { border: 1px solid #cbd5e1; border-radius: 0.25rem; padding: 0.25rem 0.5rem; width: 100%; background: #ffffff; }
+        .chip { display: inline-block; font-size: 0.75rem; font-weight: 700; padding: 0.1rem 0.5rem; border-radius: 9999px; }
+        .chip-ok { background: #dcfce7; color: #166534; }
+        .chip-no { background: #fee2e2; color: #991b1b; }
+        .chip-unk { background: #fef3c7; color: #92400e; }
+        .cell-ok { color: #166534; font-weight: 700; }
+        .cell-no { color: #b91c1c; font-weight: 700; }
+        .cell-unk { color: #b45309; font-weight: 700; }
+
+        @media (max-width: 640px) {
+            main { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+            .section-card { padding: 1rem; }
+            .diagram-container { padding: 0.25rem; }
+            .mock-label { width: calc(100% - 2.2rem); }
+            .mock-indent .mock-label { width: 100%; }
+            .mock-input { min-width: 0; width: 100%; }
+            .mock-indent { padding-left: 0.75rem; }
+            .mock-body { padding: 0.5rem; }
+        }
+
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover:not(.disabled) {
+            background-color: #f3f4f6;
+        }
+
+        .footer-signature {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+            margin-top: 4rem;
+        }
+        /* Long URLs and code wrap on narrow screens */
+        main { overflow-wrap: break-word; } main code { overflow-wrap: anywhere; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-sky-800 to-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-shield-halved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold">Imperva WAF Gateway 實戰課程</h1>
+                    <p class="text-sky-100 mt-1">單元 5:部署規劃:平台、選型與 HA</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 章節導覽 -->
+    <nav class="container mx-auto px-4 max-w-5xl mt-4" aria-label="章節導覽">
+        <div class="flex flex-wrap items-center justify-between gap-2 text-sm">
+            <a href="Imperva04.html" class="text-sky-700 hover:text-sky-900 font-medium"><i class="fas fa-arrow-left mr-1"></i>上一章</a>
+            <a href="Imperva00.html" class="text-sky-700 hover:text-sky-900 font-medium"><i class="fas fa-list mr-1"></i>課程目錄</a>
+            <a href="Imperva06.html" class="text-sky-700 hover:text-sky-900 font-medium">下一章<i class="fas fa-arrow-right ml-1"></i></a>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <!-- Introduction -->
+        <div class="mb-8">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
+                <h2 class="text-xl font-bold text-blue-800 mb-2 flex items-center">
+                    <i class="fas fa-user-tie mr-2"></i>講師導言
+                </h2>
+                <p class="text-blue-900 leading-relaxed">
+                    模式選好之後,現場最常被問到的是:「跑在哪裡?買多大的?放負載平衡器前面還是後面?壞了怎麼辦?」這一章就是把這些問題一次回答完。
+                    我們會看現行的 7G 硬體、上一代的生命週期、虛擬與公有雲支援,再把舊簡報「WAF 放 LB 前或後」的觀念,依 TLS 1.3 時代更新。最後用一個小幫手,輸入你的條件就能得到型號與 HA 建議。
+                </p>
+            </div>
+        </div>
+
+        <!-- 學習目標 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-gray-100 text-gray-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Goals</span>
+                本章學習目標
+            </h2>
+            <ul class="list-disc pl-6 space-y-1 text-gray-700">
+                <li>列出選型要考慮的項目,並看懂 7G 硬體規格表</li>
+                <li>說出 6G、5G 的生命週期,以及哪些舊機型不能升 v16.0</li>
+                <li>分辨虛擬機與各公有雲在 v15.5 與 16.0 的支援差異</li>
+                <li>比較 WAF 放在 LB 之前與之後的差別(TLS、來源 IP、Server Group)</li>
+                <li>說明 Fail Open、Fail Close、High Availability 的行為與限制</li>
+                <li>依模式選擇備援方式:STP / IMPVHA、VRRP、MX-HA</li>
+            </ul>
+            <p class="text-sm text-gray-500 mt-4"><i class="fas fa-map-signs mr-1"></i>本章承接第 4 章的部署模式,完成後即可進入第 6 章安裝。</p>
+        </div>
+
+        <!-- 一、選型考量 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">一、選型考量</h2>
+            <p class="text-gray-700 mb-3">舊簡報的選型三要素(授權、檢查吞吐、網路設計與連接埠)今天仍適用,再加上 TLS 與模式的考量:</p>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">考量</th><th class="py-2 px-4 border text-left">要問的問題</th><th class="py-2 px-4 border text-left">對應</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">授權</td><td class="py-2 px-4 border">傳統授權或 FlexProtect?要保護幾個 Gateway 模組?</td><td class="py-2 px-4 border">第 3 章授權</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">HTTP 檢查吞吐</td><td class="py-2 px-4 border">尖峰流量多少?預留多少成長?</td><td class="py-2 px-4 border">第二節表「WAF HTTP 吞吐」</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">TLS 負載</td><td class="py-2 px-4 border">每秒新建 TLS 連線(TPS)與每秒請求(RPS)多少?</td><td class="py-2 px-4 border">第二節表「SSL/TLS」</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">網段數</td><td class="py-2 px-4 border">要串幾段 bridge 或 Reverse Proxy?</td><td class="py-2 px-4 border">第二節表「最大網段」</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">部署模式</td><td class="py-2 px-4 border">Bridge / Sniffing / Reverse Proxy / ABR?要不要硬體 bypass?</td><td class="py-2 px-4 border">第 4 章、第五節</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">平台</td><td class="py-2 px-4 border">硬體、VMware、KVM 或公有雲?未來要不要升 16.0?</td><td class="py-2 px-4 border">第三節</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">金鑰保護</td><td class="py-2 px-4 border">需要 HSM 嗎?</td><td class="py-2 px-4 border">第二節選配</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">備援</td><td class="py-2 px-4 border">Gateway 要幾台?MX 要不要 MX-HA?</td><td class="py-2 px-4 border">第六節</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>datasheet 的吞吐不是你的可用吞吐</p>
+                <p class="text-gray-800">datasheet 的吞吐是 <strong>ABR / NGRP 模式、開箱政策</strong>下的 L7 數值;自訂政策越多、TLS 比例越高,實際可用吞吐越低。上線前用實際流量壓測或保留足夠餘裕【推論】。</p>
+            </div>
+        </div>
+
+        <!-- 二、硬體 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">二、硬體:7G 與上一代</h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">第 7 代(7G)硬體</h3>
+            <p class="text-gray-700 mb-3">7G 於 2024 年 2 月推出,是目前銷售的硬體。需要 <strong>v14.7 Patch 50 以上或 v15.2 以上</strong>。</p>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-3 border text-left">型號</th><th class="py-2 px-3 border text-left">外形</th><th class="py-2 px-3 border text-left">WAF HTTP 吞吐</th><th class="py-2 px-3 border text-left">SSL/TLS(RSA-2K)</th><th class="py-2 px-3 border text-left">記憶體</th><th class="py-2 px-3 border text-left">最大網段</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-3 border font-semibold">X10K3</td><td class="py-2 px-3 border">2U</td><td class="py-2 px-3 border">10 Gbps</td><td class="py-2 px-3 border">32K TPS / 200K RPS</td><td class="py-2 px-3 border">384GB</td><td class="py-2 px-3 border">4 bridge / 9 RP</td></tr>
+                        <tr><td class="py-2 px-3 border font-semibold">X8530</td><td class="py-2 px-3 border">—</td><td class="py-2 px-3 border">5 Gbps</td><td class="py-2 px-3 border">32K TPS / 200K RPS</td><td class="py-2 px-3 border">384GB</td><td class="py-2 px-3 border">8 bridge / 17 RP</td></tr>
+                        <tr><td class="py-2 px-3 border font-semibold">X6530</td><td class="py-2 px-3 border">—</td><td class="py-2 px-3 border">2 Gbps</td><td class="py-2 px-3 border">7.5K TPS / 85K RPS</td><td class="py-2 px-3 border">128GB</td><td class="py-2 px-3 border">8 / 17</td></tr>
+                        <tr><td class="py-2 px-3 border font-semibold">X4530</td><td class="py-2 px-3 border">—</td><td class="py-2 px-3 border">1 Gbps</td><td class="py-2 px-3 border">7.5K TPS / 85K RPS</td><td class="py-2 px-3 border">128GB</td><td class="py-2 px-3 border">8 / 17</td></tr>
+                        <tr><td class="py-2 px-3 border font-semibold">X2530</td><td class="py-2 px-3 border">—</td><td class="py-2 px-3 border">500 Mbps</td><td class="py-2 px-3 border">7.5K TPS / 43K RPS</td><td class="py-2 px-3 border">128GB</td><td class="py-2 px-3 border">8 / 17</td></tr>
+                        <tr><td class="py-2 px-3 border font-semibold">X2030</td><td class="py-2 px-3 border">1U</td><td class="py-2 px-3 border">500 Mbps</td><td class="py-2 px-3 border">5000 RSA/sec</td><td class="py-2 px-3 border">16GB</td><td class="py-2 px-3 border">2 bridge / 5 RP;2 組 bypass</td></tr>
+                        <tr><td class="py-2 px-3 border font-semibold">M180</td><td class="py-2 px-3 border">—</td><td class="py-2 px-3 border" colspan="4">MX 管理伺服器</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 mt-3">
+                <li>延遲小於 5ms;X10K3 與 X8530 標示「WAF Gateway only」。</li>
+                <li>選配:HSM、SSL 加速卡、Fibre Channel HBA。</li>
+                <li>外形:官方資料只明列 X2030 為 1U、X10K3 為 2U;X2530–X8530 的機箱高度以 quick start guide 為準【待實機確認】。</li>
+                <li>範例環境若選硬體:<code>shop.example.com</code> 加 <code>api.example.com</code> 尖峰若在數百 Mbps 內,X2530 或 X4530 起跳;要 Fail Open 硬體 bypass 時確認型號的 bypass 網卡配置【推論】。</li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">上一代硬體的生命週期</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">世代</th><th class="py-2 px-4 border text-left">Gateway / MX 型號</th><th class="py-2 px-4 border text-left">生命週期</th><th class="py-2 px-4 border text-left">軟體支援</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">6G</td><td class="py-2 px-4 border">X2520、X4520、X6520、X8520、X10K2、M170</td><td class="py-2 px-4 border">Last Order Date 2024-05-01;EOSL 2029-04-30</td><td class="py-2 px-4 border">支援 v14 / v15;v16.0 release notes 也列為支援</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">5G</td><td class="py-2 px-4 border">X2510 … X10K、M160</td><td class="py-2 px-4 border">EOSL 2025-07-06(已結束)</td><td class="py-2 px-4 border">—</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">更舊</td><td class="py-2 px-4 border">M100、M150 等</td><td class="py-2 px-4 border">—</td><td class="py-2 px-4 border"><strong>不能升 v16.0</strong></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 mt-3">
+                <li>5G 的日期有矛盾:v15.2 release notes 寫「預定 2025 年 7 月 end of sale」,EOL 表則寫 LoD 2020-07-06、EOSL 2025-07-06。以 EOL 表為準。</li>
+                <li>舊簡報的 X1000、X2000、X2500、X4500、X6500 與 M100、M150 全部早已停售,只作歷史對照。</li>
+            </ul>
+        </div>
+
+        <!-- 三、虛擬與雲 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">三、虛擬型號與公有雲</h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">虛擬型號</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">型號</th><th class="py-2 px-4 border text-left">角色</th><th class="py-2 px-4 border text-left">vCPU / 記憶體</th><th class="py-2 px-4 border text-left">吞吐</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">V4500</td><td class="py-2 px-4 border">Gateway</td><td class="py-2 px-4 border">8 vCPU / 16GB</td><td class="py-2 px-4 border">官方未公布</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">V2500</td><td class="py-2 px-4 border">Gateway</td><td class="py-2 px-4 border">4 vCPU / 8GB</td><td class="py-2 px-4 border">AWS 的 AV2500 = 500 Mbps</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">V1000</td><td class="py-2 px-4 border">Gateway</td><td class="py-2 px-4 border">2 vCPU / 8GB</td><td class="py-2 px-4 border">AWS 的 AV1000 = 100 Mbps</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">CLOUD【15.5】</td><td class="py-2 px-4 border">Gateway</td><td class="py-2 px-4 border">依 CPU 擴展</td><td class="py-2 px-4 border">不設上限;限 AppProtect / Flex Protect 授權(v15.5 Patch 10 起)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">VM150</td><td class="py-2 px-4 border">MX / SOM</td><td class="py-2 px-4 border">4 vCPU / 8GB(可擴到 32GB)</td><td class="py-2 px-4 border">—</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 mt-3">
+                <li><strong>只支援分散式部署</strong>:MX 與 Gateway 一定分開在不同 VM。v14.1 起連實體機也不再支援 Onebox。</li>
+                <li><strong>虛擬機只支援 Fail Close</strong>:沒有 bypass 網卡,Gateway VM 故障時流量就不通。這點和舊簡報「VM 不支援 fail-open(bypass)」一致。</li>
+                <li>吞吐數字官方只寫了 AWS 的 AV1000 / AV2500;地端 VM 的吞吐依主機資源而定,要自行壓測【推論】。</li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Hypervisor 與公有雲支援</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-3 border text-left">平台</th><th class="py-2 px-3 border text-left">v15.5</th><th class="py-2 px-3 border text-left">【16.0】CA</th><th class="py-2 px-3 border text-left">備註</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-3 border font-semibold">VMware ESXi 6.x / 7.0 / 8.0</td><td class="py-2 px-3 border">支援</td><td class="py-2 px-3 border">支援(VM)</td><td class="py-2 px-3 border">需透過 vCenter 部署 OVF</td></tr>
+                        <tr><td class="py-2 px-3 border font-semibold">Linux KVM</td><td class="py-2 px-3 border">支援</td><td class="py-2 px-3 border">支援(VM)【待實機確認】</td><td class="py-2 px-3 border">16.0 release notes 只寫「VM」,未逐一列 hypervisor</td></tr>
+                        <tr><td class="py-2 px-3 border font-semibold">Microsoft Hyper-V</td><td class="py-2 px-3 border"><strong>v14.4 起不支援</strong></td><td class="py-2 px-3 border">不支援</td><td class="py-2 px-3 border">舊環境要遷移</td></tr>
+                        <tr><td class="py-2 px-3 border font-semibold">AWS</td><td class="py-2 px-3 border">支援</td><td class="py-2 px-3 border text-red-700 font-bold">不支援</td><td class="py-2 px-3 border">Cloud Template Tool 產生 Terraform;15.5 的 Gateway 內建 SSM Agent;ELB/ALB 健康檢查走 TCP 541</td></tr>
+                        <tr><td class="py-2 px-3 border font-semibold">Microsoft Azure</td><td class="py-2 px-3 border">支援</td><td class="py-2 px-3 border text-red-700 font-bold">不支援</td><td class="py-2 px-3 border">Cloud Template Tool</td></tr>
+                        <tr><td class="py-2 px-3 border font-semibold">Google Cloud</td><td class="py-2 px-3 border">支援</td><td class="py-2 px-3 border text-red-700 font-bold">不支援</td><td class="py-2 px-3 border">Cloud Template Tool 或 Terraform module</td></tr>
+                        <tr><td class="py-2 px-3 border font-semibold">AliCloud</td><td class="py-2 px-3 border">支援(v15.2 GA)</td><td class="py-2 px-3 border text-red-700 font-bold">不支援</td><td class="py-2 px-3 border">—</td></tr>
+                        <tr><td class="py-2 px-3 border font-semibold">Oracle Cloud(OCI)</td><td class="py-2 px-3 border">支援(v15.5 Patch 20 起)</td><td class="py-2 px-3 border text-red-700 font-bold">不支援</td><td class="py-2 px-3 border">—</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="highlight-box">
+                <p class="text-gray-800"><i class="fas fa-lightbulb mr-1 text-sky-700"></i>規劃要點:跑在公有雲上的 WAF Gateway,在 16.0 脫離 CA、正式支援雲端之前,只能停在 15.5 LTS【推論】。</p>
+            </div>
+        </div>
+
+        <!-- 四、LB 前後 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">四、放在負載平衡器之前或之後</h2>
+            <p class="text-gray-700 leading-relaxed">
+                舊簡報比較過 WAF 放在 LB / Cluster VIP 之前與之後的差異。觀念仍然正確,但 TLS 1.3 普及後,「WAF 放 LB 前面、用 bridge 匯入憑證解密」這條路多半已經走不通(第 4 章第七節)。
+            </p>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 360 420" role="img" aria-labelledby="svg1-title" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans TC, sans-serif">
+                    <title id="svg1-title">範例環境的兩種放法:A 是用戶端到 WAF 再到負載平衡器和 Web 伺服器,WAF 終結 TLS;B 是用戶端到負載平衡器再到 WAF 和 Web 伺服器,負載平衡器終結 TLS</title>
+                    <defs>
+                        <marker id="arrow1" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+                        </marker>
+                    </defs>
+                    <!-- A -->
+                    <rect x="6" y="6" width="348" height="198" rx="10" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="180" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#075985">A:WAF 在 LB 之前</text>
+                    <rect x="14" y="46" width="72" height="42" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+                    <text x="50" y="72" text-anchor="middle" font-size="14" fill="#1f2937">用戶端</text>
+                    <rect x="102" y="46" width="72" height="42" rx="8" fill="#0284c7" stroke="#075985"/>
+                    <text x="138" y="72" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">WAF</text>
+                    <rect x="190" y="46" width="72" height="42" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+                    <text x="226" y="72" text-anchor="middle" font-size="14" fill="#1f2937">LB</text>
+                    <rect x="278" y="46" width="68" height="42" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+                    <text x="312" y="72" text-anchor="middle" font-size="14" fill="#1f2937">web01/02</text>
+                    <line x1="86" y1="67" x2="100" y2="67" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+                    <line x1="174" y1="67" x2="188" y2="67" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+                    <line x1="262" y1="67" x2="276" y2="67" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+                    <text x="20" y="116" font-size="14" fill="#1f2937">Reverse Proxy 或 ABR 接收 203.0.113.20:443</text>
+                    <text x="20" y="140" font-size="14" fill="#1f2937">WAF 終結 TLS,轉給 LB VIP 10.0.10.20</text>
+                    <text x="20" y="164" font-size="14" fill="#1f2937">SG-Shop 的伺服器 IP 填 10.0.10.20</text>
+                    <text x="20" y="190" font-size="13" fill="#475569">WAF 看到真實用戶端 IP</text>
+                    <!-- B -->
+                    <rect x="6" y="218" width="348" height="198" rx="10" fill="#f8fafc" stroke="#64748b" stroke-width="2"/>
+                    <text x="180" y="242" text-anchor="middle" font-size="16" font-weight="700" fill="#334155">B:WAF 在 LB 之後</text>
+                    <rect x="14" y="258" width="72" height="42" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+                    <text x="50" y="284" text-anchor="middle" font-size="14" fill="#1f2937">用戶端</text>
+                    <rect x="102" y="258" width="72" height="42" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+                    <text x="138" y="284" text-anchor="middle" font-size="14" fill="#1f2937">LB</text>
+                    <rect x="190" y="258" width="72" height="42" rx="8" fill="#0284c7" stroke="#075985"/>
+                    <text x="226" y="284" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">WAF</text>
+                    <rect x="278" y="258" width="68" height="42" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+                    <text x="312" y="284" text-anchor="middle" font-size="14" fill="#1f2937">web01/02</text>
+                    <line x1="86" y1="279" x2="100" y2="279" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+                    <line x1="174" y1="279" x2="188" y2="279" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+                    <line x1="262" y1="279" x2="276" y2="279" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+                    <text x="20" y="328" font-size="14" fill="#1f2937">LB 在 10.0.10.20 終結 TLS,送往 WAF</text>
+                    <text x="20" y="352" font-size="14" fill="#1f2937">再到 web01 10.0.10.21、web02 10.0.10.22</text>
+                    <text x="20" y="376" font-size="14" fill="#1f2937">SG-Shop 填兩台節點的實體 IP</text>
+                    <text x="20" y="402" font-size="13" fill="#475569">LB 若做 SNAT,靠 X-Forwarded-For 還原</text>
+                </svg>
+            </div>
+
+            <div class="overflow-x-auto mt-4">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-3 border text-left">項目</th><th class="py-2 px-3 border text-left">A:WAF 在 LB 之前</th><th class="py-2 px-3 border text-left">B:WAF 在 LB 之後</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-3 border font-semibold">WAF 看到的目的位址</td><td class="py-2 px-3 border">LB 的 VIP</td><td class="py-2 px-3 border">各節點的實體 IP</td></tr>
+                        <tr><td class="py-2 px-3 border font-semibold">Server Group 要列的 IP</td><td class="py-2 px-3 border">VIP;Bridge / Sniffing 時可能還要納入節點實體 IP</td><td class="py-2 px-3 border">每個節點的實體 IP;擴容新增節點時要記得加</td></tr>
+                        <tr><td class="py-2 px-3 border font-semibold">WAF 看到的來源 IP</td><td class="py-2 px-3 border">真實用戶端 IP(前面沒有其他代理時)</td><td class="py-2 px-3 border">LB 若做 SNAT,看到的是 LB 位址,要靠 <code>X-Forwarded-For</code> 還原</td></tr>
+                        <tr class="bg-sky-50"><td class="py-2 px-3 border font-semibold">TLS 由誰處理</td><td class="py-2 px-3 border">WAF 必須自己處理對外憑證;TLS 1.3 / PFS 要 Reverse Proxy 或 ABR</td><td class="py-2 px-3 border">LB 終結 TLS 後,WAF 可能看到明文而不必匯入憑證,或由 LB 重新加密</td></tr>
+                        <tr><td class="py-2 px-3 border font-semibold">LB 對 session 的操作</td><td class="py-2 px-3 border">不影響 WAF</td><td class="py-2 px-3 border">LB 插入的 cookie、改寫的 header 會進入 Web Profile,要在學習時排除</td></tr>
+                        <tr><td class="py-2 px-3 border font-semibold">WAF 故障的影響</td><td class="py-2 px-3 border">整個站台(視 HA 設計)</td><td class="py-2 px-3 border">LB 健康檢查可以把故障路徑拿掉【推論】</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-sm text-gray-500 mt-3">官方 Administration Guide 也有「Reverse Proxy with Load Balancer」的部署範例。選哪一種要看 TLS 由誰終結、來源 IP 怎麼保留、LB 團隊與 WAF 團隊怎麼分工;第 15 章以範例環境實際做一次決定。</p>
+        </div>
+
+        <!-- 五、Fail Open / Close -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">五、Fail Open 與 Fail Close</h2>
+            <p class="text-gray-700 leading-relaxed">
+                <span class="tech-term">Fail Mode</span> 是 Gateway Group 的屬性(第 3 章),決定 Gateway <strong>本身故障</strong>時流量怎麼辦。
+            </p>
+
+            <div class="mock-window">
+                <div class="mock-titlebar">
+                    <span class="mock-dots"><span></span><span></span><span></span></span>
+                    <span class="mock-url">https://10.0.30.10:8083</span>
+                </div>
+                <div class="mock-nav">
+                    <span class="brand">WAF Management Server</span>
+                    <span class="on">Main</span><span>Admin</span>
+                </div>
+                <div class="mock-crumb">Main &gt; Setup &gt; Gateways &gt; Create New Gateway Group</div>
+                <div class="mock-body">
+                    <div class="mock-row"><span class="step-badge">1</span><span class="mock-label">Name</span><span class="mock-input">GG-Shop</span></div>
+                    <div class="mock-row"><span class="step-badge" style="visibility:hidden">0</span><span class="mock-label">Platform</span><span class="mock-input mock-select">Imperva</span></div>
+                    <div class="mock-row"><span class="step-badge">2</span><span class="mock-label">Gateway Mode</span><span class="mock-input mock-select mock-hl">STP Bridge</span></div>
+                    <div class="mock-row"><span class="step-badge">3</span><span class="mock-label">Fail Mode</span><span class="mock-input mock-select mock-hl">Fail Open</span></div>
+                    <div class="mock-row mock-indent">
+                        <span class="mock-list" style="min-height:0;line-height:1.5;">
+                            <strong>Fail Open</strong><br>Fail Close<br>High Availability
+                        </span>
+                        <span class="text-xs text-gray-500">High Availability 只有 STP Bridge / IMPVHA Bridge 時可選</span>
+                    </div>
+                    <div class="mock-row"><span class="step-badge">4</span><span class="mock-label">Overload Policy</span><span class="mock-hl">☑ Block on Overload</span></div>
+                    <div class="mock-row" style="justify-content:flex-end;"><span class="step-badge">5</span><span class="mock-btn primary mock-hl">Create</span></div>
+                </div>
+                <div class="mock-caption"><i class="fas fa-circle-info mr-1"></i>示意畫面:欄位名稱依 Imperva 官方文件,版面、按鈕位置與配色以實機為準。</div>
+            </div>
+
+            <ol class="step-list mt-4 text-gray-700">
+                <li><span class="step-badge">1</span><span>Main &gt; Setup &gt; Gateways 新增群組,Name 填 <code>GG-Shop</code>。</span></li>
+                <li><span class="step-badge">2</span><span><strong>Gateway Mode</strong> 先決定(第 4 章),Fail Mode 的可選項目會受它影響。</span></li>
+                <li><span class="step-badge">3</span><span><strong>Fail Mode</strong> 依下表選 Fail Open、Fail Close 或 High Availability。選 High Availability 時,每台 Gateway 還要在 impcfg 開啟:<code>Top &gt; Gateway &gt; Interfaces &gt; Toggle HA on a bridge</code>。</span></li>
+                <li><span class="step-badge">4</span><span><strong>Overload Policy</strong> 勾選 Block on Overload:超過 Gateway 容量時封鎖所有連線,直到流量下降。</span></li>
+                <li><span class="step-badge">5</span><span>按 <strong>Create</strong>,再按 <strong>Save</strong>。</span></li>
+            </ol>
+
+            <div class="overflow-x-auto mt-4">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-3 border text-left">Fail Mode</th><th class="py-2 px-3 border text-left">故障時的行為</th><th class="py-2 px-3 border text-left">適用</th><th class="py-2 px-3 border text-left">限制</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-3 border font-semibold">Fail Open</td><td class="py-2 px-3 border">硬體故障、斷電、系統停擺時,流量照樣通過,但不檢查</td><td class="py-2 px-3 border">可用性優先的 bridge 部署</td><td class="py-2 px-3 border">需要具實體 bypass 的硬體網卡;<strong>VM 不支援</strong></td></tr>
+                        <tr><td class="py-2 px-3 border font-semibold">Fail Close</td><td class="py-2 px-3 border">故障時流量不通過 Gateway</td><td class="py-2 px-3 border">安全優先,或搭配上游備援</td><td class="py-2 px-3 border">VM 唯一選項</td></tr>
+                        <tr><td class="py-2 px-3 border font-semibold">High Availability</td><td class="py-2 px-3 border">由網路 HA(STP / IMPVHA)處理切換</td><td class="py-2 px-3 border">兩台 bridge Gateway 的備援</td><td class="py-2 px-3 border">只有 STP Bridge / IMPVHA Bridge 可選;每台 Gateway 要在 impcfg 開啟 Toggle HA on a bridge</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="highlight-box">
+                <p class="font-bold text-sky-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>選擇原則</p>
+                <ul class="list-disc pl-6 text-gray-800 space-y-1">
+                    <li><strong>電商網站</strong>通常寧可短暫不檢查,也不要整站斷線,傾向 Fail Open;但要有監控,Gateway 一進入 bypass 就告警【推論】。</li>
+                    <li><strong>合規要求「未經檢查不得放行」</strong>的系統選 Fail Close,並搭配兩台 Gateway 的備援。</li>
+                    <li>Fail Mode 處理的是 Gateway 本身故障;Gateway 正常但流量超過容量時,看的是 <strong>Overload Policy</strong>(Block on Overload)。兩者要一起規劃。沒勾 Block on Overload 時超載流量會怎麼處理,官方這頁沒寫【待實機確認】。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 六、HA -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">六、備援:網路 HA、VRRP 與 MX-HA</h2>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 360 420" role="img" aria-labelledby="svg2-title" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans TC, sans-serif">
+                    <title id="svg2-title">備援方式對照:Bridge 用網路 HA(STP 或 IMPVHA);Reverse Proxy 用 VRRP;Sniffing 沒有網路 HA;16.0 CA 的 Gateway HA 只有 VRRP;MX 用 MX-HA 或備份還原</title>
+                    <rect x="8" y="6" width="344" height="76" rx="10" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="20" y="30" font-size="15" font-weight="700" fill="#075985">Bridge(STP / IMPVHA)</text>
+                    <text x="20" y="52" font-size="14" fill="#1f2937">→ 網路 HA:STP 靠交換器切換</text>
+                    <text x="20" y="72" font-size="14" fill="#1f2937">不支援 STP、太複雜或 RSTP → IMPVHA</text>
+                    <rect x="8" y="92" width="344" height="76" rx="10" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="20" y="116" font-size="15" font-weight="700" fill="#075985">Reverse Proxy(非透通)</text>
+                    <text x="20" y="138" font-size="14" fill="#1f2937">→ VRRP:alias 設為 virtual</text>
+                    <text x="20" y="158" font-size="14" fill="#1f2937">切換中斷太久 → 兩台都設 Backup</text>
+                    <rect x="8" y="178" width="344" height="60" rx="10" fill="#f8fafc" stroke="#64748b" stroke-width="2"/>
+                    <text x="20" y="202" font-size="15" font-weight="700" fill="#334155">Sniffing</text>
+                    <text x="20" y="224" font-size="14" fill="#1f2937">→ 沒有網路 HA(不在路徑上)</text>
+                    <rect x="8" y="248" width="344" height="68" rx="10" fill="#faf5ff" stroke="#7c3aed" stroke-width="2"/>
+                    <text x="20" y="272" font-size="15" font-weight="700" fill="#6d28d9">【16.0】CA 版</text>
+                    <text x="20" y="294" font-size="14" fill="#1f2937">Gateway HA 只有 VRRP</text>
+                    <text x="20" y="310" font-size="14" fill="#1f2937">MX-HA 完全不支援</text>
+                    <rect x="8" y="326" width="344" height="88" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+                    <text x="20" y="350" font-size="15" font-weight="700" fill="#15803d">MX 管理伺服器</text>
+                    <text x="20" y="372" font-size="14" fill="#1f2937">→ MX-HA:兩台主動 / 備援</text>
+                    <text x="20" y="392" font-size="14" fill="#1f2937">不能用時 → 定期備份與還原演練</text>
+                    <text x="20" y="408" font-size="13" fill="#475569">Hyper-V、GCP、Azure 不支援 MX-HA</text>
+                </svg>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">網路 HA:STP 與 IMPVHA</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>只在 <strong>bridge 模式</strong>(STP / IMPVHA)可用,Reverse Proxy 與 Sniffing 沒有網路 HA。</li>
+                <li><strong>STP Bridge</strong>:兩台 Gateway 分別串在兩條路徑上,由交換器的 Spanning Tree 決定哪條路徑在用、故障時切換。</li>
+                <li><strong>IMPVHA Bridge</strong>:交換器不支援 STP、STP 太複雜或環境使用 RSTP 時使用。</li>
+                <li>介面支援(官方 Network High Availability Support 表):</li>
+            </ul>
+            <div class="overflow-x-auto mt-2">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">介面類型</th><th class="py-2 px-4 border text-left">G-Series</th><th class="py-2 px-4 border text-left">X-Series</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">Copper</td><td class="py-2 px-4 border">支援</td><td class="py-2 px-4 border">支援</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">1 G</td><td class="py-2 px-4 border">不支援</td><td class="py-2 px-4 border">支援</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">10 G</td><td class="py-2 px-4 border">不支援</td><td class="py-2 px-4 border">不支援</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">10 G with Bypass Support</td><td class="py-2 px-4 border">不支援</td><td class="py-2 px-4 border">支援</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-sm text-gray-600 mt-2">表中「1 G」所指的介面種類(推測為光纖)官方未說明【待實機確認】;10G 介面要選有 bypass 支援的型號才能做網路 HA。</p>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>非對稱路由</p>
+                <p class="text-gray-800">舊簡報提醒兩台 bridge Gateway 之間<strong>不同步</strong>狀態,而且<strong>非對稱路由</strong>有害(去程走 gw01、回程走 gw02,兩台都只看到一半)。新版是否仍無狀態同步,這次查證未找到官方說明【待實機確認】;非對稱路由的問題在所有 inline 檢查設備上都存在,規劃時要確保同一連線的去回程走同一台【推論】。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">VRRP:Reverse Proxy 的備援</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>適用於 Gateway <strong>有自己的 IP</strong>、以<strong>非透通 Reverse Proxy</strong> 運作的部署;bridge 與 TRP 不適用。</li>
+                <li>做法:把 Reverse Proxy 監聽用的 alias 設為 <strong>virtual</strong>(官方說明見 Configuring Aliases)。alias 的 GUI 位置與欄位名稱【待實機確認】。</li>
+                <li>官方建議:若 VRRP 切換時出現長時間中斷,把兩台的 virtual router 都設為 <strong>Backup</strong>(不要設 Master)。</li>
+                <li>範例環境:<code>gw01</code>、<code>gw02</code> 同屬 <code>GG-Shop</code>、以 Reverse Proxy 運作時,兩台共用一個 VRRP 虛擬位址作為服務入口(位址依第 15 章的網路規劃,本章不另定),由防火牆把 <code>203.0.113.20:443</code> 轉到這個虛擬位址【推論】。</li>
+                <li>【16.0】CA 版的 Gateway HA <strong>只有 VRRP</strong>。</li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">MX-HA</h3>
+            <p class="text-gray-700 mb-2"><span class="tech-term">MX-HA</span>:兩台 MX 組成主動 / 備援,主機故障時自動切換。官方列出的元件:</p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">元件</th><th class="py-2 px-4 border text-left">用途</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">Linux Heartbeat</td><td class="py-2 px-4 border">兩台 MX 之間的存活偵測與切換</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Oracle Standby Database(Data Guard)</td><td class="py-2 px-4 border">資料庫同步到備援機</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">SecureSphere Server</td><td class="py-2 px-4 border">MX 服務本身</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">HA Health Check</td><td class="py-2 px-4 border">健康檢查</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Imperva Watchdog</td><td class="py-2 px-4 border">監看並重啟服務</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 mt-3">
+                <li><strong>不支援 Hyper-V、GCP、Azure</strong>;【16.0】CA 版<strong>完全不支援 MX-HA</strong>。</li>
+                <li>官方文件分成 Overview、Implementation、Co-Locating、Components、安裝前 / 安裝 / 安裝後、Monitoring、Maintaining 等章節;安裝細節與兩台 MX 之間需要開放的埠,這次未查證【待實機確認】。</li>
+                <li>範例環境只有 <code>mx01</code>。要做 MX-HA 時,第二台 MX 另配管理網段 <code>10.0.30.0/24</code> 的位址。</li>
+                <li>沒有 MX-HA 時,至少要有定期備份與還原演練(第 13 章)。</li>
+            </ul>
+        </div>
+
+        <!-- 七、檢查表 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">七、規劃檢查表</h2>
+            <p class="text-gray-700 mb-3">以 <code>shop.example.com</code> 為例,進入安裝(第 6 章)前應該決定好:</p>
+            <ol class="step-list text-gray-700">
+                <li><span class="step-badge">1</span><span>部署模式:Reverse Proxy、ABR、Bridge 或 Sniffing(第 4 章第八節)。</span></li>
+                <li><span class="step-badge">2</span><span>TLS 由誰終結:WAF 或 LB;決定第四節的 A 或 B。</span></li>
+                <li><span class="step-badge">3</span><span>平台與型號:硬體或 VM、型號、Gateway 台數(<code>gw01</code>、<code>gw02</code>)。</span></li>
+                <li><span class="step-badge">4</span><span>Fail Mode 與 Overload Policy。</span></li>
+                <li><span class="step-badge">5</span><span>Gateway 備援方式:網路 HA(bridge)或 VRRP(Reverse Proxy)。</span></li>
+                <li><span class="step-badge">6</span><span>MX 備援:MX-HA 或備份還原。</span></li>
+                <li><span class="step-badge">7</span><span>授權:傳統或 FlexProtect;Gateway 模組數量;維護期。</span></li>
+                <li><span class="step-badge">8</span><span>防火牆規則:依第 3 章開好 ADC、情資、Syslog、DNS、NTP 的連線。</span></li>
+                <li><span class="step-badge">9</span><span>管理網段位址:<code>mx01 10.0.30.10</code>、<code>gw01 10.0.30.11</code>、<code>gw02 10.0.30.12</code>。</span></li>
+                <li><span class="step-badge">10</span><span>版本:v15.5 LTS 的最新 patch;是否預留升 16.0 的條件。</span></li>
+            </ol>
+        </div>
+
+        <!-- 八、模擬器 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">八、動手玩:選型與 HA 小幫手</h2>
+            <p class="text-gray-700 mb-2">輸入你的條件,看看建議的型號、Fail Mode 與備援方式。數字與限制都照本章的表格;本課程沒寫的地方,結果裡會標「待實機確認」或「推論」。這只是規劃起點,正式採購前仍須壓測與原廠確認。</p>
+
+            <div class="grid md:grid-cols-2 gap-4 mt-4">
+                <div class="bg-gray-50 border rounded-lg p-4 sim-field">
+                    <h3 class="font-bold text-gray-800 mb-3"><i class="fas fa-sliders mr-1 text-sky-600"></i>流量與規模</h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div><label class="lbl" for="f-mbps">尖峰 HTTP 吞吐(Mbps)</label><input type="number" id="f-mbps" min="0" step="10" value="300"></div>
+                        <div><label class="lbl" for="f-grow">預留成長(%)</label><input type="number" id="f-grow" min="0" step="10" value="30"></div>
+                        <div><label class="lbl" for="f-tps">每秒新建 TLS 連線(TPS)</label><input type="number" id="f-tps" min="0" step="100" value="2000"></div>
+                        <div><label class="lbl" for="f-rps">每秒請求(RPS,0=不知道)</label><input type="number" id="f-rps" min="0" step="1000" value="20000"></div>
+                        <div><label class="lbl" for="f-segs">要串的網段數</label><input type="number" id="f-segs" min="1" step="1" value="1"></div>
+                        <div><label class="lbl" for="f-tls">TLS 需求</label>
+                            <select id="f-tls">
+                                <option value="modern">要檢查 TLS 1.3 / ECDHE</option>
+                                <option value="rsa">只有 TLS 1.2 靜態 RSA</option>
+                            </select></div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4 sim-field">
+                    <h3 class="font-bold text-gray-800 mb-3"><i class="fas fa-server mr-1 text-sky-600"></i>模式與平台</h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div><label class="lbl" for="f-mode">部署模式</label>
+                            <select id="f-mode">
+                                <option value="ngrp">Reverse Proxy(NGRP)</option>
+                                <option value="abr">ABR(gen2)</option>
+                                <option value="bridge">Bridge(STP / IMPVHA)</option>
+                                <option value="sniff">Sniffing</option>
+                            </select></div>
+                        <div><label class="lbl" for="f-plat">平台</label>
+                            <select id="f-plat">
+                                <option value="hw">硬體(7G)</option>
+                                <option value="vmware">VMware ESXi VM</option>
+                                <option value="kvm">Linux KVM VM</option>
+                                <option value="hyperv">Microsoft Hyper-V</option>
+                                <option value="aws">AWS</option>
+                                <option value="azure">Microsoft Azure</option>
+                                <option value="gcp">Google Cloud</option>
+                                <option value="ali">AliCloud</option>
+                                <option value="oci">Oracle Cloud(OCI)</option>
+                            </select></div>
+                    </div>
+                    <div class="mt-3 space-y-1 text-sm">
+                        <label class="flex items-start"><input type="checkbox" id="f-failopen" class="mr-2 mt-1">需要 Fail Open(故障時放行)</label>
+                        <label class="flex items-start"><input type="checkbox" id="f-ha" class="mr-2 mt-1" checked>需要 Gateway 備援(兩台)</label>
+                        <label class="flex items-start"><input type="checkbox" id="f-stpless" class="mr-2 mt-1">交換器不支援 STP、STP 太複雜或使用 RSTP</label>
+                        <label class="flex items-start"><input type="checkbox" id="f-mxha" class="mr-2 mt-1">MX 要做 MX-HA</label>
+                        <label class="flex items-start"><input type="checkbox" id="f-v16" class="mr-2 mt-1">計畫升 v16.0 CA</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap gap-2 mt-4">
+                <button type="button" id="preset-shop" class="border rounded px-3 py-2 bg-white hover:bg-sky-50 text-sm">範例環境:電商站 + Reverse Proxy</button>
+                <button type="button" id="preset-fo" class="border rounded px-3 py-2 bg-white hover:bg-sky-50 text-sm">硬體 Bridge + Fail Open</button>
+                <button type="button" id="preset-vm" class="border rounded px-3 py-2 bg-white hover:bg-sky-50 text-sm">VMware VM 想設 Fail Open</button>
+                <button type="button" id="preset-cloud" class="border rounded px-3 py-2 bg-white hover:bg-sky-50 text-sm">AWS 上的 Gateway 想升 16.0</button>
+                <button type="button" id="preset-sniff" class="border rounded px-3 py-2 bg-white hover:bg-sky-50 text-sm">Sniffing 搭配 TLS 1.3</button>
+            </div>
+
+            <div id="sim-out" class="mt-4"></div>
+        </div>
+
+        <!-- 九、踩坑 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">九、常見踩坑</h2>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>拿 datasheet 吞吐直接當可用容量</p>
+                <p class="text-gray-800">那是 ABR / NGRP、開箱政策下的數值;TLS 比例高、自訂政策多時會明顯下降。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>VM 上想設 Fail Open</p>
+                <p class="text-gray-800">VM 只支援 Fail Close,可用性要靠兩台 Gateway 加上游切換。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>WAF 放 LB 前面用 bridge 匯入憑證</p>
+                <p class="text-gray-800">TLS 1.3 / ECDHE 解不開,改用 Reverse Proxy / ABR,或讓 LB 先終結 TLS。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>WAF 在 LB 後面卻忘了加新節點</p>
+                <p class="text-gray-800">擴容時 Server Group 沒更新,新節點的流量不在保護範圍內。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>兩台 bridge Gateway 遇到非對稱路由</p>
+                <p class="text-gray-800">各看一半連線,Profile 學歪、告警錯亂。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>公有雲部署打算升 16.0</p>
+                <p class="text-gray-800">16.0 CA 不支援任何雲端 VM;此外 GCP、Azure 上本來就不支援 MX-HA,雲端 MX 的備援要靠備份還原。</p>
+            </div>
+        </div>
+
+        <!-- 十、新舊對照 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">十、新舊對照</h2>
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-2"><i class="fas fa-code-branch mr-1"></i>舊簡報說法與現況</p>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm border bg-white">
+                        <thead class="bg-purple-100">
+                            <tr><th class="py-2 px-3 border text-left">舊簡報說法</th><th class="py-2 px-3 border text-left">現況</th><th class="py-2 px-3 border text-left">依據</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td class="py-2 px-3 border">7 款型號:X1000–X6500、M100 / M150;支援 7.5–9.0</td><td class="py-2 px-3 border">7G:X2030 / X2530 / X4530 / X6530 / X8530 / X10K3、M180;需 v14.7 P50 或 v15.2 以上</td><td class="py-2 px-3 border">7G datasheet;v15.5 release notes</td></tr>
+                            <tr><td class="py-2 px-3 border">選配 LOM、HSM(nCipher)、SSL 加速卡、SAN HBA</td><td class="py-2 px-3 border">7G 選配 HSM、SSL 加速卡、Fibre Channel HBA;HSM 另支援 Thales Luna Network HSM(v15 起)</td><td class="py-2 px-3 border">7G datasheet;v16.0 Administration Guide</td></tr>
+                            <tr><td class="py-2 px-3 border">VMware ESX / ESXi 3.5 以上</td><td class="py-2 px-3 border">ESXi 6.x / 7.0 / 8.0、KVM、AWS、Azure、GCP、AliCloud、OCI;Hyper-V 自 v14.4 起不支援</td><td class="py-2 px-3 border">v15.5 安裝手冊;v16.0 upgrade guide</td></tr>
+                            <tr><td class="py-2 px-3 border">VM 不支援 Fail-open 與 SSL 加速</td><td class="py-2 px-3 border">VM 只支援 Fail Close(仍成立)</td><td class="py-2 px-3 border">v15.5 VMware 安裝手冊;v15.5 Administration Guide</td></tr>
+                            <tr class="bg-sky-50"><td class="py-2 px-3 border font-semibold">WAF 放在 LB 前,加密流量匯入憑證即可</td><td class="py-2 px-3 border font-semibold">TLS 1.3 / PFS 下被動解密不可行,需 Reverse Proxy / ABR 或由 LB 終結 TLS【推論】</td><td class="py-2 px-3 border">v16.0 user guide「TLS Ciphers」</td></tr>
+                            <tr><td class="py-2 px-3 border">Transparent Bridge HA,Gateway 之間不同步</td><td class="py-2 px-3 border">網路 HA 仍只限 bridge(STP / IMPVHA);Reverse Proxy 用 VRRP;狀態同步與否【待實機確認】</td><td class="py-2 px-3 border">v15.5 Administration Guide</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
+                隨堂測驗
+            </h2>
+            <p class="mb-6 text-gray-600">請點選您認為正確的選項,系統將會顯示解析。</p>
+            <div class="space-y-6" id="quiz-container"></div>
+        </div>
+
+    </main>
+
+    <nav class="container mx-auto px-4 max-w-5xl" aria-label="章節導覽(頁尾)">
+        <div class="flex flex-wrap items-center justify-between gap-2 text-sm">
+            <a href="Imperva04.html" class="text-sky-700 hover:text-sky-900 font-medium"><i class="fas fa-arrow-left mr-1"></i>上一章</a>
+            <a href="Imperva00.html" class="text-sky-700 hover:text-sky-900 font-medium"><i class="fas fa-list mr-1"></i>課程目錄</a>
+            <a href="Imperva06.html" class="text-sky-700 hover:text-sky-900 font-medium">下一章<i class="fas fa-arrow-right ml-1"></i></a>
+        </div>
+    </nav>
+
+    <footer class="footer-signature">
+        Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver.2026.11.02.12.07
+    </footer>
+
+
+    <script>
+        // ===== 選型與 HA 小幫手 =====
+        // 7G 規格(rps 為 null 代表官方未列;br / rp 為 bridge / Reverse Proxy 最大網段)
+        const HW = [
+            { n: 'X2030', mbps: 500, tps: 5000, rps: null, br: 2, rp: 5, note: '1U;2 組 bypass' },
+            { n: 'X2530', mbps: 500, tps: 7500, rps: 43000, br: 8, rp: 17, note: '' },
+            { n: 'X4530', mbps: 1000, tps: 7500, rps: 85000, br: 8, rp: 17, note: '' },
+            { n: 'X6530', mbps: 2000, tps: 7500, rps: 85000, br: 8, rp: 17, note: '' },
+            { n: 'X8530', mbps: 5000, tps: 32000, rps: 200000, br: 8, rp: 17, note: 'WAF Gateway only' },
+            { n: 'X10K3', mbps: 10000, tps: 32000, rps: 200000, br: 4, rp: 9, note: '2U;WAF Gateway only' }
+        ];
+        const CLOUDS = ['aws', 'azure', 'gcp', 'ali', 'oci'];
+        const PLAT_NAME = { hw: '7G 硬體', vmware: 'VMware ESXi VM', kvm: 'Linux KVM VM', hyperv: 'Microsoft Hyper-V', aws: 'AWS', azure: 'Microsoft Azure', gcp: 'Google Cloud', ali: 'AliCloud', oci: 'Oracle Cloud(OCI)' };
+        const MODE_NAME = { ngrp: 'Reverse Proxy(NGRP)', abr: 'ABR(gen2)', bridge: 'Bridge(STP / IMPVHA)', sniff: 'Sniffing' };
+
+        const $ = id => document.getElementById(id);
+        const num = id => { const v = parseFloat($(id).value); return isNaN(v) ? 0 : v; };
+        const outBox = $('sim-out');
+
+        function card(title, icon, color, body) {
+            return `<div class="bg-white border rounded-lg p-4 mb-3">
+                <h3 class="font-bold text-gray-800 mb-2"><i class="fas ${icon} mr-2 ${color}"></i>${title}</h3>
+                <div class="text-sm text-gray-800 space-y-1">${body}</div></div>`;
+        }
+        function cell(v) {
+            if (v === true) return '<span class="cell-ok">✓</span>';
+            if (v === false) return '<span class="cell-no">✗</span>';
+            return '<span class="cell-unk">?</span>';
+        }
+
+        function evaluate() {
+            const mode = $('f-mode').value, tls = $('f-tls').value, plat = $('f-plat').value;
+            const mbps = num('f-mbps'), grow = num('f-grow'), tps = num('f-tps'), rps = num('f-rps'), segs = num('f-segs');
+            const failopen = $('f-failopen').checked, haNeed = $('f-ha').checked, stpless = $('f-stpless').checked;
+            const mxha = $('f-mxha').checked, v16 = $('f-v16').checked;
+            const need = mbps * (1 + grow / 100);
+            const isHW = plat === 'hw', isCloud = CLOUDS.includes(plat), isVM = !isHW;
+            const alerts = [];   // { lvl: 'bad' | 'warn' | 'info', t }
+            let html = '';
+
+            // ---- 模式與 TLS ----
+            if (tls === 'modern' && (mode === 'bridge' || mode === 'sniff')) {
+                alerts.push({ lvl: 'bad', t: `${MODE_NAME[mode]}解不了 TLS 1.3 與 ECDHE / DHE(第 4 章第七節)。要檢查這類流量,改用 Reverse Proxy 或 ABR;或讓 LB 先終結 TLS,WAF 放在 LB 後段檢查明文【推論】。` });
+            }
+            if (isCloud && (mode === 'bridge' || mode === 'sniff')) alerts.push({ lvl: 'warn', t: `${PLAT_NAME[plat]} 是否支援 ${MODE_NAME[mode]}:雲端支援的模式以各雲安裝手冊為準【待實機確認】。公有雲通常沒有 L2 bridge、STP 或 SPAN 可用。` });
+            if (mode === 'sniff') alerts.push({ lvl: 'info', t: 'Sniffing 只能送 TCP reset:用戶端看到逾時、沒有錯誤頁、擋不了資料外洩;好處是 Gateway 壞了不影響網站。' });
+            if (mode === 'abr') alerts.push({ lvl: 'info', t: 'ABR 不支援 network violations、Discovery & Classification、一般 bridge 規則;同一條 TRP 規則的 Gateway Group 成員全部跑 ABR,不要混用。' });
+
+            // ---- 平台與 16.0 ----
+            if (plat === 'hyperv') alerts.push({ lvl: 'bad', t: 'Microsoft Hyper-V 自 v14.4 起不支援,舊環境要遷移到 VMware、KVM 或其他支援的平台。' });
+            if (v16) {
+                if (isCloud) alerts.push({ lvl: 'bad', t: `【16.0】CA 不支援 ${PLAT_NAME[plat]}(任何雲端 VM 都不支援)。在 16.0 脫離 CA、正式支援雲端之前,只能停在 15.5 LTS【推論】。` });
+                if (plat === 'kvm') alerts.push({ lvl: 'warn', t: '【16.0】CA 對 Linux KVM 的支援【待實機確認】:16.0 release notes 只寫「VM」,未逐一列 hypervisor。' });
+                if (mode === 'bridge' || mode === 'sniff') alerts.push({ lvl: 'bad', t: `【16.0】CA 不支援 ${MODE_NAME[mode]};16.0 只支援 Reverse Proxy(NGRP)與 ABR。` });
+                if (isVM && (mode === 'bridge' || mode === 'sniff')) { /* 已涵蓋 */ }
+            }
+
+            // ---- 型號 ----
+            const segKey = mode === 'bridge' ? 'br' : (mode === 'ngrp' ? 'rp' : null);
+            let modelHtml = '';
+            if (plat === 'hyperv') {
+                modelHtml = card('型號建議', 'fa-server', 'text-sky-600', '<p>Hyper-V 不在支援清單內,無法給型號建議。</p>');
+            } else if (isHW) {
+                const rows = HW.map(h => {
+                    const c = {
+                        thr: need <= h.mbps,
+                        tps: tps <= h.tps,
+                        rps: rps <= 0 ? null : (h.rps === null ? null : rps <= h.rps),
+                        seg: segKey ? segs <= h[segKey] : null
+                    };
+                    const fail = c.thr === false || c.tps === false || c.rps === false || c.seg === false;
+                    const strict = !fail && !(rps > 0 && h.rps === null);
+                    return { h, c, fail, strict };
+                });
+                const pick = rows.find(r => r.strict);
+                let body = `<p>需求吞吐(含成長):<strong>${Math.round(need)} Mbps</strong>;TPS ${tps};RPS ${rps > 0 ? rps : '未提供'};網段 ${segs}。</p>`;
+                if (pick) {
+                    body += `<p class="text-green-800"><i class="fas fa-circle-check mr-1"></i>最小可用型號:<strong>${pick.h.n}</strong>(吞吐 ${pick.h.mbps >= 1000 ? pick.h.mbps / 1000 + ' Gbps' : pick.h.mbps + ' Mbps'}${pick.h.note ? ';' + pick.h.note : ''})。</p>`;
+                    if (failopen) {
+                        body += pick.h.n === 'X2030'
+                            ? '<p>要 Fail Open:X2030 官方資料有 2 組 bypass。</p>'
+                            : '<p>要 Fail Open:請確認該型號的 bypass 網卡配置【推論】(官方資料只明列 X2030 有 2 組 bypass)。</p>';
+                    }
+                } else {
+                    body += '<p class="text-red-700"><i class="fas fa-circle-xmark mr-1"></i>7G 單機沒有型號同時滿足這組條件。可能要拆成多組 Gateway 分擔、降低單機網段數,或洽原廠評估【推論】。</p>';
+                }
+                const noRpsHw = HW.find(h => h.rps === null);
+                if (rps > 0 && noRpsHw) body += `<p class="text-amber-700">${noRpsHw.n} 官方沒有列 RPS,所以有填 RPS 時不拿它當建議;如要考慮它,需向原廠確認【待實機確認】。</p>`;
+                if (!segKey) body += `<p class="text-amber-700">${MODE_NAME[mode]}的最大網段數本課程沒有明列(表上只分 bridge / RP),這一欄不判斷【待實機確認】。</p>`;
+                body += '<p class="text-xs text-gray-600">X2030 官方寫「5000 RSA/sec」,其他型號寫「TPS(RSA-2K)」,這裡視為同量級概估。</p>';
+                body += `<div class="overflow-x-auto"><table class="min-w-full text-xs border mt-2"><thead class="bg-gray-100"><tr><th class="py-1 px-2 border text-left">型號</th><th class="py-1 px-2 border">吞吐</th><th class="py-1 px-2 border">TPS</th><th class="py-1 px-2 border">RPS</th><th class="py-1 px-2 border">網段</th></tr></thead><tbody>${
+                    rows.map(r => `<tr class="${pick && pick.h.n === r.h.n ? 'bg-green-50' : ''}"><td class="py-1 px-2 border font-semibold">${r.h.n}</td><td class="py-1 px-2 border text-center">${cell(r.c.thr)}</td><td class="py-1 px-2 border text-center">${cell(r.c.tps)}</td><td class="py-1 px-2 border text-center">${cell(r.c.rps)}</td><td class="py-1 px-2 border text-center">${cell(r.c.seg)}</td></tr>`).join('')
+                }</tbody></table></div><p class="text-xs text-gray-500 mt-1">✓ 符合 ✗ 不符 ? 官方未列或未提供</p>`;
+                modelHtml = card('型號建議(7G 硬體)', 'fa-server', 'text-sky-600', body);
+                alerts.push({ lvl: 'info', t: 'datasheet 的吞吐是 ABR / NGRP 模式、開箱政策下的 L7 數值;自訂政策越多、TLS 比例越高,實際可用吞吐越低。上線前壓測或保留足夠餘裕【推論】。' });
+            } else {
+                let body = '';
+                if (plat === 'aws') {
+                    if (need <= 100) body += '<p>AWS 的吞吐有官方數字:<strong>V1000(AV1000,2 vCPU / 8GB)= 100 Mbps</strong>,符合需求。</p>';
+                    else if (need <= 500) body += '<p>AWS 的吞吐有官方數字:<strong>V2500(AV2500,4 vCPU / 8GB)= 500 Mbps</strong>,符合需求。</p>';
+                    else body += '<p class="text-amber-700">需求超過 AV2500 的 500 Mbps。V4500(8 vCPU / 16GB)吞吐官方未公布,CLOUD【15.5】不設上限但限 AppProtect / Flex Protect 授權(v15.5 Patch 10 起),要壓測決定【推論】。</p>';
+                } else {
+                    body += '<p>官方只公布 AWS 的 AV1000 / AV2500 吞吐。這個平台的 VM 吞吐依主機資源而定,要自行壓測【推論】。可選型號:V1000(2 vCPU / 8GB)、V2500(4 vCPU / 8GB)、V4500(8 vCPU / 16GB)、CLOUD【15.5】(依 CPU 擴展)。</p>';
+                }
+                body += '<p>MX 要用 VM150(4 vCPU / 8GB,可擴到 32GB)。<strong>只支援分散式部署</strong>:MX 與 Gateway 一定分開在不同 VM。</p>';
+                if (isCloud) body += '<p>公有雲用 Cloud Template Tool 部署(GCP 另可用 Terraform module)。</p>';
+                modelHtml = card(`型號建議(${PLAT_NAME[plat]})`, 'fa-server', 'text-sky-600', body);
+            }
+            html += modelHtml;
+
+            // ---- Fail Mode ----
+            let fm = '';
+            if (plat === 'hyperv') {
+                fm = '<p>平台不受支援,略過。</p>';
+            } else if (isVM) {
+                fm = '<p><strong>Fail Close</strong>(VM 唯一選項):沒有 bypass 網卡,Gateway VM 故障時流量就不通。可用性要靠兩台 Gateway 加上游切換。</p>';
+                if (mode === 'bridge' && haNeed) fm += '<p class="text-amber-700">VM 能否選 High Availability(Fail Mode 的第三個值)【待實機確認】;確認前不要在 VM 上規劃 STP / IMPVHA 網路 HA。</p>';
+                if (failopen) alerts.push({ lvl: 'bad', t: `你勾了 Fail Open,但 ${PLAT_NAME[plat]} 的 VM 只支援 Fail Close。` });
+            } else if (mode === 'bridge') {
+                if (haNeed && failopen) fm = '<p>Fail Mode 欄位有三個值:Fail Open、Fail Close、High Availability。你同時需要「兩台備援」與「故障放行」,兩者怎麼搭配,本課程沒有明載【待實機確認】。</p><p>只做備援:選 <strong>High Availability</strong>(每台 Gateway 在 impcfg 開 Toggle HA on a bridge)。單台故障要放行:選 <strong>Fail Open</strong>(需 bypass 網卡)。</p>';
+                else if (haNeed) fm = '<p>選 <strong>High Availability</strong>:由網路 HA 處理切換;每台 Gateway 還要在 impcfg 開啟 <code>Top &gt; Gateway &gt; Interfaces &gt; Toggle HA on a bridge</code>。</p>';
+                else if (failopen) fm = '<p>選 <strong>Fail Open</strong>:硬體故障、斷電、系統停擺時流量照樣通過但不檢查,需要具實體 bypass 的硬體網卡。建議 Gateway 一進入 bypass 就告警【推論】。</p>';
+                else fm = '<p>可選 <strong>Fail Close</strong>(安全優先、未經檢查不得放行)或 Fail Open(可用性優先)。電商網站通常傾向 Fail Open,但要有監控【推論】。</p>';
+            } else if (mode === 'ngrp') {
+                fm = '<p>Reverse Proxy 的 Fail Open 不適用【推論】。Gateway 故障時 Web 伺服器就連不到,所以要靠 VRRP 備援(見下方)。</p>';
+                if (failopen) alerts.push({ lvl: 'bad', t: 'Reverse Proxy 的 Fail Open「不適用」【推論】:要故障放行得改成硬體 Bridge 模式,但 Bridge 解不了 TLS 1.3 / PFS,要兼顧就得讓 LB 先終結 TLS。' });
+            } else if (mode === 'abr') {
+                fm = '<p>ABR 的 Fail Open 能否使用,本課程標【待實機確認】。</p>';
+                if (failopen) alerts.push({ lvl: 'warn', t: 'ABR 的 Fail Open / bypass 支援【待實機確認】,規劃前先向原廠或實機確認。' });
+            } else {
+                fm = '<p>Sniffing 不在流量路徑上,Fail Open / Fail Close 不適用;Gateway 壞了不影響網站。</p>';
+                if (failopen) alerts.push({ lvl: 'warn', t: 'Sniffing 不在路徑上,不需要 Fail Open。' });
+            }
+            fm += '<p class="text-gray-600">Fail Mode 處理 Gateway 本身故障;Gateway 正常但流量超過容量時,看 Overload Policy(Block on Overload)。沒勾時超載流量怎麼處理,官方沒寫【待實機確認】。</p>';
+            html += card('Fail Mode', 'fa-toggle-on', 'text-sky-600', fm);
+
+            // ---- Gateway 備援 ----
+            let ha = '';
+            if (plat === 'hyperv') {
+                ha = '<p>平台不受支援,略過。</p>';
+            } else if (!haNeed) {
+                ha = '<p>你沒有勾「需要 Gateway 備援」,單台運作。</p>';
+                if (mode === 'ngrp') ha += '<p class="text-amber-700">Reverse Proxy 只放一台 Gateway:一掛網站就斷。通常要搭配 VRRP。</p>';
+            } else if (mode === 'bridge' && isVM) {
+                ha = `<p>【待實機確認】${PLAT_NAME[plat]} 上的 Bridge 能否做網路 HA(STP / IMPVHA)。本章的 STP / IMPVHA 與介面說明都以硬體 Gateway 為前提,VM 或雲端不要直接套用。</p>`;
+            } else if (mode === 'bridge') {
+                ha = `<p>網路 HA:<strong>${stpless ? 'IMPVHA Bridge' : 'STP Bridge'}</strong>。${stpless ? '交換器不支援 STP、STP 太複雜或使用 RSTP 時用 IMPVHA。' : '兩台 Gateway 分別串在兩條路徑上,由交換器的 Spanning Tree 決定哪條路徑在用。'}</p>
+                    <p>介面支援:Copper 兩種系列都支援;1 G 只有 X-Series 支援(介面種類官方未說明【待實機確認】);10 G 要選有 bypass 支援的 X-Series 才能做網路 HA。</p>
+                    <p>注意非對稱路由:兩台 bridge 之間是否同步狀態【待實機確認】,規劃時要確保同一連線的去回程走同一台【推論】。</p>`;
+            } else if (mode === 'ngrp') {
+                ha = `<p>備援方式:<strong>VRRP</strong>。把 Reverse Proxy 監聽用的 alias 設為 virtual(alias 的 GUI 位置與欄位名稱【待實機確認】)。</p>
+                    <p>若 VRRP 切換時出現長時間中斷,把兩台的 virtual router 都設為 Backup(不要設 Master)。</p>
+                    <p>範例環境:gw01、gw02 共用一個 VRRP 虛擬位址作為服務入口,由防火牆把 203.0.113.20:443 轉到這個虛擬位址【推論】。</p>`;
+            } else if (mode === 'abr') {
+                ha = v16
+                    ? '<p>【16.0】CA 版的 Gateway HA <strong>只有 VRRP</strong>。ABR 在 15.5 的網路 HA 本課程標【待實機確認】。</p>'
+                    : '<p>ABR 的網路 HA 本課程標【待實機確認】。16.0 CA 版的 Gateway HA 只有 VRRP。</p>';
+            } else {
+                ha = '<p>Sniffing 沒有網路 HA,也不需要:不在路徑上,Gateway 壞了不影響網站。</p>';
+            }
+            if (haNeed && v16 && mode === 'bridge') ha += '<p class="text-red-700">【16.0】CA 不支援 Bridge,且 Gateway HA 只有 VRRP。</p>';
+            html += card('Gateway 備援', 'fa-code-compare', 'text-sky-600', ha);
+
+            // ---- MX 備援 ----
+            let mx = '';
+            if (mxha) {
+                if (plat === 'hyperv' || plat === 'gcp' || plat === 'azure') {
+                    mx = `<p class="text-red-700"><i class="fas fa-circle-xmark mr-1"></i>MX-HA <strong>不支援</strong> ${PLAT_NAME[plat]}。MX 的備援要靠定期備份與還原演練(第 13 章)。</p>`;
+                } else if (v16) {
+                    mx = '<p class="text-red-700"><i class="fas fa-circle-xmark mr-1"></i>【16.0】CA 版<strong>完全不支援 MX-HA</strong>。MX 的備援要靠定期備份與還原演練(第 13 章)。</p>';
+                } else {
+                    const cloudNote = isCloud ? `<p class="text-amber-700">${PLAT_NAME[plat]} 是否支援 MX-HA,本課程只列出 Hyper-V、GCP、Azure 不支援,沒有說明此平台【待實機確認】。</p>` : '';
+                    mx = cloudNote + '<p>可考慮 <strong>MX-HA</strong>:兩台 MX 主動 / 備援,元件有 Linux Heartbeat、Oracle Standby Database(Data Guard)、SecureSphere Server、HA Health Check、Imperva Watchdog。</p><p>範例環境只有 mx01;要做 MX-HA 時,第二台 MX 另配管理網段 10.0.30.0/24 的位址。安裝細節與兩台 MX 之間需要開放的埠【待實機確認】。</p>';
+                }
+            } else {
+                mx = '<p>沒有 MX-HA 時,至少要有定期備份與還原演練(第 13 章)。</p>';
+                if (plat === 'gcp' || plat === 'azure') mx += `<p>${PLAT_NAME[plat]} 本來就不支援 MX-HA,雲端 MX 的備援要靠備份還原。</p>`;
+            }
+            html += card('MX 備援', 'fa-database', 'text-sky-600', mx);
+
+            // ---- 提醒 ----
+            if (alerts.length) {
+                const cls = { bad: 'bg-red-50 border-red-300 text-red-800', warn: 'bg-amber-50 border-amber-300 text-amber-900', info: 'bg-sky-50 border-sky-300 text-sky-900' };
+                const ico = { bad: 'fa-circle-xmark', warn: 'fa-triangle-exclamation', info: 'fa-circle-info' };
+                const order = { bad: 0, warn: 1, info: 2 };
+                alerts.sort((a, b) => order[a.lvl] - order[b.lvl]);
+                html = `<div class="mb-3 space-y-2">${alerts.map(a => `<div class="border-l-4 rounded p-3 text-sm ${cls[a.lvl]}"><i class="fas ${ico[a.lvl]} mr-1"></i>${a.t}</div>`).join('')}</div>` + html;
+            }
+            outBox.innerHTML = html;
+        }
+
+        function setForm(v) {
+            const defaults = { mode: 'ngrp', tls: 'modern', plat: 'hw', mbps: 300, grow: 30, tps: 2000, rps: 20000, segs: 1, failopen: false, ha: true, stpless: false, mxha: false, v16: false };
+            const f = Object.assign({}, defaults, v);
+            $('f-mode').value = f.mode; $('f-tls').value = f.tls; $('f-plat').value = f.plat;
+            $('f-mbps').value = f.mbps; $('f-grow').value = f.grow; $('f-tps').value = f.tps; $('f-rps').value = f.rps; $('f-segs').value = f.segs;
+            $('f-failopen').checked = f.failopen; $('f-ha').checked = f.ha; $('f-stpless').checked = f.stpless; $('f-mxha').checked = f.mxha; $('f-v16').checked = f.v16;
+            evaluate();
+        }
+
+        ['f-mbps', 'f-grow', 'f-tps', 'f-rps', 'f-segs'].forEach(id => $(id).addEventListener('input', evaluate));
+        ['f-mode', 'f-tls', 'f-plat', 'f-failopen', 'f-ha', 'f-stpless', 'f-mxha', 'f-v16'].forEach(id => $(id).addEventListener('change', evaluate));
+        $('preset-shop').addEventListener('click', () => setForm({}));
+        $('preset-fo').addEventListener('click', () => setForm({ mode: 'bridge', tls: 'rsa', failopen: true, ha: false, segs: 2 }));
+        $('preset-vm').addEventListener('click', () => setForm({ plat: 'vmware', failopen: true, mxha: true }));
+        $('preset-cloud').addEventListener('click', () => setForm({ plat: 'aws', mode: 'abr', v16: true, mxha: true, mbps: 200 }));
+        $('preset-sniff').addEventListener('click', () => setForm({ mode: 'sniff', tls: 'modern', ha: false }));
+        setForm({});
+
+        // ===== 隨堂測驗 =====
+        const quizData = [
+            {
+                question: "Q1. datasheet 上寫 X4530 的 WAF HTTP 吞吐是 1 Gbps。規劃容量時,下列哪個理解最正確?",
+                options: ["A. 任何政策與 TLS 比例下都能跑到 1 Gbps", "B. 那是 ABR / NGRP 模式、開箱政策下的 L7 數值;自訂政策多、TLS 比例高時實際會更低,要壓測或保留餘裕", "C. 那是 Sniffing 模式的數值,Inline 要打對折", "D. 那是整個 Gateway Group 的總和"],
+                correct: 1,
+                desc: "正解:B。datasheet 的吞吐是 ABR / NGRP 模式、開箱政策下的 L7 數值,不能直接當可用容量。上線前用實際流量壓測或保留足夠餘裕【推論】。"
+            },
+            {
+                question: "Q2. 你把 Gateway 部署在 VMware ESXi 的 VM 上,主管要求「故障時流量要放行」。本課程怎麼說?",
+                options: ["A. 在 Fail Mode 選 Fail Open 即可", "B. VM 只支援 Fail Close,沒有 bypass 網卡;可用性要靠兩台 Gateway 加上游切換", "C. 把 Gateway Mode 改成 Sniffing 就能 Fail Open", "D. 升級到 V4500 就有 bypass"],
+                correct: 1,
+                desc: "正解:B。Fail Open 需要具實體 bypass 的硬體網卡,VM 不支援。VM 的 Gateway 故障時流量就不通,所以要靠兩台 Gateway 加上游切換。"
+            },
+            {
+                question: "Q3. 方案是「WAF 放在 LB 前面,用 Bridge 模式匯入伺服器憑證來解密」。在 TLS 1.3 普及的今天,問題是什麼?",
+                options: ["A. LB 看不到 WAF 的 IP", "B. TLS 1.3 與 ECDHE 流量被動解不開,等於沒有檢查;要改用 Reverse Proxy / ABR,或讓 LB 先終結 TLS【推論】", "C. Server Group 無法填 VIP", "D. Bridge 模式不能放在 LB 前面"],
+                correct: 1,
+                desc: "正解:B。這是第 4 章第七節的結論延伸到部署位置:被動解密只適用 TLS 1.2 靜態 RSA。放在 LB 前就要用 Reverse Proxy 或 ABR 自己終結 TLS,或改放 LB 後段檢查明文。"
+            },
+            {
+                question: "Q4. 兩台 Gateway 以非透通 Reverse Proxy 運作,要做備援,官方的做法是?",
+                options: ["A. 在 Gateway Group 的 Fail Mode 選 High Availability", "B. 使用 STP Bridge 讓交換器切換", "C. 使用 VRRP:把 Reverse Proxy 監聽的 alias 設為 virtual", "D. 組成 MX-HA"],
+                correct: 2,
+                desc: "正解:C。網路 HA(STP / IMPVHA)只有 bridge 模式有,High Availability 也只在 STP / IMPVHA Bridge 時可選。Reverse Proxy 的冗餘方式是 VRRP;MX-HA 則是管理伺服器的備援。"
+            },
+            {
+                question: "Q5. 公司的 Gateway 跑在 Azure,並打算升到 v16.0 CA。下列哪個結論正確?",
+                options: ["A. 沒問題,16.0 CA 支援所有公有雲", "B. 16.0 CA 不支援任何雲端 VM,只能停在 15.5 LTS【推論】;而且 Azure 上本來就不支援 MX-HA,MX 備援要靠備份還原", "C. 只要改用 ABR 就能在 Azure 上跑 16.0 CA", "D. 16.0 CA 只不支援 AWS"],
+                correct: 1,
+                desc: "正解:B。16.0 CA 不支援 AWS、Azure、Google Cloud、AliCloud、OCI。此外 Hyper-V、GCP、Azure 都不支援 MX-HA,16.0 CA 更是完全不支援 MX-HA。"
+            }
+        ];
+
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionBox = document.createElement('div');
+            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
+
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border mb-2 text-gray-700" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            questionBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
+                <div class="space-y-2 mb-4">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
+                    <p class="font-bold result-title"></p>
+                    <p class="text-sm text-gray-600 mt-1">${item.desc}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionBox);
+        });
+
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            if (element.parentElement.dataset.answered) return;
+            element.parentElement.dataset.answered = "true";
+
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+                opt.classList.add('disabled');
+            });
+
+            if (optIndex === data.correct) {
+                element.classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了!";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                element.classList.add('bg-red-100', 'border-red-500');
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了!";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imperva WAF Gateway 實戰課程 - 架構與元件</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        /* 卡片主體樣式 (Imperva Blue) */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #0284c7;
+        }
+
+        /* 重點提示框 (藍) */
+        .highlight-box {
+            background-color: #f0f9ff;
+            border-left: 4px solid #0284c7;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 技術名詞標記 */
+        .tech-term {
+            color: #075985;
+            font-weight: 700;
+            background-color: #e0f2fe;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
+        }
+
+        /* 比喻說明框 (綠) */
+        .analogy-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 版本差異框 (紫) */
+        .version-box {
+            background-color: #faf5ff;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 常見踩坑框 (橘,避開主色藍) */
+        .pitfall-box {
+            background-color: #fff7ed;
+            border-left: 4px solid #ea580c;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .diagram-container {
+            display: block;
+            background-color: #ffffff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-top: 1rem;
+        }
+
+        .diagram-container svg {
+            display: block;
+            width: 100%;
+            max-width: 520px;
+            margin: 0 auto;
+        }
+
+        /* 示意畫面 (仿管理介面) */
+        .mock-window {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            background: #ffffff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            margin-top: 1rem;
+        }
+        .mock-titlebar {
+            background: #e2e8f0;
+            padding: 0.4rem 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: #475569;
+        }
+        .mock-dots span {
+            display: inline-block;
+            width: 0.6rem;
+            height: 0.6rem;
+            border-radius: 50%;
+            background: #94a3b8;
+            margin-right: 0.2rem;
+        }
+        .mock-url {
+            background: #ffffff;
+            border-radius: 0.25rem;
+            padding: 0.1rem 0.5rem;
+            flex: 1;
+            min-width: 0;
+            font-family: ui-monospace, Consolas, monospace;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .mock-nav {
+            background: #1f2937;
+            color: #cbd5e1;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.25rem 1rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+        }
+        .mock-nav .brand { font-weight: 700; color: #ffffff; margin-right: 0.5rem; }
+        .mock-nav .on { color: #ffffff; border-bottom: 2px solid #0284c7; padding-bottom: 0.1rem; }
+        .mock-crumb {
+            font-size: 0.8rem;
+            color: #475569;
+            padding: 0.5rem 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f8fafc;
+        }
+        .mock-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            padding: 0.5rem 0.75rem 0;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.8rem;
+        }
+        .mock-tabs span {
+            padding: 0.3rem 0.7rem;
+            border: 1px solid #e5e7eb;
+            border-bottom: none;
+            border-radius: 0.3rem 0.3rem 0 0;
+            background: #f1f5f9;
+            color: #475569;
+        }
+        .mock-tabs span.on { background: #ffffff; color: #111827; font-weight: 600; }
+        .mock-body { padding: 0.75rem; font-size: 0.85rem; }
+        .mock-section { font-weight: 700; color: #334155; margin: 0.75rem 0 0.25rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.2rem; }
+        .mock-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.35rem 0.6rem;
+            padding: 0.35rem 0;
+        }
+        .mock-label { width: 12rem; color: #374151; font-weight: 500; }
+        .mock-input {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+            padding: 0.2rem 0.5rem;
+            min-width: 12rem;
+            background: #ffffff;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #111827;
+        }
+        .mock-select::after { content: " ▾"; color: #64748b; }
+        .mock-indent { padding-left: 2rem; }
+        .mock-btn {
+            display: inline-block;
+            border: 1px solid #94a3b8;
+            background: #f8fafc;
+            border-radius: 0.25rem;
+            padding: 0.2rem 0.7rem;
+            font-size: 0.8rem;
+            color: #1f2937;
+        }
+        .mock-btn.primary { background: #1f2937; color: #ffffff; border-color: #1f2937; }
+        .mock-hl { outline: 2px solid #0284c7; outline-offset: 2px; border-radius: 0.25rem; }
+        .mock-list {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+            min-width: 9rem;
+            min-height: 4.2rem;
+            padding: 0.25rem 0.5rem;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.8rem;
+            background: #ffffff;
+        }
+        .mock-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 0.5rem; }
+        .mock-table th { background: #f1f5f9; text-align: left; padding: 0.35rem 0.5rem; border: 1px solid #e2e8f0; color: #334155; }
+        .mock-table td { padding: 0.35rem 0.5rem; border: 1px solid #e2e8f0; }
+        .mock-caption {
+            font-size: 0.75rem;
+            color: #6b7280;
+            padding: 0.5rem 0.75rem;
+            background: #f9fafb;
+            border-top: 1px dashed #e5e7eb;
+        }
+        .step-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.4rem;
+            height: 1.4rem;
+            border-radius: 9999px;
+            background: #0284c7;
+            color: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .step-list li { display: flex; gap: 0.6rem; align-items: flex-start; margin-bottom: 0.6rem; }
+
+        /* 模擬器 */
+        .sim-rule {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.4rem 0.75rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            margin-bottom: 0.5rem;
+            background: #ffffff;
+        }
+        .sim-rule .num { font-weight: 700; color: #075985; width: 3.5rem; }
+        .sim-rule .desc { flex: 1; min-width: 12rem; }
+        .sim-arrow { border: 1px solid #cbd5e1; border-radius: 0.25rem; padding: 0 0.45rem; background: #f8fafc; }
+        .sim-arrow:disabled { opacity: 0.35; cursor: not-allowed; }
+        .trace-line { padding: 0.3rem 0; border-bottom: 1px dashed #e5e7eb; }
+
+        @media (max-width: 640px) {
+            main { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+            .section-card { padding: 1rem; }
+            .diagram-container { padding: 0.25rem; }
+            .mock-label { width: calc(100% - 2.2rem); }
+            .mock-indent .mock-label { width: 100%; }
+            .mock-input { min-width: 0; width: 100%; }
+            .mock-indent { padding-left: 0.75rem; }
+            .mock-body { padding: 0.5rem; }
+        }
+
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover:not(.disabled) {
+            background-color: #f3f4f6;
+        }
+
+        .footer-signature {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+            margin-top: 4rem;
+        }
+        /* Long URLs and code wrap on narrow screens */
+        main { overflow-wrap: break-word; } main code { overflow-wrap: anywhere; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-sky-800 to-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-shield-halved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold">Imperva WAF Gateway 實戰課程</h1>
+                    <p class="text-sky-100 mt-1">單元 3:架構與元件</p>
+                </div>
+            </div>
+        </div>
+    </header>
+    <nav class="bg-white border-b shadow-sm px-4" aria-label="章節導覽"><div class="container mx-auto max-w-5xl flex items-center justify-between text-sm py-2"><a href="Imperva02.html" class="text-sky-700 hover:underline"><i class="fas fa-arrow-left mr-1"></i>上一章</a><a href="Imperva00.html" class="text-sky-700 hover:underline"><i class="fas fa-list mr-1"></i>課程目錄</a><a href="Imperva04.html" class="text-sky-700 hover:underline">下一章<i class="fas fa-arrow-right ml-1"></i></a></div></nav>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <!-- Introduction -->
+        <div class="mb-8">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
+                <h2 class="text-xl font-bold text-blue-800 mb-2 flex items-center">
+                    <i class="fas fa-user-tie mr-2"></i>講師導言
+                </h2>
+                <p class="text-blue-900 leading-relaxed">
+                    前兩章講完「這是什麼產品」與「WAF 為什麼存在」,這一章開始拆開來看它由哪些零件組成。WAF Gateway 是典型的<strong>資料面 + 管理面</strong>分離架構:
+                    Gateway 負責檢查流量,MX 負責集中管理,ADC 內容與威脅情資從雲端下載。
+                    實務上最常卡關的不是設定本身,而是<strong>防火牆沒開對埠</strong>——所以這一章最後會用範例環境,帶你列出要請防火牆管理者開的規則。
+                </p>
+            </div>
+        </div>
+
+        <!-- 學習目標 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-gray-100 text-gray-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Goals</span>
+                本章學習目標
+            </h2>
+            <ul class="list-disc pl-6 space-y-1 text-gray-700">
+                <li>說出 MX、Gateway、SOM、ADC 各自在資料面或管理面的角色</li>
+                <li>建立 Gateway Group,並解釋 Name、Platform、Gateway Mode、Fail Mode、Overload Policy</li>
+                <li>區分 Fail Open、Fail Close、High Availability 的行為與使用限制</li>
+                <li>完成 ADC 內容的手動與排程更新,並說明維護合約過期的影響</li>
+                <li>依元件通訊埠表,列出範例環境要請防火牆管理者開哪些規則</li>
+            </ul>
+        </div>
+
+        <!-- 一、架構總覽 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">一、架構總覽:資料面與管理面</h2>
+
+            <div class="analogy-box">
+                <p class="font-bold text-green-800 mb-1"><i class="fas fa-building mr-1"></i>用連鎖商店來想</p>
+                <ul class="list-disc pl-6 text-green-900 space-y-1">
+                    <li><strong>Gateway</strong> 像各分店的門口檢查員:實際站在流量前面檢查、攔截。</li>
+                    <li><strong>MX</strong> 像總公司:規則手冊(政策、Web Profile)在這裡制定,再發到各分店。</li>
+                    <li><strong>SOM</strong> 像區域總部:有好幾個總公司(多台 MX)時才需要。</li>
+                    <li><strong>ADC</strong> 像外部研究單位:定期送來最新的黑名單與規則更新。</li>
+                </ul>
+            </div>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 360 520" role="img" aria-labelledby="svg1-title" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans TC, sans-serif">
+                    <title id="svg1-title">WAF Gateway 架構總覽:管理者電腦連 mx01 的 8083;mx01 管理 GG-Shop 的 gw01 與 gw02;mx01 對外 443 取得 ADC 與威脅情資;多台 MX 時由 SOM 以 8084 統管;檢查後的流量送往 web01 與 web02</title>
+                    <defs>
+                        <marker id="arrow1" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+                        </marker>
+                    </defs>
+                    <rect x="20" y="8" width="320" height="52" rx="10" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2"/>
+                    <text x="180" y="30" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2937">原廠雲端服務</text>
+                    <text x="180" y="50" text-anchor="middle" font-size="13" fill="#475569">ADC 內容、威脅情資</text>
+
+                    <line x1="180" y1="192" x2="180" y2="60" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+                    <text x="190" y="128" font-size="13" fill="#475569">443</text>
+
+                    <rect x="20" y="86" width="130" height="54" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="2"/>
+                    <text x="85" y="108" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2937">管理者電腦</text>
+                    <text x="85" y="128" text-anchor="middle" font-size="13" fill="#475569">10.0.30.100</text>
+
+                    <rect x="210" y="86" width="130" height="54" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="2" stroke-dasharray="5 4"/>
+                    <text x="275" y="108" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2937">SOM(選用)</text>
+                    <text x="275" y="128" text-anchor="middle" font-size="13" fill="#475569">範例環境不使用</text>
+
+                    <path d="M 85 140 L 85 226 L 100 226" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+                    <text x="30" y="182" font-size="13" fill="#475569">8083</text>
+                    <path d="M 275 140 L 275 226 L 260 226" fill="none" stroke="#64748b" stroke-width="2" marker-start="url(#arrow1)" marker-end="url(#arrow1)"/>
+                    <text x="285" y="182" font-size="13" fill="#475569">8084</text>
+
+                    <rect x="100" y="192" width="160" height="70" rx="10" fill="#f0f9ff" stroke="#0284c7" stroke-width="3"/>
+                    <text x="180" y="218" text-anchor="middle" font-size="15" font-weight="700" fill="#075985">mx01</text>
+                    <text x="180" y="238" text-anchor="middle" font-size="13" fill="#1f2937">10.0.30.10</text>
+                    <text x="180" y="255" text-anchor="middle" font-size="13" fill="#475569">管理面:政策、Profile</text>
+
+                    <line x1="130" y1="262" x2="130" y2="312" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+                    <text x="122" y="294" text-anchor="end" font-size="13" fill="#475569">22 / 443</text>
+                    <line x1="230" y1="312" x2="230" y2="262" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+                    <text x="238" y="294" font-size="13" fill="#475569">8083</text>
+
+                    <rect x="20" y="316" width="320" height="104" rx="10" fill="#f0f9ff" stroke="#0284c7" stroke-width="2" stroke-dasharray="6 4"/>
+                    <text x="180" y="338" text-anchor="middle" font-size="14" font-weight="700" fill="#075985">GG-Shop(Gateway Group)</text>
+                    <rect x="36" y="350" width="136" height="58" rx="8" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="104" y="374" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2937">gw01</text>
+                    <text x="104" y="394" text-anchor="middle" font-size="13" fill="#475569">10.0.30.11</text>
+                    <rect x="188" y="350" width="136" height="58" rx="8" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="256" y="374" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2937">gw02</text>
+                    <text x="256" y="394" text-anchor="middle" font-size="13" fill="#475569">10.0.30.12</text>
+
+                    <line x1="180" y1="420" x2="180" y2="450" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+                    <text x="192" y="441" font-size="13" fill="#475569">檢查後的 HTTP(S) 流量</text>
+
+                    <rect x="20" y="454" width="320" height="56" rx="10" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2"/>
+                    <text x="180" y="478" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2937">web01 / web02</text>
+                    <text x="180" y="498" text-anchor="middle" font-size="13" fill="#475569">10.0.10.21 / 10.0.10.22</text>
+                </svg>
+            </div>
+
+            <div class="overflow-x-auto mt-4">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">元件</th><th class="py-2 px-4 border text-left">平面</th><th class="py-2 px-4 border text-left">主要工作</th><th class="py-2 px-4 border text-left">範例環境</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">WAF Gateway</td><td class="py-2 px-4 border">資料面</td><td class="py-2 px-4 border">檢查、阻擋流量;產生 violation 與告警;可直接送 syslog</td><td class="py-2 px-4 border"><code>gw01</code>、<code>gw02</code></td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">WAF Management Server(MX)</td><td class="py-2 px-4 border">管理面</td><td class="py-2 px-4 border">設定、政策、Web Profile、告警、報表、授權、REST API</td><td class="py-2 px-4 border"><code>mx01</code></td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">WAF Management Server Manager(SOM)</td><td class="py-2 px-4 border">管理面(上層)</td><td class="py-2 px-4 border">統管多台 MX、匯入政策</td><td class="py-2 px-4 border">範例環境不使用</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">ADC / Threat Intelligence 雲端服務</td><td class="py-2 px-4 border">外部</td><td class="py-2 px-4 border">簽章與政策內容、信譽情資、Bot 資料</td><td class="py-2 px-4 border">經 MX / Gateway 對外 443</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 二、Gateway 與 Gateway Group -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">二、WAF Gateway 與 Gateway Group</h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">Gateway:實際處理流量的元件</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>依 Gateway Group 設定的模式(Bridge、Sniffing、Reverse Proxy 等,第 4 章)運作。</li>
+                <li>本身不保存政策的「正本」:政策、Site Tree、Web Profile 都在 MX 上設定,再由 MX 推送到 Gateway【推論】。</li>
+                <li>首次設定用 CLI 工具 <code>impcfg</code>,設定管理介面 IP、所屬 MX 位址並註冊(第 6 章);官方建議改 Gateway 運作模式、網路介面也用 impcfg。</li>
+                <li>要連外取得情資時(ATO、FPS、Advanced Bot Protection、Attack Analytics 上傳),可在 Gateway Group 指定 HTTP proxy(見下方 HTTP Connection)。</li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">動手做:建立 Gateway Group <code>GG-Shop</code></h3>
+            <p class="text-gray-700">Gateway 一律以群組管理,模式、Fail Mode 等屬性設在群組上,群組內的 Gateway 共用。範例環境的 <code>gw01</code>、<code>gw02</code> 屬於 <code>GG-Shop</code>。</p>
+
+            <div class="mock-window">
+                <div class="mock-titlebar">
+                    <span class="mock-dots"><span></span><span></span><span></span></span>
+                    <span class="mock-url">https://10.0.30.10:8083</span>
+                </div>
+                <div class="mock-nav">
+                    <span class="brand">WAF Management Server</span>
+                    <span class="on">Main</span><span>Admin</span>
+                </div>
+                <div class="mock-crumb">Main &gt; Setup &gt; Gateways &gt; Create New Gateway Group</div>
+                <div class="mock-body">
+                    <div class="mock-row"><span class="step-badge">1</span><span class="mock-label">Name</span><span class="mock-input mock-hl">GG-Shop</span></div>
+                    <div class="mock-row"><span class="step-badge">2</span><span class="mock-label">Platform</span><span class="mock-input mock-select mock-hl">Imperva</span></div>
+                    <div class="mock-row"><span class="step-badge">3</span><span class="mock-label">Gateway Mode</span><span class="mock-input mock-select mock-hl">Reverse Proxy</span></div>
+                    <div class="mock-row"><span class="step-badge">4</span><span class="mock-label">Fail Mode</span><span class="mock-input mock-select mock-hl">Fail Close</span></div>
+                    <div class="mock-section">Overload Policy</div>
+                    <div class="mock-row"><span class="step-badge">5</span><span class="mock-hl">☑ Block on Overload</span></div>
+                    <div class="mock-row" style="justify-content:flex-end;"><span class="step-badge">6</span><span class="mock-btn primary mock-hl">Create</span><span class="step-badge">7</span><span class="mock-btn">Save</span></div>
+                </div>
+                <div class="mock-caption"><i class="fas fa-circle-info mr-1"></i>示意畫面:欄位名稱依 Imperva 官方文件,版面、按鈕位置與配色以實機為準。範例中的模式與 Fail Mode 僅為示意,選擇原則見第 4、5 章。</div>
+            </div>
+
+            <ol class="step-list mt-4 text-gray-700">
+                <li><span class="step-badge">1</span><span><strong>Name</strong> 填群組名稱,例:<code>GG-Shop</code>。</span></li>
+                <li><span class="step-badge">2</span><span><strong>Platform</strong> 可選 Imperva、Crossbeam、Amazon、Other。</span></li>
+                <li><span class="step-badge">3</span><span><strong>Gateway Mode</strong> 可選 STP Bridge、IMPVHA Bridge、Sniffing、Reverse Proxy(第 4 章)。</span></li>
+                <li><span class="step-badge">4</span><span><strong>Fail Mode</strong> 決定 Gateway 故障時流量怎麼走(見下方圖解)。</span></li>
+                <li><span class="step-badge">5</span><span>勾選 <strong>Block on Overload</strong>:超過 Gateway 容量時封鎖所有連線,直到流量下降。超載的判定:CPU 或記憶體使用率達 100%、吞吐超過上限、資源耗盡。</span></li>
+                <li><span class="step-badge">6</span><span>按 <strong>Create</strong>(在 Setup &gt; Gateways 窗格按新增圖示會開啟 Create New Gateway Group 視窗)。</span></li>
+                <li><span class="step-badge">7</span><span>最後按 <strong>Save</strong>。</span></li>
+            </ol>
+            <p class="text-sm text-gray-600">沒勾 Block on Overload 時超載流量會怎麼處理,官方這頁沒寫【待實機確認】。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Fail Mode 三種選項</h3>
+            <div class="diagram-container">
+                <svg viewBox="0 0 360 380" role="img" aria-labelledby="svg2-title" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans TC, sans-serif">
+                    <title id="svg2-title">Fail Mode 比較:Fail Open 故障時流量通過但不檢查;Fail Close 故障時流量不通過;High Availability 只有 Bridge 模式可選且每台要在 impcfg 開啟</title>
+                    <rect x="20" y="10" width="320" height="92" rx="10" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
+                    <text x="36" y="36" font-size="15" font-weight="700" fill="#9a3412">Fail Open</text>
+                    <text x="36" y="60" font-size="14" fill="#1f2937">硬體故障、斷電或系統停擺時</text>
+                    <text x="36" y="80" font-size="14" fill="#1f2937">流量照樣通過,但不檢查</text>
+                    <text x="36" y="97" font-size="13" fill="#475569">在兩個埠之間通過</text>
+
+                    <rect x="20" y="114" width="320" height="76" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/>
+                    <text x="36" y="140" font-size="15" font-weight="700" fill="#b91c1c">Fail Close</text>
+                    <text x="36" y="164" font-size="14" fill="#1f2937">故障時流量不通過 Gateway</text>
+                    <text x="36" y="182" font-size="13" fill="#475569">不檢查也不放行</text>
+
+                    <rect x="20" y="202" width="320" height="104" rx="10" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="36" y="228" font-size="15" font-weight="700" fill="#075985">High Availability</text>
+                    <text x="36" y="252" font-size="14" fill="#1f2937">只有 STP Bridge 或 IMPVHA Bridge</text>
+                    <text x="36" y="272" font-size="14" fill="#1f2937">模式才能選,而且每台 Gateway</text>
+                    <text x="36" y="292" font-size="14" fill="#1f2937">還要在 impcfg 開啟</text>
+
+                    <rect x="20" y="318" width="320" height="52" rx="10" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2"/>
+                    <text x="36" y="341" font-size="13" fill="#1f2937">Fail Open 依賴具實體 bypass 能力的</text>
+                    <text x="36" y="360" font-size="13" fill="#1f2937">硬體網卡;沒有 bypass 的虛擬機只能 Fail Close</text>
+                </svg>
+            </div>
+            <div class="overflow-x-auto mt-4">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">選項</th><th class="py-2 px-4 border text-left">說明</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">Fail Open</td><td class="py-2 px-4 border">硬體故障、斷電或系統停擺時,流量照樣在兩個埠之間通過但不檢查</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Fail Close</td><td class="py-2 px-4 border">故障時流量不通過 Gateway</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">High Availability</td><td class="py-2 px-4 border">只有 Gateway Mode 為 STP Bridge 或 IMPVHA Bridge 時可選,且每台 Gateway 還要在 impcfg 開啟(Top &gt; Gateway &gt; Interfaces &gt; Toggle HA on a bridge)</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-sm text-gray-600 mt-2">Fail Open 依賴具實體 bypass 能力的硬體網卡;<strong>沒有 bypass 的虛擬機只能 Fail Close</strong>(第 5 章)。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">編輯 Gateway Group</h3>
+            <p class="text-gray-700 mb-2">Setup &gt; Gateways,在 Filter 窗格選 By Mode、By Platform 或 By Server Group,點選群組後在 Gateway Group Details 窗格修改,完成按 Save。Details 窗格的重要區塊:</p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">區塊</th><th class="py-2 px-4 border text-left">欄位</th><th class="py-2 px-4 border text-left">用途</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">General Info</td><td class="py-2 px-4 border">Name、Platform</td><td class="py-2 px-4 border">名稱可改;Platform 只顯示</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Topology Configuration</td><td class="py-2 px-4 border">Mode、Fail Mode、Overload Policy</td><td class="py-2 px-4 border">Mode 在此只顯示,不能直接改(改模式見第 4 章 4.10)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Allow Ambiguous Packets</td><td class="py-2 px-4 border">Allow IP / TCP / UDP bad checksum、TCP sequence before ISN 等</td><td class="py-2 px-4 border">放行有瑕疵的封包;預設不要動,只在排查特定網路設備問題時調整</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Performance Profiling</td><td class="py-2 px-4 border">Enable</td><td class="py-2 px-4 border">效能除錯工具,<strong>只在原廠人員要求時開啟</strong>;長時間開啟會嚴重拖慢整個群組;VMware 上不提供</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Gateways</td><td class="py-2 px-4 border">Gateway Name</td><td class="py-2 px-4 border">群組成員清單(唯讀)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">HTTP Connection</td><td class="py-2 px-4 border">Allow Gateway to Connect with Outside Systems、HTTP Proxy、Validate Certificate</td><td class="py-2 px-4 border">Gateway 對外連線;HTTP Proxy 從 Main &gt; Setup &gt; Global Objects &gt; Gateway HTTP Proxy 選取,適用 Attack Analytics、ABP、威脅情資等第三方服務</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-sm text-gray-600 mt-2">另有 External Logger 區塊(syslog 傳輸方式、主次主機),官方註明 WAF-only 環境不提供;WAF 的告警外送改用 Action Interface(第 12 章)。</p>
+
+            <div class="highlight-box">
+                <p class="font-bold text-sky-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>分群原則</p>
+                <ul class="list-disc pl-6 text-gray-800 space-y-1">
+                    <li>同一群組的 Gateway 模式相同、平台相同。<strong>Bridge 與 Reverse Proxy 要分不同群組。</strong></li>
+                    <li>用到同一條 TRP 規則的群組成員,官方建議全部跑 ABR(第 4 章)。</li>
+                    <li>舊教材的「Gateway cluster」在 WAF v15.5 / 16.0 文件查無此功能名;WAF 的冗餘靠 Gateway Group 加上網路 HA 或 VRRP(第 5 章)。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 三、MX 與 SOM -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">三、WAF Management Server(MX)與 SOM</h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">MX 的職責</h3>
+            <p class="text-gray-700 mb-2">舊簡報 p.39 列出的 MX 職責,今天大致不變:</p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">職責</th><th class="py-2 px-4 border text-left">說明</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">統一管理多台 Gateway</td><td class="py-2 px-4 border">所有 Gateway Group 與 Gateway 都在 MX 上管理</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">保存 Profile 與政策</td><td class="py-2 px-4 border">Site Tree、Web Profile、安全政策、Action Set 都存在 MX</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">告警、稽核與鑑識</td><td class="py-2 px-4 border">Alerts、Violations、Audit 集中查詢(第 12 章)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Web 管理介面</td><td class="py-2 px-4 border">瀏覽器連 <code>https://10.0.30.10:8083</code></td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Role-based 管理</td><td class="py-2 px-4 border">依角色分權;【15.5】v15.4 起 SSO 改版,支援 SAML metadata、JIT、SLO</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">授權</td><td class="py-2 px-4 border">MX 與其管理的所有 Gateway 的授權都裝在 MX 上(見第四節)</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-gray-700 mt-3 mb-1">新版另外增加:</p>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li><strong>REST API</strong>(WAF API Reference Guide):以 Basic Auth 登入取得 <code>JSESSIONID</code> cookie,閒置 30 分鐘逾時(第 12 章)。</li>
+                <li><strong>系統事件記錄</strong>(v15.0 起):記錄誰在什麼時候改了什麼。</li>
+                <li><strong>Attack Analytics 匯出</strong>:把地端告警送到雲端分析(第 12 章)。</li>
+            </ul>
+            <p class="text-sm text-gray-600 mt-3">MX 停機時 Gateway 是否繼續以最後一版政策檢查流量,這次查證的官方頁面沒有明寫【待實機確認】。MX 的備援(MX-HA)見第 5 章。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">SOM(WAF Management Server Manager)</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>用途:統管多台 MX,適合多資料中心、多套 MX 的大型環境。只有一台 MX(如範例環境)就不需要 SOM【推論】。</li>
+                <li>v15.5 的 SOM 文件目錄涵蓋:瀏覽器支援、與舊 SOM 的相容性、註冊 MX(Registering MXs)、元件間通訊、匯入安全與稽核政策(Importing Security and Audit Policies)、ThreatRadar 相關操作。</li>
+                <li>通訊:MX 與 SOM 之間雙向 TCP 8084;啟用 Trusted Connections 後另用 TCP 8085(見第五節)。</li>
+                <li>SOM 和 MX 一樣不能混管 WAF 與 DAM。</li>
+                <li>【16.0】CA 版<strong>不支援 SOM</strong>。</li>
+            </ul>
+        </div>
+
+        <!-- 四、ADC 與授權 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">四、ADC 內容更新與授權</h2>
+
+            <p class="text-gray-700 leading-relaxed">
+                <span class="tech-term">ADC(Application Defense Center)</span>是原廠研究團隊,也是內容更新的名稱:簽章、預先定義的政策與 correlation 規則、良性搜尋引擎清單等都隨 ADC 內容下載(舊簡報 p.60、p.92)。ADC 內容約<strong>每兩週</strong>發布一次。
+            </p>
+
+            <div class="mock-window">
+                <div class="mock-titlebar">
+                    <span class="mock-dots"><span></span><span></span><span></span></span>
+                    <span class="mock-url">https://10.0.30.10:8083</span>
+                </div>
+                <div class="mock-nav">
+                    <span class="brand">WAF Management Server</span>
+                    <span>Main</span><span class="on">Admin</span>
+                </div>
+                <div class="mock-crumb">Admin &gt; ADC</div>
+                <div class="mock-body">
+                    <div class="mock-section">Manual ADC Update</div>
+                    <div class="mock-row"><span class="step-badge">1</span><span class="mock-btn mock-hl">Download</span><span class="text-xs text-gray-500">存下 .mprv 檔</span></div>
+                    <div class="mock-row"><span class="step-badge">2</span><span class="mock-btn">Browse</span><span class="mock-input">adc-content.mprv</span><span class="mock-btn mock-hl">Upload</span></div>
+                    <div class="mock-section">Automatic ADC Update</div>
+                    <div class="mock-row"><span class="step-badge">3</span><span class="mock-input mock-select mock-hl">Recurring</span><span class="mock-btn">Update Now</span></div>
+                </div>
+                <div class="mock-caption"><i class="fas fa-circle-info mr-1"></i>示意畫面:欄位名稱依 Imperva 官方文件,版面、按鈕位置與配色以實機為準。</div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-4 mt-4">
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-hand mr-1 text-sky-600"></i>手動更新(MX 無法直接上網時)</h3>
+                    <ol class="list-decimal pl-5 text-sm text-gray-700 space-y-1">
+                        <li>在 <strong>Admin</strong> 工作區按 <strong>ADC</strong>。</li>
+                        <li>在 <strong>Manual ADC Update</strong> 下按 <strong>Download</strong>,存下 <code>.mprv</code> 檔(離線環境改從原廠知識庫說明的位置下載)。</li>
+                        <li>用 <strong>Browse</strong> 選擇該檔,按 <strong>Upload</strong>。</li>
+                        <li>部分更新要 <strong>Apply Settings</strong> 之後才生效。</li>
+                    </ol>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-clock-rotate-left mr-1 text-sky-600"></i>排程自動更新</h3>
+                    <ol class="list-decimal pl-5 text-sm text-gray-700 space-y-1">
+                        <li>Admin 工作區 &gt; <strong>ADC</strong>。</li>
+                        <li>在 <strong>Automatic ADC Update</strong> 選 <strong>Recurring</strong>,設定排程。</li>
+                        <li>要立即更新按 <strong>Update Now</strong>。</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="highlight-box">
+                <p class="font-bold text-sky-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>ADC 更新成功的前提</p>
+                <ul class="list-disc pl-6 text-gray-800 space-y-1">
+                    <li><strong>Default Gateway 與 DNS 必須先用 impcfg 設好</strong>,ADC 更新才會成功。</li>
+                    <li>需要經 proxy 上網時,依官方 External HTTP Settings 設定。</li>
+                    <li>MX 要能連 <code>www.imperva.com:443</code>(見第五節)。</li>
+                    <li>授權中的 <strong>Maintenance period</strong> 決定可以下載 ADC 內容的期間;維護合約過期,ADC 更新就停了。</li>
+                    <li><strong>Emergency Feed Services</strong>:重大漏洞時先推送簽章,相關政策<strong>預設停用,要手動啟用</strong>(第 9 章)。</li>
+                </ul>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">授權</h3>
+            <p class="text-gray-700 mb-2">授權檔裝在 MX 上,涵蓋 MX 與它管理的所有 Gateway;續約時新授權會<strong>整份取代</strong>舊授權。</p>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm border">
+                        <thead class="bg-gray-100">
+                            <tr><th class="py-2 px-3 border text-left">傳統授權內容</th><th class="py-2 px-3 border text-left">說明</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td class="py-2 px-3 border font-semibold">Product information</td><td class="py-2 px-3 border">啟用的產品,例如 Web、DB、File</td></tr>
+                            <tr><td class="py-2 px-3 border font-semibold">Expiration date</td><td class="py-2 px-3 border">只有評估(evaluation)授權有期限;正式授權不限時</td></tr>
+                            <tr><td class="py-2 px-3 border font-semibold">Maintenance period</td><td class="py-2 px-3 border">可下載 ADC 內容的期間</td></tr>
+                            <tr><td class="py-2 px-3 border font-semibold">Gateway modules</td><td class="py-2 px-3 border">授權啟用的 WAF Gateway 與各模組數量</td></tr>
+                            <tr><td class="py-2 px-3 border font-semibold">Assessment counter</td><td class="py-2 px-3 border">可掃描的伺服器數量</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm border">
+                        <thead class="bg-gray-100">
+                            <tr><th class="py-2 px-3 border text-left">FlexProtect 授權內容</th><th class="py-2 px-3 border text-left">說明</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td class="py-2 px-3 border font-semibold">License mode</td><td class="py-2 px-3 border">啟用的產品,例如 Web</td></tr>
+                            <tr><td class="py-2 px-3 border font-semibold">SecureSphere challenge</td><td class="py-2 px-3 border">對應特定 appliance 的唯一識別碼</td></tr>
+                            <tr><td class="py-2 px-3 border font-semibold">Expiration date</td><td class="py-2 px-3 border">授權到期日</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 mt-3">
+                <li><strong>FlexProtect</strong> 屬訂閱式授權(雲端 AppProtect / Flex Protect)。MX 要能連 <code>entitlement.service.imperva.com</code> 與 <code>auth.service.imperva.com</code>(443)取得權利與驗證。</li>
+                <li>【15.5】v15.5 Patch 10 新增不設吞吐上限的「CLOUD」虛擬型號,限 AppProtect / Flex Protect 授權,依 CPU 擴展(第 5 章)。</li>
+                <li>上傳授權的 GUI 路徑【待實機確認】。</li>
+            </ul>
+        </div>
+
+        <!-- 五、元件通訊埠 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">五、元件通訊埠與防火牆要開的規則</h2>
+            <p class="text-gray-700 mb-2">官方「SecureSphere Component Communication」表(v15.5 Administration Guide)整理如下:</p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-3 border text-left">來源</th><th class="py-2 px-3 border text-left">目的</th><th class="py-2 px-3 border text-left">協定 / 埠</th><th class="py-2 px-3 border text-left">用途</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-3 border">Gateway</td><td class="py-2 px-3 border">MX</td><td class="py-2 px-3 border">HTTPS TCP 8083</td><td class="py-2 px-3 border">Gateway 註冊與回報</td></tr>
+                        <tr><td class="py-2 px-3 border">MX</td><td class="py-2 px-3 border">Gateway</td><td class="py-2 px-3 border">SSH TCP 22、HTTPS TCP 443</td><td class="py-2 px-3 border">MX 管理 Gateway</td></tr>
+                        <tr><td class="py-2 px-3 border">MX ↔ SOM</td><td class="py-2 px-3 border">雙向</td><td class="py-2 px-3 border">HTTPS TCP 8084</td><td class="py-2 px-3 border">SOM / MX 通訊</td></tr>
+                        <tr><td class="py-2 px-3 border">Gateway / SOM</td><td class="py-2 px-3 border">MX</td><td class="py-2 px-3 border">HTTPS TCP 8085</td><td class="py-2 px-3 border">Trusted Connections(憑證式通訊);啟用後 Gateway 改走 8085</td></tr>
+                        <tr><td class="py-2 px-3 border">管理者電腦</td><td class="py-2 px-3 border">MX</td><td class="py-2 px-3 border">HTTPS TCP 8083、SSH TCP 22</td><td class="py-2 px-3 border">GUI / REST API、SSH</td></tr>
+                        <tr><td class="py-2 px-3 border">管理者電腦</td><td class="py-2 px-3 border"><code>console.imperva.com</code></td><td class="py-2 px-3 border">HTTPS 443</td><td class="py-2 px-3 border">Unified Management Console(Attack Analytics 介面)</td></tr>
+                        <tr><td class="py-2 px-3 border">MX</td><td class="py-2 px-3 border"><code>www.imperva.com</code></td><td class="py-2 px-3 border">HTTPS 443</td><td class="py-2 px-3 border">ADC、自動簽章更新、軟體更新</td></tr>
+                        <tr><td class="py-2 px-3 border">MX</td><td class="py-2 px-3 border"><code>*.impervacloud.com</code>、<code>thr-auth.service.imperva.com</code></td><td class="py-2 px-3 border">HTTPS 443</td><td class="py-2 px-3 border">威脅情資(ThreatRadar)更新</td></tr>
+                        <tr><td class="py-2 px-3 border">Gateway</td><td class="py-2 px-3 border"><code>*.impervacloud.com</code></td><td class="py-2 px-3 border">HTTPS 443</td><td class="py-2 px-3 border">ATO、FPS 等需要即時查詢的情資</td></tr>
+                        <tr><td class="py-2 px-3 border">Gateway</td><td class="py-2 px-3 border"><code>ses-uploader.service.imperva.com</code></td><td class="py-2 px-3 border">HTTPS 443</td><td class="py-2 px-3 border">上傳 Attack Analytics 資料</td></tr>
+                        <tr><td class="py-2 px-3 border">MX</td><td class="py-2 px-3 border"><code>entitlement.service.imperva.com</code>、<code>auth.service.imperva.com</code></td><td class="py-2 px-3 border">HTTPS 443</td><td class="py-2 px-3 border">Attack Analytics、Flex Protect 權利與驗證</td></tr>
+                        <tr><td class="py-2 px-3 border">Gateway</td><td class="py-2 px-3 border">Syslog 伺服器</td><td class="py-2 px-3 border">UDP / TCP 514</td><td class="py-2 px-3 border">稽核 / 告警外送</td></tr>
+                        <tr><td class="py-2 px-3 border">MX</td><td class="py-2 px-3 border">Syslog 伺服器</td><td class="py-2 px-3 border">UDP 514</td><td class="py-2 px-3 border">告警外送</td></tr>
+                        <tr><td class="py-2 px-3 border">MX、Gateway</td><td class="py-2 px-3 border">DNS 伺服器</td><td class="py-2 px-3 border">TCP / UDP 53</td><td class="py-2 px-3 border">解析政策中的主機名稱</td></tr>
+                        <tr><td class="py-2 px-3 border">MX、Gateway</td><td class="py-2 px-3 border">NTP 伺服器</td><td class="py-2 px-3 border">UDP 123</td><td class="py-2 px-3 border">時間戳正確</td></tr>
+                        <tr><td class="py-2 px-3 border">AWS ELB / ALB</td><td class="py-2 px-3 border">擴展群組內的 Gateway</td><td class="py-2 px-3 border">TCP 541</td><td class="py-2 px-3 border">負載平衡器健康檢查</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-gray-700 mt-3">想逐一放行網域、不用 <code>*.impervacloud.com</code> 萬用字元時,官方列出:MX → <code>ke.impervacloud.com</code>(GeoLocation、FPS、ATO、Bot Protection 更新)、<code>cd.impervacloud.com</code>(Community Defense)、<code>thr.impervacloud.com</code>(Reputation Services);Gateway → <code>fps.impervacloud.com</code>。改用逐一網域時,就不要再同時設定萬用字元規則。</p>
+            <p class="text-gray-700 mt-2">整合 Advanced Bot Protection 時,Gateway 還要能經 443 連 <code>*.imperva.com</code>、<code>*.impervaabp.net</code>、<code>*.distil.ninja</code>(第 10 章)。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">範例環境要請防火牆開的規則</h3>
+            <p class="text-gray-700 mb-2"><code>mx01</code>、<code>gw01</code>、<code>gw02</code> 都在管理網段 <code>10.0.30.0/24</code>,中間沒有防火牆,所以 Gateway ↔ MX 的 8083 / 22 / 443 不必另開(官方註明:專用網路或專用交換器連接時不需在防火牆開這些埠)。範例環境需要開的是對外與基礎服務的規則:</p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-3 border text-left">#</th><th class="py-2 px-3 border text-left">來源</th><th class="py-2 px-3 border text-left">目的</th><th class="py-2 px-3 border text-left">埠</th><th class="py-2 px-3 border text-left">用途</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-3 border">1</td><td class="py-2 px-3 border">10.0.30.10</td><td class="py-2 px-3 border"><code>www.imperva.com</code></td><td class="py-2 px-3 border">TCP 443</td><td class="py-2 px-3 border">ADC 更新</td></tr>
+                        <tr><td class="py-2 px-3 border">2</td><td class="py-2 px-3 border">10.0.30.10</td><td class="py-2 px-3 border"><code>*.impervacloud.com</code>、<code>thr-auth.service.imperva.com</code></td><td class="py-2 px-3 border">TCP 443</td><td class="py-2 px-3 border">威脅情資</td></tr>
+                        <tr><td class="py-2 px-3 border">3</td><td class="py-2 px-3 border">10.0.30.11、10.0.30.12</td><td class="py-2 px-3 border"><code>*.impervacloud.com</code></td><td class="py-2 px-3 border">TCP 443</td><td class="py-2 px-3 border">ATO / FPS(有授權才需要)</td></tr>
+                        <tr><td class="py-2 px-3 border">4</td><td class="py-2 px-3 border">10.0.30.10、10.0.30.11、10.0.30.12</td><td class="py-2 px-3 border">內部 DNS、NTP</td><td class="py-2 px-3 border">53、UDP 123</td><td class="py-2 px-3 border">名稱解析、校時</td></tr>
+                        <tr><td class="py-2 px-3 border">5</td><td class="py-2 px-3 border">10.0.30.11、10.0.30.12</td><td class="py-2 px-3 border"><code>ses-uploader.service.imperva.com</code></td><td class="py-2 px-3 border">TCP 443</td><td class="py-2 px-3 border">Attack Analytics(有用才開)</td></tr>
+                        <tr><td class="py-2 px-3 border">6</td><td class="py-2 px-3 border">10.0.30.10</td><td class="py-2 px-3 border"><code>entitlement</code> / <code>auth.service.imperva.com</code></td><td class="py-2 px-3 border">TCP 443</td><td class="py-2 px-3 border">Attack Analytics、FlexProtect</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">若跨網段才需要的規則</h3>
+            <p class="text-gray-700 mb-2">管理者電腦 <code>10.0.30.100</code> 與 Splunk <code>10.0.30.50</code> 也在 <code>10.0.30.0/24</code>,範例環境不必開。只有它們和 MX、Gateway 之間隔著防火牆時,才要加下面這兩條(再加上 Gateway ↔ MX 的 8083、22、443,見下一節模擬器):</p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-3 border text-left">#</th><th class="py-2 px-3 border text-left">來源</th><th class="py-2 px-3 border text-left">目的</th><th class="py-2 px-3 border text-left">埠</th><th class="py-2 px-3 border text-left">用途</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-3 border">7</td><td class="py-2 px-3 border">10.0.30.100</td><td class="py-2 px-3 border">10.0.30.10</td><td class="py-2 px-3 border">TCP 8083、22</td><td class="py-2 px-3 border">管理者連 MX</td></tr>
+                        <tr><td class="py-2 px-3 border">8</td><td class="py-2 px-3 border">10.0.30.11、10.0.30.12、10.0.30.10</td><td class="py-2 px-3 border">10.0.30.50</td><td class="py-2 px-3 border">Gateway:UDP / TCP 514;MX:UDP 514</td><td class="py-2 px-3 border">送 Splunk</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-sm text-gray-600 mt-2">對外一律走 proxy 的環境,MX 依 External HTTP Settings 設定,Gateway 在 Gateway Group 的 HTTP Connection 指定 proxy。</p>
+        </div>
+
+        <!-- 六、模擬器 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">六、動手玩:防火牆開埠檢查</h2>
+            <p class="text-gray-700 mb-2">下面是上一節要請防火牆管理者開的規則。取消勾選代表「防火牆沒開」,看看哪些元件之間的通訊會斷、造成什麼後果。你也可以假設管理者電腦、Splunk 或 MX 與 Gateway 被放在不同網段,看看多出哪幾條規則。</p>
+
+            <div class="grid md:grid-cols-2 gap-4 mt-4">
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-fire-flame-curved mr-1 text-sky-600"></i>防火牆實際放行的規則</h3>
+                    <div id="fw-rules"></div>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-sitemap mr-1 text-sky-600"></i>網段假設</h3>
+                    <label class="block text-sm mb-1"><input type="checkbox" id="fw-split" class="mr-2">假設跨網段:管理者電腦、Splunk、MX 與 Gateway 之間隔著防火牆</label>
+                    <p class="text-xs text-gray-500 mb-3">範例環境的管理者電腦、Splunk、MX 與 Gateway 都在 10.0.30.0/24,不會是這種情況;勾選後會多出 4 條規則:管理者連 MX、送 Splunk、Gateway ↔ MX 的兩條。</p>
+                    <div class="flex flex-col gap-2">
+                        <button type="button" id="fw-all" class="text-left border rounded px-3 py-2 bg-white hover:bg-sky-50 text-sm">全部放行</button>
+                        <button type="button" id="fw-adc" class="text-left border rounded px-3 py-2 bg-white hover:bg-sky-50 text-sm">只漏掉 ADC 更新(www.imperva.com:443)</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="fw-result" class="border rounded-lg p-4 mt-4"></div>
+        </div>
+
+        <!-- 七、踩坑 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">七、常見踩坑</h2>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>ADC 一直更新失敗</p>
+                <p class="text-gray-800">多半是 impcfg 沒設 Default Gateway 或 DNS,或防火牆沒放行 <code>www.imperva.com:443</code>。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>維護合約過期沒人發現</p>
+                <p class="text-gray-800">授權本身不限時,Gateway 照常運作,但 ADC 內容停在舊版,新漏洞的簽章進不來。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>在 Details 窗格找不到改 Gateway Mode 的地方</p>
+                <p class="text-gray-800">Mode 在群組建立後只顯示,改模式要走 impcfg(第 4 章 4.10)。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>Bridge 與 Reverse Proxy 的 Gateway 放同一群組</p>
+                <p class="text-gray-800">Gateway Mode 是群組屬性,模式不同要分群組。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>隨手開 Performance Profiling</p>
+                <p class="text-gray-800">會拖慢整個群組,只在原廠要求時短暫開啟。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>只開 <code>*.impervacloud.com</code> 卻漏了 <code>thr-auth.service.imperva.com</code></p>
+                <p class="text-gray-800">v15.5 通訊表另外列出這個網域,情資驗證會失敗【推論】。</p>
+            </div>
+        </div>
+
+        <!-- 八、新舊對照 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">八、新舊對照</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-purple-50">
+                        <tr><th class="py-2 px-4 border text-left">舊簡報說法</th><th class="py-2 px-4 border text-left">現況</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border">MX 型號 M100 最多管理 15 台 Gateway(p.50)</td><td class="py-2 px-4 border">現行 MX 為 7G 的 M180 與虛擬 VM150;可管理的 Gateway 數量上限本次未查到【待實機確認】</td></tr>
+                        <tr><td class="py-2 px-4 border">一個 MX 統一管理 WAF、DAM、FAM Gateway(p.39、p.41)</td><td class="py-2 px-4 border">v14.4 起 WAF 與 DAM 分開,MX 不能混管</td></tr>
+                        <tr><td class="py-2 px-4 border">SOM</td><td class="py-2 px-4 border">現名 WAF Management Server Manager;【16.0】不支援</td></tr>
+                        <tr><td class="py-2 px-4 border">ThreatRadar 服務(p.79)</td><td class="py-2 px-4 border">Threat Intelligence Services;MX 經 <code>*.impervacloud.com</code> 取得</td></tr>
+                        <tr><td class="py-2 px-4 border">(舊簡報未提)元件通訊埠與授權內容</td><td class="py-2 px-4 border">新增 Trusted Connections 8085、Attack Analytics、FlexProtect 等對外連線</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
+                隨堂測驗
+            </h2>
+            <p class="mb-6 text-gray-600">請點選您認為正確的選項,系統將會顯示解析。</p>
+            <div class="space-y-6" id="quiz-container"></div>
+        </div>
+
+        <nav class="mt-4 border-t pt-2" aria-label="章節導覽"><div class="flex items-center justify-between text-sm py-2"><a href="Imperva02.html" class="text-sky-700 hover:underline"><i class="fas fa-arrow-left mr-1"></i>上一章</a><a href="Imperva00.html" class="text-sky-700 hover:underline"><i class="fas fa-list mr-1"></i>課程目錄</a><a href="Imperva04.html" class="text-sky-700 hover:underline">下一章<i class="fas fa-arrow-right ml-1"></i></a></div></nav>
+    </main>
+
+    <footer class="footer-signature">
+        Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver.2026.11.02.12.07
+    </footer>
+
+
+    <script>
+        // ===== 防火牆開埠檢查模擬器 =====
+        // 規則照本章第五節「範例環境要請防火牆開的規則」;split 為 true 的四條只在假設跨網段(中間隔著防火牆)時才出現。
+        const RULES = [
+            { id: 'r2', n: 1, flow: 'mx01 → www.imperva.com', port: 'TCP 443', tag: '更新',
+              use: 'ADC 更新',
+              broken: 'MX 取不到 ADC、自動簽章更新與軟體更新,ADC 內容會停在舊版,新漏洞的簽章進不來。MX 無法直接上網時可改用手動更新(Download 取得 .mprv 後 Upload)。' },
+            { id: 'r3', n: 2, flow: 'mx01 → *.impervacloud.com、thr-auth.service.imperva.com', port: 'TCP 443', tag: '情資',
+              use: '威脅情資',
+              broken: 'MX 取不到威脅情資(ThreatRadar / Reputation)更新。注意:只放行 *.impervacloud.com 而漏了 thr-auth.service.imperva.com,情資驗證也會失敗【推論】。' },
+            { id: 'r4', n: 3, flow: 'gw01、gw02 → *.impervacloud.com', port: 'TCP 443', tag: '情資', optional: '有授權才需要',
+              use: 'ATO / FPS',
+              broken: 'Gateway 無法即時查詢 ATO、FPS 等情資(有授權才受影響)。' },
+            { id: 'r6', n: 4, flow: 'mx01、gw01、gw02 → 內部 DNS、NTP', port: 'TCP / UDP 53、UDP 123', tag: '基礎',
+              use: '名稱解析、校時',
+              broken: 'MX 與 Gateway 無法解析政策中的主機名稱(DNS 53),也無法校時(NTP UDP 123),時間戳會不正確。' },
+            { id: 'r7', n: 5, flow: 'gw01、gw02 → ses-uploader.service.imperva.com', port: 'TCP 443', tag: '告警', optional: '有用才需要',
+              use: 'Attack Analytics',
+              broken: 'Gateway 無法上傳 Attack Analytics 資料(有使用 Attack Analytics 才受影響)。' },
+            { id: 'r8', n: 6, flow: 'mx01 → entitlement.service.imperva.com、auth.service.imperva.com', port: 'TCP 443', tag: '授權', optional: '有用才需要',
+              use: 'Attack Analytics、FlexProtect',
+              broken: 'MX 無法完成 Attack Analytics 與 FlexProtect 的權利與驗證(有使用才受影響)。' },
+            { id: 'r1', n: 7, flow: '管理者 10.0.30.100 → mx01 10.0.30.10', port: 'TCP 8083、22', tag: '管理', split: true,
+              use: '管理者連 MX(假設管理者電腦隔著防火牆才需要)',
+              broken: '管理者無法開啟 MX 的 GUI 與 REST API(TCP 8083),也無法 SSH 登入 MX(TCP 22)。' },
+            { id: 'r5', n: 8, flow: 'gw01、gw02、mx01 → Splunk 10.0.30.50', port: 'Gateway:UDP / TCP 514;MX:UDP 514', tag: '告警', split: true,
+              use: '送 Splunk(假設 Splunk 隔著防火牆才需要)',
+              broken: '稽核與告警紀錄送不到 10.0.30.50 的 Splunk(Gateway 走 UDP / TCP 514,MX 走 UDP 514)。' },
+            { id: 'r9', n: 9, flow: 'Gateway → MX', port: 'HTTPS TCP 8083', tag: '管理', split: true,
+              use: 'Gateway 註冊與回報(假設隔著防火牆才需要)',
+              broken: 'Gateway 無法向 MX 註冊與回報(TCP 8083)。若已啟用 Trusted Connections,Gateway 改走 TCP 8085,那就要開 8085。' },
+            { id: 'r10', n: 10, flow: 'MX → Gateway', port: 'SSH TCP 22、HTTPS TCP 443', tag: '管理', split: true,
+              use: 'MX 管理 Gateway(假設隔著防火牆才需要)',
+              broken: 'MX 無法管理 Gateway(SSH TCP 22、HTTPS TCP 443)。' }
+        ];
+        const allowed = {};
+        RULES.forEach(r => { allowed[r.id] = true; });
+
+        const fwRulesBox = document.getElementById('fw-rules');
+        const fwResult = document.getElementById('fw-result');
+        const fwSplit = document.getElementById('fw-split');
+
+        function visibleRules() { return RULES.filter(r => !r.split || fwSplit.checked); }
+
+        function renderFwRules() {
+            fwRulesBox.innerHTML = '';
+            visibleRules().forEach(r => {
+                const lab = document.createElement('label');
+                lab.className = 'flex items-start gap-2 text-sm mb-2';
+                lab.innerHTML = `<input type="checkbox" data-id="${r.id}" class="mt-1" ${allowed[r.id] ? 'checked' : ''}>
+                    <span><strong>#${r.n}</strong> ${r.flow}<br>
+                    <span class="text-xs text-gray-600">${r.port} · ${r.use}${r.optional ? ' · <em>' + r.optional + '</em>' : ''}</span></span>`;
+                fwRulesBox.appendChild(lab);
+            });
+        }
+
+        function evalFw() {
+            const vis = visibleRules();
+            const bad = vis.filter(r => !allowed[r.id]);
+            if (bad.length === 0) {
+                fwResult.className = 'border rounded-lg p-4 mt-4 bg-green-50 border-green-300';
+                fwResult.innerHTML = `<h3 class="font-bold text-green-700 mb-1"><i class="fas fa-circle-check mr-1"></i>所有通訊都暢通</h3>
+                    <p class="text-sm text-gray-800">共 ${vis.length} 條規則都放行,MX、Gateway 與外部服務之間的通訊沒有被擋。</p>`;
+                return;
+            }
+            fwResult.className = 'border rounded-lg p-4 mt-4 bg-red-50 border-red-300';
+            fwResult.innerHTML = `<h3 class="font-bold text-red-700 mb-2"><i class="fas fa-circle-xmark mr-1"></i>${bad.length} 條規則沒開,以下通訊會斷</h3>` +
+                bad.map(r => `<div class="trace-line text-sm text-gray-800">
+                    <span class="inline-block text-xs bg-white border border-red-300 text-red-700 rounded px-1 mr-1">${r.tag}</span>
+                    <strong>#${r.n}</strong> ${r.flow}(${r.port})<br>${r.broken}</div>`).join('') +
+                `<p class="text-xs text-gray-600 mt-2">其餘 ${vis.length - bad.length} 條規則仍然暢通。</p>`;
+        }
+
+        fwRulesBox.addEventListener('change', e => {
+            const box = e.target.closest('input[data-id]');
+            if (!box) return;
+            allowed[box.dataset.id] = box.checked;
+            evalFw();
+        });
+        fwSplit.addEventListener('change', () => { renderFwRules(); evalFw(); });
+        document.getElementById('fw-all').addEventListener('click', () => {
+            RULES.forEach(r => { allowed[r.id] = true; });
+            renderFwRules(); evalFw();
+        });
+        document.getElementById('fw-adc').addEventListener('click', () => {
+            RULES.forEach(r => { allowed[r.id] = r.id !== 'r2'; });
+            renderFwRules(); evalFw();
+        });
+        renderFwRules();
+        evalFw();
+
+        // ===== 隨堂測驗 =====
+        const quizData = [
+            {
+                question: "Q1. 政策、Site Tree 與 Web Profile 是在哪個元件上設定的?",
+                options: ["A. 在每一台 WAF Gateway 上各自設定", "B. 在 MX 上設定,再由 MX 推送到 Gateway", "C. 在 ADC 雲端服務上設定", "D. 在負載平衡器上設定"],
+                correct: 1,
+                desc: "正解:B。Gateway 屬於資料面、負責檢查流量,本身不保存政策的正本;政策、Site Tree、Web Profile 都存在 MX(管理面)【推論】。"
+            },
+            {
+                question: "Q2. gw01 打算跑 Bridge,gw02 打算跑 Reverse Proxy。該怎麼建立 Gateway Group?",
+                options: ["A. 放同一個群組,兩台各自設定模式", "B. 放同一個群組,模式選 Reverse Proxy 就好", "C. 分成不同的 Gateway Group,因為 Gateway Mode 是群組屬性", "D. 一定要先建 SOM"],
+                correct: 2,
+                desc: "正解:C。模式、Fail Mode 等屬性設在群組上,群組內的 Gateway 共用。同一群組的 Gateway 模式與平台都要相同,Bridge 與 Reverse Proxy 要分不同群組。"
+            },
+            {
+                question: "Q3. 以虛擬機部署 Gateway,Fail Mode 可以怎麼選?",
+                options: ["A. Fail Open、Fail Close 都可以", "B. 只支援 Fail Close", "C. 只支援 Fail Open", "D. 只支援 High Availability"],
+                correct: 1,
+                desc: "正解:B。Fail Open 依賴具實體 bypass 能力的硬體網卡,沒有 bypass 的虛擬機只能 Fail Close。High Availability 則只有 STP Bridge 或 IMPVHA Bridge 模式才能選。"
+            },
+            {
+                question: "Q4. MX 的 ADC 更新一直失敗,最優先該檢查哪些地方?",
+                options: ["A. impcfg 的 Default Gateway 與 DNS 有沒有設好,以及防火牆有沒有放行 www.imperva.com:443", "B. 重新安裝作業系統", "C. 把 Gateway 改成 Fail Open", "D. 取消勾選 Block on Overload"],
+                correct: 0,
+                desc: "正解:A。ADC 更新的前提是 Default Gateway 與 DNS 已用 impcfg 設好,MX 並要能連 www.imperva.com:443。另外也要確認授權的 Maintenance period 沒有過期。"
+            },
+            {
+                question: "Q5. 範例環境的 mx01、gw01、gw02 都在管理網段 10.0.30.0/24,中間沒有防火牆。需要為 Gateway 與 MX 之間的 TCP 8083 / 22 / 443 另外請防火牆開規則嗎?",
+                options: ["A. 要,否則 Gateway 無法註冊", "B. 不必,官方註明專用網路或專用交換器連接時不需在防火牆開這些埠", "C. 只需要開 8083", "D. 只需要開 22"],
+                correct: 1,
+                desc: "正解:B。三台都在同一個管理網段、中間沒有防火牆,所以 Gateway ↔ MX 的通訊不必另開。需要開的是跨出網段的規則,例如 MX 與 Gateway 對外的 443、DNS / NTP 等(送 Splunk 若同網段也不經防火牆)。"
+            }
+        ];
+
+
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionBox = document.createElement('div');
+            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
+
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border mb-2 text-gray-700" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            questionBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
+                <div class="space-y-2 mb-4">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
+                    <p class="font-bold result-title"></p>
+                    <p class="text-sm text-gray-600 mt-1">${item.desc}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionBox);
+        });
+
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            if (element.parentElement.dataset.answered) return;
+            element.parentElement.dataset.answered = "true";
+
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+                opt.classList.add('disabled');
+            });
+
+            if (optIndex === data.correct) {
+                element.classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了!";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                element.classList.add('bg-red-100', 'border-red-500');
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了!";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+    </script>
+</body>
+</html>

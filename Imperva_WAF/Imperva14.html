@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imperva WAF Gateway 實戰課程 - Imperva Cloud WAF</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        /* 卡片主體樣式 (Imperva Blue) */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #0284c7;
+        }
+
+        /* 重點提示框 (藍) */
+        .highlight-box {
+            background-color: #f0f9ff;
+            border-left: 4px solid #0284c7;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 技術名詞標記 */
+        .tech-term {
+            color: #075985;
+            font-weight: 700;
+            background-color: #e0f2fe;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
+        }
+
+        /* 比喻說明框 (綠) */
+        .analogy-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 版本差異框 (紫) */
+        .version-box {
+            background-color: #faf5ff;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 常見踩坑框 (橘,避開主色藍) */
+        .pitfall-box {
+            background-color: #fff7ed;
+            border-left: 4px solid #ea580c;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .diagram-container {
+            display: block;
+            background-color: #ffffff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-top: 1rem;
+        }
+
+        .diagram-container svg {
+            display: block;
+            width: 100%;
+            max-width: 520px;
+            margin: 0 auto;
+        }
+
+        /* 示意畫面 (仿管理介面) */
+        .mock-window {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            background: #ffffff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            margin-top: 1rem;
+        }
+        .mock-titlebar {
+            background: #e2e8f0;
+            padding: 0.4rem 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: #475569;
+        }
+        .mock-dots span {
+            display: inline-block;
+            width: 0.6rem;
+            height: 0.6rem;
+            border-radius: 50%;
+            background: #94a3b8;
+            margin-right: 0.2rem;
+        }
+        .mock-url {
+            background: #ffffff;
+            border-radius: 0.25rem;
+            padding: 0.1rem 0.5rem;
+            flex: 1;
+            min-width: 0;
+            font-family: ui-monospace, Consolas, monospace;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .mock-nav {
+            background: #1f2937;
+            color: #cbd5e1;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.25rem 1rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+        }
+        .mock-nav .brand { font-weight: 700; color: #ffffff; margin-right: 0.5rem; }
+        .mock-nav .on { color: #ffffff; border-bottom: 2px solid #0284c7; padding-bottom: 0.1rem; }
+        .mock-crumb {
+            font-size: 0.8rem;
+            color: #475569;
+            padding: 0.5rem 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f8fafc;
+        }
+        .mock-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            padding: 0.5rem 0.75rem 0;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.8rem;
+        }
+        .mock-tabs span {
+            padding: 0.3rem 0.7rem;
+            border: 1px solid #e5e7eb;
+            border-bottom: none;
+            border-radius: 0.3rem 0.3rem 0 0;
+            background: #f1f5f9;
+            color: #475569;
+        }
+        .mock-tabs span.on { background: #ffffff; color: #111827; font-weight: 600; }
+        .mock-body { padding: 0.75rem; font-size: 0.85rem; }
+        .mock-section { font-weight: 700; color: #334155; margin: 0.75rem 0 0.25rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.2rem; }
+        .mock-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.35rem 0.6rem;
+            padding: 0.35rem 0;
+        }
+        .mock-label { width: 12rem; color: #374151; font-weight: 500; }
+        .mock-input {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+            padding: 0.2rem 0.5rem;
+            min-width: 12rem;
+            background: #ffffff;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #111827;
+        }
+        .mock-select::after { content: " ▾"; color: #64748b; }
+        .mock-indent { padding-left: 2rem; }
+        .mock-btn {
+            display: inline-block;
+            border: 1px solid #94a3b8;
+            background: #f8fafc;
+            border-radius: 0.25rem;
+            padding: 0.2rem 0.7rem;
+            font-size: 0.8rem;
+            color: #1f2937;
+        }
+        .mock-btn.primary { background: #1f2937; color: #ffffff; border-color: #1f2937; }
+        .mock-hl { outline: 2px solid #0284c7; outline-offset: 2px; border-radius: 0.25rem; }
+        .mock-list {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+            min-width: 9rem;
+            min-height: 4.2rem;
+            padding: 0.25rem 0.5rem;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.8rem;
+            background: #ffffff;
+        }
+        .mock-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 0.5rem; }
+        .mock-table th { background: #f1f5f9; text-align: left; padding: 0.35rem 0.5rem; border: 1px solid #e2e8f0; color: #334155; }
+        .mock-table td { padding: 0.35rem 0.5rem; border: 1px solid #e2e8f0; }
+        .mock-caption {
+            font-size: 0.75rem;
+            color: #6b7280;
+            padding: 0.5rem 0.75rem;
+            background: #f9fafb;
+            border-top: 1px dashed #e5e7eb;
+        }
+        .step-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.4rem;
+            height: 1.4rem;
+            border-radius: 9999px;
+            background: #0284c7;
+            color: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .step-list li { display: flex; gap: 0.6rem; align-items: flex-start; margin-bottom: 0.6rem; }
+
+        /* 模擬器 */
+        .sim-note { font-size: 0.8rem; color: #6b7280; margin-top: 0.25rem; }
+        .sim-card {
+            border: 1px solid #e5e7eb;
+            border-left-width: 4px;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.6rem;
+            background: #ffffff;
+        }
+        .sim-card h4 { font-weight: 700; margin-bottom: 0.25rem; }
+        .sim-card p { font-size: 0.875rem; color: #1f2937; line-height: 1.6; }
+        .sim-card.ok { border-left-color: #16a34a; background: #f0fdf4; }
+        .sim-card.ok h4 { color: #15803d; }
+        .sim-card.warn { border-left-color: #ea580c; background: #fff7ed; }
+        .sim-card.warn h4 { color: #c2410c; }
+        .sim-card.danger { border-left-color: #dc2626; background: #fef2f2; }
+        .sim-card.danger h4 { color: #b91c1c; }
+        .sim-card.info { border-left-color: #0284c7; background: #f0f9ff; }
+        .sim-card.info h4 { color: #075985; }
+
+        @media (max-width: 640px) {
+            main { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+            .section-card { padding: 1rem; }
+            .diagram-container { padding: 0.25rem; }
+            .mock-label { width: calc(100% - 2.2rem); }
+            .mock-indent .mock-label { width: 100%; }
+            .mock-input { min-width: 0; width: 100%; }
+            .mock-indent { padding-left: 0.75rem; }
+            .mock-body { padding: 0.5rem; }
+        }
+
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover:not(.disabled) {
+            background-color: #f3f4f6;
+        }
+
+        .footer-signature {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+            margin-top: 4rem;
+        }
+        /* Long URLs and code wrap on narrow screens */
+        main { overflow-wrap: break-word; } main code { overflow-wrap: anywhere; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-sky-800 to-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-shield-halved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold">Imperva WAF Gateway 實戰課程</h1>
+                    <p class="text-sky-100 mt-1">單元 14:Imperva Cloud WAF</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 章節導覽 -->
+    <nav class="bg-white border-b shadow-sm" aria-label="章節導覽">
+        <div class="container mx-auto px-4 py-2 max-w-5xl flex flex-wrap items-center justify-between gap-2 text-sm">
+            <a href="Imperva13.html" class="text-sky-700 hover:underline"><i class="fas fa-arrow-left mr-1"></i>上一章(第 13 章)</a>
+            <a href="Imperva00.html" class="text-sky-700 hover:underline"><i class="fas fa-list mr-1"></i>課程目錄</a>
+            <a href="Imperva15.html" class="text-sky-700 hover:underline">下一章(第 15 章)<i class="fas fa-arrow-right ml-1"></i></a>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <!-- Introduction -->
+        <div class="mb-8">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
+                <h2 class="text-xl font-bold text-blue-800 mb-2 flex items-center">
+                    <i class="fas fa-user-tie mr-2"></i>講師導言
+                </h2>
+                <p class="text-blue-900 leading-relaxed">
+                    前面 13 章,我們都在談機房裡的 WAF Gateway。這一章換個角度:如果不想放設備,只要改 DNS,就能把網站交給 Imperva 全球各地的節點(PoP)代為擋攻擊,這就是
+                    <strong>Cloud WAF</strong>。它聽起來很簡單,但「DNS 怎麼改」和「origin 怎麼保護」做錯,雲端防護就形同虛設。
+                    這一章也會教你判斷:什麼網站該上雲、什麼該留在地端,或是兩者並用。
+                </p>
+            </div>
+        </div>
+
+        <!-- 學習目標 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-gray-100 text-gray-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Goals</span>
+                本章學習目標
+            </h2>
+            <ul class="list-disc pl-6 space-y-1 text-gray-700">
+                <li>說明 Cloud WAF 的運作方式:DNS 導流、PoP 反向代理、TLS 在 Imperva 終結</li>
+                <li>依網域型態決定 DNS 設定:子網域用 CNAME、裸網域用兩筆 A 記錄</li>
+                <li>做好 origin 保護:防火牆只允許 Imperva IP,清單以官方 API 為準,不寫死</li>
+                <li>比較 Cloud WAF 與 WAF Gateway,並依情境選擇雲端、地端或混合架構</li>
+                <li>說出混合架構 B(Cloud WAF 串接 WAF Gateway)要特別處理的真實 IP 問題</li>
+            </ul>
+            <p class="text-sm text-gray-500 mt-4"><i class="fas fa-map-signs mr-1"></i>本章是前 13 章地端 WAF Gateway 的延伸;第 15 章綜合實作會回頭引用本章的架構 B。</p>
+        </div>
+
+        <!-- 一、Cloud WAF 是什麼 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">一、Cloud WAF 是什麼:不放設備,改 DNS</h2>
+
+            <div class="analogy-box">
+                <p class="font-bold text-green-800 mb-1"><i class="fas fa-building mr-1"></i>用「總機轉接」來想</p>
+                <ul class="list-disc pl-6 text-green-900 space-y-1">
+                    <li>地端 WAF Gateway 像<strong>在自家大門口加一道安檢門</strong>:設備放在你的機房,流量從你家門口進來。</li>
+                    <li>Cloud WAF 像<strong>把公司電話改成先轉到專業總機</strong>:所有訪客先打到總機(Imperva PoP),檢查過才轉給你,你只要改「電話簿」(DNS)。</li>
+                </ul>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">名稱小卡</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">名稱</th><th class="py-2 px-4 border text-left">說明</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">Imperva Cloud WAF</td><td class="py-2 px-4 border">雲端 WAF 服務,前身 Incapsula</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Cloud Application Security</td><td class="py-2 px-4 border">產品線名稱,也併入了 Distil 的 Bot 技術</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Web Protection</td><td class="py-2 px-4 border">文件中對「網站防護」服務的稱呼</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Cloud Security Console</td><td class="py-2 px-4 border">雲端管理主控台(my.imperva.com)</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">運作方式:一個請求怎麼走</h3>
+            <p class="text-gray-700 leading-relaxed">
+                Cloud WAF 把網站的 DNS 改指向 Imperva 提供的位址,訪客依所在位置被解析到最近的 PoP。每個請求都在 PoP 終結,由反向代理做 WAF、DDoS 防護與 CDN,檢查通過才轉送到 origin(來源伺服器)。
+            </p>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 360 480" role="img" aria-labelledby="svg1-title" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans TC, sans-serif">
+                    <title id="svg1-title">Cloud WAF 的請求路徑:使用者查 DNS 取得 Imperva CNAME,連到最近的 Imperva PoP 做反向代理、WAF、DDoS 與 CDN,再轉送到只允許 Imperva IP 的 origin</title>
+                    <defs>
+                        <marker id="arrow1" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+                        </marker>
+                    </defs>
+                    <rect x="60" y="10" width="240" height="40" rx="8" fill="#f1f5f9" stroke="#94a3b8"/>
+                    <text x="180" y="36" text-anchor="middle" font-size="15" fill="#1f2937">使用者(瀏覽 shop.example.com)</text>
+                    <line x1="180" y1="50" x2="180" y2="74" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+
+                    <rect x="20" y="78" width="320" height="64" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+                    <text x="180" y="102" text-anchor="middle" font-size="14" font-weight="700" fill="#4338ca">① DNS 導流</text>
+                    <text x="180" y="124" text-anchor="middle" font-size="13" fill="#1f2937">CNAME → xxxx.incapdns.net(Imperva 提供)</text>
+                    <line x1="180" y1="142" x2="180" y2="166" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+                    <text x="190" y="160" font-size="13" fill="#475569">解析到最近的 PoP</text>
+
+                    <rect x="20" y="170" width="320" height="130" rx="10" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="180" y="194" text-anchor="middle" font-size="15" font-weight="700" fill="#075985">② Imperva PoP</text>
+                    <text x="180" y="220" text-anchor="middle" font-size="14" fill="#1f2937">TLS 在這裡終結(Imperva 端憑證)</text>
+                    <text x="180" y="246" text-anchor="middle" font-size="14" fill="#1f2937">反向代理 + WAF + DDoS + CDN</text>
+                    <text x="180" y="276" text-anchor="middle" font-size="13" fill="#6b7280">檢查通過才轉送到 origin</text>
+                    <line x1="180" y1="300" x2="180" y2="326" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+                    <text x="190" y="319" font-size="13" fill="#475569">HTTPS</text>
+
+                    <rect x="20" y="330" width="320" height="78" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+                    <text x="180" y="356" text-anchor="middle" font-size="15" font-weight="700" fill="#15803d">③ Origin 203.0.113.20</text>
+                    <text x="180" y="382" text-anchor="middle" font-size="14" fill="#1f2937">防火牆只允許 Imperva IP</text>
+
+                    <rect x="20" y="424" width="320" height="46" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-dasharray="5 4"/>
+                    <text x="180" y="445" text-anchor="middle" font-size="13" fill="#b91c1c">✗ 攻擊者若知道 origin 真實 IP</text>
+                    <text x="180" y="462" text-anchor="middle" font-size="13" fill="#b91c1c">直連就繞過 Cloud WAF,所以必須擋掉</text>
+                </svg>
+            </div>
+
+            <ol class="step-list mt-4 text-gray-700">
+                <li><span class="step-badge">1</span><span><strong>DNS 導流</strong>:網站的 DNS 改指向 Imperva 提供的 CNAME(例如 <code>mysite.incapdns.net</code>),依訪客位置解析到最近的 PoP。</span></li>
+                <li><span class="step-badge">2</span><span><strong>反向代理</strong>:每個請求都終結在 PoP,檢查通過才轉送到 origin。</span></li>
+                <li><span class="step-badge">3</span><span><strong>TLS 在 Imperva 終結</strong>:Imperva 代理上必須有憑證,使用者看到的是 Imperva 端憑證;origin 上的憑證另外保留。</span></li>
+                <li><span class="step-badge">4</span><span><strong>可限制 PoP</strong>:有資料駐留法規需求時,可限制只用特定 PoP。</span></li>
+            </ol>
+
+            <div class="highlight-box">
+                <p class="font-bold text-sky-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>和地端 WAF Gateway 最大的差別</p>
+                <p class="text-gray-800">Cloud WAF 只能保護「能透過公網 DNS 導流」的網站。內部系統如 <code>erp.corp.example.com</code> 不適用,請留給 WAF Gateway。</p>
+            </div>
+        </div>
+
+        <!-- 二、Onboarding -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">二、動手做:把 shop.example.com 接上 Cloud WAF</h2>
+            <p class="text-gray-700 mb-2">以範例環境的 <span class="tech-term">shop.example.com</span> 為例,使用新版精靈(官方文件 Onboard a Website)。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-4 mb-2">事前準備</h3>
+            <ul class="list-disc pl-6 space-y-1 text-gray-700">
+                <li><strong>帳號權限</strong>:用 Imperva 受管站台憑證接入,需要 <strong>Add Sites</strong> 與 <strong>Manage SSL Certificates</strong> 兩項權限;不含憑證只需要 Add Sites。</li>
+                <li>能修改 <code>example.com</code> 的 DNS。</li>
+                <li>確認 origin:<code>shop.example.com</code> 目前對外 VIP 為 <code>203.0.113.20</code>。</li>
+            </ul>
+
+            <div class="mock-window">
+                <div class="mock-titlebar">
+                    <span class="mock-dots"><span></span><span></span><span></span></span>
+                    <span class="mock-url">https://my.imperva.com</span>
+                </div>
+                <div class="mock-nav">
+                    <span class="brand">Cloud Security Console</span>
+                    <span class="on">Application</span>
+                </div>
+                <div class="mock-crumb">Application &gt; Websites &gt; Add website</div>
+                <div class="mock-body">
+                    <div class="mock-section">1. Domain and Origin</div>
+                    <div class="mock-row"><span class="step-badge">1</span><span class="mock-label">Domain</span><span class="mock-input mock-hl">shop.example.com</span></div>
+                    <div class="mock-row"><span class="step-badge">2</span><span class="mock-label">Origin</span><span class="mock-input mock-hl">203.0.113.20</span></div>
+                    <div class="mock-section">2. SSL/TLS</div>
+                    <div class="mock-row"><span class="step-badge">3</span><span class="mock-hl">依精靈指示新增一筆 DNS CNAME 記錄,驗證網域所有權</span></div>
+                    <div class="mock-section">3. Traffic Routing</div>
+                    <div class="mock-row"><span class="step-badge">4</span><span class="mock-hl">子網域:DNS 改 CNAME 指向 Imperva 給的位址</span></div>
+                    <div class="mock-row mock-indent"><span>裸網域:設定 Imperva 給的兩筆 A 記錄</span></div>
+                </div>
+                <div class="mock-caption"><i class="fas fa-circle-info mr-1"></i>示意畫面:部分英文欄位名稱待實機確認(Domain 填完整網域;Origin 填 IP 或 CNAME;Traffic Routing 為導流步驟),版面、按鈕位置與配色以實機為準。</div>
+            </div>
+
+            <ol class="step-list mt-4 text-gray-700">
+                <li><span class="step-badge">1</span><span>在 Cloud Security Console 進入 <strong>Application &gt; Websites &gt; Add website</strong>,輸入完整網域 <code>shop.example.com</code>。</span></li>
+                <li><span class="step-badge">2</span><span>系統會嘗試自動找 origin;也可以手動填 origin IP 或 CNAME。<strong>若 origin 是會變動 IP 的負載平衡器 CNAME,要手動填 CNAME。</strong></span></li>
+                <li><span class="step-badge">3</span><span><strong>SSL/TLS</strong>:依精靈指示新增一筆 DNS CNAME 記錄驗證網域所有權,由 Imperva 簽發受管站台憑證。注意:用站台憑證接入的網站<strong>不支援 non-SNI</strong> 用戶端;需要支援 non-SNI 要改用舊版精靈與帳號憑證。</span></li>
+                <li><span class="step-badge">4</span><span><strong>導流</strong>:子網域(<code>shop.example.com</code>、<code>www.example.com</code>)把 DNS 改成 <strong>CNAME</strong> 指向 Imperva 給的位址;裸網域(<code>example.com</code>)則設定 Imperva 給的<strong>兩筆 A 記錄</strong>。</span></li>
+                <li><span class="step-badge">5</span><span><strong>保護 origin</strong>:origin 防火牆只允許 Imperva IP(第三節)。</span></li>
+                <li><span class="step-badge">6</span><span><strong>完成</strong>:DNS 依 TTL 在 5 分鐘到 24 小時內逐步切換。</span></li>
+            </ol>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">切換建議</h3>
+            <ul class="list-disc pl-6 space-y-1 text-gray-700">
+                <li>正式切換前幾天先把 DNS TTL 調低,切換後確認穩定再調回。</li>
+                <li>切換期間同時有「直連 origin」與「經 Imperva」兩種流量,第 5 步的 origin 限制要在 DNS 完全生效後才收緊,否則會擋掉尚未切換的使用者<span class="text-xs text-gray-500">【推論】</span>。</li>
+                <li>大量站台可改用 Terraform 接入(官方有 Terraform 文件)。</li>
+            </ul>
+        </div>
+
+        <!-- 三、Origin 保護 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">三、Origin 保護:一定要做的一件事</h2>
+
+            <div class="highlight-box">
+                <p class="font-bold text-sky-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>為什麼一定要做</p>
+                <p class="text-gray-800">攻擊者只要知道 origin 真實 IP,就能繞過 Cloud WAF 直接打 <code>203.0.113.20</code>。所以 origin 前的防火牆必須只接受 Imperva PoP 的來源 IP。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">IP 清單從哪裡來</h3>
+            <ul class="list-disc pl-6 space-y-2 text-gray-700">
+                <li>官方 KB 列有 Cloud WAF 的 IP 段(IPv4 十餘段加 IPv6,例如 <code>199.83.128.0/21</code>、<code>2a02:e980::/29</code>)。<strong>IP 段以官方 API 為準</strong>,本教材不列完整清單,也不要把任何一份清單當固定值寫死在防火牆。</li>
+                <li>官方 API 可取得 json、apache、nginx、iptables 等格式的最新清單,位址如下:
+                    <pre class="bg-gray-900 text-gray-100 rounded p-3 mt-2 text-sm overflow-x-auto"><code>https://my.imperva.com/api/integration/v1/ips</code></pre>
+                    <span class="text-sm text-gray-600">呼叫方式與驗證需求<span class="text-xs text-gray-500">【待實機確認】</span>。</span>
+                </li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">建議做法</h3>
+            <ol class="step-list mt-2 text-gray-700">
+                <li><span class="step-badge">1</span><span>用排程腳本定期呼叫官方 API 取清單,與現有防火牆物件比對;有差異時通知管理者審核後更新。</span></li>
+                <li><span class="step-badge">2</span><span>防火牆物件命名如 <code>OBJ-Imperva-CloudWAF</code>(IP 段以官方 API 為準),origin 的 443 規則只允許此物件。</span></li>
+                <li><span class="step-badge">3</span><span>注意 SIEM 記錄:官方公告 Cloud WAF 送 SIEM log 的舊來源 IP 已於 2026 年 8 月底退役,改用 Cloud WAF IP;接收端白名單也要跟著更新。</span></li>
+                <li><span class="step-badge">4</span><span>已用 origin IP 限制後,origin 看到的來源 IP 都是 Imperva;真實用戶端 IP 要從 Imperva 帶入的 header 取得,應用程式與記錄要配合調整(header 名稱<span class="text-xs text-gray-500">【待實機確認】</span>)。</span></li>
+            </ol>
+        </div>
+
+        <!-- 四、主要功能 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">四、Cloud WAF 的主要功能</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">功能</th><th class="py-2 px-4 border text-left">說明</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">WAF Rules</td><td class="py-2 px-4 border">預設由 Imperva 安全團隊維護,通常不需調校;WAF 設定於 2022 年集中到 <strong>WAF Rules policy</strong></td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Bot 防護</td><td class="py-2 px-4 border">用戶端分類 + <strong>Advanced Bot Protection</strong>(雲端產品,地端 WAF Gateway 也能整合,見第 10 章)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">DDoS</td><td class="py-2 px-4 border"><strong>DDoS Protection for Websites</strong>(L3/4 + L7)、<strong>DDoS Protection for Networks</strong>(BGP、GRE 等)、IP Protection</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">API Security</td><td class="py-2 px-4 border">雲端版 API 安全</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Client-Side Protection</td><td class="py-2 px-4 border">防範瀏覽器端 skimming(Magecart 類)攻擊,協助符合 PCI DSS 6.4.3、11.6.1</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Attack Analytics</td><td class="py-2 px-4 border">告警分群成事件;可同時分析地端 WAF Gateway 匯出的告警(第 12 章)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">其他</td><td class="py-2 px-4 border">CDN / 加速、Load Balancing / Site Failover、ATO Protection、REST API、SIEM log 整合、Imperva Security AI Assistant(Cloud Security Console 內)</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-gray-700 mt-3"><i class="fas fa-calendar-week mr-1 text-sky-600"></i>更新節奏:Cloud WAF 每週日發布更新;地端 ADC 內容約每兩週一次(第 9 章)。</p>
+        </div>
+
+        <!-- 五、比較 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">五、Cloud WAF 與 WAF Gateway 比較</h2>
+            <p class="text-gray-700 mb-3">兩者不是誰取代誰,而是各有擅長的場景。先看完整比較,再看第七、八節怎麼選。</p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">比較項目</th><th class="py-2 px-4 border text-left">Cloud WAF</th><th class="py-2 px-4 border text-left">WAF Gateway(地端)</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">部署方式</td><td class="py-2 px-4 border">改 DNS(CNAME / A)導流到 PoP</td><td class="py-2 px-4 border">硬體或 VM 放在網路路徑上(或旁接)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">可保護對象</td><td class="py-2 px-4 border">可經公網 DNS 導流的網站與 API</td><td class="py-2 px-4 border">對外與內部系統皆可(如 <code>erp.corp.example.com</code>)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">部署模式</td><td class="py-2 px-4 border">反向代理</td><td class="py-2 px-4 border">Reverse Proxy(NGRP)、ABR、Bridge、Sniffing、TRP(第 4 章)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">TLS 終結</td><td class="py-2 px-4 border">Imperva PoP,憑證放在 Imperva</td><td class="py-2 px-4 border">Reverse Proxy / ABR 在自己的 Gateway 終結,金鑰留在內網,可搭配 HSM;Sniffing / Bridge 是被動解密(限 TLS 1.2 靜態 RSA),不終結 TLS</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">政策維護</td><td class="py-2 px-4 border">Imperva 維護 WAF Rules,調校需求低</td><td class="py-2 px-4 border">自管 MX;Dynamic Profiling 正面模型,可細部調校</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">大流量 DDoS</td><td class="py-2 px-4 border">內建,由全球 PoP 吸收</td><td class="py-2 px-4 border">受限於設備與上游頻寬,需另外規劃</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">CDN / 加速</td><td class="py-2 px-4 border">內建</td><td class="py-2 px-4 border">無</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">容量規劃</td><td class="py-2 px-4 border">由服務商負責</td><td class="py-2 px-4 border">自行選型(第 5 章)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">更新</td><td class="py-2 px-4 border">每週日</td><td class="py-2 px-4 border">ADC 約兩週一次,軟體升級自行排程</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">資料駐留</td><td class="py-2 px-4 border">可限制 PoP</td><td class="py-2 px-4 border">資料不離開內網</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">管理介面</td><td class="py-2 px-4 border">Cloud Security Console</td><td class="py-2 px-4 border">MX GUI(另有 SOM 管多台 MX)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">前置工作</td><td class="py-2 px-4 border">origin IP 限制、DNS 切換</td><td class="py-2 px-4 border">網路設計、HA、金鑰匯入、學習期</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 六、Elastic WAF 與混合 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">六、Elastic WAF 與混合架構</h2>
+
+            <div class="bg-gray-50 border rounded-lg p-4">
+                <h3 class="font-bold text-gray-800 mb-1"><i class="fas fa-cubes text-sky-600 mr-2"></i>Imperva Elastic WAF</h3>
+                <p class="text-sm text-gray-700">把 Cloud WAF 引擎做成容器版,裝在客戶自己的 Kubernetes,由 Cloud Security Console 集中管理。官方定位是讓雲端與自建環境有一致的體驗。適合應用程式已經跑在 Kubernetes、又希望用 Cloud WAF 規則與主控台的情境。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">常見混合架構(以範例環境說明)</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">架構</th><th class="py-2 px-4 border text-left">做法</th><th class="py-2 px-4 border text-left">適合</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">A. 分工</td><td class="py-2 px-4 border"><code>shop.example.com</code> 走 Cloud WAF(DDoS + CDN);<code>api.example.com</code> 與 <code>erp.corp.example.com</code> 由 WAF Gateway 保護</td><td class="py-2 px-4 border">對外網站要抗 DDoS,API 與內部系統要細部政策</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">B. 串接</td><td class="py-2 px-4 border">Cloud WAF → origin 設為 WAF Gateway 前的 VIP <code>203.0.113.20</code> → <code>GG-Shop</code> → LB <code>10.0.10.20</code></td><td class="py-2 px-4 border">需要雲端 DDoS 吸收,又要保留地端 Dynamic Profiling 與資料留存</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">C. 統一分析</td><td class="py-2 px-4 border">兩邊告警都送 Attack Analytics</td><td class="py-2 px-4 border">想要單一事件檢視</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">架構 B 長什麼樣</h3>
+            <div class="diagram-container">
+                <svg viewBox="0 0 360 440" role="img" aria-labelledby="svg2-title" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans TC, sans-serif">
+                    <title id="svg2-title">混合架構 B:使用者流量先到 Cloud WAF,轉送到 VIP 203.0.113.20 後進入 WAF Gateway 群組 GG-Shop,再到負載平衡器 10.0.10.20 與後端網站</title>
+                    <defs>
+                        <marker id="arrow2" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+                        </marker>
+                    </defs>
+                    <rect x="60" y="10" width="240" height="38" rx="8" fill="#f1f5f9" stroke="#94a3b8"/>
+                    <text x="180" y="35" text-anchor="middle" font-size="15" fill="#1f2937">使用者</text>
+                    <line x1="180" y1="48" x2="180" y2="70" stroke="#64748b" stroke-width="2" marker-end="url(#arrow2)"/>
+
+                    <rect x="20" y="74" width="320" height="60" rx="10" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="180" y="98" text-anchor="middle" font-size="15" font-weight="700" fill="#075985">Cloud WAF(Imperva PoP)</text>
+                    <text x="180" y="120" text-anchor="middle" font-size="13" fill="#1f2937">第一層 TLS:Imperva 一張憑證</text>
+                    <line x1="180" y1="134" x2="180" y2="156" stroke="#64748b" stroke-width="2" marker-end="url(#arrow2)"/>
+                    <text x="190" y="151" font-size="13" fill="#475569">→ VIP 203.0.113.20</text>
+
+                    <rect x="20" y="160" width="320" height="86" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+                    <text x="180" y="184" text-anchor="middle" font-size="15" font-weight="700" fill="#4338ca">WAF Gateway:GG-Shop</text>
+                    <text x="180" y="208" text-anchor="middle" font-size="13" fill="#1f2937">第二層 TLS:地端 Gateway 一張憑證</text>
+                    <text x="180" y="230" text-anchor="middle" font-size="13" fill="#1f2937">Dynamic Profiling、資料留存</text>
+                    <line x1="180" y1="246" x2="180" y2="268" stroke="#64748b" stroke-width="2" marker-end="url(#arrow2)"/>
+
+                    <rect x="60" y="272" width="240" height="40" rx="8" fill="#f1f5f9" stroke="#94a3b8"/>
+                    <text x="180" y="298" text-anchor="middle" font-size="14" fill="#1f2937">LB 10.0.10.20</text>
+                    <line x1="180" y1="312" x2="180" y2="330" stroke="#64748b" stroke-width="2" marker-end="url(#arrow2)"/>
+
+                    <rect x="60" y="334" width="240" height="40" rx="8" fill="#f0fdf4" stroke="#16a34a"/>
+                    <text x="180" y="360" text-anchor="middle" font-size="14" fill="#1f2937">後端 web 節點</text>
+
+                    <rect x="20" y="386" width="320" height="48" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-dasharray="5 4"/>
+                    <text x="180" y="407" text-anchor="middle" font-size="13" fill="#c2410c">注意:Gateway 看到的來源 IP 全是 PoP</text>
+                    <text x="180" y="425" text-anchor="middle" font-size="13" fill="#c2410c">要取 Imperva 帶入的 header 還原真實 IP</text>
+                </svg>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>架構 B 的注意事項</p>
+                <ul class="list-disc pl-6 text-gray-800 space-y-1">
+                    <li>WAF Gateway 看到的來源 IP 全是 Imperva PoP。要讓地端政策、IP Block、報表以真實用戶端 IP 運作,Gateway 必須依 Imperva 帶入的 header 取得原始 IP;設定位置<span class="text-xs text-gray-500">【待實機確認】</span>。</li>
+                    <li>地端 IP 類政策(例如 IP Block)若沒設定好,會一次封鎖整個 PoP 位址,影響大量正常使用者。</li>
+                    <li>兩層都做 TLS:Imperva 一張憑證、地端 Gateway 一張。</li>
+                </ul>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>目前限制</p>
+                <p class="text-gray-800">Attack Analytics 提供的是<strong>統一分析</strong>,不是統一政策管理;MX 與 Cloud Security Console 仍是兩套管理介面。能否在單一主控台同時管理兩邊政策,目前查不到官方說明<span class="text-xs text-gray-500">【待實機確認】</span>。</p>
+            </div>
+        </div>
+
+        <!-- 七、選擇建議 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">七、選擇建議:什麼情境選哪個</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">情境</th><th class="py-2 px-4 border text-left">建議</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border">對外網站、常遭 DDoS、沒有機房設備人力</td><td class="py-2 px-4 border font-semibold">Cloud WAF</td></tr>
+                        <tr><td class="py-2 px-4 border">內部系統、法規要求金鑰與資料不得離開機房</td><td class="py-2 px-4 border font-semibold">WAF Gateway</td></tr>
+                        <tr><td class="py-2 px-4 border">需要 Sniffing / Bridge 透通部署、不能改 DNS</td><td class="py-2 px-4 border font-semibold">WAF Gateway</td></tr>
+                        <tr><td class="py-2 px-4 border">應用在 Kubernetes、想用雲端規則與主控台</td><td class="py-2 px-4 border font-semibold">Elastic WAF</td></tr>
+                        <tr><td class="py-2 px-4 border">兩者都有</td><td class="py-2 px-4 border font-semibold">混合架構 A 或 B,告警匯入 Attack Analytics</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 八、模擬器 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">八、動手玩:Cloud WAF DNS 導流模擬</h2>
+            <p class="text-gray-700 mb-2">選擇要導流的名稱、origin 型態、憑證接入方式與目前的 DNS 切換進度,看看 DNS 該設哪種紀錄,以及 origin 防火牆現在能不能只放 Imperva IP。</p>
+            <p class="sim-note"><i class="fas fa-circle-info mr-1"></i>教學範例:Imperva 給的 CNAME / A 記錄與 IP 段都以 Cloud Security Console 與官方 API 顯示的為準,本頁不列任何固定 IP 清單。</p>
+
+            <div class="grid md:grid-cols-2 gap-4 mt-4">
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-globe mr-1 text-sky-600"></i>要導流的名稱</h3>
+                    <select id="sim-name" class="border rounded px-2 py-1 w-full mb-3">
+                        <option value="shop">shop.example.com(子網域)</option>
+                        <option value="www">www.example.com(子網域)</option>
+                        <option value="apex">example.com(裸網域)</option>
+                        <option value="internal">erp.corp.example.com(內部系統)</option>
+                    </select>
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-server mr-1 text-sky-600"></i>Origin 型態</h3>
+                    <select id="sim-origin" class="border rounded px-2 py-1 w-full">
+                        <option value="ip">固定 IP(203.0.113.20)</option>
+                        <option value="lb">會變動 IP 的負載平衡器(以 CNAME 指向)</option>
+                    </select>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-certificate mr-1 text-sky-600"></i>憑證接入方式</h3>
+                    <select id="sim-cert" class="border rounded px-2 py-1 w-full mb-2">
+                        <option value="managed">Imperva 受管站台憑證(新版精靈)</option>
+                        <option value="account">帳號憑證(舊版精靈)</option>
+                    </select>
+                    <label class="block mb-3 text-sm"><input type="checkbox" id="sim-nonsni" class="mr-2">有不支援 SNI(non-SNI)的老舊用戶端或設備</label>
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-clock mr-1 text-sky-600"></i>DNS 切換進度</h3>
+                    <select id="sim-dns" class="border rounded px-2 py-1 w-full">
+                        <option value="before">還沒改 DNS(使用者都直連 origin)</option>
+                        <option value="mid">已改 DNS,但 TTL 還沒全部過期(部分使用者仍直連)</option>
+                        <option value="done">DNS 已完全生效(所有使用者都經過 Imperva)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 border rounded-lg p-4 mt-4">
+                <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-fire-flame-curved mr-1 text-sky-600"></i>Origin 防火牆目前的狀態</h3>
+                <select id="sim-fw" class="border rounded px-2 py-1 w-full">
+                    <option value="open">對外全開(沒有做 origin 限制)</option>
+                    <option value="only">只允許 Imperva IP(清單取自官方 API 最新版)</option>
+                    <option value="stale">只允許 Imperva IP,但清單是手動貼上、很久沒更新</option>
+                </select>
+            </div>
+
+            <h3 class="font-bold text-gray-800 mt-6 mb-2">模擬結果</h3>
+            <div id="sim-result"></div>
+        </div>
+
+        <!-- 九、踩坑 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">九、常見踩坑</h2>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>沒做 origin IP 限制</p>
+                <p class="text-gray-800">Cloud WAF 形同虛設,攻擊者直連 origin。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>把 IP 清單寫死</p>
+                <p class="text-gray-800">Imperva IP 段會調整,清單要以官方 API 定期更新。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>太早收緊 origin</p>
+                <p class="text-gray-800">DNS 還沒全部切換就只允許 Imperva IP,TTL 內的使用者連不上。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>non-SNI 用戶端連不上</p>
+                <p class="text-gray-800">用站台憑證接入不支援 non-SNI,老舊用戶端或設備要改用帳號憑證接入。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>origin 是會變動 IP 的 LB</p>
+                <p class="text-gray-800">沒手動填 CNAME,origin IP 變動後 Imperva 轉送失敗。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>串接架構沒處理真實 IP</p>
+                <p class="text-gray-800">地端 WAF 把 Imperva PoP 當攻擊者封鎖。</p>
+            </div>
+        </div>
+
+        <!-- 十、新舊對照 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">十、新舊對照</h2>
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-2"><i class="fas fa-code-branch mr-1"></i>舊簡報說法 vs 現況</p>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm border bg-white">
+                        <thead class="bg-purple-100">
+                            <tr><th class="py-2 px-4 border text-left">舊簡報說法</th><th class="py-2 px-4 border text-left">現況</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td class="py-2 px-4 border">部署形式只有 Physical Appliances、Virtual Appliances、Agents(舊簡報 p.14)</td><td class="py-2 px-4 border">另有 Cloud WAF(DNS 導流的雲端反向代理)與 Elastic WAF(Kubernetes 容器版)</td></tr>
+                            <tr><td class="py-2 px-4 border">Bot Mitigation 以 JavaScript 與 cookie 挑戰為主(舊簡報 p.90–92)</td><td class="py-2 px-4 border">Cloud WAF 用用戶端分類 + Advanced Bot Protection</td></tr>
+                            <tr><td class="py-2 px-4 border">Virtual Patching 對應 PCI 6.6(舊簡報 p.15)</td><td class="py-2 px-4 border">PCI DSS 條號已改版;Client-Side Protection 文件對應 PCI DSS 6.4.3、11.6.1</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
+                隨堂測驗
+            </h2>
+            <p class="mb-6 text-gray-600">請點選您認為正確的選項,系統將會顯示解析。</p>
+            <div class="space-y-6" id="quiz-container"></div>
+        </div>
+
+    </main>
+
+    <footer class="footer-signature">
+        Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver.2026.11.02.12.07
+    </footer>
+
+
+    <script>
+        // ===== Cloud WAF DNS 導流模擬器 =====
+        const selName = document.getElementById('sim-name');
+        const selOrigin = document.getElementById('sim-origin');
+        const selCert = document.getElementById('sim-cert');
+        const chkNonSni = document.getElementById('sim-nonsni');
+        const selDns = document.getElementById('sim-dns');
+        const selFw = document.getElementById('sim-fw');
+        const simResult = document.getElementById('sim-result');
+
+        const NAME_INFO = {
+            shop: { host: 'shop.example.com', kind: 'sub' },
+            www: { host: 'www.example.com', kind: 'sub' },
+            apex: { host: 'example.com', kind: 'apex' },
+            internal: { host: 'erp.corp.example.com', kind: 'internal' }
+        };
+
+        const API_URL = 'https://my.imperva.com/api/integration/v1/ips';
+        const TAG = '<span class="text-xs text-gray-500">【推論】</span>';
+        const TBC = '<span class="text-xs text-gray-500">【待實機確認】</span>';
+
+        function card(level, title, body) {
+            return `<div class="sim-card ${level}"><h4>${title}</h4><p>${body}</p></div>`;
+        }
+
+        function dnsCard(info) {
+            if (info.kind === 'sub') {
+                return card('info', `DNS 紀錄:CNAME(子網域 ${info.host})`,
+                    `子網域把 DNS 改成 <strong>CNAME</strong>,指向 Imperva 給的位址(例如 <code>xxxx.incapdns.net</code>)。實際位址以 Cloud Security Console 顯示的為準。`);
+            }
+            return card('info', `DNS 紀錄:兩筆 A 記錄(裸網域 ${info.host})`,
+                `裸網域設定 Imperva 給的<strong>兩筆 A 記錄</strong>,不是 CNAME。實際位址以 Cloud Security Console 顯示的為準,不要抄別人的 IP。`);
+        }
+
+        function originCard(origin) {
+            if (origin === 'lb') {
+                return card('warn', 'Origin 欄位:要手動填 CNAME',
+                    'origin 是會變動 IP 的負載平衡器,<strong>要手動填它的 CNAME</strong>。系統自動找到的 IP 日後會變,沒填 CNAME 的話,origin IP 變動後 Imperva 轉送會失敗。');
+            }
+            return card('ok', 'Origin 欄位:填固定 IP',
+                '系統會嘗試自動找 origin;你也可以手動填 origin IP(例如 <code>203.0.113.20</code>)。');
+        }
+
+        function certCard(cert, nonSni) {
+            if (cert === 'managed') {
+                const base = '依精靈指示新增一筆 DNS CNAME 記錄驗證網域所有權,由 Imperva 簽發受管站台憑證。帳號需要 Add Sites 與 Manage SSL Certificates 兩項權限。';
+                if (nonSni) {
+                    return card('danger', 'non-SNI 用戶端會連不上',
+                        base + '<br>但<strong>用站台憑證接入的網站不支援 non-SNI</strong>。需要支援 non-SNI,要改用舊版精靈與帳號憑證。');
+                }
+                return card('ok', '憑證:受管站台憑證', base);
+            }
+            if (nonSni) {
+                return card('ok', '憑證:帳號憑證(可支援 non-SNI)',
+                    '需要支援 non-SNI 的用戶端,就是要用舊版精靈與帳號憑證接入,這個選擇符合需求。');
+            }
+            return card('info', '憑證:帳號憑證(舊版精靈)',
+                '目前沒有 non-SNI 用戶端的話,新版精靈搭配受管站台憑證即可;只有需要支援 non-SNI 時才需要改用帳號憑證。');
+        }
+
+        function originFwCard(dns, fw) {
+            const ipNote = `IP 段一律以官方 API 為準:<code>${API_URL}</code>(呼叫方式與驗證需求${TBC})。`;
+            if (fw === 'open') {
+                if (dns === 'done') {
+                    return card('danger', 'Origin 對外全開:攻擊者可以直連',
+                        `導流已完全生效,但 origin 仍沒做限制。攻擊者只要知道 origin 真實 IP(例如 203.0.113.20),就能繞過 Cloud WAF 直接攻擊。請把 origin 前的防火牆改成只接受 Imperva 來源 IP(物件可命名為 <code>OBJ-Imperva-CloudWAF</code>)。${ipNote}`);
+                }
+                if (dns === 'mid') {
+                    return card('info', '切換期間先別急著收緊',
+                        `切換期間同時有直連與經 Imperva 兩種流量,origin 限制要等 DNS 完全生效後才收緊,否則會擋掉尚未切換的使用者${TAG}。這段時間先備好官方 API 的最新清單。${ipNote}`);
+                }
+                return card('info', '還沒導流,先調低 TTL',
+                    `使用者目前都直連 origin,現在只放 Imperva IP 會讓網站連不上${TAG}。建議先把 DNS TTL 調低,切換並確認穩定後再收緊 origin。${ipNote}`);
+            }
+            if (fw === 'only') {
+                if (dns === 'done') {
+                    return card('ok', 'Origin 防護到位',
+                        `DNS 已完全生效,origin 只接受 Imperva IP,清單取自官方 API。提醒:origin 看到的來源 IP 都是 Imperva,真實用戶端 IP 要從 Imperva 帶入的 header 取得(header 名稱${TBC}),應用程式與記錄要配合調整。`);
+                }
+                if (dns === 'mid') {
+                    return card('warn', '太早收緊 origin',
+                        `DNS 還沒全部切換,TTL 內仍直連的使用者會被防火牆擋掉${TAG}。請先暫時放寬,等 DNS 依 TTL 完全生效(5 分鐘到 24 小時內逐步切換)再收緊。`);
+                }
+                return card('danger', '太早收緊 origin',
+                    `DNS 還沒改,所有使用者都是直連 origin,現在只允許 Imperva IP 會讓網站全面連不上${TAG}。請先完成 DNS 導流、等完全生效後再收緊。`);
+            }
+            // stale
+            const extra = dns === 'done' ? '' : `<br>另外,DNS 尚未完全生效就收緊 origin,還會擋掉尚未切換的使用者${TAG}。`;
+            return card('warn', '把 IP 清單寫死了',
+                `Imperva IP 段會調整,清單要以官方 API 定期更新,不要手動貼一份就不管。建議用排程腳本定期呼叫 API,與現有防火牆物件比對,有差異時通知管理者審核後更新。${extra}<br>${ipNote}`);
+        }
+
+        function simulate() {
+            const info = NAME_INFO[selName.value];
+            if (info.kind === 'internal') {
+                simResult.innerHTML = card('danger', 'Cloud WAF 不適用:' + info.host,
+                    'Cloud WAF 只能保護「能透過公網 DNS 導流」的網站與 API。<code>erp.corp.example.com</code> 這類內部系統無法導流到 Imperva PoP,請改用地端 <strong>WAF Gateway</strong>(第 4 章的 Reverse Proxy 等部署模式)。') +
+                    card('info', '混合架構 A', '同一個環境可以讓 <code>shop.example.com</code> 走 Cloud WAF(DDoS + CDN),<code>api.example.com</code> 與 <code>erp.corp.example.com</code> 由 WAF Gateway 保護。');
+                return;
+            }
+            simResult.innerHTML = dnsCard(info) + originCard(selOrigin.value) + certCard(selCert.value, chkNonSni.checked) + originFwCard(selDns.value, selFw.value) +
+                '<p class="sim-note">DNS 依 TTL 在 5 分鐘到 24 小時內逐步切換;正式切換前幾天先調低 TTL,切換後確認穩定再調回。</p>';
+        }
+
+        [selName, selOrigin, selCert, chkNonSni, selDns, selFw].forEach(el => el.addEventListener('change', simulate));
+        simulate();
+
+        // ===== 隨堂測驗 =====
+        const quizData = [
+            {
+                question: "Q1. 要把裸網域 example.com 與子網域 shop.example.com 都導流到 Cloud WAF,DNS 該怎麼設?",
+                options: ["A. 兩者都只能設 A 記錄", "B. 子網域改 CNAME 指向 Imperva 給的位址;裸網域設 Imperva 給的兩筆 A 記錄", "C. 兩者都改 CNAME", "D. 裸網域用 CNAME,子網域用兩筆 A 記錄"],
+                correct: 1,
+                desc: "正解:B。子網域(shop.example.com、www.example.com)把 DNS 改成 CNAME 指向 Imperva 給的位址;裸網域(example.com)則設定 Imperva 給的兩筆 A 記錄。"
+            },
+            {
+                question: "Q2. 為什麼 origin 前的防火牆要只允許 Imperva IP?而且這份 IP 清單應該怎麼維護?",
+                options: ["A. 為了加速;清單寫死在防火牆最穩定", "B. 避免攻擊者知道 origin 真實 IP 後直連繞過 Cloud WAF;清單以官方 API 為準,定期比對更新", "C. 因為 Imperva 要求;清單抄一份教材上的就好", "D. 為了讓 TLS 憑證生效;清單每年換一次即可"],
+                correct: 1,
+                desc: "正解:B。攻擊者只要知道 origin 真實 IP,就能繞過 Cloud WAF 直接攻擊。Imperva IP 段會調整,不要把任何一份清單當固定值寫死,要用官方 API 定期取得、比對後審核更新。"
+            },
+            {
+                question: "Q3. 公司的內部系統 erp.corp.example.com 只能在內網存取,法規要求金鑰與資料不得離開機房。適合用什麼?",
+                options: ["A. Cloud WAF,把 DNS 改成 CNAME", "B. WAF Gateway(地端)", "C. Elastic WAF 與 Cloud WAF 擇一都行", "D. 什麼都不用,內部系統不需要 WAF"],
+                correct: 1,
+                desc: "正解:B。Cloud WAF 只能保護能透過公網 DNS 導流的網站;內部系統與要求金鑰、資料不離開機房的情境,適合 WAF Gateway。"
+            },
+            {
+                question: "Q4. 混合架構 B(Cloud WAF → WAF Gateway)最需要特別處理什麼?",
+                options: ["A. Gateway 看到的來源 IP 全是 Imperva PoP,要依 Imperva 帶入的 header 取得真實用戶端 IP", "B. 兩層都不需要 TLS 憑證", "C. 必須把 Gateway 改成 Sniffing 模式", "D. 要關閉 Cloud WAF 的 DDoS 防護"],
+                correct: 0,
+                desc: "正解:A。Gateway 看到的來源 IP 全是 PoP,地端的 IP Block 若沒設好,會一次封鎖整個 PoP 位址,影響大量正常使用者;設定位置待實機確認。兩層都要做 TLS(Imperva 一張憑證、地端 Gateway 一張)。"
+            },
+            {
+                question: "Q5. 一間公司用 Imperva 受管站台憑證接入網站,但有老舊設備不支援 SNI,連不上網站。該怎麼辦?",
+                options: ["A. 把 DNS TTL 調到最高", "B. 把 origin 防火牆全開", "C. 改用舊版精靈與帳號憑證接入,以支援 non-SNI 用戶端", "D. 改用兩筆 A 記錄"],
+                correct: 2,
+                desc: "正解:C。用站台憑證接入的網站不支援 non-SNI;需要支援 non-SNI 要改用舊版精靈與帳號憑證。"
+            }
+        ];
+
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionBox = document.createElement('div');
+            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
+
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border mb-2 text-gray-700" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            questionBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
+                <div class="space-y-2 mb-4">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
+                    <p class="font-bold result-title"></p>
+                    <p class="text-sm text-gray-600 mt-1">${item.desc}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionBox);
+        });
+
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            if (element.parentElement.dataset.answered) return;
+            element.parentElement.dataset.answered = "true";
+
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+                opt.classList.add('disabled');
+            });
+
+            if (optIndex === data.correct) {
+                element.classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了!";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                element.classList.add('bg-red-100', 'border-red-500');
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了!";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+    </script>
+</body>
+</html>

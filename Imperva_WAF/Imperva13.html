@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imperva WAF Gateway 實戰課程 - CLI 與日常維運</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        /* 卡片主體樣式 (Imperva Blue) */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #0284c7;
+        }
+
+        /* 重點提示框 (藍) */
+        .highlight-box {
+            background-color: #f0f9ff;
+            border-left: 4px solid #0284c7;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 技術名詞標記 */
+        .tech-term {
+            color: #075985;
+            font-weight: 700;
+            background-color: #e0f2fe;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
+        }
+
+        /* 比喻說明框 (綠) */
+        .analogy-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 版本差異框 (紫) */
+        .version-box {
+            background-color: #faf5ff;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 常見踩坑框 (橘,避開主色藍) */
+        .pitfall-box {
+            background-color: #fff7ed;
+            border-left: 4px solid #ea580c;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .diagram-container {
+            display: block;
+            background-color: #ffffff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-top: 1rem;
+        }
+
+        .diagram-container svg {
+            display: block;
+            width: 100%;
+            max-width: 520px;
+            margin: 0 auto;
+        }
+
+        /* 示意畫面 (仿管理介面) */
+        .mock-window {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            background: #ffffff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            margin-top: 1rem;
+        }
+        .mock-titlebar {
+            background: #e2e8f0;
+            padding: 0.4rem 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: #475569;
+        }
+        .mock-dots span {
+            display: inline-block;
+            width: 0.6rem;
+            height: 0.6rem;
+            border-radius: 50%;
+            background: #94a3b8;
+            margin-right: 0.2rem;
+        }
+        .mock-url {
+            background: #ffffff;
+            border-radius: 0.25rem;
+            padding: 0.1rem 0.5rem;
+            flex: 1;
+            min-width: 0;
+            font-family: ui-monospace, Consolas, monospace;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .mock-nav {
+            background: #1f2937;
+            color: #cbd5e1;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.25rem 1rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+        }
+        .mock-nav .brand { font-weight: 700; color: #ffffff; margin-right: 0.5rem; }
+        .mock-nav .on { color: #ffffff; border-bottom: 2px solid #0284c7; padding-bottom: 0.1rem; }
+        .mock-crumb {
+            font-size: 0.8rem;
+            color: #475569;
+            padding: 0.5rem 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f8fafc;
+        }
+        .mock-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            padding: 0.5rem 0.75rem 0;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.8rem;
+        }
+        .mock-tabs span {
+            padding: 0.3rem 0.7rem;
+            border: 1px solid #e5e7eb;
+            border-bottom: none;
+            border-radius: 0.3rem 0.3rem 0 0;
+            background: #f1f5f9;
+            color: #475569;
+        }
+        .mock-tabs span.on { background: #ffffff; color: #111827; font-weight: 600; }
+        .mock-body { padding: 0.75rem; font-size: 0.85rem; }
+        .mock-section { font-weight: 700; color: #334155; margin: 0.75rem 0 0.25rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.2rem; }
+        .mock-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.35rem 0.6rem;
+            padding: 0.35rem 0;
+        }
+        .mock-label { width: 12rem; color: #374151; font-weight: 500; }
+        .mock-input {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+            padding: 0.2rem 0.5rem;
+            min-width: 12rem;
+            background: #ffffff;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #111827;
+        }
+        .mock-select::after { content: " ▾"; color: #64748b; }
+        .mock-indent { padding-left: 2rem; }
+        .mock-btn {
+            display: inline-block;
+            border: 1px solid #94a3b8;
+            background: #f8fafc;
+            border-radius: 0.25rem;
+            padding: 0.2rem 0.7rem;
+            font-size: 0.8rem;
+            color: #1f2937;
+        }
+        .mock-btn.primary { background: #1f2937; color: #ffffff; border-color: #1f2937; }
+        .mock-hl { outline: 2px solid #0284c7; outline-offset: 2px; border-radius: 0.25rem; }
+        .mock-list {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+            min-width: 9rem;
+            min-height: 4.2rem;
+            padding: 0.25rem 0.5rem;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.8rem;
+            background: #ffffff;
+        }
+        .mock-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 0.5rem; }
+        .mock-table th { background: #f1f5f9; text-align: left; padding: 0.35rem 0.5rem; border: 1px solid #e2e8f0; color: #334155; }
+        .mock-table td { padding: 0.35rem 0.5rem; border: 1px solid #e2e8f0; }
+        .mock-caption {
+            font-size: 0.75rem;
+            color: #6b7280;
+            padding: 0.5rem 0.75rem;
+            background: #f9fafb;
+            border-top: 1px dashed #e5e7eb;
+        }
+        .step-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.4rem;
+            height: 1.4rem;
+            border-radius: 9999px;
+            background: #0284c7;
+            color: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .step-list li { display: flex; gap: 0.6rem; align-items: flex-start; margin-bottom: 0.6rem; }
+
+        /* 模擬器 */
+        .sim-rule {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.4rem 0.75rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            margin-bottom: 0.5rem;
+            background: #ffffff;
+        }
+        .sim-rule .num { font-weight: 700; color: #075985; width: 3.5rem; }
+        .sim-rule .desc { flex: 1; min-width: 12rem; }
+        .sim-arrow { border: 1px solid #cbd5e1; border-radius: 0.25rem; padding: 0 0.45rem; background: #f8fafc; }
+        .sim-arrow:disabled { opacity: 0.35; cursor: not-allowed; }
+        .trace-line { padding: 0.3rem 0; border-bottom: 1px dashed #e5e7eb; }
+
+        @media (max-width: 640px) {
+            main { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+            .section-card { padding: 1rem; }
+            .diagram-container { padding: 0.25rem; }
+            .mock-label { width: calc(100% - 2.2rem); }
+            .mock-indent .mock-label { width: 100%; }
+            .mock-input { min-width: 0; width: 100%; }
+            .mock-indent { padding-left: 0.75rem; }
+            .mock-body { padding: 0.5rem; }
+        }
+
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover:not(.disabled) {
+            background-color: #f3f4f6;
+        }
+
+        .footer-signature {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+            margin-top: 4rem;
+        }
+        /* Long URLs and code wrap on narrow screens */
+        main { overflow-wrap: break-word; } main code { overflow-wrap: anywhere; }
+
+        .tbc { font-size: 0.8em; color: #92400e; background: #fef3c7; padding: 0 0.3rem; border-radius: 0.2rem; white-space: nowrap; }
+        .danger-box { background-color: #fef2f2; border-left: 4px solid #dc2626; padding: 1rem; margin: 1rem 0; border-radius: 0.25rem; }
+        .course-nav { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem; font-size: 0.9rem; }
+        .course-nav a { color: #075985; font-weight: 500; padding: 0.25rem 0.5rem; border-radius: 0.3rem; }
+        .course-nav a:hover { background: #e0f2fe; }
+        .term { background: #0f172a; color: #e2e8f0; font-family: ui-monospace, Consolas, monospace; font-size: 0.8rem; padding: 0.75rem; line-height: 1.7; overflow-x: auto; white-space: pre; }
+        .term .c { color: #94a3b8; } .term .p { color: #38bdf8; } .term .hl { outline: 2px solid #0284c7; outline-offset: 1px; border-radius: 0.2rem; }
+        .code-block { background: #0f172a; color: #e2e8f0; font-family: ui-monospace, Consolas, monospace; font-size: 0.8rem; padding: 0.75rem; line-height: 1.6; overflow-x: auto; white-space: pre; border-radius: 0.4rem; margin-top: 0.75rem; }
+        .code-block .c { color: #94a3b8; }
+
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-sky-800 to-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-shield-halved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold">Imperva WAF Gateway 實戰課程</h1>
+                    <p class="text-sky-100 mt-1">單元 13:CLI 與日常維運</p>
+                </div>
+            </div>
+        </div>
+    </header>
+    <nav class="bg-white border-b border-gray-200" aria-label="章節導覽">
+        <div class="container mx-auto px-4 py-2 max-w-5xl course-nav">
+            <a href="Imperva12.html"><i class="fas fa-arrow-left mr-1"></i>上一章</a>
+            <a href="Imperva00.html"><i class="fas fa-list mr-1"></i>課程目錄</a>
+            <a href="Imperva14.html">下一章<i class="fas fa-arrow-right ml-1"></i></a>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+        <!-- Introduction -->
+        <div class="mb-8">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
+                <h2 class="text-xl font-bold text-blue-800 mb-2 flex items-center">
+                    <i class="fas fa-user-tie mr-2"></i>講師導言
+                </h2>
+                <p class="text-blue-900 leading-relaxed">
+                    WAF Gateway 的日常維運大多在 MX 的圖形介面完成,命令列(CLI)主要用在初始化、排障、備份與升級。這一章先釐清 <strong>impcli、impcfg、impctl</strong> 三者的分工,再整理常用指令、備份、升級路徑、疑難排解,以及開案前要收集哪些資訊。
+                    原則和 2014 年一樣:<strong>把設備當黑盒子,能用 impcfg 就用 impcfg,impctl 只在必要時或原廠指示下使用</strong>。
+                </p>
+            </div>
+        </div>
+
+        <!-- 學習目標 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-gray-100 text-gray-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Goals</span>
+                本章學習目標
+            </h2>
+            <ul class="list-disc pl-6 space-y-1 text-gray-700">
+                <li>說出 impcli、impcfg、impctl 各自的用途與風險</li>
+                <li>知道 Sealed 模式限制了什麼,以及為什麼不要用 <code>seal --strict</code></li>
+                <li>熟悉 impcfg 的「S 存檔、A 套用」習慣,以及官方「Safe impctl Commands」的範圍</li>
+                <li>依步驟完成 MX 完整匯出備份</li>
+                <li>依目前版本判斷升到 v15.5 的路徑,並知道 v16.0 的限制</li>
+                <li>用疑難排解檢查表縮小問題範圍,並備齊開案資訊</li>
+            </ul>
+        </div>
+
+        <!-- 一、三種 CLI -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">一、三種 CLI 的分工</h2>
+
+            <div class="danger-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-hand mr-1"></i>先記住這一條</p>
+                <p class="text-gray-800"><strong>impctl 只在必要時或原廠指示下使用。</strong>能用 impcfg 就用 impcfg;官方的 Safe impctl Commands 清單以外,先開案詢問原廠。</p>
+            </div>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 360 360" role="img" aria-labelledby="svg1-title" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans TC, sans-serif">
+                    <title id="svg1-title">三種 CLI 的風險階梯:impcli 風險低,impcfg 風險中,impctl 風險高且只在必要時或原廠指示下使用</title>
+                    <rect x="20" y="10" width="320" height="96" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+                    <text x="36" y="38" font-size="16" font-weight="700" fill="#15803d">impcli:風險低</text>
+                    <text x="36" y="62" font-size="13" fill="#1f2937">Imperva 專屬的受限 shell,登入後的預設環境</text>
+                    <text x="36" y="84" font-size="13" fill="#1f2937">查詢、備份匯出、上傳診斷資料、打 patch</text>
+
+                    <rect x="20" y="122" width="320" height="96" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="2"/>
+                    <text x="36" y="150" font-size="16" font-weight="700" fill="#b45309">impcfg:風險中</text>
+                    <text x="36" y="174" font-size="13" fill="#1f2937">選單式設定工具,官方建議用它改工作模式</text>
+                    <text x="36" y="196" font-size="13" fill="#1f2937">與網路設定、註冊 MX</text>
+
+                    <rect x="20" y="234" width="320" height="116" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/>
+                    <text x="36" y="262" font-size="16" font-weight="700" fill="#b91c1c">impctl:風險高</text>
+                    <text x="36" y="286" font-size="13" fill="#1f2937">底層控制工具,impcfg 實際上也是呼叫它</text>
+                    <text x="36" y="308" font-size="13" fill="#1f2937">官方註明僅限資深管理者</text>
+                    <text x="36" y="332" font-size="13" font-weight="700" fill="#b91c1c">只在必要時或原廠指示下使用</text>
+                </svg>
+            </div>
+
+            <div class="overflow-x-auto mt-3"><table class="min-w-full text-sm border"><thead class="bg-gray-100"><tr><th class="py-2 px-4 border text-left">工具</th><th class="py-2 px-4 border text-left">是什麼</th><th class="py-2 px-4 border text-left">什麼時候用</th><th class="py-2 px-4 border text-left">風險</th></tr></thead><tbody><tr><td class="py-2 px-4 border font-semibold"><strong>impcli</strong></td><td class="py-2 px-4 border">Imperva 專屬的受限 shell,SSH / console 登入後的預設環境</td><td class="py-2 px-4 border">一般查詢、備份匯出、上傳診斷資料、打 patch</td><td class="py-2 px-4 border">低;所有輸入都會被記錄</td></tr><tr><td class="py-2 px-4 border font-semibold"><strong>impcfg</strong></td><td class="py-2 px-4 border">選單式設定工具</td><td class="py-2 px-4 border">網路介面、Gateway 工作模式、註冊 MX 等系統層設定</td><td class="py-2 px-4 border">中;官方建議以它改工作模式與網路設定</td></tr><tr><td class="py-2 px-4 border font-semibold"><strong>impctl</strong></td><td class="py-2 px-4 border">底層控制工具,impcfg 實際上也是呼叫它</td><td class="py-2 px-4 border">啟停服務、重新註冊等;其餘只在原廠指示下</td><td class="py-2 px-4 border">高;官方註明僅限資深管理者</td></tr></tbody></table></div>
+            <p class="text-sm text-gray-600 mt-3">CLI 文件目前分四節:impcfg、impctl、impcli、Miscellaneous Commands(WAF Administration Guide)。</p>
+        </div>
+
+        <!-- 二、impcli 與 Sealed -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">二、impcli 與 Sealed 模式</h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">內建使用者</h3>
+            <div class="overflow-x-auto mt-3"><table class="min-w-full text-sm border"><thead class="bg-gray-100"><tr><th class="py-2 px-4 border text-left">使用者</th><th class="py-2 px-4 border text-left">說明</th></tr></thead><tbody><tr><td class="py-2 px-4 border font-semibold"><code>admin</code></td><td class="py-2 px-4 border">impcli 預設使用者,預設密碼 <code>admin</code>,<strong>第一次登入必須改密碼</strong></td></tr><tr><td class="py-2 px-4 border font-semibold"><code>root</code></td><td class="py-2 px-4 border">Linux 超級使用者;須在首次設定時改掉預設密碼才能使用;<strong>每 90 天須更換密碼</strong>;預設<strong>不能</strong>用 root 直接 SSH 登入</td></tr><tr><td class="py-2 px-4 border font-semibold"><code>grub</code></td><td class="py-2 px-4 border">只用於開機載入程式密碼,不是 CLI 使用者;可在首次設定或用 impcfg 設定</td></tr></tbody></table></div>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 mt-3">
+                <li>要取得 root:先以 CLI 使用者登入,再輸入 <code>admin</code> 指令切換。</li>
+                <li>若必須允許某個 IP 以 root SSH 登入(例如原廠遠端支援期間):<code>impctl hardening config --root-source-ip-exception=&lt;IP address&gt;</code>。用完要移除例外<span class="tbc">【待實機確認:移除語法】</span>。</li>
+                <li>新版 shell(12 以上)已移除舊的 <code>secure</code> 使用者(以前的 impcfg 使用者)。</li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">impcli 常用指令(示意畫面)</h3>
+            <div class="mock-window">
+                <div class="mock-titlebar">
+                    <span class="mock-dots"><span></span><span></span><span></span></span>
+                    <span class="mock-url">SSH / console:gw01(10.0.30.11)</span>
+                </div>
+                <div class="term"><span class="c"># 登入後的預設環境是 impcli(預設使用者 admin,第一次登入必須改密碼)</span>
+<span class="p">impcli&gt;</span> help                <span class="c"># 列出指令</span>
+<span class="p">impcli&gt;</span> df                  <span class="c"># 磁碟使用量(磁碟滿是常見停擺原因)</span>
+<span class="p">impcli&gt;</span> ifconfig            <span class="c"># 網路介面</span>
+<span class="p">impcli&gt;</span> ping 10.0.30.10     <span class="c"># 只驗證 ICMP 連通(GW → MX),不能驗證 TCP 埠</span>
+<span class="p">impcli&gt;</span> netstat             <span class="c"># 看 TCP 8083 / 8085 連線是否建立</span>
+<span class="p">impcli&gt;</span> gwlog               <span class="c"># 檢視 Gateway 元件記錄</span>
+<span class="p">impcli&gt;</span> gti-remote          <span class="c"># 產生 get-tech-info 並上傳(URL 依原廠案件指示,語法待實機確認)</span></div>
+                <div class="mock-caption"><i class="fas fa-circle-info mr-1"></i>示意畫面:指令名稱依官方 Impcli Available Commands 表,提示符號與輸出以實機為準;各指令確切語法待實機確認。</div>
+            </div>
+
+            <div class="overflow-x-auto mt-3"><table class="min-w-full text-sm border"><thead class="bg-gray-100"><tr><th class="py-2 px-4 border text-left">指令</th><th class="py-2 px-4 border text-left">用途</th><th class="py-2 px-4 border text-left">Sealed 可用</th></tr></thead><tbody><tr><td class="py-2 px-4 border font-semibold"><code>help</code> / <code>history</code></td><td class="py-2 px-4 border">列出指令 / 指令歷史</td><td class="py-2 px-4 border">是</td></tr><tr><td class="py-2 px-4 border font-semibold"><code>date</code>、<code>hostname</code>、<code>id</code></td><td class="py-2 px-4 border">系統時間、主機名、目前身分</td><td class="py-2 px-4 border">是</td></tr><tr><td class="py-2 px-4 border font-semibold"><code>df</code></td><td class="py-2 px-4 border">磁碟使用量</td><td class="py-2 px-4 border">是</td></tr><tr><td class="py-2 px-4 border font-semibold"><code>ifconfig</code>、<code>netstat</code>、<code>ping</code></td><td class="py-2 px-4 border">網路介面、連線狀態、連通測試</td><td class="py-2 px-4 border">是</td></tr><tr><td class="py-2 px-4 border font-semibold"><code>impcfg</code> / <code>impctl</code></td><td class="py-2 px-4 border">進入設定選單 / 控制工具</td><td class="py-2 px-4 border">impcfg 在鎖定模式參數不同;impctl 可</td></tr><tr><td class="py-2 px-4 border font-semibold"><code>export-local</code> / <code>export-remote</code></td><td class="py-2 px-4 border">匯出資料庫到本機 / 上傳到 URL</td><td class="py-2 px-4 border">是</td></tr><tr><td class="py-2 px-4 border font-semibold"><code>import-local</code> / <code>import-remote</code></td><td class="py-2 px-4 border">從本機 / 遠端 URL 匯入資料庫</td><td class="py-2 px-4 border">是</td></tr><tr><td class="py-2 px-4 border font-semibold"><code>gti-remote</code></td><td class="py-2 px-4 border">產生 get-tech-info 診斷包並上傳到 URL</td><td class="py-2 px-4 border">是</td></tr><tr><td class="py-2 px-4 border font-semibold"><code>gwlog</code></td><td class="py-2 px-4 border">檢視 Gateway 元件記錄</td><td class="py-2 px-4 border">是</td></tr><tr><td class="py-2 px-4 border font-semibold"><code>patch-remote</code></td><td class="py-2 px-4 border">從 URL 下載並安裝 patch</td><td class="py-2 px-4 border">是</td></tr><tr><td class="py-2 px-4 border font-semibold"><code>lock</code></td><td class="py-2 px-4 border">切換到鎖定 profile</td><td class="py-2 px-4 border">是</td></tr><tr><td class="py-2 px-4 border font-semibold"><code>admin</code></td><td class="py-2 px-4 border">切換為 root</td><td class="py-2 px-4 border"><strong>否</strong></td></tr></tbody></table></div>
+            <p class="text-sm text-gray-600 mt-2">節錄自官方 Impcli Available Commands 表。其他 impcli 雜項指令包含:開關機、更換 MX 與 Gateway 間的通訊密碼、SSH authorized keys 管理(WAF Administration Guide &gt; Miscellaneous Commands);各指令確切語法<span class="tbc">【待實機確認】</span>。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Sealed 模式(封存模式)</h3>
+            <p class="text-gray-700 mb-2">把設備鎖成只能執行有限指令。</p>
+            <div class="overflow-x-auto mt-3"><table class="min-w-full text-sm border"><thead class="bg-gray-100"><tr><th class="py-2 px-4 border text-left">項目</th><th class="py-2 px-4 border text-left">一般(default)模式</th><th class="py-2 px-4 border text-left">Sealed 模式</th></tr></thead><tbody><tr><td class="py-2 px-4 border font-semibold"><code>admin</code> 切 root</td><td class="py-2 px-4 border">可</td><td class="py-2 px-4 border"><strong>不可</strong></td></tr><tr><td class="py-2 px-4 border font-semibold">Run a Shell Command 的 Followed Action</td><td class="py-2 px-4 border">可</td><td class="py-2 px-4 border"><strong>不可</strong>(第 12 章)</td></tr><tr><td class="py-2 px-4 border font-semibold">scp 等安全檔案傳輸</td><td class="py-2 px-4 border">可</td><td class="py-2 px-4 border">不支援</td></tr><tr><td class="py-2 px-4 border font-semibold">解除</td><td class="py-2 px-4 border">—</td><td class="py-2 px-4 border"><code>unseal</code> + 封存時設定的密碼</td></tr></tbody></table></div>
+            <p class="text-gray-700 mt-3">封存步驟:輸入 <code>seal</code> → <code>y</code> → 設定解封密碼兩次 → 重新連線生效。解封密碼規則:10–14 字元,至少一個數字、一個大寫字母、一個指定特殊字元(<code>* + = # % ^ : / ~ . , [ ] _</code>),不得有超過兩個相同字元連續。</p>
+
+            <div class="danger-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>警告</p>
+                <p class="text-gray-800"><code>seal --strict</code> 是<strong>永久封存,無法解除</strong>。除非資安政策明確要求,不要使用。</p>
+            </div>
+        </div>
+
+        <!-- 三、impcfg -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">三、impcfg:選單式設定</h2>
+            <p class="text-gray-700 leading-relaxed">
+                impcfg 是選單式工具,改完先按 <strong>S(Save)</strong> 存檔,再按 <strong>A(Apply)</strong> 套用;<strong>沒有 Apply 的變更不會生效</strong>。官方的選單路徑寫法例如:<code>Top &gt; Manage SecureSphere Gateway &gt; Change operation mode</code>(注意選單仍沿用 SecureSphere 舊名)。
+            </p>
+
+            <div class="overflow-x-auto mt-3"><table class="min-w-full text-sm border"><thead class="bg-gray-100"><tr><th class="py-2 px-4 border text-left">常見工作</th><th class="py-2 px-4 border text-left">位置</th><th class="py-2 px-4 border text-left">參考章節</th></tr></thead><tbody><tr><td class="py-2 px-4 border font-semibold">首次設定(管理 IP、DNS、NTP、密碼)</td><td class="py-2 px-4 border">首次登入精靈</td><td class="py-2 px-4 border">第 6 章</td></tr><tr><td class="py-2 px-4 border font-semibold">變更 Gateway 工作模式(含轉 ABR)</td><td class="py-2 px-4 border">Top > Manage SecureSphere Gateway > Change operation mode</td><td class="py-2 px-4 border">第 4 章</td></tr><tr><td class="py-2 px-4 border font-semibold">網路介面、bridge 介面設定</td><td class="py-2 px-4 border">Manage SecureSphere Gateway 底下</td><td class="py-2 px-4 border">第 4、5 章</td></tr><tr><td class="py-2 px-4 border font-semibold">註冊到 MX</td><td class="py-2 px-4 border">Manage SecureSphere Gateway 底下<span class="tbc">【待實機確認】</span></td><td class="py-2 px-4 border">第 6 章</td></tr></tbody></table></div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">好習慣:一次只改一件事</h3>
+            <div class="diagram-container">
+                <svg viewBox="0 0 360 400" role="img" aria-labelledby="svg2-title" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans TC, sans-serif">
+                    <title id="svg2-title">impcfg 變更流程:先截下首頁狀態,一次只改一件事,按 S 存檔、按 A 套用,確認 Gateway 在 MX 上恢復連線再做下一件</title>
+                    <defs>
+                        <marker id="arrow2" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+                        </marker>
+                    </defs>
+                    <rect x="20" y="10" width="320" height="52" rx="10" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2"/>
+                    <text x="36" y="42" font-size="14" fill="#1f2937">① 先截下 impcfg 首頁狀態</text>
+                    <line x1="180" y1="62" x2="180" y2="86" stroke="#64748b" stroke-width="2" marker-end="url(#arrow2)"/>
+
+                    <rect x="20" y="90" width="320" height="52" rx="10" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="36" y="122" font-size="14" fill="#075985">② 一次只改一件事</text>
+                    <line x1="180" y1="142" x2="180" y2="166" stroke="#64748b" stroke-width="2" marker-end="url(#arrow2)"/>
+
+                    <rect x="20" y="170" width="150" height="52" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="2"/>
+                    <text x="95" y="202" text-anchor="middle" font-size="14" fill="#b45309">③ S 存檔</text>
+                    <rect x="190" y="170" width="150" height="52" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="2"/>
+                    <text x="265" y="202" text-anchor="middle" font-size="14" fill="#b45309">④ A 套用</text>
+                    <line x1="170" y1="196" x2="186" y2="196" stroke="#64748b" stroke-width="2" marker-end="url(#arrow2)"/>
+                    <line x1="265" y1="222" x2="265" y2="246" stroke="#64748b" stroke-width="2" marker-end="url(#arrow2)"/>
+
+                    <rect x="20" y="250" width="320" height="64" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+                    <text x="36" y="278" font-size="14" fill="#15803d">⑤ 確認 Gateway 在 MX 上恢復連線</text>
+                    <text x="36" y="300" font-size="13" fill="#1f2937">並與步驟 ① 的狀態比對</text>
+                    <text x="180" y="346" text-anchor="middle" font-size="13" fill="#475569">確認沒問題,才做下一件事</text>
+                    <text x="180" y="368" text-anchor="middle" font-size="13" font-weight="700" fill="#b91c1c">只按 S 沒按 A,變更不會生效</text>
+                </svg>
+            </div>
+            <p class="text-gray-700 mt-3">變更前先截下 impcfg 首頁狀態(各元件狀態與標記),變更後比對;一次只改一件事,Apply 後確認 Gateway 在 MX 上恢復連線再做下一件。</p>
+        </div>
+
+        <!-- 四、impctl -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">四、impctl:只在必要時使用</h2>
+
+            <div class="danger-box">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>使用原則</p>
+                <ul class="list-disc pl-6 text-gray-800 space-y-1">
+                    <li>impctl 只在必要時或原廠指示下使用,官方註明僅限資深管理者。</li>
+                    <li>安全清單以外的 impctl 指令,先開案詢問原廠。</li>
+                    <li><code>impctl teardown</code> 屬破壞性操作,<strong>只在原廠指示下執行</strong>。</li>
+                </ul>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-4 mb-2">Safe impctl Commands:可以自行使用的範圍</h3>
+            <div class="overflow-x-auto mt-3"><table class="min-w-full text-sm border"><thead class="bg-gray-100"><tr><th class="py-2 px-4 border text-left">指令</th><th class="py-2 px-4 border text-left">用途</th></tr></thead><tbody><tr><td class="py-2 px-4 border font-semibold"><code>impctl show commands --verbose</code></td><td class="py-2 px-4 border">列出所有 impctl 指令與參數</td></tr><tr><td class="py-2 px-4 border font-semibold"><code>impctl status</code></td><td class="py-2 px-4 border">顯示設備狀態</td></tr><tr><td class="py-2 px-4 border font-semibold"><code>impctl server start</code> / <code>stop</code> / <code>restart</code></td><td class="py-2 px-4 border">啟動 / 停止 / 重啟 MX 服務</td></tr><tr><td class="py-2 px-4 border font-semibold"><code>impctl gateway start</code> / <code>stop</code> / <code>restart</code></td><td class="py-2 px-4 border">啟動 / 停止 / 重啟 Gateway 服務</td></tr><tr><td class="py-2 px-4 border font-semibold"><code>impctl gateway register</code> / <code>unregister</code></td><td class="py-2 px-4 border">將 Gateway 註冊到 / 自 MX 解除註冊</td></tr><tr><td class="py-2 px-4 border font-semibold"><code>impctl gateway config --encryption=yes</code></td><td class="py-2 px-4 border">加密 Gateway 上的稽核檔(主要為資料庫稽核用途)</td></tr><tr><td class="py-2 px-4 border font-semibold"><code>impctl hardening config --root-source-ip-exception=&lt;IP&gt;</code></td><td class="py-2 px-4 border">允許指定 IP 以 root SSH 登入</td></tr></tbody></table></div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">本教材另外會出現的兩個 impctl 指令</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li><code>impctl gateway ngrp enable|disable</code>:Bridge 模式轉 ABR 的步驟之一(完整流程見第 4 章,官方建議優先用 impcfg)。</li>
+                <li><code>impctl teardown</code>:拆除設定,屬破壞性操作,<strong>只在原廠指示下執行</strong>。</li>
+            </ul>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>重要提醒:重啟會中斷服務</p>
+                <p class="text-gray-800"><code>impctl gateway restart</code> 會中斷 inline 流量。Fail Open 只在有實體 bypass 網卡的硬體上生效,<strong>虛擬機只支援 Fail Close</strong>(第 5 章);在 VM 上重啟 Gateway,單台或沒有 VRRP 冗餘時等於停機;有 VRRP 時要先確認已切到另一台。要排維護時段。</p>
+            </div>
+        </div>
+
+        <!-- 五、速查表 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">五、常用指令速查表</h2>
+            <div class="overflow-x-auto mt-3"><table class="min-w-full text-sm border"><thead class="bg-gray-100"><tr><th class="py-2 px-4 border text-left">工作</th><th class="py-2 px-4 border text-left">指令 / 位置</th><th class="py-2 px-4 border text-left">工具</th><th class="py-2 px-4 border text-left">備註</th></tr></thead><tbody><tr><td class="py-2 px-4 border font-semibold">看設備狀態</td><td class="py-2 px-4 border"><code>impctl status</code></td><td class="py-2 px-4 border">impctl(安全清單)</td><td class="py-2 px-4 border">排障第一步</td></tr><tr><td class="py-2 px-4 border font-semibold">看網路介面</td><td class="py-2 px-4 border"><code>ifconfig</code></td><td class="py-2 px-4 border">impcli</td><td class="py-2 px-4 border">—</td></tr><tr><td class="py-2 px-4 border font-semibold">測連線</td><td class="py-2 px-4 border"><code>ping 10.0.30.10</code></td><td class="py-2 px-4 border">impcli</td><td class="py-2 px-4 border">GW → MX</td></tr><tr><td class="py-2 px-4 border font-semibold">看連線埠</td><td class="py-2 px-4 border"><code>netstat</code></td><td class="py-2 px-4 border">impcli</td><td class="py-2 px-4 border">確認 8083 / 8085 是否建立</td></tr><tr><td class="py-2 px-4 border font-semibold">看磁碟</td><td class="py-2 px-4 border"><code>df</code></td><td class="py-2 px-4 border">impcli</td><td class="py-2 px-4 border">磁碟滿是常見停擺原因</td></tr><tr><td class="py-2 px-4 border font-semibold">看 Gateway 記錄</td><td class="py-2 px-4 border"><code>gwlog</code></td><td class="py-2 px-4 border">impcli</td><td class="py-2 px-4 border">—</td></tr><tr><td class="py-2 px-4 border font-semibold">改工作模式</td><td class="py-2 px-4 border">Top > Manage SecureSphere Gateway > Change operation mode</td><td class="py-2 px-4 border">impcfg</td><td class="py-2 px-4 border">S 存、A 套用</td></tr><tr><td class="py-2 px-4 border font-semibold">重新註冊 GW</td><td class="py-2 px-4 border"><code>impctl gateway unregister</code> → <code>impctl gateway register</code></td><td class="py-2 px-4 border">impctl(安全清單)</td><td class="py-2 px-4 border">MX 上 Gateway 卡住時</td></tr><tr><td class="py-2 px-4 border font-semibold">重啟服務</td><td class="py-2 px-4 border"><code>impctl gateway restart</code> / <code>impctl server restart</code></td><td class="py-2 px-4 border">impctl(安全清單)</td><td class="py-2 px-4 border">會中斷服務</td></tr><tr><td class="py-2 px-4 border font-semibold">備份 MX</td><td class="py-2 px-4 border"><code>full_expimp.sh</code>(root)或 <code>export-local</code> / <code>export-remote</code></td><td class="py-2 px-4 border">shell / impcli</td><td class="py-2 px-4 border">第六節</td></tr><tr><td class="py-2 px-4 border font-semibold">收診斷包</td><td class="py-2 px-4 border"><code>gti-remote</code></td><td class="py-2 px-4 border">impcli</td><td class="py-2 px-4 border">開案用</td></tr><tr><td class="py-2 px-4 border font-semibold">打 patch</td><td class="py-2 px-4 border"><code>patch-remote</code></td><td class="py-2 px-4 border">impcli</td><td class="py-2 px-4 border">先備份</td></tr><tr><td class="py-2 px-4 border font-semibold">封存設備</td><td class="py-2 px-4 border"><code>seal</code> / <code>unseal</code></td><td class="py-2 px-4 border">impcli</td><td class="py-2 px-4 border">不要用 <code>--strict</code></td></tr></tbody></table></div>
+        </div>
+
+        <!-- 六、備份 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">六、備份</h2>
+            <p class="text-gray-700 leading-relaxed"><strong>MX 是設定的正本。</strong>Site Tree、政策、Web Profile 都存在 MX 資料庫,所以備份重點在 MX<span class="tbc">【推論】</span>。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-4 mb-2">完整匯出(升級前必做)</h3>
+            <p class="text-sm text-gray-500">官方 Backing Up the System。</p>
+
+            <div class="mock-window">
+                <div class="mock-titlebar">
+                    <span class="mock-dots"><span></span><span></span><span></span></span>
+                    <span class="mock-url">SSH / console:mx01(10.0.30.10)</span>
+                </div>
+                <div class="term"><span class="c"># 先以 CLI 使用者登入,再用 admin 指令切換成 root</span>
+<span class="p">impcli&gt;</span> <span class="hl">admin</span>
+
+<span class="c"># 執行完整匯出</span>
+# <span class="hl">full_expimp.sh</span>
+Operation:                         <span class="hl">1</span>
+Password:                          ********
+Export Type:                       <span class="hl">1</span>
+Export failed archived data? (default n):   n
+Backup file name (default /var/tmp/SecureSphere_&lt;date&gt;.tgz):
+Confirm?                           <span class="hl">Y</span>
+...
+full_expimp completed successfully on &lt;date&gt;</div>
+                <div class="mock-caption"><i class="fas fa-circle-info mr-1"></i>示意畫面:提示文字依官方文件步驟整理,英文提示字樣待實機確認。Password 為 system 使用者密碼;Export failed archived data 為是否匯出失敗的封存資料;Confirm 為最後確認。</div>
+            </div>
+
+            <ol class="step-list mt-4 text-gray-700">
+                <li><span class="step-badge">1</span><span>以 root 登入 MX(由 impcli 執行 <code>admin</code> 切換)。</span></li>
+                <li><span class="step-badge">2</span><span>執行 <code>full_expimp.sh</code>。</span></li>
+                <li><span class="step-badge">3</span><span>依提示輸入:Operation 選 <code>1</code>;Password 輸入首次設定時的 system 使用者密碼;Export Type 選 <code>1</code>。</span></li>
+                <li><span class="step-badge">4</span><span>是否匯出失敗的封存資料(預設 <code>n</code>)。</span></li>
+                <li><span class="step-badge">5</span><span>備份檔名:預設 <code>/var/tmp/SecureSphere_&lt;日期&gt;.tgz</code>;自訂時要寫完整路徑。</span></li>
+                <li><span class="step-badge">6</span><span>輸入 <code>Y</code> 確認,等待完成。事件量大時會很久,可在另一個 shell 用 <code>tail</code> 看同目錄的記錄檔;成功時結尾會出現 <code>full_expimp completed successfully on &lt;date&gt;</code>。</span></li>
+                <li><span class="step-badge">7</span><span>把備份檔複製到其他機器。</span></li>
+                <li><span class="step-badge">8</span><span>另外複製報表目錄 <code>/opt/SecureSphere/server/SecureSphere/jakarta-tomcat-secsph/webapps/SecureSphere/WEB-INF/reptemp</code>。</span></li>
+            </ol>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">其他方式</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>匯出可用 GUI、互動式 CLI 或非互動式 CLI;<strong>匯入不能用 GUI</strong>,因為匯入時必須停止 MX 服務。</li>
+                <li>impcli 的 <code>export-local</code> / <code>export-remote</code> 適合排程或在 Sealed 模式下使用。</li>
+                <li>VMware 上的 WAF Gateway,升級前另拍 VM snapshot。</li>
+                <li>告警的長期保存用封存工作搭配 Archive to SCP Location 或 Archive to Amazon S3(第 12 章)。</li>
+            </ul>
+
+            <div class="highlight-box">
+                <p class="font-bold text-sky-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>建議週期</p>
+                <p class="text-gray-800">每週一次例行匯出 + 每次重大變更與升級前加做;備份檔保留至少兩份、放在 WAF 以外的位置,並每季做一次匯入演練(在測試 MX)。</p>
+            </div>
+        </div>
+
+        <!-- 七、升級路徑 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">七、升級路徑</h2>
+            <h3 class="text-lg font-bold text-gray-800 mb-2">升到 v15.5</h3>
+            <p class="text-sm text-gray-500">官方 Upgrade Path - Minimum Upgrade Version。</p>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 360 450" role="img" aria-labelledby="svg3-title" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans TC, sans-serif">
+                    <title id="svg3-title">升級路徑:v14.7.x 先升到最新 v14.7 LTS patch 再升 v15.5;v14.0 到 v14.6 先升到 v14.7;更舊版本或 v15.0 到 v15.4 以官方 v15.5 Upgrade Guide 為準(待實機確認);v16.0 必須從 v15.5 LTS patch 起跳</title>
+                    <defs>
+                        <marker id="arrow3" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+                        </marker>
+                    </defs>
+                    <text x="180" y="24" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2937">目前版本是?</text>
+                    <rect x="14" y="40" width="104" height="96" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/>
+                    <text x="66" y="62" text-anchor="middle" font-size="12" font-weight="700" fill="#b91c1c">更舊 / v15.0–15.4</text>
+                    <text x="66" y="84" text-anchor="middle" font-size="12" fill="#1f2937">依官方 v15.5</text>
+                    <text x="66" y="102" text-anchor="middle" font-size="12" fill="#1f2937">Upgrade Guide</text>
+                    <text x="66" y="122" text-anchor="middle" font-size="12" fill="#b91c1c">【待實機確認】</text>
+                    <rect x="128" y="40" width="104" height="96" rx="8" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2"/>
+                    <text x="180" y="64" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2937">v14.0–v14.6</text>
+                    <text x="180" y="88" text-anchor="middle" font-size="13" fill="#1f2937">先升到 v14.7</text>
+                    <text x="180" y="108" text-anchor="middle" font-size="13" fill="#1f2937">(最新 LTS patch)</text>
+                    <rect x="242" y="40" width="104" height="96" rx="8" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2"/>
+                    <text x="294" y="64" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2937">v14.7.x</text>
+                    <text x="294" y="88" text-anchor="middle" font-size="13" fill="#1f2937">先裝最新</text>
+                    <text x="294" y="108" text-anchor="middle" font-size="13" fill="#1f2937">v14.7 LTS patch</text>
+                                        <line x1="180" y1="136" x2="180" y2="174" stroke="#64748b" stroke-width="2" marker-end="url(#arrow3)"/>
+                    <line x1="294" y1="136" x2="220" y2="174" stroke="#64748b" stroke-width="2" marker-end="url(#arrow3)"/>
+
+                    <rect x="20" y="178" width="320" height="56" rx="10" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="180" y="204" text-anchor="middle" font-size="14" font-weight="700" fill="#075985">最新 v14.7 LTS patch</text>
+                    <text x="180" y="224" text-anchor="middle" font-size="13" fill="#1f2937">7G 硬體要先確認在 14.7.0.50 以上</text>
+                    <line x1="180" y1="234" x2="180" y2="262" stroke="#64748b" stroke-width="2" marker-end="url(#arrow3)"/>
+
+                    <rect x="20" y="266" width="320" height="50" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+                    <text x="180" y="297" text-anchor="middle" font-size="14" font-weight="700" fill="#15803d">v15.5</text>
+                    <line x1="180" y1="316" x2="180" y2="344" stroke="#64748b" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#arrow3)"/>
+
+                    <rect x="20" y="348" width="320" height="88" rx="10" fill="#faf5ff" stroke="#7c3aed" stroke-width="2"/>
+                    <text x="180" y="374" text-anchor="middle" font-size="14" font-weight="700" fill="#6d28d9">v16.0:必須從 v15.5 LTS patch 起跳</text>
+                    <text x="180" y="398" text-anchor="middle" font-size="13" fill="#1f2937">只有 Controlled Availability</text>
+                    <text x="180" y="420" text-anchor="middle" font-size="13" fill="#1f2937">Bridge / Sniffing 環境不要規劃</text>
+                </svg>
+            </div>
+
+            <div class="overflow-x-auto mt-3"><table class="min-w-full text-sm border"><thead class="bg-gray-100"><tr><th class="py-2 px-4 border text-left">目前版本</th><th class="py-2 px-4 border text-left">升級路徑</th></tr></thead><tbody><tr><td class="py-2 px-4 border font-semibold">v14.7.x</td><td class="py-2 px-4 border">先升到最新 v14.7 LTS patch,再升 15.5</td></tr><tr><td class="py-2 px-4 border font-semibold">v14.0 – v14.6</td><td class="py-2 px-4 border">先升到 v14.7(最新 LTS patch),再升 15.5</td></tr><tr><td class="py-2 px-4 border font-semibold">更舊版本或 v15.0 – v15.4</td><td class="py-2 px-4 border">路徑以官方 v15.5 Upgrade Guide(Minimum Upgrade Version)為準【待實機確認】</td></tr></tbody></table></div>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 mt-3">
+                <li>7G 硬體要先確認版本在 <strong>14.7.0.50</strong> 以上。</li>
+                <li>升級前要跑官方的 Mandatory Pre-Upgrade Checklist 與 Feature Specific Pre-Upgrade Checklist。</li>
+                <li>元件升級順序(MX、SOM、Gateway 誰先)見 v15.5 Upgrade Guide 的「Upgrade Sequence - What to Upgrade First」<span class="tbc">【待實機確認】</span>。</li>
+                <li>MX-HA 環境的升級程序另有規範<span class="tbc">【待實機確認】</span>。</li>
+            </ul>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>升到 v16.0</p>
+                <ul class="list-disc pl-6 text-gray-800 space-y-1">
+                    <li>必須從任一 <strong>v15.5 LTS patch</strong> 起跳。</li>
+                    <li>改用新的 client-server 升級程序:<strong>Gateway 先升、MX 後升</strong>,需要另外部署「s7 server」。</li>
+                    <li>OS 由 CentOS 7.9 改為 <strong>Oracle Linux 9.5</strong>。</li>
+                    <li>v16.0 只有 Controlled Availability,只支援 NGRP / ABR、VRRP;不支援 Bridge、Sniffing、IMPVHA(GW)、MX-HA、SOM、雲端 VM;M100、M150 不能升 16.0。<strong>目前跑 Bridge 或 Sniffing 的環境不要規劃升 16.0。</strong></li>
+                </ul>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">升級前檢查</h3>
+            <ol class="step-list text-gray-700">
+                <li><span class="step-badge">1</span><span>讀目標版本 Release Notes 的「不再支援」項目(例如 KRP 已移除、Onebox 不支援、Hyper-V 不支援)。</span></li>
+                <li><span class="step-badge">2</span><span>對照 EOS 表確認目標版本支援期(第 1 章)。</span></li>
+                <li><span class="step-badge">3</span><span>完成第六節的完整匯出,VM 拍 snapshot。</span></li>
+                <li><span class="step-badge">4</span><span>安排維護時段;VM 只有 Fail Close,升級期間 inline 流量會中斷。</span></li>
+                <li><span class="step-badge">5</span><span>升級後:確認 Gateway 全部在 MX 上線、ADC 內容版本、政策套用、送 Syslog 正常。</span></li>
+            </ol>
+        </div>
+
+        <!-- 八、疑難排解檢查表 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">八、疑難排解檢查表</h2>
+            <p class="text-gray-700 mb-2">先看症狀,再依「先查」欄位逐項確認。第十節的決策樹會帶你一題一題走。</p>
+            <div class="overflow-x-auto mt-3"><table class="min-w-full text-sm border"><thead class="bg-gray-100"><tr><th class="py-2 px-4 border text-left">症狀</th><th class="py-2 px-4 border text-left">先查</th><th class="py-2 px-4 border text-left">工具 / 參考</th></tr></thead><tbody><tr><td class="py-2 px-4 border font-semibold">Gateway 在 MX 顯示斷線</td><td class="py-2 px-4 border">GW → MX TCP 8083(啟用 Trusted Connections 後為 8085)是否通;MX → GW 22 / 443</td><td class="py-2 px-4 border"><code>netstat</code> 看連線狀態(<code>ping</code> 只驗證 ICMP,不能驗證 TCP 埠);第 3 章埠表</td></tr><tr><td class="py-2 px-4 border font-semibold">Gateway 註冊不上</td><td class="py-2 px-4 border">時間是否同步(NTP)、MX 與 GW 間的通訊密碼是否一致</td><td class="py-2 px-4 border"><code>date</code>;impcli 雜項指令</td></tr><tr><td class="py-2 px-4 border font-semibold">有流量但沒告警</td><td class="py-2 px-4 border">Site Tree 的伺服器 IP / 埠是否對到實際流量;HTTPS 金鑰是否匯入</td><td class="py-2 px-4 border">第 7 章</td></tr><tr><td class="py-2 px-4 border font-semibold">HTTPS 無法解析</td><td class="py-2 px-4 border">Gateway 跑 Sniffing 或 Bridge,且流量用 TLS 1.3 或任何 ECDHE / DHE(PFS)cipher</td><td class="py-2 px-4 border">第 4 章</td></tr><tr><td class="py-2 px-4 border font-semibold">擋了但使用者看到逾時</td><td class="py-2 px-4 border">Sniffing 模式只能送 TCP reset,不能回錯誤頁</td><td class="py-2 px-4 border">第 4 章</td></tr><tr><td class="py-2 px-4 border font-semibold">ADC 內容更新失敗</td><td class="py-2 px-4 border">MX → <code>www.imperva.com:443</code></td><td class="py-2 px-4 border">第 3、9 章</td></tr><tr><td class="py-2 px-4 border font-semibold">威脅情資 / ABP 無效</td><td class="py-2 px-4 border">MX / GW → <code>*.impervacloud.com:443</code>;ABP 另需 <code>*.impervaabp.net</code>、<code>*.distil.ninja</code></td><td class="py-2 px-4 border">第 10 章</td></tr><tr><td class="py-2 px-4 border font-semibold">SIEM 收不到</td><td class="py-2 px-4 border">每台 GW → Syslog 埠;Protocol 與 SIEM 端一致</td><td class="py-2 px-4 border">第 12 章</td></tr><tr><td class="py-2 px-4 border font-semibold">MX 變慢、GUI 卡</td><td class="py-2 px-4 border">磁碟空間、告警量、報表排程</td><td class="py-2 px-4 border"><code>df</code></td></tr><tr><td class="py-2 px-4 border font-semibold">連線數下降(舊機升級後)</td><td class="py-2 px-4 border">KRP 換成 NGRP 後,X6510/8510/10K 連線數下降</td><td class="py-2 px-4 border">第 4、5 章</td></tr></tbody></table></div>
+        </div>
+
+        <!-- 九、開案前收集資訊 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">九、開案前收集資訊</h2>
+            <p class="text-gray-700 mb-2">支援入口已改為 <strong>Thales Support Portal</strong>;2026-02-15 起不再直接以 email 寄送產品通知,要自行在入口訂閱。開案前備齊:</p>
+            <ol class="step-list text-gray-700">
+                <li><span class="step-badge">1</span><span><strong>版本</strong>:MX、Gateway(含 SOM)的版本與 patch 號(<code>impctl status</code>、GUI)。</span></li>
+                <li><span class="step-badge">2</span><span><strong>平台</strong>:硬體型號或虛擬型號、hypervisor / 雲端平台。</span></li>
+                <li><span class="step-badge">3</span><span><strong>部署</strong>:Gateway Group 的 Gateway Mode、Fail Mode、HA 方式,附簡單拓撲圖。</span></li>
+                <li><span class="step-badge">4</span><span><strong>時間軸</strong>:問題開始時間(註明時區)、最近一次變更(對照系統事件記錄,第 12 章)。</span></li>
+                <li><span class="step-badge">5</span><span><strong>證據</strong>:相關告警 / 違規 ID、錯誤訊息、截圖。</span></li>
+                <li><span class="step-badge">6</span><span><strong>診斷包</strong>:用 <code>gti-remote</code> 產生並上傳 get-tech-info(上傳 URL 依原廠案件指示)。</span></li>
+                <li><span class="step-badge">7</span><span><strong>已做過的排除</strong>:照第八節檢查過哪些項目、結果如何。</span></li>
+            </ol>
+        </div>
+
+        <!-- 十、模擬器 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">十、動手玩:疑難排解決策樹</h2>
+            <p class="text-gray-700 mb-2">選一個症狀,依序回答每一項檢查。找到可疑點就停下來處理;全部正常,就照第九節備齊資訊再開案。檢查項目與工具完全依第八節的檢查表。</p>
+
+            <div class="bg-gray-50 border rounded-lg p-4 mt-4">
+                <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-stethoscope mr-1 text-sky-600"></i>1. 選擇症狀</h3>
+                <div id="dt-symptoms" class="grid md:grid-cols-2 gap-2"></div>
+            </div>
+            <div class="grid md:grid-cols-2 gap-4 mt-4">
+                <div class="bg-white border rounded-lg p-4">
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-code-branch mr-1 text-sky-600"></i>2. 逐項檢查</h3>
+                    <div id="dt-question" class="text-sm text-gray-700"></div>
+                    <div id="dt-trace" class="text-sm text-gray-700 mt-3"></div>
+                </div>
+                <div id="dt-result" class="border rounded-lg p-4"></div>
+            </div>
+
+            <div class="danger-box mt-6">
+                <p class="font-bold text-red-800 mb-1"><i class="fas fa-hand mr-1"></i>指令安全查詢:這個指令我能自己下嗎?</p>
+                <p class="text-sm text-gray-800 mb-2">impctl 只在必要時或原廠指示下使用。挑一個指令,看它屬於哪一類。</p>
+                <select id="cmd-select" class="border rounded px-2 py-1 w-full mb-3"></select>
+                <div id="cmd-result" class="border rounded-lg p-3 bg-white text-sm"></div>
+            </div>
+        </div>
+
+        <!-- 十一、踩坑 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">十一、常見踩坑</h2>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>impcfg 改完沒按 A</p>
+                <p class="text-gray-800">只存檔沒套用,以為改了其實沒生效。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>在 VM 上重啟 Gateway 沒排停機</p>
+                <p class="text-gray-800">VM 只有 Fail Close,重啟就是斷線。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>用 <code>seal --strict</code></p>
+                <p class="text-gray-800">永久封存無法解除,之後原廠要 root 協助也進不去。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>root 密碼過期</p>
+                <p class="text-gray-800">root 每 90 天要換,緊急時才發現過期。把換密碼排入例行工作。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>備份只放在 MX 本機</p>
+                <p class="text-gray-800">預設路徑 <code>/var/tmp</code>,MX 壞掉時備份一起不見。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>跳版升級</p>
+                <p class="text-gray-800">v14.0–14.6 不能直接升 15.5,要先升到 v14.7(最新 LTS patch);更舊版本或 15.0–15.4 的路徑以官方 v15.5 Upgrade Guide 為準【待實機確認】。</p>
+            </div>
+        </div>
+
+        <!-- 十二、新舊對照 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">十二、新舊對照</h2>
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>舊簡報 vs 現行版本</p>
+                <p class="text-sm text-gray-700">下表左欄是舊簡報的說法,右欄是現行文件查到的現況。</p>
+            </div>
+            <div class="overflow-x-auto mt-3"><table class="min-w-full text-sm border"><thead class="bg-gray-100"><tr><th class="py-2 px-4 border text-left">舊簡報說法</th><th class="py-2 px-4 border text-left">現況</th><th class="py-2 px-4 border text-left">依據</th></tr></thead><tbody><tr><td class="py-2 px-4 border font-semibold">平台基於 Linux 2.6 / CentOS(舊簡報 p.47、p.152)</td><td class="py-2 px-4 border">v15.x 為 CentOS 7.9;v16.0 改 Oracle Linux 9.5</td><td class="py-2 px-4 border">v15.5、v16.0 Release Notes</td></tr><tr><td class="py-2 px-4 border font-semibold">用 impcfg 建立獨立 SSH 使用者,登入後輸入 <code>admin</code> 取得 root(舊簡報 p.152)</td><td class="py-2 px-4 border">登入環境為 impcli,預設使用者 <code>admin</code>(首次登入改密碼);<code>admin</code> 指令切 root;舊 <code>secure</code> 使用者已移除;Sealed 模式下不能切 root</td><td class="py-2 px-4 border">impcli、Sealed Mode(WAF Administration Guide)</td></tr><tr><td class="py-2 px-4 border font-semibold">impctl 僅在 Imperva support 指示下使用(舊簡報 p.152)</td><td class="py-2 px-4 border">原則不變;另有官方 Safe impctl Commands 清單可自行使用</td><td class="py-2 px-4 border">Safe impctl Commands</td></tr><tr><td class="py-2 px-4 border font-semibold">impcfg Top Screen 以 8.0 為例,含 Server、Gateway 同機(舊簡報 p.153)</td><td class="py-2 px-4 border">選單概念(S 存、A 套用)不變;MX 與 GW 同機(Onebox)自 v14.1 起不支援</td><td class="py-2 px-4 border">impcfg Functionality Map;v16.0 Upgrade Guide</td></tr><tr><td class="py-2 px-4 border font-semibold">收集資訊用 <code>impctl support get-tech-info</code>(舊簡報 p.154)</td><td class="py-2 px-4 border">impcli 提供 <code>gti-remote</code> 產生並上傳 get-tech-info;本機產生指令<span class="tbc">【待實機確認】</span></td><td class="py-2 px-4 border">Sealed Mode(impcli 指令表)</td></tr><tr><td class="py-2 px-4 border font-semibold"><code>impctl db</code> 一系列資料庫指令(舊簡報 p.154)</td><td class="py-2 px-4 border">備份改用 <code>full_expimp.sh</code> 或 impcli <code>export-local</code> / <code>export-remote</code></td><td class="py-2 px-4 border">Backing Up the System;Sealed Mode</td></tr><tr><td class="py-2 px-4 border font-semibold">支援入口與夥伴下載站(舊簡報 p.157–158)</td><td class="py-2 px-4 border">改為 Thales Support Portal</td><td class="py-2 px-4 border">v15.5 Release Notes</td></tr></tbody></table></div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
+                隨堂測驗
+            </h2>
+            <p class="mb-6 text-gray-600">請點選您認為正確的選項,系統將會顯示解析。</p>
+            <div class="space-y-6" id="quiz-container"></div>
+        </div>
+
+    </main>
+
+    <footer class="footer-signature">
+        Planning &amp; Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver.2026.11.02.12.07
+    </footer>
+
+
+    <script>
+        function esc(s) {
+            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        // ===== 疑難排解決策樹 =====
+        // problemOn:'no' 表示回答「否」就是可疑點;'yes' 表示回答「是」就是可疑點
+        const SYMPTOMS = [
+            {
+                name: 'Gateway 在 MX 顯示斷線',
+                checks: [
+                    { q: 'Gateway 到 MX 的 TCP 8083 是否通?(若已啟用 Trusted Connections,改查 8085)', problemOn: 'no', tool: 'netstat 看連線狀態(ping 只驗證 ICMP,不能驗證 TCP 埠)', ref: '第 3 章埠表', hint: 'GW → MX 這條連線不通,Gateway 就會在 MX 上顯示斷線。' },
+                    { q: 'MX 到 Gateway 的 TCP 22 / 443 是否通?', problemOn: 'no', tool: 'netstat 看連線狀態(ping 只驗證 ICMP,不能驗證 TCP 埠)', ref: '第 3 章埠表', hint: 'MX → GW 的 22 / 443 不通。' }
+                ]
+            },
+            {
+                name: 'Gateway 註冊不上',
+                checks: [
+                    { q: 'MX 與 Gateway 的時間是否同步(NTP)?', problemOn: 'no', tool: 'impcli 的 date', ref: '', hint: '時間不同步會讓註冊失敗。' },
+                    { q: 'MX 與 Gateway 間的通訊密碼是否一致?', problemOn: 'no', tool: 'impcli 雜項指令(確切語法待實機確認)', ref: '', hint: '通訊密碼不一致。' }
+                ]
+            },
+            {
+                name: '有流量但沒告警',
+                checks: [
+                    { q: 'Site Tree 的伺服器 IP / 埠是否對到實際流量?', problemOn: 'no', tool: 'MX 的 Site Tree', ref: '第 7 章', hint: 'Site Tree 上的伺服器 IP / 埠沒有對到實際流量,流量就落不到站台。' },
+                    { q: 'HTTPS 站台的金鑰是否已匯入?', problemOn: 'no', tool: 'MX 的 Site Tree / 金鑰設定', ref: '第 7 章', hint: '沒有匯入 HTTPS 金鑰,Gateway 看不到加密內容。' }
+                ]
+            },
+            {
+                name: 'HTTPS 無法解析',
+                checks: [
+                    { q: 'Gateway 跑 Sniffing 或 Bridge,且流量用 TLS 1.3 或任何 ECDHE / DHE(PFS)cipher 嗎?', problemOn: 'yes', tool: 'MX 的 Gateway Group 設定', ref: '第 4 章', hint: 'Sniffing 與 Bridge 只能解 TLS 1.2 靜態 RSA;TLS 1.3 或任何 ECDHE / DHE(PFS)cipher 都解不了,是無法解析 HTTPS 的原因。' }
+                ]
+            },
+            {
+                name: '擋了但使用者看到逾時',
+                checks: [
+                    { q: 'Gateway 的工作模式是 Sniffing 嗎?', problemOn: 'yes', tool: 'MX 的 Gateway Group 設定', ref: '第 4 章', hint: 'Sniffing 模式只能送 TCP reset,不能回錯誤頁,使用者就會看到逾時。' }
+                ]
+            },
+            {
+                name: 'ADC 內容更新失敗',
+                checks: [
+                    { q: 'MX 到 www.imperva.com:443 是否通?', problemOn: 'no', tool: 'netstat 看連線狀態(ping 只驗證 ICMP,不能驗證 TCP 埠)', ref: '第 3、9 章', hint: 'MX 連不到 ADC 更新來源。' }
+                ]
+            },
+            {
+                name: '威脅情資 / ABP 無效',
+                checks: [
+                    { q: 'MX / Gateway 到 *.impervacloud.com:443 是否通?', problemOn: 'no', tool: 'netstat 看連線狀態(ping 只驗證 ICMP,不能驗證 TCP 埠)', ref: '第 10 章', hint: '到 *.impervacloud.com:443 的連線不通。' },
+                    { q: '(有使用 ABP 才需要)到 *.impervaabp.net、*.distil.ninja 是否通?', problemOn: 'no', tool: 'netstat 看連線狀態(ping 只驗證 ICMP,不能驗證 TCP 埠)', ref: '第 10 章', hint: 'ABP 另需的 *.impervaabp.net、*.distil.ninja 不通。' }
+                ]
+            },
+            {
+                name: 'SIEM 收不到',
+                checks: [
+                    { q: '每台 Gateway 到 Syslog 埠是否都通?', problemOn: 'no', tool: 'netstat 看連線狀態(ping 只驗證 ICMP,不能驗證 TCP 埠)', ref: '第 12 章', hint: '訊息是從每台 Gateway 送出,每一台到 Syslog 埠都要通。' },
+                    { q: 'Protocol 是否與 SIEM 端一致?', problemOn: 'no', tool: 'MX 的 Action Set 設定', ref: '第 12 章', hint: 'Protocol(UDP / TCP)和 SIEM 端不一致。' }
+                ]
+            },
+            {
+                name: 'MX 變慢、GUI 卡',
+                checks: [
+                    { q: '磁碟空間是否快滿了?', problemOn: 'yes', tool: 'impcli 的 df', ref: '', hint: '磁碟空間不足是常見的停擺原因。' },
+                    { q: '告警量是否異常地大?', problemOn: 'yes', tool: 'MX 的告警檢視', ref: '第 12 章', hint: '告警量過大會拖慢 MX。' },
+                    { q: '報表排程是否過多或過密?', problemOn: 'yes', tool: 'MX 的報表排程', ref: '第 12 章', hint: '報表排程可能是拖慢 MX 的原因。' }
+                ]
+            },
+            {
+                name: '連線數下降(舊機升級後)',
+                checks: [
+                    { q: '這是 X6510 / 8510 / 10K 舊機,升級後 KRP 換成了 NGRP 嗎?', problemOn: 'yes', tool: 'MX 的 Gateway Group 設定', ref: '第 4、5 章', hint: 'KRP 換成 NGRP 後,X6510 / 8510 / 10K 的連線數下降。' }
+                ]
+            }
+        ];
+
+        const dtSymptoms = document.getElementById('dt-symptoms');
+        const dtQuestion = document.getElementById('dt-question');
+        const dtTrace = document.getElementById('dt-trace');
+        const dtResult = document.getElementById('dt-result');
+        let dtCur = -1, dtStep = 0, dtLog = [];
+
+        SYMPTOMS.forEach((s, i) => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'text-left border rounded px-3 py-2 bg-white hover:bg-sky-50 text-sm';
+            b.dataset.i = String(i);
+            b.textContent = s.name;
+            dtSymptoms.appendChild(b);
+        });
+        dtSymptoms.addEventListener('click', e => {
+            const b = e.target.closest('button[data-i]');
+            if (!b) return;
+            dtCur = Number(b.dataset.i); dtStep = 0; dtLog = [];
+            renderTree();
+        });
+
+        function renderTree() {
+            Array.from(dtSymptoms.children).forEach((b, i) => {
+                b.classList.toggle('border-sky-600', i === dtCur);
+                b.classList.toggle('bg-sky-50', i === dtCur);
+            });
+            if (dtCur < 0) {
+                dtQuestion.innerHTML = '<p class="text-gray-500">請先在上方選一個症狀。</p>';
+                dtTrace.innerHTML = '';
+                dtResult.className = 'border rounded-lg p-4 bg-gray-50';
+                dtResult.innerHTML = '<p class="text-sm text-gray-500">檢查結果會顯示在這裡。</p>';
+                return;
+            }
+            const sym = SYMPTOMS[dtCur];
+            dtTrace.innerHTML = dtLog.map(l => `<div class="trace-line">${esc(l.q)} → <strong>${l.ans}</strong></div>`).join('');
+            const last = dtLog[dtLog.length - 1];
+            if (last && last.problem) {
+                const c = last.check;
+                dtQuestion.innerHTML = '<p class="text-gray-600">已找到可疑點,下方是處理方向。要重來請再點一次症狀。</p>';
+                dtResult.className = 'border rounded-lg p-4 bg-orange-50 border-orange-300';
+                dtResult.innerHTML = `<h4 class="font-bold text-orange-800 mb-2"><i class="fas fa-magnifying-glass mr-1"></i>可疑點</h4>
+                    <p class="text-sm text-gray-800 mb-1">${esc(c.q)}</p>
+                    <p class="text-sm text-gray-800 mb-1">${esc(c.hint)}</p>
+                    <p class="text-sm text-gray-700">用到的工具:${esc(c.tool)}${c.ref ? ';參考:' + esc(c.ref) : ''}</p>
+                    <p class="text-xs text-gray-500 mt-2">處理後再回頭確認原本的症狀是否消失。</p>`;
+                return;
+            }
+            if (dtStep >= sym.checks.length) {
+                dtQuestion.innerHTML = '<p class="text-gray-600">檢查表上的項目都已走完。</p>';
+                dtResult.className = 'border rounded-lg p-4 bg-blue-50 border-blue-300';
+                dtResult.innerHTML = `<h4 class="font-bold text-blue-800 mb-2"><i class="fas fa-ticket mr-1"></i>這幾項都正常:準備開案</h4>
+                    <p class="text-sm text-gray-800 mb-1">請照第九節備齊資訊:版本、平台、部署、時間軸、證據、診斷包(<code>gti-remote</code>),以及「已做過的排除」(就是剛才這幾項)。</p>
+                    <p class="text-xs text-gray-500">支援入口:Thales Support Portal。</p>`;
+                return;
+            }
+            const c = sym.checks[dtStep];
+            dtQuestion.innerHTML = `<p class="font-semibold text-gray-800 mb-2">第 ${dtStep + 1} / ${sym.checks.length} 項:${esc(c.q)}</p>
+                <div class="flex gap-2">
+                    <button type="button" class="border rounded px-4 py-1 bg-white hover:bg-green-50" data-ans="yes">是</button>
+                    <button type="button" class="border rounded px-4 py-1 bg-white hover:bg-red-50" data-ans="no">否</button>
+                </div>`;
+            dtResult.className = 'border rounded-lg p-4 bg-gray-50';
+            dtResult.innerHTML = '<p class="text-sm text-gray-500">回答每一項檢查後,結果會顯示在這裡。</p>';
+        }
+        dtQuestion.addEventListener('click', e => {
+            const b = e.target.closest('button[data-ans]');
+            if (!b || dtCur < 0) return;
+            const c = SYMPTOMS[dtCur].checks[dtStep];
+            const ans = b.dataset.ans;
+            dtLog.push({ q: c.q, ans: ans === 'yes' ? '是' : '否', problem: ans === c.problemOn, check: c });
+            dtStep++;
+            renderTree();
+        });
+        renderTree();
+
+        // ===== 指令安全查詢 =====
+        const CMDS = [
+            { cmd: 'impctl status', tone: 'ok', text: 'impctl 的安全清單。顯示設備狀態,排障第一步。' },
+            { cmd: 'impctl show commands --verbose', tone: 'ok', text: 'impctl 的安全清單。列出所有 impctl 指令與參數。' },
+            { cmd: 'impctl server restart', tone: 'warn', text: 'impctl 的安全清單,可自行使用;但會中斷服務,要排維護時段。' },
+            { cmd: 'impctl gateway restart', tone: 'warn', text: 'impctl 的安全清單,可自行使用;但會中斷 inline 流量。VM 只支援 Fail Close;單台或沒有 VRRP 冗餘時等於停機,有 VRRP 時要先確認已切到另一台。要排維護時段。' },
+            { cmd: 'impctl gateway unregister / register', tone: 'ok', text: 'impctl 的安全清單。MX 上 Gateway 卡住時,先 unregister 再 register。' },
+            { cmd: 'impctl gateway config --encryption=yes', tone: 'ok', text: 'impctl 的安全清單。加密 Gateway 上的稽核檔,主要為資料庫稽核用途。' },
+            { cmd: 'impctl hardening config --root-source-ip-exception=<IP>', tone: 'warn', text: 'impctl 的安全清單。允許指定 IP 以 root SSH 登入(例如原廠遠端支援期間);用完要移除例外(移除語法待實機確認)。' },
+            { cmd: 'impctl gateway ngrp enable|disable', tone: 'warn', text: 'Bridge 模式轉 ABR 的步驟之一(完整流程見第 4 章);官方建議優先用 impcfg。' },
+            { cmd: 'impctl teardown', tone: 'bad', text: '拆除設定,屬破壞性操作。只在原廠指示下執行。' },
+            { cmd: '安全清單以外的其他 impctl 指令', tone: 'bad', text: '先開案詢問原廠,不要自行嘗試。' },
+            { cmd: 'impcfg(改完按 S 存、A 套用)', tone: 'ok', text: '官方建議用它改工作模式與網路設定。沒有 Apply 的變更不會生效。' },
+            { cmd: 'gti-remote', tone: 'ok', text: 'impcli 指令。產生 get-tech-info 診斷包並上傳到 URL(URL 依原廠案件指示),開案用。' },
+            { cmd: 'patch-remote', tone: 'warn', text: 'impcli 指令。從 URL 下載並安裝 patch,先備份。' },
+            { cmd: 'admin(impcli 指令)', tone: 'warn', text: '切換為 root。Sealed 模式下不可用。' },
+            { cmd: 'seal / unseal', tone: 'warn', text: 'impcli 指令。seal 把設備鎖成只能執行有限指令,需設定解封密碼;unseal 用封存時設定的密碼解除。' },
+            { cmd: 'seal --strict', tone: 'bad', text: '永久封存,無法解除。除非資安政策明確要求,不要使用。' },
+            { cmd: 'full_expimp.sh', tone: 'warn', text: '以 root 執行的完整匯出。升級前必做,備份檔要複製到其他機器。' }
+        ];
+        const TONES = {
+            ok: { cls: 'border-green-300 bg-green-50', label: '可自行使用', color: 'text-green-700' },
+            warn: { cls: 'border-yellow-300 bg-yellow-50', label: '小心使用', color: 'text-yellow-800' },
+            bad: { cls: 'border-red-300 bg-red-50', label: '原廠指示下才用 / 不要用', color: 'text-red-700' }
+        };
+        const cmdSelect = document.getElementById('cmd-select');
+        const cmdResult = document.getElementById('cmd-result');
+        CMDS.forEach((c, i) => {
+            const o = document.createElement('option');
+            o.value = String(i); o.textContent = c.cmd;
+            cmdSelect.appendChild(o);
+        });
+        function renderCmd() {
+            const c = CMDS[Number(cmdSelect.value)];
+            const t = TONES[c.tone];
+            cmdResult.className = 'border rounded-lg p-3 text-sm ' + t.cls;
+            cmdResult.innerHTML = `<p class="font-bold ${t.color} mb-1">${t.label}</p><p class="text-gray-800">${esc(c.text)}</p>`;
+        }
+        cmdSelect.addEventListener('change', renderCmd);
+        renderCmd();
+
+        // ===== 隨堂測驗資料 =====
+        const quizData = [
+            {
+                question: "Q1. 關於 impctl 的使用原則,下列何者正確?",
+                options: ["A. 日常設定都該優先用 impctl,因為它最底層", "B. 只在必要時或原廠指示下使用;官方 Safe impctl Commands 清單以外的指令先開案詢問原廠", "C. impctl 與 impcfg 完全無關", "D. impctl teardown 是安全清單內的指令,可以隨時執行"],
+                correct: 1,
+                desc: "正解:B。能用 impcfg 就用 impcfg;impctl 只在必要時或原廠指示下使用。impctl teardown 是破壞性操作,只在原廠指示下執行。"
+            },
+            {
+                question: "Q2. 用 impcfg 修改 Gateway 工作模式,按了 S 存檔卻沒有按 A,會怎樣?",
+                options: ["A. 變更已經生效", "B. 變更只存了檔,沒有套用,所以不會生效", "C. 設備會自動重開機套用", "D. 設定被自動還原且無法再編輯"],
+                correct: 1,
+                desc: "正解:B。impcfg 改完要先 S(Save)再 A(Apply);沒有 Apply 的變更不會生效。"
+            },
+            {
+                question: "Q3. 為什麼一般不建議使用 seal --strict?",
+                options: ["A. 它會刪除所有備份", "B. 它是永久封存,無法解除,之後原廠要 root 協助也進不去", "C. 它只能在 VM 上用", "D. 它會讓 Gateway 變成 Fail Open"],
+                correct: 1,
+                desc: "正解:B。seal --strict 是永久封存,無法解除。一般的 seal 之後可以用 unseal 加封存時設定的密碼解除。"
+            },
+            {
+                question: "Q4. 目前版本是 v14.3,想升到 v15.5,正確做法是?",
+                options: ["A. 直接升 v15.5", "B. 直接升 v16.0", "C. 先升到最新 v14.7 LTS patch,再升 v15.5", "D. 先降到 v14.0"],
+                correct: 2,
+                desc: "正解:C。v14.0 – v14.6 要先升到 v14.7(最新 LTS patch),再升 v15.5;v14.7.x 先升到最新 v14.7 LTS patch。更舊版本或 15.0–15.4 的路徑以官方 v15.5 Upgrade Guide 為準【待實機確認】。v16.0 必須從 v15.5 LTS patch 起跳。"
+            },
+            {
+                question: "Q5. 在 VM 上準備執行 impctl gateway restart,最該先做什麼?",
+                options: ["A. 什麼都不用,VM 有 Fail Open", "B. 排維護時段;VM 只支援 Fail Close,單台或沒有 VRRP 冗餘時重啟等於停機,有 VRRP 時先確認已切到另一台", "C. 先 seal --strict", "D. 先升級到 v16.0"],
+                correct: 1,
+                desc: "正解:B。impctl gateway restart 會中斷 inline 流量。Fail Open 只在有實體 bypass 網卡的硬體上生效,虛擬機只支援 Fail Close;單台或沒有 VRRP 冗餘時重啟等於停機,有 VRRP 時要先確認已切到另一台。"
+            }
+        ];
+
+
+        // ===== 隨堂測驗 =====
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionBox = document.createElement('div');
+            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
+
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border mb-2 text-gray-700" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            questionBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
+                <div class="space-y-2 mb-4">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
+                    <p class="font-bold result-title"></p>
+                    <p class="text-sm text-gray-600 mt-1">${item.desc}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionBox);
+        });
+
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            if (element.parentElement.dataset.answered) return;
+            element.parentElement.dataset.answered = "true";
+
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+                opt.classList.add('disabled');
+            });
+
+            if (optIndex === data.correct) {
+                element.classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了!";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                element.classList.add('bg-red-100', 'border-red-500');
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了!";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+
+    </script>
+</body>
+</html>

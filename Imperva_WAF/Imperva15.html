@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imperva WAF Gateway 實戰課程 - 綜合實作:shop.example.com 上線</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        /* 卡片主體樣式 (Imperva Blue) */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #0284c7;
+        }
+
+        /* 重點提示框 (藍) */
+        .highlight-box {
+            background-color: #f0f9ff;
+            border-left: 4px solid #0284c7;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 技術名詞標記 */
+        .tech-term {
+            color: #075985;
+            font-weight: 700;
+            background-color: #e0f2fe;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
+        }
+
+        /* 比喻說明框 (綠) */
+        .analogy-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 版本差異框 (紫) */
+        .version-box {
+            background-color: #faf5ff;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 常見踩坑框 (橘,避開主色藍) */
+        .pitfall-box {
+            background-color: #fff7ed;
+            border-left: 4px solid #ea580c;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .diagram-container {
+            display: block;
+            background-color: #ffffff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-top: 1rem;
+        }
+
+        .diagram-container svg {
+            display: block;
+            width: 100%;
+            max-width: 520px;
+            margin: 0 auto;
+        }
+
+        /* 示意畫面 (仿管理介面) */
+        .mock-window {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            background: #ffffff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            margin-top: 1rem;
+        }
+        .mock-titlebar {
+            background: #e2e8f0;
+            padding: 0.4rem 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: #475569;
+        }
+        .mock-dots span {
+            display: inline-block;
+            width: 0.6rem;
+            height: 0.6rem;
+            border-radius: 50%;
+            background: #94a3b8;
+            margin-right: 0.2rem;
+        }
+        .mock-url {
+            background: #ffffff;
+            border-radius: 0.25rem;
+            padding: 0.1rem 0.5rem;
+            flex: 1;
+            min-width: 0;
+            font-family: ui-monospace, Consolas, monospace;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .mock-nav {
+            background: #1f2937;
+            color: #cbd5e1;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.25rem 1rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+        }
+        .mock-nav .brand { font-weight: 700; color: #ffffff; margin-right: 0.5rem; }
+        .mock-nav .on { color: #ffffff; border-bottom: 2px solid #0284c7; padding-bottom: 0.1rem; }
+        .mock-crumb {
+            font-size: 0.8rem;
+            color: #475569;
+            padding: 0.5rem 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f8fafc;
+        }
+        .mock-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            padding: 0.5rem 0.75rem 0;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.8rem;
+        }
+        .mock-tabs span {
+            padding: 0.3rem 0.7rem;
+            border: 1px solid #e5e7eb;
+            border-bottom: none;
+            border-radius: 0.3rem 0.3rem 0 0;
+            background: #f1f5f9;
+            color: #475569;
+        }
+        .mock-tabs span.on { background: #ffffff; color: #111827; font-weight: 600; }
+        .mock-body { padding: 0.75rem; font-size: 0.85rem; }
+        .mock-section { font-weight: 700; color: #334155; margin: 0.75rem 0 0.25rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.2rem; }
+        .mock-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.35rem 0.6rem;
+            padding: 0.35rem 0;
+        }
+        .mock-label { width: 12rem; color: #374151; font-weight: 500; }
+        .mock-input {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+            padding: 0.2rem 0.5rem;
+            min-width: 12rem;
+            background: #ffffff;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #111827;
+        }
+        .mock-select::after { content: " ▾"; color: #64748b; }
+        .mock-indent { padding-left: 2rem; }
+        .mock-btn {
+            display: inline-block;
+            border: 1px solid #94a3b8;
+            background: #f8fafc;
+            border-radius: 0.25rem;
+            padding: 0.2rem 0.7rem;
+            font-size: 0.8rem;
+            color: #1f2937;
+        }
+        .mock-btn.primary { background: #1f2937; color: #ffffff; border-color: #1f2937; }
+        .mock-hl { outline: 2px solid #0284c7; outline-offset: 2px; border-radius: 0.25rem; }
+        .mock-list {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+            min-width: 9rem;
+            min-height: 4.2rem;
+            padding: 0.25rem 0.5rem;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.8rem;
+            background: #ffffff;
+        }
+        .mock-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 0.5rem; }
+        .mock-table th { background: #f1f5f9; text-align: left; padding: 0.35rem 0.5rem; border: 1px solid #e2e8f0; color: #334155; }
+        .mock-table td { padding: 0.35rem 0.5rem; border: 1px solid #e2e8f0; }
+        .mock-caption {
+            font-size: 0.75rem;
+            color: #6b7280;
+            padding: 0.5rem 0.75rem;
+            background: #f9fafb;
+            border-top: 1px dashed #e5e7eb;
+        }
+        .step-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.4rem;
+            height: 1.4rem;
+            border-radius: 9999px;
+            background: #0284c7;
+            color: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .step-list li { display: flex; gap: 0.6rem; align-items: flex-start; margin-bottom: 0.6rem; }
+
+        /* 模擬器 */
+        .sim-note { font-size: 0.8rem; color: #6b7280; margin-top: 0.25rem; }
+        .sim-card {
+            border: 1px solid #e5e7eb;
+            border-left-width: 4px;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.6rem;
+            background: #ffffff;
+        }
+        .sim-card h4 { font-weight: 700; margin-bottom: 0.25rem; }
+        .sim-card p { font-size: 0.875rem; color: #1f2937; line-height: 1.6; }
+        .sim-card.ok { border-left-color: #16a34a; background: #f0fdf4; }
+        .sim-card.ok h4 { color: #15803d; }
+        .sim-card.warn { border-left-color: #ea580c; background: #fff7ed; }
+        .sim-card.warn h4 { color: #c2410c; }
+        .sim-card.danger { border-left-color: #dc2626; background: #fef2f2; }
+        .sim-card.danger h4 { color: #b91c1c; }
+        .sim-card.info { border-left-color: #0284c7; background: #f0f9ff; }
+        .sim-card.info h4 { color: #075985; }
+
+        @media (max-width: 640px) {
+            main { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+            .section-card { padding: 1rem; }
+            .diagram-container { padding: 0.25rem; }
+            .mock-label { width: calc(100% - 2.2rem); }
+            .mock-indent .mock-label { width: 100%; }
+            .mock-input { min-width: 0; width: 100%; }
+            .mock-indent { padding-left: 0.75rem; }
+            .mock-body { padding: 0.5rem; }
+        }
+
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover:not(.disabled) {
+            background-color: #f3f4f6;
+        }
+
+        .footer-signature {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+            margin-top: 4rem;
+        }
+        /* Long URLs and code wrap on narrow screens */
+        main { overflow-wrap: break-word; } main code { overflow-wrap: anywhere; }
+
+        /* 檢查表 */
+        #chk-list label { cursor: pointer; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-sky-800 to-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-shield-halved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold">Imperva WAF Gateway 實戰課程</h1>
+                    <p class="text-sky-100 mt-1">單元 15:綜合實作:shop.example.com 上線</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 章節導覽 -->
+    <nav class="bg-white border-b shadow-sm" aria-label="章節導覽">
+        <div class="container mx-auto px-4 py-2 max-w-5xl flex flex-wrap items-center justify-between gap-2 text-sm">
+            <a href="Imperva14.html" class="text-sky-700 hover:underline"><i class="fas fa-arrow-left mr-1"></i>上一章(第 14 章)</a>
+            <a href="Imperva00.html" class="text-sky-700 hover:underline"><i class="fas fa-list mr-1"></i>課程目錄</a>
+            <span class="text-gray-400">已是最後一章</span>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <!-- Introduction -->
+        <div class="mb-8">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
+                <h2 class="text-xl font-bold text-blue-800 mb-2 flex items-center">
+                    <i class="fas fa-user-tie mr-2"></i>講師導言
+                </h2>
+                <p class="text-blue-900 leading-relaxed">
+                    恭喜走到最後一章。前面 14 章,我們一塊一塊學了部署模式、HA、Site Tree、Dynamic Profiling、政策、情資、告警與維運。這一章要把它們串成<strong>一個真實案子</strong>:
+                    <code>shop.example.com</code> 從規劃到上線。每一步都標出對應章節,細節回到那一章查;這裡只回答「這個案子怎麼決定、怎麼驗收」。
+                    最後附一張 20 項的上線檢查表,你可以在模擬器裡勾勾看。
+                </p>
+            </div>
+        </div>
+
+        <!-- 學習目標 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-gray-100 text-gray-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Goals</span>
+                本章學習目標
+            </h2>
+            <ul class="list-disc pl-6 space-y-1 text-gray-700">
+                <li>把全書內容串成上線的九個步驟,並說出每一步對應哪一章</li>
+                <li>依案例需求做出部署模式與 HA 的決策,說明為什麼是 Reverse Proxy(NGRP)加 VRRP</li>
+                <li>說明學習期到轉保護的做法:先告警、後阻擋</li>
+                <li>為每一步訂出驗收點,而不是「設定完就算完成」</li>
+                <li>用上線檢查表驗收,並確認有可演練的回退方案</li>
+            </ul>
+            <p class="text-sm text-gray-500 mt-4"><i class="fas fa-map-signs mr-1"></i>本章串連第 1 到 14 章;第 14 章的架構 B 是日後加上 Cloud WAF 時的彈性選項。</p>
+        </div>
+
+        <!-- 一、案例需求 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">一、案例需求與全書地圖</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">需求</th><th class="py-2 px-4 border text-left">內容</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">保護對象</td><td class="py-2 px-4 border"><code>shop.example.com</code>(<code>203.0.113.20</code>,HTTPS 443),含會員區 <code>/member/</code></td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">次要對象</td><td class="py-2 px-4 border"><code>api.example.com</code>(<code>203.0.113.21</code> → <code>10.0.10.31</code>),第二階段納入</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">後端</td><td class="py-2 px-4 border">LB 內側 VIP <code>10.0.10.20</code> → <code>web01</code> <code>10.0.10.21</code>、<code>web02</code> <code>10.0.10.22</code></td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">加密</td><td class="py-2 px-4 border">用戶端多數使用 TLS 1.3;要能檢查加密內容</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">可用性</td><td class="py-2 px-4 border">WAF 單機故障不能讓網站停擺</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">監控</td><td class="py-2 px-4 border">告警送 Splunk <code>10.0.30.50</code></td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">平台</td><td class="py-2 px-4 border">公司標準為 VMware ESXi 8.0;版本 v15.5 LTS</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">上線九步驟總覽</h3>
+            <div class="diagram-container">
+                <svg viewBox="0 0 360 560" role="img" aria-labelledby="svg1-title" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans TC, sans-serif">
+                    <title id="svg1-title">shop.example.com 上線九個步驟與對應章節:規劃與防火牆、部署模式與 HA、安裝與註冊、Site Tree、學習期、轉保護、威脅情資與 Bot、告警送 Splunk、交接維運</title>
+                    <defs>
+                        <marker id="arrow1" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+                        </marker>
+                    </defs>
+                    <!-- 建置 -->
+                    <rect x="20" y="8" width="320" height="44" rx="8" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <circle cx="44" cy="30" r="13" fill="#0284c7"/><text x="44" y="35" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">1</text>
+                    <text x="68" y="35" font-size="14" fill="#1f2937">規劃與防火牆</text>
+                    <text x="330" y="35" text-anchor="end" font-size="13" fill="#075985">第 2、3 章</text>
+
+                    <rect x="20" y="58" width="320" height="44" rx="8" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <circle cx="44" cy="80" r="13" fill="#0284c7"/><text x="44" y="85" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">2</text>
+                    <text x="68" y="85" font-size="14" fill="#1f2937">部署模式與 HA</text>
+                    <text x="330" y="85" text-anchor="end" font-size="13" fill="#075985">第 4、5 章</text>
+
+                    <rect x="20" y="108" width="320" height="44" rx="8" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <circle cx="44" cy="130" r="13" fill="#0284c7"/><text x="44" y="135" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">3</text>
+                    <text x="68" y="135" font-size="14" fill="#1f2937">安裝與註冊</text>
+                    <text x="330" y="135" text-anchor="end" font-size="13" fill="#075985">第 6 章</text>
+
+                    <rect x="20" y="158" width="320" height="44" rx="8" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <circle cx="44" cy="180" r="13" fill="#0284c7"/><text x="44" y="185" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">4</text>
+                    <text x="68" y="185" font-size="14" fill="#1f2937">Site Tree 與 Web Service</text>
+                    <text x="330" y="185" text-anchor="end" font-size="13" fill="#075985">第 7 章</text>
+
+                    <!-- 調校 -->
+                    <rect x="20" y="214" width="320" height="44" rx="8" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+                    <circle cx="44" cy="236" r="13" fill="#6366f1"/><text x="44" y="241" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">5</text>
+                    <text x="68" y="241" font-size="14" fill="#1f2937">學習期</text>
+                    <text x="330" y="241" text-anchor="end" font-size="13" fill="#4338ca">第 8、11 章</text>
+
+                    <rect x="20" y="264" width="320" height="44" rx="8" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+                    <circle cx="44" cy="286" r="13" fill="#6366f1"/><text x="44" y="291" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">6</text>
+                    <text x="68" y="291" font-size="14" fill="#1f2937">轉保護(先告警、後阻擋)</text>
+                    <text x="330" y="291" text-anchor="end" font-size="13" fill="#4338ca">第 9 章</text>
+
+                    <rect x="20" y="314" width="320" height="44" rx="8" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+                    <circle cx="44" cy="336" r="13" fill="#6366f1"/><text x="44" y="341" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">7</text>
+                    <text x="68" y="341" font-size="14" fill="#1f2937">威脅情資與 Bot</text>
+                    <text x="330" y="341" text-anchor="end" font-size="13" fill="#4338ca">第 10 章</text>
+
+                    <!-- 監控交接 -->
+                    <rect x="20" y="370" width="320" height="44" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+                    <circle cx="44" cy="392" r="13" fill="#16a34a"/><text x="44" y="397" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">8</text>
+                    <text x="68" y="397" font-size="14" fill="#1f2937">告警送 Splunk</text>
+                    <text x="330" y="397" text-anchor="end" font-size="13" fill="#15803d">第 12 章</text>
+
+                    <rect x="20" y="420" width="320" height="44" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+                    <circle cx="44" cy="442" r="13" fill="#16a34a"/><text x="44" y="447" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">9</text>
+                    <text x="68" y="447" font-size="14" fill="#1f2937">交接維運</text>
+                    <text x="330" y="447" text-anchor="end" font-size="13" fill="#15803d">第 13 章</text>
+
+                    <!-- 圖例 -->
+                    <rect x="20" y="486" width="14" height="14" rx="3" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="42" y="499" font-size="13" fill="#1f2937">建置(步驟 1–4)</text>
+                    <rect x="20" y="510" width="14" height="14" rx="3" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+                    <text x="42" y="523" font-size="13" fill="#1f2937">學習、防護與調校(步驟 5–7)</text>
+                    <rect x="20" y="534" width="14" height="14" rx="3" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+                    <text x="42" y="547" font-size="13" fill="#1f2937">監控與交接(步驟 8–9)</text>
+                </svg>
+            </div>
+            <p class="text-sm text-gray-600 mt-3">每一步都有「驗收點」。設定完不算完成,驗收通過才算。</p>
+        </div>
+
+        <!-- 二、步驟一 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">二、步驟一:規劃與防火牆 <span class="text-base font-normal text-gray-500">(<a href="Imperva02.html" class="text-sky-700 underline">第 2 章</a>、<a href="Imperva03.html" class="text-sky-700 underline">第 3 章</a>)</span></h2>
+
+            <p class="text-gray-700 leading-relaxed mb-3">
+                <strong>先確認 WAF Gateway 是對的工具</strong>:網站需要 L7 防護與正面模型;內部 ERP 未來也可能納入;需求表沒有大流量 DDoS,所以先不導入 Cloud WAF,但保留第 14 章架構 B 的彈性。
+            </p>
+            <p class="text-gray-700 leading-relaxed mb-3">
+                <strong>元件與位址</strong>(範例環境):<code>mx01</code> <code>10.0.30.10</code>、<code>gw01</code> <code>10.0.30.11</code>、<code>gw02</code> <code>10.0.30.12</code>,同屬 Gateway Group <span class="tech-term">GG-Shop</span>。
+            </p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-4 mb-2">防火牆要開的連線(第 3 章埠表)</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">來源</th><th class="py-2 px-4 border text-left">目的</th><th class="py-2 px-4 border text-left">埠</th><th class="py-2 px-4 border text-left">用途</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border"><code>10.0.30.100</code>(管理者)</td><td class="py-2 px-4 border"><code>mx01</code></td><td class="py-2 px-4 border">TCP 8083、22</td><td class="py-2 px-4 border">GUI / API、SSH</td></tr>
+                        <tr><td class="py-2 px-4 border"><code>gw01</code>、<code>gw02</code></td><td class="py-2 px-4 border"><code>mx01</code></td><td class="py-2 px-4 border">TCP 8083(Trusted Connections 啟用後 8085)</td><td class="py-2 px-4 border">GW → MX 管理通道</td></tr>
+                        <tr><td class="py-2 px-4 border"><code>mx01</code></td><td class="py-2 px-4 border"><code>gw01</code>、<code>gw02</code></td><td class="py-2 px-4 border">TCP 22、443</td><td class="py-2 px-4 border">MX → GW</td></tr>
+                        <tr><td class="py-2 px-4 border"><code>mx01</code></td><td class="py-2 px-4 border"><code>www.imperva.com</code></td><td class="py-2 px-4 border">TCP 443</td><td class="py-2 px-4 border">ADC、簽章、軟體更新</td></tr>
+                        <tr><td class="py-2 px-4 border"><code>mx01</code></td><td class="py-2 px-4 border"><code>*.impervacloud.com</code></td><td class="py-2 px-4 border">TCP 443</td><td class="py-2 px-4 border">威脅情資</td></tr>
+                        <tr><td class="py-2 px-4 border"><code>gw01</code>、<code>gw02</code></td><td class="py-2 px-4 border"><code>*.imperva.com</code>、<code>*.impervaabp.net</code>、<code>*.distil.ninja</code></td><td class="py-2 px-4 border">TCP 443</td><td class="py-2 px-4 border">Advanced Bot Protection(第 10 章)</td></tr>
+                        <tr><td class="py-2 px-4 border"><code>gw01</code>、<code>gw02</code>、<code>mx01</code></td><td class="py-2 px-4 border"><code>10.0.30.50</code></td><td class="py-2 px-4 border">TCP 514</td><td class="py-2 px-4 border">Syslog / Splunk</td></tr>
+                        <tr><td class="py-2 px-4 border"><code>gw01</code>、<code>gw02</code></td><td class="py-2 px-4 border"><code>ses-uploader.service.imperva.com</code></td><td class="py-2 px-4 border">TCP 443</td><td class="py-2 px-4 border">Attack Analytics 匯出(啟用 Attack Analytics 時才需要)</td></tr>
+                        <tr><td class="py-2 px-4 border"><code>mx01</code></td><td class="py-2 px-4 border"><code>entitlement.service.imperva.com</code>、<code>auth.service.imperva.com</code></td><td class="py-2 px-4 border">TCP 443</td><td class="py-2 px-4 border">Attack Analytics 授權與驗證(啟用 Attack Analytics 時才需要)</td></tr>
+                        <tr><td class="py-2 px-4 border">全部</td><td class="py-2 px-4 border">DNS、NTP 伺服器</td><td class="py-2 px-4 border">53、123</td><td class="py-2 px-4 border">名稱解析、時間同步</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 三、步驟二 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">三、步驟二:選部署模式與 HA <span class="text-base font-normal text-gray-500">(<a href="Imperva04.html" class="text-sky-700 underline">第 4 章</a>、<a href="Imperva05.html" class="text-sky-700 underline">第 5 章</a>)</span></h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">決策過程:一題一題刪去</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">問題</th><th class="py-2 px-4 border text-left">答案</th><th class="py-2 px-4 border text-left">結論</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border">要能阻擋並回錯誤頁嗎?</td><td class="py-2 px-4 border">要</td><td class="py-2 px-4 border">排除 Sniffing(只能送 TCP reset)</td></tr>
+                        <tr><td class="py-2 px-4 border">要檢查 TLS 1.3 / ECDHE 流量嗎?</td><td class="py-2 px-4 border">要</td><td class="py-2 px-4 border">排除 Sniffing 與純 Bridge(只能解 TLS 1.2 靜態 RSA)</td></tr>
+                        <tr><td class="py-2 px-4 border">剩下的選項</td><td class="py-2 px-4 border">Reverse Proxy(NGRP)或 ABR</td><td class="py-2 px-4 border">兩者都支援 TLS 1.3</td></tr>
+                        <tr><td class="py-2 px-4 border">未來要接 API Security Anywhere?</td><td class="py-2 px-4 border">可能</td><td class="py-2 px-4 border">NGRP、ABR 都支援(第 11 章)</td></tr>
+                        <tr><td class="py-2 px-4 border">是否在意 v16 路線?</td><td class="py-2 px-4 border">是</td><td class="py-2 px-4 border">v16.0 只支援 NGRP / ABR,選這兩者升級路線最順</td></tr>
+                        <tr><td class="py-2 px-4 border">平台是 VM</td><td class="py-2 px-4 border">是</td><td class="py-2 px-4 border">VM 只支援 Fail Close,HA 要靠第二台 Gateway</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="highlight-box">
+                <p class="font-bold text-sky-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>本案決定</p>
+                <p class="text-gray-800"><code>GG-Shop</code> 採 <strong>Reverse Proxy(NGRP)</strong>,<code>gw01</code> / <code>gw02</code> 以 <strong>VRRP</strong> 做冗餘。VRRP 是 Reverse Proxy 的冗餘方式;網路 HA 的 STP / IMPVHA 只適用 Bridge(第 5 章)。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">放在 LB 前面還是後面</h3>
+            <p class="text-gray-700 mb-2">舊簡報 p.43–44 的觀念仍適用(第 5 章)。本案把 WAF 放在 LB 前面:</p>
+            <div class="diagram-container">
+                <svg viewBox="0 0 360 470" role="img" aria-labelledby="svg2-title" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans TC, sans-serif">
+                    <title id="svg2-title">本案拓撲:Internet 經邊界防火牆 NAT 到 GG-Shop 的 VRRP VIP,由 gw01 與 gw02 以 Reverse Proxy 解密檢查,再到負載平衡器 10.0.10.20 與 web01、web02</title>
+                    <defs>
+                        <marker id="arrow2" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+                        </marker>
+                    </defs>
+                    <rect x="90" y="8" width="180" height="36" rx="8" fill="#f1f5f9" stroke="#94a3b8"/>
+                    <text x="180" y="32" text-anchor="middle" font-size="15" fill="#1f2937">Internet</text>
+                    <line x1="180" y1="44" x2="180" y2="66" stroke="#64748b" stroke-width="2" marker-end="url(#arrow2)"/>
+
+                    <rect x="20" y="70" width="320" height="62" rx="10" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2"/>
+                    <text x="180" y="94" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2937">邊界防火牆</text>
+                    <text x="180" y="116" text-anchor="middle" font-size="13" fill="#1f2937">203.0.113.20 NAT → GG-Shop VRRP VIP</text>
+                    <line x1="180" y1="132" x2="180" y2="154" stroke="#64748b" stroke-width="2" marker-end="url(#arrow2)"/>
+
+                    <rect x="20" y="158" width="320" height="130" rx="10" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="180" y="182" text-anchor="middle" font-size="15" font-weight="700" fill="#075985">GG-Shop:Reverse Proxy(NGRP)</text>
+                    <rect x="34" y="194" width="130" height="40" rx="6" fill="#ffffff" stroke="#7dd3fc"/>
+                    <text x="99" y="219" text-anchor="middle" font-size="14" fill="#1f2937">gw01 .11</text>
+                    <rect x="196" y="194" width="130" height="40" rx="6" fill="#ffffff" stroke="#7dd3fc"/>
+                    <text x="261" y="219" text-anchor="middle" font-size="14" fill="#1f2937">gw02 .12</text>
+                    <text x="180" y="256" text-anchor="middle" font-size="13" fill="#1f2937">VRRP 冗餘(兩台對外共用一個 VIP)</text>
+                    <text x="180" y="276" text-anchor="middle" font-size="13" fill="#1f2937">TLS 在此解密檢查</text>
+                    <line x1="180" y1="288" x2="180" y2="310" stroke="#64748b" stroke-width="2" marker-end="url(#arrow2)"/>
+
+                    <rect x="60" y="314" width="240" height="40" rx="8" fill="#eef2ff" stroke="#6366f1" stroke-width="2"/>
+                    <text x="180" y="340" text-anchor="middle" font-size="14" font-weight="700" fill="#4338ca">LB 10.0.10.20</text>
+                    <line x1="130" y1="354" x2="99" y2="378" stroke="#64748b" stroke-width="2" marker-end="url(#arrow2)"/>
+                    <line x1="230" y1="354" x2="261" y2="378" stroke="#64748b" stroke-width="2" marker-end="url(#arrow2)"/>
+
+                    <rect x="20" y="382" width="158" height="40" rx="8" fill="#f0fdf4" stroke="#16a34a"/>
+                    <text x="99" y="407" text-anchor="middle" font-size="13" fill="#1f2937">web01 10.0.10.21</text>
+                    <rect x="182" y="382" width="158" height="40" rx="8" fill="#f0fdf4" stroke="#16a34a"/>
+                    <text x="261" y="407" text-anchor="middle" font-size="13" fill="#1f2937">web02 10.0.10.22</text>
+
+                    <text x="180" y="448" text-anchor="middle" font-size="13" fill="#6b7280">WAF 在 LB 前:Server Group 只填 LB VIP</text>
+                </svg>
+            </div>
+
+            <ul class="list-disc pl-6 space-y-1 text-gray-700 mt-4">
+                <li>WAF 在 LB 前:Server Group 的伺服器只需填 LB VIP <code>10.0.10.20</code>;擴充 web 節點時 WAF 不用改。</li>
+                <li>代價:WAF 看到的是單一後端;LB 的健康檢查與 session 黏著仍由 LB 負責。</li>
+                <li>若 LB 也要看到真實用戶端 IP,要規劃 X-Forwarded-For 類 header 的處理(Forwarded Connections,第 7 章)。</li>
+            </ul>
+
+            <p class="text-gray-700 mt-4"><strong>選型</strong>(第 5 章):依尖峰 TLS 交易量與吞吐選 V2500 或 V4500;官方未公布 V4500 吞吐數字,要用實際流量壓測確認。</p>
+        </div>
+
+        <!-- 四、步驟三、四 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">四、步驟三、四:安裝註冊與 Site Tree <span class="text-base font-normal text-gray-500">(<a href="Imperva06.html" class="text-sky-700 underline">第 6 章</a>、<a href="Imperva07.html" class="text-sky-700 underline">第 7 章</a>)</span></h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">步驟三:安裝與註冊</h3>
+            <ol class="step-list text-gray-700">
+                <li><span class="step-badge">1</span><span>在 vCenter 部署 MX 與 Gateway 的 OVF(MX 與 GW 必須分開 VM)。</span></li>
+                <li><span class="step-badge">2</span><span>以 impcli <code>admin</code> 登入,第一次登入改密碼;依首次設定精靈設定管理 IP、DNS、NTP(第 6 章、第 13 章)。</span></li>
+                <li><span class="step-badge">3</span><span>在 <code>gw01</code>、<code>gw02</code> 用 impcfg 設定 Gateway 工作模式並註冊到 <code>mx01</code>,S 存檔、A 套用。</span></li>
+                <li><span class="step-badge">4</span><span>登入 <code>https://10.0.30.10:8083</code>,匯入授權、執行 ADC 更新。</span></li>
+                <li><span class="step-badge">5</span><span>確認兩台 Gateway 都出現在 MX、屬於 <code>GG-Shop</code>,Gateway Mode 為 Reverse Proxy。</span></li>
+            </ol>
+            <div class="highlight-box">
+                <p class="font-bold text-sky-800 mb-1"><i class="fas fa-circle-check mr-1"></i>驗收點</p>
+                <p class="text-gray-800">MX 看到兩台 Gateway 上線;<code>impctl status</code> 正常;ADC 內容為最新版本。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">步驟四:Site Tree 與 Web Service</h3>
+            <p class="text-gray-700 mb-2">目標的結構如下(Site &gt; Server Group &gt; Web Service &gt; Web Application):</p>
+            <pre class="bg-gray-900 text-gray-100 rounded p-3 text-sm overflow-x-auto"><code>Site: HQ
+└─ Server Group: SG-Shop(伺服器:10.0.10.20)
+   └─ Web Service: HTTPS-Shop(443)
+      ├─ Web Application: shop   (Host: shop.example.com,Default)
+      └─ Web Application: member (shop.example.com 的 /member/)</code></pre>
+
+            <div class="mock-window">
+                <div class="mock-titlebar">
+                    <span class="mock-dots"><span></span><span></span><span></span></span>
+                    <span class="mock-url">https://10.0.30.10:8083</span>
+                </div>
+                <div class="mock-nav">
+                    <span class="brand">Imperva MX</span>
+                    <span class="on">Main</span><span>Admin</span>
+                </div>
+                <div class="mock-crumb">Main &gt; Setup &gt; Sites</div>
+                <div class="mock-body">
+                    <div class="mock-section">Sites Tree</div>
+                    <div class="mock-row"><span class="step-badge">1</span><span class="mock-input mock-hl">Site: HQ</span></div>
+                    <div class="mock-row mock-indent"><span class="step-badge">2</span><span class="mock-input mock-hl">Server Group: SG-Shop(Servers:10.0.10.20)</span></div>
+                    <div class="mock-row mock-indent" style="padding-left:3.5rem;"><span class="step-badge">3</span><span class="mock-input mock-hl">Web Service: HTTPS-Shop(443)</span></div>
+                    <div class="mock-row mock-indent" style="padding-left:5rem;"><span class="step-badge">4</span><span class="mock-input mock-hl">Web Application: shop(Default)</span></div>
+                    <div class="mock-row mock-indent" style="padding-left:5rem;"><span class="step-badge" style="visibility:hidden">0</span><span class="mock-input mock-hl">Web Application: member(/member/)</span></div>
+                </div>
+                <div class="mock-caption"><i class="fas fa-circle-info mr-1"></i>示意畫面:部分欄位名稱待實機確認,版面、按鈕位置與配色以實機為準。</div>
+            </div>
+
+            <ol class="step-list mt-4 text-gray-700">
+                <li><span class="step-badge">1</span><span>建 Server Group <code>SG-Shop</code>,伺服器填 LB VIP <code>10.0.10.20</code>。</span></li>
+                <li><span class="step-badge">2</span><span>建 Web Service <code>HTTPS-Shop</code>,port 443;匯入 <code>shop.example.com</code> 的憑證與私鑰。</span></li>
+                <li><span class="step-badge">3</span><span>在 Global Objects 的 <strong>TLS Settings</strong> 建立只允許 TLS 1.2 / 1.3 的設定並套用(v14.4 起 cipher 與協定集中在此)。</span></li>
+                <li><span class="step-badge">4</span><span>SNI 在 service 的 Reverse Proxy 頁設定(v14.3 起)。</span></li>
+            </ol>
+            <ul class="list-disc pl-6 space-y-1 text-gray-700">
+                <li>設定 Error Page,讓被擋的使用者看到含事件編號的友善頁面,方便客服回報。</li>
+                <li>建 Web Application <code>shop</code>(預設)與 <code>member</code>。拆分理由:會員區有登入、個資、訂單參數,安全需求和商品瀏覽不同(第 7 章拆分原則)。</li>
+                <li>第二階段:<code>api.example.com</code> 另建 Server Group(伺服器 <code>10.0.10.31</code>)與對應 Web Service、Application,名稱依公司命名規則(本例不展開)。</li>
+            </ul>
+            <div class="highlight-box">
+                <p class="font-bold text-sky-800 mb-1"><i class="fas fa-circle-check mr-1"></i>驗收點</p>
+                <p class="text-gray-800">從管理者電腦連 <code>https://shop.example.com</code>(hosts 暫指 Gateway VIP)可正常瀏覽;MX 上 <code>shop</code> 與 <code>member</code> 都開始出現流量。</p>
+            </div>
+        </div>
+
+        <!-- 五、步驟五到七 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">五、步驟五到七:學習、轉保護、情資與 Bot</h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">步驟五:學習期 <span class="text-sm font-normal text-gray-500">(<a href="Imperva08.html" class="text-sky-700 underline">第 8 章</a>、<a href="Imperva11.html" class="text-sky-700 underline">第 11 章</a>)</span></h3>
+            <ol class="step-list text-gray-700">
+                <li><span class="step-badge">1</span><span>確認 <code>shop</code>、<code>member</code> 的 Dynamic Profiling 在 Learning 狀態。</span></li>
+                <li><span class="step-badge">2</span><span>設定 Learning Exceptions:內部測試機、弱點掃描器、監控探針的 IP 不納入學習。</span></li>
+                <li><span class="step-badge">3</span><span>啟用 <strong>Web Application User Tracking</strong>:登入 <code>POST /member/login</code>,成功 302 導向 <code>/member/home</code>(第 11 章),用測試帳號驗證成功、失敗各一次。</span></li>
+                <li><span class="step-badge">4</span><span>啟用 <strong>Data Masking</strong>:<code>password</code>、<code>cvv</code>、信用卡號字典、自訂身分證字號字典(第 11 章)。</span></li>
+                <li><span class="step-badge">5</span><span>學習期涵蓋完整業務週期(至少包含一次促銷或月結等尖峰),期間每天看 Web Profile 是否學到異常參數。</span></li>
+                <li><span class="step-badge">6</span><span>開發團隊若在學習期上新功能,記下 URL,學習期結束前確認已學到。</span></li>
+            </ol>
+            <div class="highlight-box">
+                <p class="font-bold text-sky-800 mb-1"><i class="fas fa-circle-check mr-1"></i>驗收點</p>
+                <p class="text-gray-800">主要 URL 已從 Learning 轉為 Protect;Profile 中沒有掃描器或攻擊性參數值。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">步驟六:轉保護 <span class="text-sm font-normal text-gray-500">(<a href="Imperva09.html" class="text-sky-700 underline">第 9 章</a>)</span></h3>
+            <ol class="step-list text-gray-700">
+                <li><span class="step-badge">1</span><span>檢視 Web Service 層的 HTTP Protocol Validation、Signatures 與 Correlated Validation 政策,確認套用到 <code>HTTPS-Shop</code>。</span></li>
+                <li><span class="step-badge">2</span><span><strong>先告警、後阻擋</strong>:第一週政策只告警,每天依第 12 章流程分類告警,誤報回到 Profile 或政策調整。</span></li>
+                <li><span class="step-badge">3</span><span>誤報收斂後,高信心政策(協定違規、簽章高嚴重度、Correlation 命中)改為阻擋。</span></li>
+                <li><span class="step-badge">4</span><span>建立 Action Set:阻擋 + 送 Splunk(步驟八);高風險另加 IP Block(Trusted IPs 填管理網段 <code>10.0.30.0/24</code> 與合作夥伴固定 IP)。</span></li>
+                <li><span class="step-badge">5</span><span>開啟 ADC 自動更新排程;訂閱 Emergency Feed,重大事件時手動啟用對應政策(Emergency Feed 政策預設停用)。</span></li>
+            </ol>
+            <div class="highlight-box">
+                <p class="font-bold text-sky-800 mb-1"><i class="fas fa-circle-check mr-1"></i>驗收點</p>
+                <p class="text-gray-800">用測試字串打 <code>/member/orders?id=</code> 會被阻擋並看到錯誤頁;正常會員流程(登入、下單、查訂單)全數通過。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">步驟七:威脅情資與 Bot <span class="text-sm font-normal text-gray-500">(<a href="Imperva10.html" class="text-sky-700 underline">第 10 章</a>)</span></h3>
+            <ol class="step-list text-gray-700">
+                <li><span class="step-badge">1</span><span>啟用 Threat Intelligence Services 的 Reputation 類別:Malicious IPs、Anonymous Proxies、TOR IPs 等,先告警觀察一週。</span></li>
+                <li><span class="step-badge">2</span><span>評估 Advanced Bot Protection:需 MX / GW v14.7 以上與 ABP 授權,GW 能經 443 連 <code>*.imperva.com</code>、<code>*.impervaabp.net</code>、<code>*.distil.ninja</code>。</span></li>
+                <li><span class="step-badge">3</span><span>會員登入頁特別留意撞庫(credential stuffing):搭配 User Tracking 的登入失敗資訊,必要時以 User Block 處置(第 11、12 章)。</span></li>
+            </ol>
+            <div class="highlight-box">
+                <p class="font-bold text-sky-800 mb-1"><i class="fas fa-circle-check mr-1"></i>驗收點</p>
+                <p class="text-gray-800">情資告警出現在 MX;合法搜尋引擎與監控探針沒被誤擋。</p>
+            </div>
+        </div>
+
+        <!-- 六、步驟八、九 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">六、步驟八、九:告警送 Splunk 與交接維運</h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">步驟八:告警送 Splunk <span class="text-sm font-normal text-gray-500">(<a href="Imperva12.html" class="text-sky-700 underline">第 12 章</a>)</span></h3>
+            <ol class="step-list text-gray-700">
+                <li><span class="step-badge">1</span><span>建 Action Set <code>AS-Splunk-GW</code>,Action Interface 選「Gateway Log - Security Event - System Log (syslog) - CEF Format (Extended)」,Protocol <code>TCP</code>、Primary Host <code>10.0.30.50</code>、Port <code>514</code>,Message 以預設 Splunk 範本為基礎。</span></li>
+                <li><span class="step-badge">2</span><span>在步驟六的安全政策 Followed Action 加入此 Action Set。</span></li>
+                <li><span class="step-badge">3</span><span>系統事件(Gateway 斷線等)另以 MX 的 Server System Log 系統事件 Action Interface 送出。</span></li>
+                <li><span class="step-badge">4</span><span>若已購買 Attack Analytics,依第 12 章開啟匯出。</span></li>
+            </ol>
+            <div class="highlight-box">
+                <p class="font-bold text-sky-800 mb-1"><i class="fas fa-circle-check mr-1"></i>驗收點</p>
+                <p class="text-gray-800">觸發一筆測試違規,Splunk 在一分鐘內收到,違規 ID 能對回 MX。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">步驟九:交接維運 <span class="text-sm font-normal text-gray-500">(<a href="Imperva13.html" class="text-sky-700 underline">第 13 章</a>)</span></h3>
+            <ol class="step-list text-gray-700">
+                <li><span class="step-badge">1</span><span>執行第一次 <code>full_expimp.sh</code> 完整匯出,備份檔與報表目錄複製到備份主機。</span></li>
+                <li><span class="step-badge">2</span><span>建立 REST API 專用帳號(最小權限),交付自動化腳本(第 12 章)。</span></li>
+                <li><span class="step-badge">3</span><span>決定是否啟用 Sealed 模式;啟用的話把解封密碼存入密碼保管系統,<strong>不要用 <code>seal --strict</code></strong>。啟用 Sealed 時 <code>admin</code> 不能切 root,例行匯出改用 impcli 的 <code>export-local</code> / <code>export-remote</code>(確切語法待實機確認)。</span></li>
+                <li><span class="step-badge">4</span><span>例行工作排程:每週匯出(未啟用 Sealed 用 <code>full_expimp.sh</code>;啟用 Sealed 改用 <code>export-local</code> / <code>export-remote</code>)、root 密碼 90 天更換、ADC 更新檢查、每月檢視 EOS 表。</span></li>
+                <li><span class="step-badge">5</span><span>交付文件:拓撲、防火牆規則、Site Tree、政策與 Action Set 清單、開案資訊範本(第 13 章)。</span></li>
+            </ol>
+        </div>
+
+        <!-- 七、模擬器 -->
+        <div class="section-card" id="checklist-section">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">七、動手玩:上線檢查表</h2>
+            <p class="text-gray-700 mb-2">這是本案的 20 項上線檢查表。逐項勾選,看看完成進度;沒勾的項目會列在下方提醒,並可直接跳到對應章節複習。</p>
+            <p class="sim-note"><i class="fas fa-circle-info mr-1"></i>勾選狀態只存在目前頁面,重新整理會清空。</p>
+
+            <div class="bg-gray-50 border rounded-lg p-4 mt-4">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                    <h3 class="font-bold text-gray-800"><i class="fas fa-list-check mr-1 text-sky-600"></i>完成進度:<span id="chk-count">0 / 20</span></h3>
+                    <div class="flex gap-2">
+                        <button type="button" id="chk-all" class="border rounded px-3 py-1 text-sm bg-white hover:bg-sky-50">全部勾選</button>
+                        <button type="button" id="chk-clear" class="border rounded px-3 py-1 text-sm bg-white hover:bg-sky-50">全部清除</button>
+                    </div>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="chk-bar-wrap" aria-label="上線檢查表完成進度">
+                    <div id="chk-bar" class="bg-sky-600 h-4 rounded-full" style="width:0%"></div>
+                </div>
+            </div>
+
+            <div id="chk-list" class="mt-4"></div>
+
+            <h3 class="font-bold text-gray-800 mt-6 mb-2">提醒</h3>
+            <div id="chk-reminder"></div>
+        </div>
+
+        <!-- 八、踩坑 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">八、常見踩坑</h2>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>為了「不改網路」選 Sniffing</p>
+                <p class="text-gray-800">TLS 1.3 流量完全看不到,上線後才發現沒有告警。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>學習期太短</p>
+                <p class="text-gray-800">沒涵蓋月結或促銷,尖峰當天大量誤報,被迫關政策。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>Server Group 填 web01 / web02 實體 IP</p>
+                <p class="text-gray-800">WAF 在 LB 前時,流量目的是 LB VIP,填錯就整批沒檢查。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>Trusted IPs 沒填管理網段</p>
+                <p class="text-gray-800">管理者測試觸發 IP Block,把自己鎖在外面。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>只測阻擋,沒測正常流程</p>
+                <p class="text-gray-800">上線後才發現結帳流程某個參數被擋。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>沒有回退方案</p>
+                <p class="text-gray-800">WAF 出問題時不知道怎麼繞過,只能等排障。</p>
+            </div>
+        </div>
+
+        <!-- 九、新舊對照 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">九、新舊對照:舊 9.0 做法 vs 新版做法</h2>
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-2"><i class="fas fa-code-branch mr-1"></i>各步驟差在哪</p>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm border bg-white">
+                        <thead class="bg-purple-100">
+                            <tr><th class="py-2 px-4 border text-left">步驟</th><th class="py-2 px-4 border text-left">舊 9.0 做法(舊簡報)</th><th class="py-2 px-4 border text-left">新版做法(v15.5 LTS)</th><th class="py-2 px-4 border text-left">對應章</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td class="py-2 px-4 border font-semibold">平台</td><td class="py-2 px-4 border">X-Series 硬體或 ESX/ESXi 3.5 上的虛擬機(p.48–55)</td><td class="py-2 px-4 border">7G 硬體(X2030…X10K3、M180)或 VMware ESXi 6.x–8.0、KVM、公有雲;Hyper-V 不支援</td><td class="py-2 px-4 border">第 5 章</td></tr>
+                            <tr><td class="py-2 px-4 border font-semibold">部署模式</td><td class="py-2 px-4 border">Transparent Bridge 為主,Reverse Proxy 用於內容改寫(p.35–38)</td><td class="py-2 px-4 border">要檢查 TLS 1.3 / PFS 須用 NGRP 或 ABR;KRP 已移除;TRP 由 ABR 接手</td><td class="py-2 px-4 border">第 4 章</td></tr>
+                            <tr><td class="py-2 px-4 border font-semibold">HA</td><td class="py-2 px-4 border">Transparent Bridge HA,Gateway 間不同步(p.45)</td><td class="py-2 px-4 border">Reverse Proxy 用 VRRP;Bridge 用 STP / IMPVHA;另有 MX-HA;VM 只有 Fail Close</td><td class="py-2 px-4 border">第 5 章</td></tr>
+                            <tr><td class="py-2 px-4 border font-semibold">安裝</td><td class="py-2 px-4 border">USB <code>installserial</code> 或網路安裝(p.126)</td><td class="py-2 px-4 border">VM 部署 OVF;硬體依 Quick Start Guide;impcli 首次登入改密碼</td><td class="py-2 px-4 border">第 6 章</td></tr>
+                            <tr><td class="py-2 px-4 border font-semibold">SSL</td><td class="py-2 px-4 border">Service 上匯入 PKCS / PEM 金鑰(p.135)</td><td class="py-2 px-4 border">金鑰匯入 + Global Objects 的 TLS Settings + SNI 設在 Reverse Proxy 頁</td><td class="py-2 px-4 border">第 7 章</td></tr>
+                            <tr><td class="py-2 px-4 border font-semibold">Site Tree</td><td class="py-2 px-4 border">Site &gt; Server Group &gt; Service &gt; Application(p.135、147)</td><td class="py-2 px-4 border">結構相同,名稱為 Web Service / Web Application</td><td class="py-2 px-4 border">第 7 章</td></tr>
+                            <tr><td class="py-2 px-4 border font-semibold">學習</td><td class="py-2 px-4 border">Learning → Protect → Protect and Lock(p.29)</td><td class="py-2 px-4 border">Dynamic Profiling 名稱與流程不變,增 Learning Exceptions、Profile Size Limits</td><td class="py-2 px-4 border">第 8 章</td></tr>
+                            <tr><td class="py-2 px-4 border font-semibold">情資</td><td class="py-2 px-4 border">ThreatRadar;Fraud Prevention 與 Trusteer 整合(p.79–80)</td><td class="py-2 px-4 border">Threat Intelligence Services;Advanced Bot Protection;Trusteer 整合不再適用</td><td class="py-2 px-4 border">第 10 章</td></tr>
+                            <tr><td class="py-2 px-4 border font-semibold">Bot</td><td class="py-2 px-4 border">JavaScript + cookie 挑戰的 Bot Mitigation 政策(p.90–92)</td><td class="py-2 px-4 border">Bot Protection + 雲端 Advanced Bot Protection</td><td class="py-2 px-4 border">第 10 章</td></tr>
+                            <tr><td class="py-2 px-4 border font-semibold">監控</td><td class="py-2 px-4 border">平台內建 Reporting / Alerting(p.14)</td><td class="py-2 px-4 border">Action Set 送 Syslog / CEF / Splunk;Attack Analytics;REST API</td><td class="py-2 px-4 border">第 12 章</td></tr>
+                            <tr><td class="py-2 px-4 border font-semibold">CLI</td><td class="py-2 px-4 border">impcfg 建 SSH 使用者、<code>admin</code> 取得 root;impctl 只在原廠指示下用(p.152–154)</td><td class="py-2 px-4 border">impcli 受限 shell、Sealed 模式、Safe impctl 清單;原則不變</td><td class="py-2 px-4 border">第 13 章</td></tr>
+                            <tr><td class="py-2 px-4 border font-semibold">雲端</td><td class="py-2 px-4 border">無</td><td class="py-2 px-4 border">Cloud WAF、Elastic WAF、混合架構</td><td class="py-2 px-4 border">第 14 章</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
+                隨堂測驗
+            </h2>
+            <p class="mb-6 text-gray-600">請點選您認為正確的選項,系統將會顯示解析。</p>
+            <div class="space-y-6" id="quiz-container"></div>
+        </div>
+
+    </main>
+
+    <footer class="footer-signature">
+        Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver.2026.11.02.12.07
+    </footer>
+
+
+    <script>
+        // ===== 上線檢查表模擬器 =====
+        // refs: 對應章節;tip: 未完成時的提醒(內容皆出自本章步驟與踩坑)
+        const CHECKS = [
+            { text: '版本為 v15.5 LTS 最新 patch,EOS 已確認', refs: [1, 13] },
+            { text: '防火牆依埠表開通(含 GW → Syslog、GW → ABP 網域)', refs: [3] },
+            { text: '部署模式可檢查 TLS 1.3 / PFS(NGRP 或 ABR)', refs: [4], tip: 'Sniffing 看不到 TLS 1.3,純 Bridge 也只能解 TLS 1.2 靜態 RSA。' },
+            { text: 'HA 方式與模式相符(Reverse Proxy 用 VRRP);VM 為 Fail Close,已做切換測試', refs: [5], tip: 'VM 只支援 Fail Close,HA 要靠第二台 Gateway,切換要實際測過。' },
+            { text: '兩台 Gateway 在 MX 上線,屬 GG-Shop', refs: [6] },
+            { text: '授權匯入、ADC 為最新、NTP / DNS 正常', refs: [6] },
+            { text: 'Site Tree 伺服器 IP / 埠正確,憑證與私鑰已匯入且未過期', refs: [7], tip: 'WAF 在 LB 前時,Server Group 要填 LB VIP 10.0.10.20,不是 web01 / web02。' },
+            { text: 'TLS Settings 只允許 TLS 1.2 / 1.3;SNI 設定正確', refs: [7] },
+            { text: 'Error Page 已設定並含事件編號', refs: [7] },
+            { text: '學習期涵蓋完整業務週期,Learning Exceptions 已設', refs: [8], tip: '學習期至少要包含一次促銷或月結等尖峰,否則尖峰當天會大量誤報。' },
+            { text: '主要 URL 已轉 Protect;誤報已收斂', refs: [8, 9] },
+            { text: '高信心政策為阻擋,其餘至少告警', refs: [9], tip: '先告警、後阻擋;IP Block 的 Trusted IPs 記得填管理網段 10.0.30.0/24,免得把自己鎖在外面。' },
+            { text: 'Emergency Feed 啟用程序已寫入 SOP', refs: [9] },
+            { text: '威脅情資政策已啟用並觀察過誤擋', refs: [10] },
+            { text: 'User Tracking 判斷正確;Data Masking 已遮密碼與卡號', refs: [11] },
+            { text: 'Splunk 收得到違規與系統事件', refs: [12] },
+            { text: '系統事件記錄可追到設定變更', refs: [12] },
+            { text: '完整匯出成功,備份檔放在 WAF 以外', refs: [13] },
+            { text: 'impcli admin 與 root 密碼已更換並保管', refs: [13] },
+            { text: '回退方案:DNS / NAT 改回直連 LB 的步驟已演練', refs: [5, 15], tip: 'WAF 出問題時要知道怎麼繞過,沒演練過就不要上線。' }
+        ];
+        const TOTAL = CHECKS.length;
+        const checked = new Array(TOTAL).fill(false);
+
+        const listBox = document.getElementById('chk-list');
+        const countEl = document.getElementById('chk-count');
+        const barEl = document.getElementById('chk-bar');
+        const barWrap = document.getElementById('chk-bar-wrap');
+        const reminderBox = document.getElementById('chk-reminder');
+
+        function pad(n) { return String(n).padStart(2, '0'); }
+
+        function refLinks(refs) {
+            return refs.map(n => n === 15
+                ? '<span class="text-gray-500">本章</span>'
+                : `<a href="Imperva${pad(n)}.html" class="text-sky-700 underline">第 ${n} 章</a>`).join('、');
+        }
+
+        function renderList() {
+            listBox.innerHTML = '';
+            CHECKS.forEach((c, i) => {
+                const row = document.createElement('div');
+                row.className = 'flex flex-wrap items-center gap-2 border rounded-lg px-3 py-2 mb-2 ' + (checked[i] ? 'bg-green-50' : 'bg-white');
+                row.innerHTML = `
+                    <label class="flex items-start gap-2 flex-1" style="min-width:14rem;">
+                        <input type="checkbox" data-i="${i}" class="mt-1" ${checked[i] ? 'checked' : ''}>
+                        <span class="text-sm"><strong class="text-sky-800 mr-1">${i + 1}.</strong>${c.text}</span>
+                    </label>
+                    <span class="text-xs text-gray-600"><i class="fas fa-book-open mr-1"></i>${refLinks(c.refs)}</span>
+                `;
+                listBox.appendChild(row);
+            });
+        }
+
+        function renderStatus() {
+            const done = checked.filter(Boolean).length;
+            const pct = Math.round(done * 100 / TOTAL);
+            countEl.textContent = `${done} / ${TOTAL}(${pct}%)`;
+            barEl.style.width = pct + '%';
+            barWrap.setAttribute('aria-valuenow', String(pct));
+
+            const missing = CHECKS.map((c, i) => ({ c, i })).filter(x => !checked[x.i]);
+            if (missing.length === 0) {
+                reminderBox.innerHTML = `<div class="sim-card ok"><h4><i class="fas fa-circle-check mr-1"></i>20 項全部勾完</h4>
+                    <p>可以進入交接。提醒:檢查表只代表「你認為都做了」,每一步的驗收點都要真的做過一次(例如測試字串被擋、Splunk 收到測試違規)。</p></div>`;
+                return;
+            }
+            const lines = missing.map(({ c, i }) => `
+                <li class="mb-2"><strong class="text-sky-800">${i + 1}.</strong> ${c.text}
+                    <span class="text-xs text-gray-600">(${refLinks(c.refs)})</span>
+                    ${c.tip ? `<div class="text-xs text-orange-800 mt-1"><i class="fas fa-triangle-exclamation mr-1"></i>${c.tip}</div>` : ''}
+                </li>`).join('');
+            let level = 'info';
+            let head = `還有 ${missing.length} 項未完成`;
+            const noRollback = !checked[TOTAL - 1];
+            if (noRollback && done >= TOTAL - 5) {
+                level = 'warn';
+                head += ':快完成了,但回退方案還沒演練';
+            } else if (done === 0) {
+                head += ':從第 1 項開始';
+            }
+            reminderBox.innerHTML = `<div class="sim-card ${level}"><h4><i class="fas fa-bell mr-1"></i>${head}</h4>
+                <ol class="list-none pl-0 mt-2 text-sm text-gray-800">${lines}</ol></div>`;
+        }
+
+        function refresh() { renderList(); renderStatus(); }
+
+        listBox.addEventListener('change', e => {
+            const box = e.target.closest('input[data-i]');
+            if (!box) return;
+            checked[Number(box.dataset.i)] = box.checked;
+            refresh();
+        });
+        document.getElementById('chk-all').addEventListener('click', () => { checked.fill(true); refresh(); });
+        document.getElementById('chk-clear').addEventListener('click', () => { checked.fill(false); refresh(); });
+        refresh();
+
+        // ===== 隨堂測驗 =====
+        const quizData = [
+            {
+                question: "Q1. 本案為什麼不能用 Sniffing 模式?",
+                options: ["A. 本案要阻擋並回錯誤頁、又要檢查 TLS 1.3 流量,Sniffing 只能送 TCP reset,也看不到 TLS 1.3 內容", "B. Sniffing 不支援 HTTP", "C. Sniffing 一定要搭配 Cloud WAF", "D. VM 平台不能跑 Sniffing"],
+                correct: 0,
+                desc: "正解:A。需求要能阻擋並回錯誤頁,Sniffing 只能送 TCP reset;用戶端多數使用 TLS 1.3,要檢查加密內容,所以排除 Sniffing(與純 Bridge),剩下 Reverse Proxy(NGRP)或 ABR。"
+            },
+            {
+                question: "Q2. 本案 GG-Shop 的部署模式與 HA 做法是哪一組?",
+                options: ["A. Bridge 加 STP / IMPVHA", "B. Sniffing 加 MX-HA", "C. 單台 Gateway,依賴 VM 的 Fail Open", "D. Reverse Proxy(NGRP)加 VRRP,兩台 Gateway 冗餘"],
+                correct: 3,
+                desc: "正解:D。VRRP 是 Reverse Proxy 的冗餘方式;STP / IMPVHA 只適用 Bridge。VM 只支援 Fail Close,所以 HA 要靠第二台 Gateway。"
+            },
+            {
+                question: "Q3. WAF 放在 LB 前面時,Server Group SG-Shop 的伺服器應該填什麼?",
+                options: ["A. web01 與 web02 的實體 IP", "B. 邊界防火牆的 203.0.113.20", "C. LB 內側 VIP 10.0.10.20", "D. mx01 的 10.0.30.10"],
+                correct: 2,
+                desc: "正解:C。WAF 在 LB 前時,流量的目的是 LB VIP,Server Group 只需填 10.0.10.20,擴充 web 節點時 WAF 不用改。填成 web01 / web02 實體 IP 會讓流量整批沒檢查。"
+            },
+            {
+                question: "Q4. 學習期結束後要轉保護,建議怎麼做?",
+                options: ["A. 第一週政策只告警,每天分類告警、收斂誤報,再把高信心政策改為阻擋", "B. 全部政策一次改成阻擋,越快越好", "C. 關掉告警,只留阻擋", "D. 學習期一週就夠,不必涵蓋月結或促銷"],
+                correct: 0,
+                desc: "正解:A。先告警、後阻擋。誤報收斂後,高信心政策(協定違規、簽章高嚴重度、Correlation 命中)才改為阻擋。學習期太短、沒涵蓋尖峰,是常見的踩坑。"
+            },
+            {
+                question: "Q5. 設定 IP Block 的 Action Set 時,Trusted IPs 沒填管理網段 10.0.30.0/24,可能發生什麼事?",
+                options: ["A. ADC 無法自動更新", "B. 管理者測試時觸發 IP Block,把自己鎖在外面", "C. Splunk 收不到告警", "D. Gateway 自動切換成 Sniffing"],
+                correct: 1,
+                desc: "正解:B。高風險政策加 IP Block 時,Trusted IPs 要填管理網段與合作夥伴固定 IP,否則管理者測試觸發 IP Block,會把自己鎖在外面。"
+            }
+        ];
+
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionBox = document.createElement('div');
+            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
+
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border mb-2 text-gray-700" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            questionBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
+                <div class="space-y-2 mb-4">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
+                    <p class="font-bold result-title"></p>
+                    <p class="text-sm text-gray-600 mt-1">${item.desc}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionBox);
+        });
+
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            if (element.parentElement.dataset.answered) return;
+            element.parentElement.dataset.answered = "true";
+
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+                opt.classList.add('disabled');
+            });
+
+            if (optIndex === data.correct) {
+                element.classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了!";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                element.classList.add('bg-red-100', 'border-red-500');
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了!";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+    </script>
+</body>
+</html>

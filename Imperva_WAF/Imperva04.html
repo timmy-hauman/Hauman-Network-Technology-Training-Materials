@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imperva WAF Gateway 實戰課程 - 部署模式</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        /* 卡片主體樣式 (Imperva Blue) */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #0284c7;
+        }
+
+        /* 重點提示框 (藍) */
+        .highlight-box {
+            background-color: #f0f9ff;
+            border-left: 4px solid #0284c7;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 技術名詞標記 */
+        .tech-term {
+            color: #075985;
+            font-weight: 700;
+            background-color: #e0f2fe;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
+        }
+
+        /* 比喻說明框 (綠) */
+        .analogy-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 版本差異框 (紫) */
+        .version-box {
+            background-color: #faf5ff;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 常見踩坑框 (橘,避開主色藍) */
+        .pitfall-box {
+            background-color: #fff7ed;
+            border-left: 4px solid #ea580c;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 全課程重點卡片 */
+        .key-card {
+            border: 3px solid #0284c7;
+            border-radius: 0.75rem;
+            background: linear-gradient(180deg, #f0f9ff 0%, #ffffff 40%);
+            margin: 1.5rem 0;
+            overflow: hidden;
+            box-shadow: 0 6px 14px rgba(2, 132, 199, 0.18);
+        }
+        .key-card-head {
+            background: #0369a1;
+            color: #ffffff;
+            padding: 0.6rem 1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .key-card-body { padding: 1rem 1.25rem; }
+
+        .diagram-container {
+            display: block;
+            background-color: #ffffff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-top: 1rem;
+        }
+
+        .diagram-container svg {
+            display: block;
+            width: 100%;
+            max-width: 520px;
+            margin: 0 auto;
+        }
+
+        /* 示意畫面 (仿管理介面) */
+        .mock-window {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            background: #ffffff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            margin-top: 1rem;
+        }
+        .mock-titlebar {
+            background: #e2e8f0;
+            padding: 0.4rem 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: #475569;
+        }
+        .mock-dots span {
+            display: inline-block;
+            width: 0.6rem;
+            height: 0.6rem;
+            border-radius: 50%;
+            background: #94a3b8;
+            margin-right: 0.2rem;
+        }
+        .mock-url {
+            background: #ffffff;
+            border-radius: 0.25rem;
+            padding: 0.1rem 0.5rem;
+            flex: 1;
+            min-width: 0;
+            font-family: ui-monospace, Consolas, monospace;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .mock-nav {
+            background: #1f2937;
+            color: #cbd5e1;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.25rem 1rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+        }
+        .mock-nav .brand { font-weight: 700; color: #ffffff; margin-right: 0.5rem; }
+        .mock-nav .on { color: #ffffff; border-bottom: 2px solid #0284c7; padding-bottom: 0.1rem; }
+        .mock-crumb {
+            font-size: 0.8rem;
+            color: #475569;
+            padding: 0.5rem 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f8fafc;
+        }
+        .mock-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            padding: 0.5rem 0.75rem 0;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.8rem;
+        }
+        .mock-tabs span {
+            padding: 0.3rem 0.7rem;
+            border: 1px solid #e5e7eb;
+            border-bottom: none;
+            border-radius: 0.3rem 0.3rem 0 0;
+            background: #f1f5f9;
+            color: #475569;
+        }
+        .mock-tabs span.on { background: #ffffff; color: #111827; font-weight: 600; }
+        .mock-body { padding: 0.75rem; font-size: 0.85rem; }
+        .mock-section { font-weight: 700; color: #334155; margin: 0.75rem 0 0.25rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.2rem; }
+        .mock-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.35rem 0.6rem;
+            padding: 0.35rem 0;
+        }
+        .mock-label { width: 12rem; color: #374151; font-weight: 500; }
+        .mock-input {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+            padding: 0.2rem 0.5rem;
+            min-width: 12rem;
+            background: #ffffff;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #111827;
+        }
+        .mock-select::after { content: " ▾"; color: #64748b; }
+        .mock-indent { padding-left: 2rem; }
+        .mock-btn {
+            display: inline-block;
+            border: 1px solid #94a3b8;
+            background: #f8fafc;
+            border-radius: 0.25rem;
+            padding: 0.2rem 0.7rem;
+            font-size: 0.8rem;
+            color: #1f2937;
+        }
+        .mock-btn.primary { background: #1f2937; color: #ffffff; border-color: #1f2937; }
+        .mock-hl { outline: 2px solid #0284c7; outline-offset: 2px; border-radius: 0.25rem; }
+        .mock-list {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+            min-width: 9rem;
+            min-height: 4.2rem;
+            padding: 0.25rem 0.5rem;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.8rem;
+            background: #ffffff;
+        }
+        .mock-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 0.5rem; }
+        .mock-table th { background: #f1f5f9; text-align: left; padding: 0.35rem 0.5rem; border: 1px solid #e2e8f0; color: #334155; }
+        .mock-table td { padding: 0.35rem 0.5rem; border: 1px solid #e2e8f0; }
+        .mock-caption {
+            font-size: 0.75rem;
+            color: #6b7280;
+            padding: 0.5rem 0.75rem;
+            background: #f9fafb;
+            border-top: 1px dashed #e5e7eb;
+        }
+        .step-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.4rem;
+            height: 1.4rem;
+            border-radius: 9999px;
+            background: #0284c7;
+            color: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .step-list li { display: flex; gap: 0.6rem; align-items: flex-start; margin-bottom: 0.6rem; }
+
+        /* 模擬器 */
+        .sim-rule {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.4rem 0.75rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            margin-bottom: 0.5rem;
+            background: #ffffff;
+        }
+        .sim-rule .num { font-weight: 700; color: #075985; width: 3.5rem; }
+        .sim-rule .desc { flex: 1; min-width: 12rem; }
+        .sim-arrow { border: 1px solid #cbd5e1; border-radius: 0.25rem; padding: 0 0.45rem; background: #f8fafc; }
+        .sim-arrow:disabled { opacity: 0.35; cursor: not-allowed; }
+        .trace-line { padding: 0.3rem 0; border-bottom: 1px dashed #e5e7eb; }
+        .chip { display: inline-block; font-size: 0.75rem; font-weight: 700; padding: 0.1rem 0.5rem; border-radius: 9999px; }
+        .chip-ok { background: #dcfce7; color: #166534; }
+        .chip-no { background: #fee2e2; color: #991b1b; }
+        .chip-unk { background: #fef3c7; color: #92400e; }
+        .reason-no { color: #b91c1c; }
+        .reason-unk { color: #b45309; }
+        .reason-ok { color: #166534; }
+
+        @media (max-width: 640px) {
+            main { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+            .section-card { padding: 1rem; }
+            .diagram-container { padding: 0.25rem; }
+            .mock-label { width: calc(100% - 2.2rem); }
+            .mock-indent .mock-label { width: 100%; }
+            .mock-input { min-width: 0; width: 100%; }
+            .mock-indent { padding-left: 0.75rem; }
+            .mock-body { padding: 0.5rem; }
+            .key-card-body { padding: 0.75rem; }
+        }
+
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover:not(.disabled) {
+            background-color: #f3f4f6;
+        }
+
+        .footer-signature {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+            margin-top: 4rem;
+        }
+        /* Long URLs and code wrap on narrow screens */
+        main { overflow-wrap: break-word; } main code { overflow-wrap: anywhere; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-sky-800 to-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-shield-halved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold">Imperva WAF Gateway 實戰課程</h1>
+                    <p class="text-sky-100 mt-1">單元 4:部署模式</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 章節導覽 -->
+    <nav class="container mx-auto px-4 max-w-5xl mt-4" aria-label="章節導覽">
+        <div class="flex flex-wrap items-center justify-between gap-2 text-sm">
+            <a href="Imperva03.html" class="text-sky-700 hover:text-sky-900 font-medium"><i class="fas fa-arrow-left mr-1"></i>上一章</a>
+            <a href="Imperva00.html" class="text-sky-700 hover:text-sky-900 font-medium"><i class="fas fa-list mr-1"></i>課程目錄</a>
+            <a href="Imperva05.html" class="text-sky-700 hover:text-sky-900 font-medium">下一章<i class="fas fa-arrow-right ml-1"></i></a>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <!-- Introduction -->
+        <div class="mb-8">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
+                <h2 class="text-xl font-bold text-blue-800 mb-2 flex items-center">
+                    <i class="fas fa-user-tie mr-2"></i>講師導言
+                </h2>
+                <p class="text-blue-900 leading-relaxed">
+                    裝 WAF 之前,最先要決定的不是型號,而是<strong>部署模式</strong>。模式決定 Gateway 能不能真的擋下攻擊、要不要改 IP 與 DNS、能不能回錯誤頁,還有一件今天最容易被忽略的事:<strong>能不能解開現代的 TLS 流量</strong>。
+                    這一章先分 Inline 與 Sniffing 兩大類,再逐一認識各模式,最後用一張能力比較表收斂。請特別留意第七節,那是整套課程最重要的一個結論。
+                </p>
+            </div>
+        </div>
+
+        <!-- 學習目標 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-gray-100 text-gray-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Goals</span>
+                本章學習目標
+            </h2>
+            <ul class="list-disc pl-6 space-y-1 text-gray-700">
+                <li>說出 Inline 與 Sniffing 的差別,以及 Sniffing 擋不住什麼</li>
+                <li>認得 Gateway Mode 選單的四個值,並分辨 TRP、ABR 與它們的關係</li>
+                <li>比較 Bridge、TRP、Reverse Proxy(NGRP)、ABR、Sniffing 的能力</li>
+                <li>解釋為什麼被動模式與純 Bridge 解不了 TLS 1.3 與 ECDHE / DHE 流量</li>
+                <li>依需求(阻擋、改 DNS、TLS 版本、HA、v16.0)選出合適的部署模式</li>
+            </ul>
+            <p class="text-sm text-gray-500 mt-4"><i class="fas fa-map-signs mr-1"></i>本章接續第 3 章的 Gateway Group,下一章(第 5 章)再談平台、型號與 HA。</p>
+        </div>
+
+        <!-- 一、兩大類 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">一、兩大類:Inline 與 Sniffing</h2>
+
+            <div class="analogy-box">
+                <p class="font-bold text-green-800 mb-1"><i class="fas fa-plane-departure mr-1"></i>用機場來想</p>
+                <ul class="list-disc pl-6 text-green-900 space-y-1">
+                    <li><strong>Inline</strong> 像安檢門:每個人都得走過去,不合格的當場攔下,但排隊會多花一點時間。</li>
+                    <li><strong>Sniffing</strong> 像旁邊的監視器:不擋路、也不拖慢誰,但發現可疑的人時,人已經走進去了,只能呼叫警衛追上去。</li>
+                </ul>
+            </div>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 360 420" role="img" aria-labelledby="svg1-title" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans TC, sans-serif">
+                    <title id="svg1-title">Inline 與 Sniffing 的流量路徑比較:Inline 流量經過 Gateway;Sniffing 只複製流量給 Gateway,阻擋時只能對伺服器端送 TCP reset</title>
+                    <defs>
+                        <marker id="arrow1" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+                        </marker>
+                    </defs>
+                    <!-- Inline -->
+                    <rect x="6" y="6" width="348" height="186" rx="10" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="180" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#075985">Inline:流量經過 Gateway</text>
+                    <rect x="16" y="52" width="84" height="44" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+                    <text x="58" y="79" text-anchor="middle" font-size="14" fill="#1f2937">用戶端</text>
+                    <rect x="130" y="52" width="100" height="44" rx="8" fill="#0284c7" stroke="#075985"/>
+                    <text x="180" y="79" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">WAF Gateway</text>
+                    <rect x="260" y="52" width="84" height="44" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+                    <text x="302" y="79" text-anchor="middle" font-size="14" fill="#1f2937">伺服器</text>
+                    <line x1="100" y1="74" x2="128" y2="74" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+                    <line x1="230" y1="74" x2="258" y2="74" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+                    <text x="180" y="124" text-anchor="middle" font-size="14" fill="#1f2937">惡意流量到不了受保護網路</text>
+                    <text x="180" y="148" text-anchor="middle" font-size="14" fill="#1f2937">用戶端看到錯誤頁或連線中斷</text>
+                    <text x="180" y="174" text-anchor="middle" font-size="13" fill="#475569">代價:會增加一些延遲</text>
+                    <!-- Sniffing -->
+                    <rect x="6" y="206" width="348" height="208" rx="10" fill="#f8fafc" stroke="#64748b" stroke-width="2"/>
+                    <text x="180" y="230" text-anchor="middle" font-size="16" font-weight="700" fill="#334155">Sniffing:只收到一份複製</text>
+                    <rect x="16" y="250" width="84" height="40" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+                    <text x="58" y="275" text-anchor="middle" font-size="14" fill="#1f2937">用戶端</text>
+                    <rect x="260" y="250" width="84" height="40" rx="8" fill="#ffffff" stroke="#94a3b8"/>
+                    <text x="302" y="275" text-anchor="middle" font-size="14" fill="#1f2937">伺服器</text>
+                    <line x1="100" y1="270" x2="258" y2="270" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+                    <text x="180" y="262" text-anchor="middle" font-size="13" fill="#475569">交換器</text>
+                    <line x1="180" y1="272" x2="180" y2="304" stroke="#64748b" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#arrow1)"/>
+                    <text x="190" y="294" font-size="13" fill="#475569">SPAN / TAP 複製</text>
+                    <rect x="120" y="308" width="120" height="40" rx="8" fill="#e2e8f0" stroke="#64748b"/>
+                    <text x="180" y="333" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2937">WAF Gateway</text>
+                    <path d="M 240 328 L 302 328 L 302 292" fill="none" stroke="#b91c1c" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#arrow1)"/>
+                    <text x="250" y="346" font-size="13" fill="#b91c1c">TCP reset</text>
+                    <text x="180" y="374" text-anchor="middle" font-size="14" fill="#1f2937">只能對伺服器端送 reset</text>
+                    <text x="180" y="396" text-anchor="middle" font-size="14" fill="#b91c1c">用戶端只看到逾時,擋不了外洩</text>
+                </svg>
+            </div>
+
+            <div class="overflow-x-auto mt-4">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">項目</th><th class="py-2 px-4 border text-left">Inline</th><th class="py-2 px-4 border text-left">Sniffing</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">流量路徑</td><td class="py-2 px-4 border">流量<strong>經過</strong> Gateway</td><td class="py-2 px-4 border">流量複製一份給 Gateway(SPAN / TAP),本身不經過</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">延遲</td><td class="py-2 px-4 border">會增加一些延遲</td><td class="py-2 px-4 border">零延遲</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">阻擋能力</td><td class="py-2 px-4 border">惡意流量到不了受保護網路</td><td class="py-2 px-4 border">只能從 blocking interface 對<strong>伺服器端</strong>送 TCP reset</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">用戶端看到什麼</td><td class="py-2 px-4 border">錯誤頁或連線中斷(依模式)</td><td class="py-2 px-4 border">連線逾時(timeout),不能回錯誤頁</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">防資料外洩</td><td class="py-2 px-4 border">可在回應送出前攔截</td><td class="py-2 px-4 border">不行(回應已經送出)</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-sm text-gray-500 mt-3">以上依官方 Administration Guide「Choosing a Deployment」與 Sniffing 說明。舊簡報把模式分成 Inline、Sniffing、Reverse Proxy 三類;新版官方文件把 Reverse Proxy 歸在 Inline 之下。</p>
+        </div>
+
+        <!-- 二、現行模式一覽 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">二、現行模式一覽與 Gateway Mode 選單</h2>
+            <p class="text-gray-700 leading-relaxed mb-3">
+                在 Gateway Group 上,<span class="tech-term">Gateway Mode</span> 選單只有四個值:<strong>STP Bridge、IMPVHA Bridge、Sniffing、Reverse Proxy</strong>。
+                <span class="tech-term">TRP</span> 與 <span class="tech-term">ABR</span> 不是獨立選項,而是建立在這些模式上的運作方式。
+            </p>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">模式</th><th class="py-2 px-4 border text-left">類別</th><th class="py-2 px-4 border text-left">一句話說明</th><th class="py-2 px-4 border text-left">現況</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">STP Bridge</td><td class="py-2 px-4 border">Inline、透通 L2</td><td class="py-2 px-4 border">像一條會檢查的網路線,配合交換器的 STP 做備援</td><td class="py-2 px-4 border">v15.5 支援;【16.0】不支援</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">IMPVHA Bridge</td><td class="py-2 px-4 border">Inline、透通 L2</td><td class="py-2 px-4 border">交換器不支援 STP、STP 太複雜或使用 RSTP 時的 bridge 備援方式</td><td class="py-2 px-4 border">v15.5 支援;【16.0】不支援</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Sniffing</td><td class="py-2 px-4 border">被動</td><td class="py-2 px-4 border">旁聽鏡像流量,只能送 reset</td><td class="py-2 px-4 border">v15.5 支援;【16.0】不支援</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Reverse Proxy(NGRP)</td><td class="py-2 px-4 border">Inline、非透通</td><td class="py-2 px-4 border">用戶端連 Gateway 的 IP,Gateway 再連後端</td><td class="py-2 px-4 border">v15.5 支援;【16.0】支援</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">TRP(Transparent Reverse Proxy)</td><td class="py-2 px-4 border">Inline、透通</td><td class="py-2 px-4 border">在 bridge 部署中對特定 Web service 做透通代理</td><td class="py-2 px-4 border">v15.5 支援;路線圖由 ABR 取代</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">ABR(Advanced Bridge,MX 顯示 gen2)</td><td class="py-2 px-4 border">Inline、透通</td><td class="py-2 px-4 border">支援進階 cipher 的 TRP 模式</td><td class="py-2 px-4 border">v15.5 支援;【16.0】支援</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">KRP(Kernel Reverse Proxy)</td><td class="py-2 px-4 border">—</td><td class="py-2 px-4 border">舊版核心層 reverse proxy</td><td class="py-2 px-4 border"><strong>v14.1 已移除</strong></td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">在 MX 上哪裡選模式?</h3>
+            <p class="text-gray-700">建立 Gateway Group 時選 Gateway Mode(第 3 章 3.3)。下面這張示意畫面標出它的位置。</p>
+
+            <div class="mock-window">
+                <div class="mock-titlebar">
+                    <span class="mock-dots"><span></span><span></span><span></span></span>
+                    <span class="mock-url">https://10.0.30.10:8083</span>
+                </div>
+                <div class="mock-nav">
+                    <span class="brand">WAF Management Server</span>
+                    <span class="on">Main</span><span>Admin</span>
+                </div>
+                <div class="mock-crumb">Main &gt; Setup &gt; Gateways &gt; Create New Gateway Group</div>
+                <div class="mock-body">
+                    <div class="mock-row"><span class="step-badge">1</span><span class="mock-label">Name</span><span class="mock-input">GG-Shop</span></div>
+                    <div class="mock-row"><span class="step-badge" style="visibility:hidden">0</span><span class="mock-label">Platform</span><span class="mock-input mock-select">Imperva</span></div>
+                    <div class="mock-row"><span class="step-badge">2</span><span class="mock-label">Gateway Mode</span><span class="mock-input mock-select mock-hl">Reverse Proxy</span></div>
+                    <div class="mock-row mock-indent">
+                        <span class="mock-list" style="min-height:0;line-height:1.5;">
+                            STP Bridge<br>IMPVHA Bridge<br>Sniffing<br><strong>Reverse Proxy</strong>
+                        </span>
+                        <span class="text-xs text-gray-500">選單只有這四個值</span>
+                    </div>
+                    <div class="mock-row"><span class="step-badge" style="visibility:hidden">0</span><span class="mock-label">Fail Mode</span><span class="mock-input mock-select">(第 5 章)</span></div>
+                    <div class="mock-row"><span class="step-badge" style="visibility:hidden">0</span><span class="mock-label">Overload Policy</span><span>☐ Block on Overload</span></div>
+                    <div class="mock-row" style="justify-content:flex-end;"><span class="step-badge">3</span><span class="mock-btn primary mock-hl">Create</span></div>
+                </div>
+                <div class="mock-caption"><i class="fas fa-circle-info mr-1"></i>示意畫面:欄位名稱依 Imperva 官方文件,版面、按鈕位置與配色以實機為準。</div>
+            </div>
+
+            <ol class="step-list mt-4 text-gray-700">
+                <li><span class="step-badge">1</span><span>在 Main 工作區選 <strong>Setup &gt; Gateways</strong>,按新增圖示開啟 Create New Gateway Group 視窗,<strong>Name</strong> 填 <code>GG-Shop</code>。</span></li>
+                <li><span class="step-badge">2</span><span><strong>Gateway Mode</strong> 從四個值中選一個。這裡示範選 <code>Reverse Proxy</code>。</span></li>
+                <li><span class="step-badge">3</span><span>其他欄位填好後按 <strong>Create</strong>,再按 <strong>Save</strong>。</span></li>
+            </ol>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>模式選了就不能在 GUI 改</p>
+                <p class="text-gray-800">Gateway Group 建立後,Mode 在 MX 上只能檢視。要改模式,走 impcfg(第八節)。Gateway Mode 是群組屬性,模式不同的 Gateway 要放在不同群組。</p>
+            </div>
+        </div>
+
+        <!-- 三、Bridge 與 Sniffing -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">三、Bridge 與 Sniffing</h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2"><i class="fas fa-network-wired text-sky-600 mr-2"></i>STP Bridge 與 IMPVHA Bridge</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>Gateway 以 L2 bridge 串在路徑上,<strong>沒有自己的資料面 IP</strong>,不必改伺服器 IP、DNS、路由,適合「不能動網路架構」的現場。</li>
+                <li><strong>STP Bridge</strong>:用在既有的高可用網路,依靠交換器的 Spanning Tree 在兩台 Gateway 之間切換。</li>
+                <li><strong>IMPVHA Bridge</strong>:交換器不支援 STP、STP 太複雜,或環境使用 RSTP 時,改用 Imperva 自己的 HA 機制。</li>
+                <li><strong>網路 HA 只有 bridge 模式有</strong>(Reverse Proxy 與 Sniffing 沒有),見第 5 章。</li>
+                <li>硬體搭配具 bypass 能力的網卡時可設 Fail Open,Gateway 故障時流量直接通過(第 5 章)。</li>
+                <li>TLS 限制:只能解 TLS 1.2 的 <code>TLS_RSA_*</code>(靜態 RSA 金鑰交換)cipher,詳見第六、七節。</li>
+                <li>自訂錯誤頁、cookie 簽章等內容改寫在純 bridge 下能做到什麼程度,這次查證的官方頁面沒有直接寫明【待實機確認】。</li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2"><i class="fas fa-ear-listen text-sky-600 mr-2"></i>Sniffing</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>交換器 SPAN 埠或 TAP 把流量複製給 Gateway;Gateway 不在路徑上,壞了也不影響網站。</li>
+                <li>阻擋只能從 blocking interface 對伺服器端送 TCP reset;<strong>用戶端只會看到逾時,不能回錯誤頁,也擋不了資料外洩</strong>。</li>
+                <li>適合:先導入觀察、只要監控與告警,或網路團隊不允許任何 inline 設備的環境。</li>
+                <li>舊簡報的競品段落曾批評「只能 sniffing、靠 reset 阻擋」的產品擋不了單封包攻擊;同樣的限制也適用於 WAF Gateway 自己的 Sniffing 模式。</li>
+                <li>TLS 限制最嚴格:只能解 <code>TLS_RSA_*</code>,而且官方 cipher 表明確寫 <strong>DHE cipher 不支援 Sniffing</strong>。</li>
+            </ul>
+        </div>
+
+        <!-- 四、Reverse Proxy -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">四、Reverse Proxy(NGRP)</h2>
+            <p class="text-gray-700 leading-relaxed">
+                <strong>非透通 Reverse Proxy</strong>:用戶端連到 Gateway 的 IP,Gateway 代替後端 Web 伺服器回應,再自己連到後端。Gateway 對用戶端與伺服器都可見,用戶端與伺服器彼此不直接可見。Gateway 不當 bridge,只監聽指定的 port,其他流量一律忽略。
+            </p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-4 mb-2">官方列出的優點</h3>
+            <ol class="list-decimal pl-6 text-gray-700 space-y-1">
+                <li>SSL off-loading:終結 SSL,減輕伺服器負擔。</li>
+                <li>可對 cookie 簽章與加密。</li>
+                <li>可保護分散在多個子網段、彼此不相鄰的 Web 伺服器。</li>
+                <li>完整的代理功能(連線終結,含 SSL 終結)與較好的代理效能。</li>
+                <li>TLS 1.3 與 ECDHE / DHE cipher 都支援(第六節)。</li>
+            </ol>
+
+            <p class="text-gray-700 mt-4">設定位置:Web 伺服器群組在 <strong>Main &gt; Setup &gt; Sites</strong> 中 Server Group 的 <strong>Definitions</strong> 頁籤、<strong>Reverse Proxy</strong> 區段指定(官方 Administration Guide)。另有 One Arm(單臂)部署方式。Web Service 層的 Reverse Proxy 設定細節見第 7 章。</p>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>KRP → NGRP</p>
+                <p class="text-gray-800">v14.1 移除 Kernel Reverse Proxy,改用 user-space 的 NGRP,主因是支援更多 cipher。代價是 X6510、X8510、X10K 這類舊機型上連線數與每秒連線數下降,從舊版升級要重新評估容量。</p>
+            </div>
+
+            <div class="highlight-box">
+                <p class="font-bold text-sky-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>故障影響</p>
+                <p class="text-gray-800">官方特別註明,非透通 Reverse Proxy 的 Gateway 故障時,Web 伺服器就連不到了,所以通常要搭配 HA。Reverse Proxy 的冗餘方式是 <strong>VRRP</strong>(第 5 章)。</p>
+            </div>
+        </div>
+
+        <!-- 五、TRP 與 ABR -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">五、TRP 與 ABR:透通的代理</h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">TRP(Transparent Reverse Proxy)</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>在 bridge 部署中,只對<strong>特定 Web service</strong> 套用 TRP 規則,讓 Gateway 對這些服務做透通代理,其他服務維持一般 bridge。官方文件稱為「Transparent Reverse Proxy - Selected Web Servers」。</li>
+                <li>透通:用戶端仍然連原本伺服器的 IP,不必改 DNS。</li>
+                <li>TLS 能力介於 bridge 與 Reverse Proxy 之間:官方 cipher 表中,部分 ECDHE_RSA / DHE_RSA 的 GCM 與 CBC-SHA256 cipher 標示支援 TRP,但 <strong>TLS 1.3 不支援 TRP</strong>。</li>
+                <li>路線圖:<strong>TRP 由 ABR 取代</strong>(v15.3 Patch 20 / v15.4 更正後的說法)。新部署不要再以 TRP 為主。</li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">ABR(Advanced Bridge,gen2)</h3>
+            <p class="text-gray-700">ABR 是「支援進階 cipher 的 TRP 模式」,讓透通部署也能處理 TLS 1.3 與 PFS。</p>
+
+            <h4 class="font-bold text-gray-800 mt-3 mb-1">轉換方式(官方 v16.0 User Guide,v15.5 同樣適用)</h4>
+            <ol class="step-list mt-2 text-gray-700">
+                <li><span class="step-badge">1</span><span>從 Bridge 模式的 Gateway 開始。</span></li>
+                <li><span class="step-badge">2</span><span>把要保護的服務改成 TRP 規則。</span></li>
+                <li><span class="step-badge">3</span><span>移除該 service 的 HTTP / HTTPS port 設定。</span></li>
+                <li><span class="step-badge">4</span><span>用 impcfg 或 <code>impctl gateway ngrp enable</code> 啟用。</span></li>
+                <li><span class="step-badge">5</span><span>轉換後在 MX 中顯示為 <strong>gen2</strong>。</span></li>
+            </ol>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>ABR 的限制與建議</p>
+                <ul class="list-disc pl-6 text-gray-800 space-y-1">
+                    <li><strong>限制</strong>:不支援 network violations、Discovery &amp; Classification、一般 bridge 規則。</li>
+                    <li><strong>建議</strong>:用到同一條 TRP 規則的 Gateway Group 成員全部跑 ABR,不要混用。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 六、能力比較 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">六、各模式能力比較</h2>
+            <p class="text-gray-700 mb-3">這張表是整章的收斂。下方模擬器的判斷邏輯就是照它與第八節的選擇順序。表格可左右捲動。</p>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-3 border text-left">能力</th><th class="py-2 px-3 border text-left">STP / IMPVHA Bridge</th><th class="py-2 px-3 border text-left">TRP</th><th class="py-2 px-3 border text-left">Reverse Proxy(NGRP)</th><th class="py-2 px-3 border text-left">ABR(gen2)</th><th class="py-2 px-3 border text-left">Sniffing</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-3 border font-semibold">流量路徑</td><td class="py-2 px-3 border">Inline、透通 L2</td><td class="py-2 px-3 border">Inline、透通</td><td class="py-2 px-3 border">Inline、非透通</td><td class="py-2 px-3 border">Inline、透通</td><td class="py-2 px-3 border">鏡像,不在路徑上</td></tr>
+                        <tr><td class="py-2 px-3 border font-semibold">需改 IP / DNS</td><td class="py-2 px-3 border">否</td><td class="py-2 px-3 border">否</td><td class="py-2 px-3 border">是(指向 Gateway)</td><td class="py-2 px-3 border">否</td><td class="py-2 px-3 border">否</td></tr>
+                        <tr><td class="py-2 px-3 border font-semibold">阻擋方式</td><td class="py-2 px-3 border">Inline 阻擋</td><td class="py-2 px-3 border">代理後不轉送</td><td class="py-2 px-3 border">代理後不轉送</td><td class="py-2 px-3 border">代理後不轉送</td><td class="py-2 px-3 border">對伺服器端送 TCP reset</td></tr>
+                        <tr><td class="py-2 px-3 border font-semibold">用戶端錯誤頁</td><td class="py-2 px-3 border">【待實機確認】</td><td class="py-2 px-3 border">【待實機確認】</td><td class="py-2 px-3 border">可</td><td class="py-2 px-3 border">【待實機確認】</td><td class="py-2 px-3 border">不可(用戶端逾時)</td></tr>
+                        <tr><td class="py-2 px-3 border font-semibold">內容改寫(cookie 簽章 / 加密、SSL off-loading)</td><td class="py-2 px-3 border">【待實機確認】</td><td class="py-2 px-3 border">【待實機確認】</td><td class="py-2 px-3 border">可</td><td class="py-2 px-3 border">【待實機確認】</td><td class="py-2 px-3 border">不可</td></tr>
+                        <tr><td class="py-2 px-3 border font-semibold">TLS 1.2 靜態 RSA(<code>TLS_RSA_*</code>)</td><td class="py-2 px-3 border">可</td><td class="py-2 px-3 border">可</td><td class="py-2 px-3 border">可</td><td class="py-2 px-3 border">可</td><td class="py-2 px-3 border">可(需匯入伺服器私鑰)</td></tr>
+                        <tr class="bg-sky-50"><td class="py-2 px-3 border font-semibold">TLS 1.2 ECDHE / DHE(PFS)</td><td class="py-2 px-3 border text-red-700 font-bold">不可</td><td class="py-2 px-3 border">部分 cipher</td><td class="py-2 px-3 border text-green-700 font-bold">可</td><td class="py-2 px-3 border text-green-700 font-bold">可</td><td class="py-2 px-3 border text-red-700 font-bold">不可(DHE 官方明列不支援)</td></tr>
+                        <tr class="bg-sky-50"><td class="py-2 px-3 border font-semibold">TLS 1.3</td><td class="py-2 px-3 border text-red-700 font-bold">不可</td><td class="py-2 px-3 border text-red-700 font-bold">不可</td><td class="py-2 px-3 border text-green-700 font-bold">可</td><td class="py-2 px-3 border text-green-700 font-bold">可</td><td class="py-2 px-3 border text-red-700 font-bold">不可</td></tr>
+                        <tr><td class="py-2 px-3 border font-semibold">網路 HA</td><td class="py-2 px-3 border">STP / IMPVHA</td><td class="py-2 px-3 border">隨 bridge</td><td class="py-2 px-3 border">無;改用 VRRP</td><td class="py-2 px-3 border">【待實機確認】</td><td class="py-2 px-3 border">無</td></tr>
+                        <tr><td class="py-2 px-3 border font-semibold">Fail Open(硬體 bypass)</td><td class="py-2 px-3 border">可(限硬體)</td><td class="py-2 px-3 border">隨 bridge</td><td class="py-2 px-3 border">不適用【推論】</td><td class="py-2 px-3 border">【待實機確認】</td><td class="py-2 px-3 border">不適用(不在路徑上)</td></tr>
+                        <tr><td class="py-2 px-3 border font-semibold">API Security Anywhere sensor</td><td class="py-2 px-3 border">不可</td><td class="py-2 px-3 border">不可</td><td class="py-2 px-3 border">可</td><td class="py-2 px-3 border">可</td><td class="py-2 px-3 border">不可</td></tr>
+                        <tr><td class="py-2 px-3 border font-semibold">【16.0】CA</td><td class="py-2 px-3 border">不支援</td><td class="py-2 px-3 border">不支援【推論】</td><td class="py-2 px-3 border">支援</td><td class="py-2 px-3 border">支援</td><td class="py-2 px-3 border">不支援</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-sm text-gray-500 mt-3">TLS 三列依官方「TLS Ciphers」表:TLS 1.2 的 <code>TLS_RSA_*</code> 標示 <strong>All</strong>(所有模式);TLS 1.3 cipher 只標 <strong>Reverse Proxy、ABR</strong>;ECDHE / DHE cipher 只標 <strong>Reverse Proxy、ABR</strong>,其中部分另含 <strong>TRP</strong>。TRP 在 16.0 的狀態是由「16.0 不支援 Bridge、TRP 由 ABR 取代」推得。</p>
+        </div>
+
+        <!-- 七、全課程重點 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">七、全課程重點:被動模式解不了 TLS 1.3 與 ECDHE / DHE</h2>
+
+            <div class="key-card">
+                <div class="key-card-head"><i class="fas fa-key"></i>全課程最重要的一個結論</div>
+                <div class="key-card-body">
+                    <p class="text-gray-900 leading-relaxed">
+                        地端 <span class="tech-term">Sniffing</span> 與<span class="tech-term">純 Bridge</span> 只能解密 TLS 1.2 的靜態 RSA 金鑰交換(<code>TLS_RSA_*</code>),
+                        <strong>無法解密 TLS 1.3,也無法解密任何使用 ECDHE / DHE(具 Perfect Forward Secrecy)的流量</strong>。
+                        要檢查這類流量,必須改用 <span class="tech-term">Reverse Proxy(NGRP)</span>或 <span class="tech-term">ABR</span>。
+                    </p>
+                    <p class="text-xs text-gray-500 mt-2">【推論:由官方 cipher 表直接推得】</p>
+                </div>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-4 mb-2">為什麼?</h3>
+            <div class="diagram-container">
+                <svg viewBox="0 0 360 430" role="img" aria-labelledby="svg2-title" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans TC, sans-serif">
+                    <title id="svg2-title">被動解密為何失敗:TLS_RSA 靜態金鑰交換可用伺服器私鑰解開;ECDHE、DHE 與 TLS 1.3 的臨時金鑰不上網路,被動模式算不出;Reverse Proxy 與 ABR 自己參與握手才能檢查</title>
+                    <!-- Lane 1 -->
+                    <rect x="8" y="8" width="344" height="124" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+                    <text x="20" y="32" font-size="15" font-weight="700" fill="#15803d">TLS 1.2 靜態 RSA(TLS_RSA_*)</text>
+                    <text x="20" y="55" font-size="14" fill="#1f2937">① 用戶端用 RSA 加密 pre-master</text>
+                    <text x="20" y="76" font-size="14" fill="#1f2937">② WAF 用伺服器私鑰解開它</text>
+                    <text x="20" y="97" font-size="14" fill="#1f2937">③ 算出 session key,能解密</text>
+                    <text x="20" y="121" font-size="14" font-weight="700" fill="#15803d">結果:可被動解密</text>
+                    <!-- Lane 2 -->
+                    <rect x="8" y="144" width="344" height="136" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/>
+                    <text x="20" y="168" font-size="15" font-weight="700" fill="#b91c1c">ECDHE / DHE / TLS 1.3(PFS)</text>
+                    <text x="20" y="191" font-size="14" fill="#1f2937">① 雙方各自產生臨時 DH 金鑰</text>
+                    <text x="20" y="212" font-size="14" fill="#1f2937">② 臨時私鑰從不在網路上傳送</text>
+                    <text x="20" y="233" font-size="14" fill="#1f2937">③ 憑證私鑰只簽章,算不出 key</text>
+                    <text x="20" y="257" font-size="14" font-weight="700" fill="#b91c1c">結果:Sniffing / 純 Bridge 解不開</text>
+                    <text x="20" y="274" font-size="13" fill="#6b7280">拿到伺服器私鑰也沒用</text>
+                    <!-- Lane 3 -->
+                    <rect x="8" y="292" width="344" height="130" rx="10" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="20" y="316" font-size="15" font-weight="700" fill="#075985">Reverse Proxy / ABR</text>
+                    <text x="20" y="339" font-size="14" fill="#1f2937">① WAF 自己參與 TLS 握手</text>
+                    <text x="20" y="360" font-size="14" fill="#1f2937">② 終結 TLS,再重新連線到後端</text>
+                    <text x="20" y="381" font-size="14" fill="#1f2937">③ 看得到明文,PFS 也能檢查</text>
+                    <text x="20" y="405" font-size="14" font-weight="700" fill="#075985">結果:可檢查【推論】</text>
+                </svg>
+            </div>
+
+            <ol class="list-decimal pl-6 text-gray-700 space-y-2 mt-4">
+                <li>被動解密的原理:WAF 手上有伺服器私鑰,看到 TLS 握手時,用私鑰解出用戶端以 RSA 加密送出的 pre-master secret,再算出 session key。</li>
+                <li><strong>ECDHE / DHE</strong> 的 session key 由雙方臨時產生的 Diffie-Hellman 金鑰算出,臨時私鑰從不在網路上傳送;伺服器的憑證私鑰只用來簽章,拿到它也算不出 session key。這就是 Perfect Forward Secrecy。</li>
+                <li><strong>TLS 1.3</strong> 移除靜態 RSA 金鑰交換,完整握手一律用 (EC)DHE,所以<strong>所有 TLS 1.3 連線</strong>都無法被動解密。</li>
+                <li>能解密 PFS 流量的唯一方式是 WAF 自己參與握手,也就是 Reverse Proxy 或 ABR 這類「終結 TLS 再重新連線」的模式。</li>
+            </ol>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">現場影響</h3>
+            <div class="pitfall-box">
+                <ul class="list-disc pl-6 text-gray-800 space-y-2">
+                    <li>現代瀏覽器與伺服器預設優先使用 TLS 1.3 與 ECDHE。舊簡報「Sniffing / Bridge 匯入 SSL 憑證就能檢查 HTTPS」的做法,今天多半只能看到加密流量,等於<strong>沒有檢查</strong>。</li>
+                    <li>為了遷就被動 WAF 而把伺服器降級成只支援 <code>TLS_RSA_*</code>、關閉 TLS 1.3,會犧牲前向保密,與現行安全建議相違,不建議這樣做【推論】。</li>
+                </ul>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">可行的做法【推論】</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">做法</th><th class="py-2 px-4 border text-left">說明</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">改用 Reverse Proxy(NGRP)</td><td class="py-2 px-4 border">WAF 終結 TLS,需改 DNS / VIP 指向 Gateway</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">改用 ABR</td><td class="py-2 px-4 border">維持透通部署,同時支援 TLS 1.3 與 PFS</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">讓負載平衡器先終結 TLS</td><td class="py-2 px-4 border">WAF 放在 LB 後段,檢查明文流量,或 LB 以 WAF 可解的方式重新加密(第 5 章)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">維持 Sniffing,但接受限制</td><td class="py-2 px-4 border">只在 LB 解密後的明文段落鏡像;前端加密段落不檢查</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 八、如何選擇 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">八、如何選擇模式,以及怎麼改模式</h2>
+            <p class="text-gray-700 mb-2">依序回答下列問題:</p>
+            <ol class="step-list text-gray-700">
+                <li><span class="step-badge">1</span><span><strong>計畫在支援期內升 v16.0?</strong> 是 → 只能選 Reverse Proxy 或 ABR。</span></li>
+                <li><span class="step-badge">2</span><span><strong>需要 WAF 自己檢查 TLS 1.3 / ECDHE 流量?</strong> 是 → Reverse Proxy 或 ABR。</span></li>
+                <li><span class="step-badge">3</span><span><strong>不能改 IP / DNS?</strong> 是 → ABR(TRP 將由 ABR 取代,不建議新建)。</span></li>
+                <li><span class="step-badge">4</span><span><strong>需要硬體 bypass(Fail Open)?</strong> 是 → 硬體 Gateway 的 Bridge 模式;要同時兼顧 TLS 1.3,就得讓 LB 先終結 TLS。</span></li>
+                <li><span class="step-badge">5</span><span><strong>只要監控、不允許 inline?</strong> 是 → Sniffing,但要接受第七節的 TLS 限制與「無錯誤頁、無法擋外洩」。</span></li>
+            </ol>
+            <p class="text-sm text-gray-500">第 15 章會用範例環境實際走一次這個選擇過程。</p>
+
+            <div class="highlight-box">
+                <p class="font-bold text-sky-800 mb-1"><i class="fas fa-terminal mr-1"></i>改變 Gateway 模式</p>
+                <p class="text-gray-800">官方建議用 impcfg:<strong>Top &gt; Manage SecureSphere Gateway &gt; Change operation mode</strong>,改完按 <strong>S</strong> 存檔、<strong>A</strong> 套用。Gateway Group 的 Mode 在 MX 上只能檢視,模式不同的 Gateway 要搬到對應的群組【推論】。</p>
+            </div>
+        </div>
+
+        <!-- 九、模擬器 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">九、動手玩:部署模式選擇器</h2>
+            <p class="text-gray-700 mb-2">勾選你的需求,看看哪些模式還能用、哪些被淘汰,以及為什麼。判斷邏輯照第六節的比較表。標示「待實機確認」的項目,代表本課程目前沒有官方依據,上線前要實機驗證。</p>
+
+            <div class="grid md:grid-cols-2 gap-4 mt-4">
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-list-check mr-1 text-sky-600"></i>你的需求(可複選)</h3>
+                    <div id="req-list" class="space-y-1 text-sm"></div>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-flask mr-1 text-sky-600"></i>快速情境</h3>
+                    <div class="flex flex-col gap-2">
+                        <button type="button" id="preset-shop" class="text-left border rounded px-3 py-2 bg-white hover:bg-sky-50">電商站:要擋、要 TLS 1.3 與 ECDHE、不想改 DNS</button>
+                        <button type="button" id="preset-observe" class="text-left border rounded px-3 py-2 bg-white hover:bg-sky-50">先觀察:網路團隊不允許 inline 設備</button>
+                        <button type="button" id="preset-conflict" class="text-left border rounded px-3 py-2 bg-white hover:bg-sky-50">要硬體 Fail Open,又要檢查 TLS 1.3</button>
+                        <button type="button" id="preset-v16" class="text-left border rounded px-3 py-2 bg-white hover:bg-sky-50">計畫升 v16.0,要擋、要回錯誤頁</button>
+                        <button type="button" id="preset-reset" class="text-left border rounded px-3 py-2 bg-white hover:bg-sky-50">全部取消</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="sim-out" class="mt-4"></div>
+        </div>
+
+        <!-- 十、踩坑 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">十、常見踩坑</h2>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>Sniffing 匯入了憑證卻看不到攻擊</p>
+                <p class="text-gray-800">流量是 TLS 1.3 或 ECDHE,被動解不開;告警少不代表沒有攻擊。先檢查連線實際協商的協定與 cipher。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>以為 Sniffing 擋得住</p>
+                <p class="text-gray-800">只能對伺服器送 reset,用戶端看到逾時,單封包攻擊與資料外洩擋不了。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>Reverse Proxy 只放一台 Gateway</p>
+                <p class="text-gray-800">Gateway 一掛,網站就斷,要搭配 VRRP。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>從舊版 KRP 升級沒有重估容量</p>
+                <p class="text-gray-800">NGRP 在 X6510 / X8510 / X10K 上連線數下降。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>ABR 與一般 bridge 規則混用</p>
+                <p class="text-gray-800">ABR 不支援一般 bridge 規則與 network violations,轉換前先盤點。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>新部署仍用 TRP</p>
+                <p class="text-gray-800">路線圖已由 ABR 取代,現在就直接規劃 ABR。</p>
+            </div>
+        </div>
+
+        <!-- 十一、新舊對照 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">十一、新舊對照</h2>
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-2"><i class="fas fa-code-branch mr-1"></i>舊簡報說法與現況</p>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm border bg-white">
+                        <thead class="bg-purple-100">
+                            <tr><th class="py-2 px-3 border text-left">舊簡報說法</th><th class="py-2 px-3 border text-left">現況</th><th class="py-2 px-3 border text-left">依據</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td class="py-2 px-3 border">三大模式 Inline、Sniffing、Reverse Proxy</td><td class="py-2 px-3 border">官方分 Inline 與 Sniffing 兩大類;Gateway Mode 選單為 STP Bridge、IMPVHA Bridge、Sniffing、Reverse Proxy;另有 TRP、ABR</td><td class="py-2 px-3 border">v15.5 Administration Guide(Choosing a Deployment、Gateway Groups)</td></tr>
+                            <tr><td class="py-2 px-3 border">Reverse Proxy 有多種子模式</td><td class="py-2 px-3 border">KRP 已於 v14.1 移除,改為 NGRP;TRP 由 ABR 取代</td><td class="py-2 px-3 border">v16.0 upgrade guide;v15.5 release notes</td></tr>
+                            <tr><td class="py-2 px-3 border">Transparent Bridge 也用於 DBF、FFW;Sniffing 用於 DAM、FAM</td><td class="py-2 px-3 border">WAF 與 DAM 已分開,本教材只談 WAF</td><td class="py-2 px-3 border">EOL 政策頁</td></tr>
+                            <tr class="bg-sky-50"><td class="py-2 px-3 border font-semibold">加密流量匯入 SSL 憑證即可</td><td class="py-2 px-3 border font-semibold">被動模式與純 Bridge 只能解 TLS 1.2 靜態 RSA;TLS 1.3 / PFS 要 Reverse Proxy 或 ABR【推論】</td><td class="py-2 px-3 border">v16.0 user guide「TLS Ciphers」</td></tr>
+                            <tr><td class="py-2 px-3 border">虛擬機支援 Inline bridge、Sniffing、Reverse Proxy</td><td class="py-2 px-3 border">v15.5 VM 支援的模式以各平台安裝手冊為準【待實機確認】;【16.0】只支援 NGRP、ABR</td><td class="py-2 px-3 border">v16.0 release notes</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
+                隨堂測驗
+            </h2>
+            <p class="mb-6 text-gray-600">請點選您認為正確的選項,系統將會顯示解析。</p>
+            <div class="space-y-6" id="quiz-container"></div>
+        </div>
+
+    </main>
+
+    <nav class="container mx-auto px-4 max-w-5xl" aria-label="章節導覽(頁尾)">
+        <div class="flex flex-wrap items-center justify-between gap-2 text-sm">
+            <a href="Imperva03.html" class="text-sky-700 hover:text-sky-900 font-medium"><i class="fas fa-arrow-left mr-1"></i>上一章</a>
+            <a href="Imperva00.html" class="text-sky-700 hover:text-sky-900 font-medium"><i class="fas fa-list mr-1"></i>課程目錄</a>
+            <a href="Imperva05.html" class="text-sky-700 hover:text-sky-900 font-medium">下一章<i class="fas fa-arrow-right ml-1"></i></a>
+        </div>
+    </nav>
+
+    <footer class="footer-signature">
+        Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver.2026.11.02.12.07
+    </footer>
+
+
+    <script>
+        // ===== 部署模式選擇器 =====
+        const MODES = [
+            { id: 'bridge', name: 'STP / IMPVHA Bridge', gm: 'Gateway Mode 選 STP Bridge 或 IMPVHA Bridge(交換器支援 STP 用前者;不支援 STP、STP 太複雜或使用 RSTP 用後者)', pref: 2 },
+            { id: 'trp', name: 'TRP(Transparent Reverse Proxy)', gm: '建立在 Bridge 部署上,只對特定 Web service 套用 TRP 規則', pref: 3 },
+            { id: 'ngrp', name: 'Reverse Proxy(NGRP)', gm: 'Gateway Mode 選 Reverse Proxy', pref: 0 },
+            { id: 'abr', name: 'ABR(Advanced Bridge,MX 顯示 gen2)', gm: '從 Bridge 模式的 Gateway 轉換:服務改成 TRP 規則、移除 HTTP / HTTPS port 設定,再用 impcfg 或 impctl gateway ngrp enable 啟用', pref: 1 },
+            { id: 'sniff', name: 'Sniffing', gm: 'Gateway Mode 選 Sniffing', pref: 4 }
+        ];
+
+        const REQS = [
+            { id: 'block', label: '要阻擋:惡意流量到不了受保護網路' },
+            { id: 'dlp', label: '要在回應送出前攔截(防資料外洩)' },
+            { id: 'noinline', label: '不允許 inline 設備 / 要零延遲' },
+            { id: 'errpage', label: '要回自訂錯誤頁給用戶端' },
+            { id: 'rewrite', label: '要 cookie 簽章 / 加密、SSL off-loading' },
+            { id: 'tls13', label: '要檢查 TLS 1.3 流量' },
+            { id: 'pfs', label: '要檢查 ECDHE / DHE(PFS)流量' },
+            { id: 'noip', label: '不能改 IP / DNS' },
+            { id: 'netha', label: '要網路 HA(STP / IMPVHA)' },
+            { id: 'failopen', label: '要硬體 Fail Open(bypass)' },
+            { id: 'v16', label: '計畫在支援期內升 v16.0 CA' },
+            { id: 'api', label: '要 API Security Anywhere sensor' }
+        ];
+
+        // 狀態:ok 可 / no 不可 / unk 待實機確認或部分支援。依第六節能力比較表。
+        const CAP = {
+            block: {
+                bridge: ['ok', 'Inline 阻擋'], trp: ['ok', '代理後不轉送'], ngrp: ['ok', '代理後不轉送'], abr: ['ok', '代理後不轉送'],
+                sniff: ['no', '只能對伺服器端送 TCP reset,單封包攻擊擋不了']
+            },
+            dlp: {
+                bridge: ['ok', 'Inline 可在回應送出前攔截'], trp: ['ok', 'Inline 可在回應送出前攔截'], ngrp: ['ok', 'Inline 可在回應送出前攔截'], abr: ['ok', 'Inline 可在回應送出前攔截'],
+                sniff: ['no', '回應已經送出,擋不了外洩']
+            },
+            noinline: {
+                bridge: ['no', 'Inline 模式,流量要經過 Gateway,會增加一些延遲'], trp: ['no', 'Inline 模式,會增加一些延遲'], ngrp: ['no', 'Inline 模式,會增加一些延遲'], abr: ['no', 'Inline 模式,會增加一些延遲'],
+                sniff: ['ok', '流量複製給 Gateway,零延遲、不在路徑上']
+            },
+            errpage: {
+                bridge: ['unk', '純 bridge 能否自訂錯誤頁【待實機確認】'], trp: ['unk', '【待實機確認】'], ngrp: ['ok', '可回錯誤頁'], abr: ['unk', '【待實機確認】'],
+                sniff: ['no', '用戶端只會看到連線逾時,不能回錯誤頁']
+            },
+            rewrite: {
+                bridge: ['unk', '內容改寫能力【待實機確認】'], trp: ['unk', '【待實機確認】'], ngrp: ['ok', '可 cookie 簽章 / 加密、SSL off-loading'], abr: ['unk', '【待實機確認】'],
+                sniff: ['no', '不可']
+            },
+            tls13: {
+                bridge: ['no', 'TLS 1.3 不可解(官方 cipher 表只標 Reverse Proxy、ABR)'], trp: ['no', 'TLS 1.3 不支援 TRP'], ngrp: ['ok', 'Reverse Proxy 終結 TLS'], abr: ['ok', 'ABR 支援進階 cipher'],
+                sniff: ['no', '被動模式解不了 TLS 1.3']
+            },
+            pfs: {
+                bridge: ['no', 'ECDHE / DHE(PFS)不可解'], trp: ['unk', '只有部分 ECDHE_RSA / DHE_RSA cipher 標示支援 TRP,要核對實際協商的 cipher'], ngrp: ['ok', '可'], abr: ['ok', '可'],
+                sniff: ['no', 'DHE 官方明列不支援 Sniffing']
+            },
+            noip: {
+                bridge: ['ok', '無自己的資料面 IP,不必改 IP / DNS'], trp: ['ok', '用戶端仍連原本伺服器的 IP'], ngrp: ['no', '用戶端連 Gateway 的 IP,需改 DNS / VIP 指向 Gateway'], abr: ['ok', '維持透通部署'],
+                sniff: ['ok', '旁聽鏡像流量']
+            },
+            netha: {
+                bridge: ['ok', 'STP / IMPVHA 網路 HA'], trp: ['ok', '隨 bridge'], ngrp: ['no', '沒有網路 HA,改用 VRRP'], abr: ['unk', 'ABR 的網路 HA【待實機確認】'],
+                sniff: ['no', '沒有網路 HA(不在路徑上,壞了不影響網站)']
+            },
+            failopen: {
+                bridge: ['ok', '可,限具 bypass 網卡的硬體'], trp: ['ok', '隨 bridge'], ngrp: ['no', 'Fail Open 不適用【推論】'], abr: ['unk', 'ABR 的 Fail Open【待實機確認】'],
+                sniff: ['ok', '不在路徑上,不需要 bypass;Gateway 壞了不影響網站']
+            },
+            v16: {
+                bridge: ['no', '【16.0】不支援 Bridge'], trp: ['no', '【16.0】不支援【推論】:TRP 由 ABR 取代'], ngrp: ['ok', '【16.0】支援'], abr: ['ok', '【16.0】支援'],
+                sniff: ['no', '【16.0】不支援 Sniffing']
+            },
+            api: {
+                bridge: ['no', '不可'], trp: ['no', '不可'], ngrp: ['ok', '可'], abr: ['ok', '可'],
+                sniff: ['no', '不可']
+            }
+        };
+
+        const reqBox = document.getElementById('req-list');
+        const outBox = document.getElementById('sim-out');
+
+        REQS.forEach(r => {
+            const lab = document.createElement('label');
+            lab.className = 'flex items-start';
+            lab.innerHTML = `<input type="checkbox" id="rq-${r.id}" class="mr-2 mt-1"><span>${r.label}</span>`;
+            reqBox.appendChild(lab);
+        });
+
+        function isOn(id) { return document.getElementById('rq-' + id).checked; }
+        function setReqs(ids) { REQS.forEach(r => { document.getElementById('rq-' + r.id).checked = ids.includes(r.id); }); evaluate(); }
+
+        function evaluate() {
+            const sel = REQS.filter(r => isOn(r.id));
+            if (sel.length === 0) {
+                outBox.innerHTML = `<div class="border rounded-lg p-4 bg-gray-50 text-sm text-gray-700">
+                    <i class="fas fa-circle-info mr-1 text-sky-600"></i>還沒勾任何需求,所以沒有任何模式被淘汰。請先釐清:要不要阻擋、能不能改 DNS、TLS 版本、要不要 HA,再勾選需求。</div>`;
+                return;
+            }
+            const res = MODES.map(m => {
+                const no = [], unk = [], ok = [];
+                sel.forEach(r => {
+                    const c = CAP[r.id][m.id];
+                    if (c[0] === 'no') no.push([r.label, c[1]]);
+                    else if (c[0] === 'unk') unk.push([r.label, c[1]]);
+                    else ok.push([r.label, c[1]]);
+                });
+                return { m, no, unk, ok, eligible: no.length === 0 };
+            });
+            const eligible = res.filter(x => x.eligible);
+            // TRP 路線圖由 ABR 取代:新部署排序墊底
+            eligible.sort((a, b) => (a.unk.length * 10 + a.m.pref + (a.m.id === 'trp' ? 100 : 0)) - (b.unk.length * 10 + b.m.pref + (b.m.id === 'trp' ? 100 : 0)));
+
+            let html = '';
+            const tlsNeed = isOn('tls13') || isOn('pfs');
+
+            if (eligible.length > 0) {
+                const best = eligible[0];
+                const foUnk = isOn('failopen') && CAP.failopen[best.m.id][0] === 'unk';
+                html += `<div class="border-2 rounded-lg p-4 ${foUnk ? 'bg-yellow-50 border-yellow-400' : 'bg-green-50 border-green-400'} mb-3">
+                    <h3 class="font-bold ${foUnk ? 'text-yellow-800' : 'text-green-800'} mb-1"><i class="fas ${foUnk ? 'fa-circle-question' : 'fa-circle-check'} mr-1"></i>${foUnk ? '需確認的模式' : '建議模式'}:${best.m.name}</h3>
+                    <p class="text-sm text-gray-800 mb-1">${best.m.gm}</p>
+                    ${best.unk.length ? `<p class="text-sm reason-unk mt-1"><i class="fas fa-flask mr-1"></i>以下項目本課程未明載,正式採用前要實機確認:${best.unk.map(u => u[0]).join('、')}。</p>` : ''}
+                    ${eligible.length > 1 ? `<p class="text-sm text-gray-700 mt-1">其他沒被淘汰的模式:${eligible.slice(1).map(e => e.m.name).join('、')}</p>` : ''}
+                </div>`;
+                const tips = [];
+                if (best.m.id === 'trp') tips.push('TRP 的路線圖是由 ABR 取代,新部署不要再以 TRP 為主,建議直接規劃 ABR(另需注意 ABR 的限制)。');
+                if (best.m.id === 'abr') tips.push('ABR 注意:不支援 network violations、Discovery & Classification、一般 bridge 規則;用到同一條 TRP 規則的 Gateway Group 成員全部跑 ABR,不要混用。');
+                if (best.m.id === 'ngrp') tips.push('Reverse Proxy 的 Gateway 故障時 Web 伺服器就連不到,通常要搭配 VRRP 做冗餘(第 5 章)。');
+                if (best.m.id === 'sniff') tips.push('選 Sniffing 就要接受:TLS 只能解 TLS 1.2 靜態 RSA、無錯誤頁、無法擋資料外洩,且壞了不影響網站。');
+                if (best.m.id === 'bridge') tips.push('純 Bridge 只能解 TLS 1.2 的 TLS_RSA_* cipher,現代瀏覽器預設走 TLS 1.3 與 ECDHE 時看不到內容。');
+                if (isOn('failopen') && tlsNeed) tips.push('本章第八節:要硬體 Fail Open 就是硬體 Gateway 的 Bridge 模式,但 Bridge 解不了 TLS 1.3 / PFS;要同時兼顧,得讓 LB 先終結 TLS。ABR 能否 Fail Open 本課程標【待實機確認】,不要直接當成可行。');
+                if (isOn('v16') && best.m.id !== 'ngrp' && best.m.id !== 'abr') tips.push('要升 v16.0 時只剩 Reverse Proxy 或 ABR 可選。');
+                if (tips.length) html += `<div class="highlight-box"><ul class="list-disc pl-6 text-sm text-gray-800 space-y-1">${tips.map(t => `<li>${t}</li>`).join('')}</ul></div>`;
+            } else {
+                const hints = [];
+                if (tlsNeed && isOn('failopen')) hints.push('本章第八節:要同時兼顧 TLS 1.3 與 Fail Open,就得讓 LB 先終結 TLS,WAF 放在 LB 後段檢查明文。');
+                if (tlsNeed && isOn('noinline')) hints.push('Sniffing 解不了 TLS 1.3 / PFS。可行做法【推論】:維持 Sniffing,但只在 LB 解密後的明文段落鏡像,前端加密段落不檢查;或放寬「不允許 inline」。');
+                if (tlsNeed && isOn('noip') && isOn('netha')) hints.push('要 TLS 1.3 / PFS 又不能改 DNS 時只有 ABR 可選,但 ABR 的網路 HA 本課程標【待實機確認】。');
+                hints.push('可行做法【推論】之一:讓負載平衡器先終結 TLS,WAF 放在 LB 後段檢查明文流量,或由 LB 以 WAF 可解的方式重新加密。');
+                html += `<div class="border-2 rounded-lg p-4 bg-red-50 border-red-300 mb-3">
+                    <h3 class="font-bold text-red-700 mb-1"><i class="fas fa-circle-xmark mr-1"></i>沒有單一模式能同時滿足這些需求</h3>
+                    <p class="text-sm text-gray-800 mb-1">請看下方每個模式被淘汰的原因,再決定要放寬哪一項需求,或調整架構。</p>
+                    <ul class="list-disc pl-6 text-sm text-gray-800 space-y-1">${hints.map(h => `<li>${h}</li>`).join('')}</ul>
+                </div>`;
+            }
+
+            if (tlsNeed) {
+                const bad = res.filter(x => (isOn('tls13') ? CAP.tls13[x.m.id][0] === 'no' : false) || (isOn('pfs') ? CAP.pfs[x.m.id][0] === 'no' : false)).map(x => x.m.name);
+                if (bad.length) html += `<div class="pitfall-box"><p class="text-sm text-gray-800"><i class="fas fa-key mr-1 text-orange-600"></i><strong>第七節提醒</strong>:${bad.join('、')}解不了你勾選的 TLS 流量,匯入憑證也一樣,等於沒有檢查。</p></div>`;
+            }
+
+            html += '<h3 class="font-bold text-gray-800 mt-4 mb-2">各模式逐項檢視</h3><div class="grid md:grid-cols-2 gap-3">';
+            res.forEach(x => {
+                const chip = !x.eligible ? '<span class="chip chip-no">不符合</span>' : (x.unk.length ? '<span class="chip chip-unk">符合,需確認</span>' : '<span class="chip chip-ok">符合</span>');
+                const lines = [];
+                x.no.forEach(n => lines.push(`<li class="reason-no">✗ ${n[0]}:${n[1]}</li>`));
+                x.unk.forEach(n => lines.push(`<li class="reason-unk">? ${n[0]}:${n[1]}</li>`));
+                x.ok.forEach(n => lines.push(`<li class="reason-ok">✓ ${n[0]}:${n[1]}</li>`));
+                html += `<div class="bg-white border rounded-lg p-3 ${x.eligible ? '' : 'opacity-90'}">
+                    <div class="flex items-center justify-between gap-2 mb-2 flex-wrap"><strong>${x.m.name}</strong>${chip}</div>
+                    <ul class="text-sm space-y-1">${lines.join('')}</ul></div>`;
+            });
+            html += '</div>';
+            outBox.innerHTML = html;
+        }
+
+        REQS.forEach(r => document.getElementById('rq-' + r.id).addEventListener('change', evaluate));
+        document.getElementById('preset-shop').addEventListener('click', () => setReqs(['block', 'tls13', 'pfs', 'noip']));
+        document.getElementById('preset-observe').addEventListener('click', () => setReqs(['noinline']));
+        document.getElementById('preset-conflict').addEventListener('click', () => setReqs(['failopen', 'tls13']));
+        document.getElementById('preset-v16').addEventListener('click', () => setReqs(['block', 'errpage', 'v16']));
+        document.getElementById('preset-reset').addEventListener('click', () => setReqs([]));
+        setReqs(['block', 'tls13', 'pfs', 'noip']);
+
+        // ===== 隨堂測驗 =====
+        const quizData = [
+            {
+                question: "Q1. Sniffing 模式偵測到一個攻擊並決定阻擋,用戶端會看到什麼?",
+                options: ["A. 一個自訂的錯誤頁", "B. 連線逾時(timeout)", "C. 連線被 Gateway 立刻中斷並顯示封鎖原因", "D. 什麼都沒發生,攻擊照常完成"],
+                correct: 1,
+                desc: "正解:B。Sniffing 只能從 blocking interface 對伺服器端送 TCP reset,用戶端只會看到逾時,不能回錯誤頁。單封包攻擊與資料外洩也擋不了(回應已經送出)。"
+            },
+            {
+                question: "Q2. 為什麼 Sniffing 與純 Bridge 解不了 ECDHE / DHE 的流量,即使匯入了伺服器私鑰?",
+                options: ["A. 因為 Gateway 的 CPU 不夠快", "B. 因為 session key 由雙方臨時產生的 DH 金鑰算出,臨時私鑰不在網路上傳送,憑證私鑰只用來簽章", "C. 因為 ECDHE 的封包被壓縮過", "D. 因為 MX 沒有開啟 SSL 選項"],
+                correct: 1,
+                desc: "正解:B。被動解密靠伺服器私鑰解出 RSA 加密的 pre-master secret;ECDHE / DHE 沒有這個步驟,這就是 Perfect Forward Secrecy。要檢查就得讓 WAF 自己參與握手(Reverse Proxy 或 ABR)。"
+            },
+            {
+                question: "Q3. 現場要檢查 TLS 1.3 流量,而且不能改 DNS 與伺服器 IP。本課程建議選哪個模式?",
+                options: ["A. 純 Bridge(STP Bridge)", "B. Sniffing", "C. ABR(Advanced Bridge,gen2)", "D. Reverse Proxy(NGRP)"],
+                correct: 2,
+                desc: "正解:C。Bridge 與 Sniffing 解不了 TLS 1.3;Reverse Proxy 要改 DNS / VIP 指向 Gateway;TRP 也不支援 TLS 1.3。ABR 維持透通部署,同時支援 TLS 1.3 與 PFS。"
+            },
+            {
+                question: "Q4. 關於 Gateway Group 的 Gateway Mode 選單,下列哪個說法正確?",
+                options: ["A. 選單有六個值,包含 TRP 與 ABR", "B. 選單只有 STP Bridge、IMPVHA Bridge、Sniffing、Reverse Proxy;TRP 與 ABR 是建立在這些模式上的運作方式", "C. 選單只有 Inline 與 Sniffing 兩個值", "D. 建立後可以隨時在 MX 的 Details 窗格改模式"],
+                correct: 1,
+                desc: "正解:B。TRP 與 ABR 不是獨立選項。Gateway Group 建立後 Mode 在 MX 上只能檢視,改模式要走 impcfg(Change operation mode)。"
+            },
+            {
+                question: "Q5. 非透通 Reverse Proxy 只放一台 Gateway,最大的風險是什麼?官方建議的冗餘方式是什麼?",
+                options: ["A. 沒有風險,Reverse Proxy 故障時流量會自動 bypass", "B. Gateway 一掛 Web 伺服器就連不到;冗餘方式是 VRRP", "C. 只會失去 TLS 1.3 能力;冗餘方式是 STP", "D. 只會失去阻擋能力;冗餘方式是 IMPVHA"],
+                correct: 1,
+                desc: "正解:B。非透通 Reverse Proxy 的 Gateway 故障時,Web 伺服器就連不到,所以通常要搭配 HA。網路 HA(STP / IMPVHA)只有 bridge 模式有,Reverse Proxy 的冗餘方式是 VRRP(第 5 章)。"
+            }
+        ];
+
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionBox = document.createElement('div');
+            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
+
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border mb-2 text-gray-700" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            questionBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
+                <div class="space-y-2 mb-4">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
+                    <p class="font-bold result-title"></p>
+                    <p class="text-sm text-gray-600 mt-1">${item.desc}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionBox);
+        });
+
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            if (element.parentElement.dataset.answered) return;
+            element.parentElement.dataset.answered = "true";
+
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+                opt.classList.add('disabled');
+            });
+
+            if (optIndex === data.correct) {
+                element.classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了!";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                element.classList.add('bg-red-100', 'border-red-500');
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了!";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+    </script>
+</body>
+</html>

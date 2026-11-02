@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imperva WAF Gateway 實戰課程 - WAF 技術定位</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        /* 卡片主體樣式 (Imperva Blue) */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #0284c7;
+        }
+
+        /* 重點提示框 (藍) */
+        .highlight-box {
+            background-color: #f0f9ff;
+            border-left: 4px solid #0284c7;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 技術名詞標記 */
+        .tech-term {
+            color: #075985;
+            font-weight: 700;
+            background-color: #e0f2fe;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
+        }
+
+        /* 比喻說明框 (綠) */
+        .analogy-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 版本差異框 (紫) */
+        .version-box {
+            background-color: #faf5ff;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 常見踩坑框 (橘,避開主色藍) */
+        .pitfall-box {
+            background-color: #fff7ed;
+            border-left: 4px solid #ea580c;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .diagram-container {
+            display: block;
+            background-color: #ffffff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-top: 1rem;
+        }
+
+        .diagram-container svg {
+            display: block;
+            width: 100%;
+            max-width: 520px;
+            margin: 0 auto;
+        }
+
+        /* 示意畫面 (仿管理介面) */
+        .mock-window {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            background: #ffffff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            margin-top: 1rem;
+        }
+        .mock-titlebar {
+            background: #e2e8f0;
+            padding: 0.4rem 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: #475569;
+        }
+        .mock-dots span {
+            display: inline-block;
+            width: 0.6rem;
+            height: 0.6rem;
+            border-radius: 50%;
+            background: #94a3b8;
+            margin-right: 0.2rem;
+        }
+        .mock-url {
+            background: #ffffff;
+            border-radius: 0.25rem;
+            padding: 0.1rem 0.5rem;
+            flex: 1;
+            min-width: 0;
+            font-family: ui-monospace, Consolas, monospace;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .mock-nav {
+            background: #1f2937;
+            color: #cbd5e1;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.25rem 1rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+        }
+        .mock-nav .brand { font-weight: 700; color: #ffffff; margin-right: 0.5rem; }
+        .mock-nav .on { color: #ffffff; border-bottom: 2px solid #0284c7; padding-bottom: 0.1rem; }
+        .mock-crumb {
+            font-size: 0.8rem;
+            color: #475569;
+            padding: 0.5rem 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f8fafc;
+        }
+        .mock-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            padding: 0.5rem 0.75rem 0;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.8rem;
+        }
+        .mock-tabs span {
+            padding: 0.3rem 0.7rem;
+            border: 1px solid #e5e7eb;
+            border-bottom: none;
+            border-radius: 0.3rem 0.3rem 0 0;
+            background: #f1f5f9;
+            color: #475569;
+        }
+        .mock-tabs span.on { background: #ffffff; color: #111827; font-weight: 600; }
+        .mock-body { padding: 0.75rem; font-size: 0.85rem; }
+        .mock-section { font-weight: 700; color: #334155; margin: 0.75rem 0 0.25rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.2rem; }
+        .mock-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.35rem 0.6rem;
+            padding: 0.35rem 0;
+        }
+        .mock-label { width: 12rem; color: #374151; font-weight: 500; }
+        .mock-input {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+            padding: 0.2rem 0.5rem;
+            min-width: 12rem;
+            background: #ffffff;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #111827;
+        }
+        .mock-select::after { content: " ▾"; color: #64748b; }
+        .mock-indent { padding-left: 2rem; }
+        .mock-btn {
+            display: inline-block;
+            border: 1px solid #94a3b8;
+            background: #f8fafc;
+            border-radius: 0.25rem;
+            padding: 0.2rem 0.7rem;
+            font-size: 0.8rem;
+            color: #1f2937;
+        }
+        .mock-btn.primary { background: #1f2937; color: #ffffff; border-color: #1f2937; }
+        .mock-hl { outline: 2px solid #0284c7; outline-offset: 2px; border-radius: 0.25rem; }
+        .mock-list {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+            min-width: 9rem;
+            min-height: 4.2rem;
+            padding: 0.25rem 0.5rem;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.8rem;
+            background: #ffffff;
+        }
+        .mock-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 0.5rem; }
+        .mock-table th { background: #f1f5f9; text-align: left; padding: 0.35rem 0.5rem; border: 1px solid #e2e8f0; color: #334155; }
+        .mock-table td { padding: 0.35rem 0.5rem; border: 1px solid #e2e8f0; }
+        .mock-caption {
+            font-size: 0.75rem;
+            color: #6b7280;
+            padding: 0.5rem 0.75rem;
+            background: #f9fafb;
+            border-top: 1px dashed #e5e7eb;
+        }
+        .step-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.4rem;
+            height: 1.4rem;
+            border-radius: 9999px;
+            background: #0284c7;
+            color: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .step-list li { display: flex; gap: 0.6rem; align-items: flex-start; margin-bottom: 0.6rem; }
+
+        /* 模擬器 */
+        .sim-rule {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.4rem 0.75rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            margin-bottom: 0.5rem;
+            background: #ffffff;
+        }
+        .sim-rule .num { font-weight: 700; color: #075985; width: 3.5rem; }
+        .sim-rule .desc { flex: 1; min-width: 12rem; }
+        .sim-arrow { border: 1px solid #cbd5e1; border-radius: 0.25rem; padding: 0 0.45rem; background: #f8fafc; }
+        .sim-arrow:disabled { opacity: 0.35; cursor: not-allowed; }
+        .trace-line { padding: 0.3rem 0; border-bottom: 1px dashed #e5e7eb; }
+
+        @media (max-width: 640px) {
+            main { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+            .section-card { padding: 1rem; }
+            .diagram-container { padding: 0.25rem; }
+            .mock-label { width: calc(100% - 2.2rem); }
+            .mock-indent .mock-label { width: 100%; }
+            .mock-input { min-width: 0; width: 100%; }
+            .mock-indent { padding-left: 0.75rem; }
+            .mock-body { padding: 0.5rem; }
+        }
+
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover:not(.disabled) {
+            background-color: #f3f4f6;
+        }
+
+        .footer-signature {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+            margin-top: 4rem;
+        }
+        /* Long URLs and code wrap on narrow screens */
+        main { overflow-wrap: break-word; } main code { overflow-wrap: anywhere; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-sky-800 to-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-shield-halved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold">Imperva WAF Gateway 實戰課程</h1>
+                    <p class="text-sky-100 mt-1">單元 2:WAF 技術定位</p>
+                </div>
+            </div>
+        </div>
+    </header>
+    <nav class="bg-white border-b shadow-sm px-4" aria-label="章節導覽"><div class="container mx-auto max-w-5xl flex items-center justify-between text-sm py-2"><a href="Imperva01.html" class="text-sky-700 hover:underline"><i class="fas fa-arrow-left mr-1"></i>上一章</a><a href="Imperva00.html" class="text-sky-700 hover:underline"><i class="fas fa-list mr-1"></i>課程目錄</a><a href="Imperva03.html" class="text-sky-700 hover:underline">下一章<i class="fas fa-arrow-right ml-1"></i></a></div></nav>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <!-- Introduction -->
+        <div class="mb-8">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
+                <h2 class="text-xl font-bold text-blue-800 mb-2 flex items-center">
+                    <i class="fas fa-user-tie mr-2"></i>講師導言
+                </h2>
+                <p class="text-blue-900 leading-relaxed">
+                    上一章我們弄清楚了產品現在叫什麼、跑哪一版。這一章回答每個客戶都會問的問題:「我們已經有防火牆、IPS 了,為什麼還要 WAF?」
+                    答案一句話:防火牆管的是<strong>誰可以連進來</strong>,WAF 管的是<strong>連進來之後,HTTP 請求裡面帶了什麼</strong>。
+                    把這個定位講清楚,後面幾章的部署與調校才有意義。
+                </p>
+            </div>
+        </div>
+
+        <!-- 學習目標 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-gray-100 text-gray-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Goals</span>
+                本章學習目標
+            </h2>
+            <ul class="list-disc pl-6 space-y-1 text-gray-700">
+                <li>說出 WAF 檢查的是 HTTP 請求內部(URL、參數、header、cookie、body),而不是 IP 和 port</li>
+                <li>區分正面與負面安全模型,並對應到 WAF Gateway 的 Signatures 與 Dynamic Profiling</li>
+                <li>說明 Virtual Patching 的三種來源與建議流程</li>
+                <li>把 WAF 與網路防火牆、IPS、NGFW、CDN 的分工講清楚,知道它們是互補而不是替代</li>
+                <li>判斷一個站台該用地端 WAF Gateway 還是 Cloud WAF</li>
+            </ul>
+        </div>
+
+        <!-- 一、WAF 解決什麼問題 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">一、WAF 解決什麼問題</h2>
+
+            <div class="analogy-box">
+                <p class="font-bold text-green-800 mb-1"><i class="fas fa-building mr-1"></i>用大樓警衛來想</p>
+                <ul class="list-disc pl-6 text-green-900 space-y-1">
+                    <li><strong>網路防火牆</strong>像大門口的警衛:只看你的識別證(IP、port),證件對就放行,<strong>不會打開你帶進來的箱子</strong>。</li>
+                    <li><strong>WAF</strong>像櫃台旁的安檢:專門檢查你這次辦事送進來的文件(URL、參數、cookie、body),看內容有沒有不對勁。</li>
+                </ul>
+            </div>
+
+            <p class="text-gray-700 leading-relaxed">
+                網路防火牆依 IP、port 放行,對 Web 伺服器的 443 通常整個打開。攻擊者真正動手的地方在 HTTP 請求內部:URL、參數、header、cookie、body。WAF 的工作就是在這一層把請求拆開來檢查(舊簡報 p.15、p.117)。
+            </p>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 360 372" role="img" aria-labelledby="svg1-title" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans TC, sans-serif">
+                    <title id="svg1-title">防火牆與 WAF 看到的層級不同:防火牆只看 IP、port 與連線狀態;WAF 再拆開 HTTP 請求檢查 URL、參數、Host、Cookie 與 body</title>
+                    <defs>
+                        <marker id="arrow1" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+                        </marker>
+                    </defs>
+                    <rect x="20" y="10" width="320" height="104" rx="10" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2"/>
+                    <text x="180" y="36" text-anchor="middle" font-size="15" font-weight="700" fill="#1f2937">網路防火牆看得到的(L3 / L4)</text>
+                    <text x="40" y="62" font-size="14" fill="#1f2937">來源 IP、目的 IP</text>
+                    <text x="40" y="84" font-size="14" fill="#1f2937">TCP port 443</text>
+                    <text x="40" y="106" font-size="14" fill="#1f2937">連線狀態</text>
+                    <line x1="180" y1="114" x2="180" y2="146" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+                    <text x="192" y="136" font-size="13" fill="#475569">443 放行,內容不看</text>
+
+                    <rect x="20" y="150" width="320" height="212" rx="10" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="180" y="176" text-anchor="middle" font-size="15" font-weight="700" fill="#075985">WAF 再拆開 HTTP 請求(L7)</text>
+                    <text x="40" y="202" font-size="14" fill="#1f2937">URL 路徑:/member/login</text>
+                    <text x="40" y="224" font-size="14" fill="#1f2937">query 參數:lang=zh-TW</text>
+                    <text x="40" y="246" font-size="14" fill="#1f2937">Host:shop.example.com</text>
+                    <text x="40" y="268" font-size="14" fill="#1f2937">Cookie:SESSIONID</text>
+                    <text x="40" y="290" font-size="14" fill="#1f2937">body 參數:account、password</text>
+                    <text x="40" y="324" font-size="13" fill="#475569">對照 Web Profile:這個 URL 學過嗎?</text>
+                    <text x="40" y="344" font-size="13" fill="#475569">參數必填嗎?型別與長度符合嗎?</text>
+                </svg>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">一個請求裡,WAF 會看哪些部位</h3>
+            <pre class="bg-gray-900 text-gray-100 text-sm rounded p-3 overflow-x-auto"><code>POST /member/login?lang=zh-TW HTTP/1.1        ← URL 路徑、query 參數
+Host: shop.example.com                         ← 對應到哪個 Web Application
+Cookie: SESSIONID=8f3a...                      ← session 追蹤、cookie 竄改
+Content-Type: application/x-www-form-urlencoded
+
+account=user01&amp;password=********               ← body 參數(型別、長度、內容)</code></pre>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 mt-3">
+                <li><strong>Host</strong> 決定這個請求屬於 Site Tree 中的哪個 Web Application(第 7 章)。</li>
+                <li><strong>URL 與參數</strong> 對照 Web Profile:這個 URL 學過嗎?參數是必填嗎?型別與長度符合嗎?(舊簡報 p.22、p.25)</li>
+                <li><strong>Cookie 與登入表單</strong> 用來追蹤 session 與使用者身分(舊簡報 p.23)。</li>
+                <li><strong>回應</strong> 也會檢查,例如回應中出現信用卡號(資料外洩)或大量相同錯誤碼(舊簡報 p.60、p.62)。</li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">WAF 要擋哪四類請求</h3>
+            <p class="text-gray-700 mb-2">舊簡報 p.15 把 WAF 要擋的請求分成四類,到今天仍然適用:</p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">類型</th><th class="py-2 px-4 border text-left">舉例</th><th class="py-2 px-4 border text-left">WAF Gateway 的對應機制</th><th class="py-2 px-4 border text-left">章節</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">偏離正常使用</td><td class="py-2 px-4 border">參數長度或型別異常、呼叫從沒出現過的 URL</td><td class="py-2 px-4 border">Dynamic Profiling(Web Profile)</td><td class="py-2 px-4 border">8</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">利用已知或未知漏洞</td><td class="py-2 px-4 border">SQL injection、XSS、路徑走訪</td><td class="py-2 px-4 border">Signatures(ADC 內容)、HTTP Protocol Validation、Emergency Feed</td><td class="py-2 px-4 border">9</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">來自惡意來源</td><td class="py-2 px-4 border">惡意 IP、匿名 proxy、TOR 出口</td><td class="py-2 px-4 border">Threat Intelligence Services(Reputation)</td><td class="py-2 px-4 border">10</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">多階段攻擊</td><td class="py-2 px-4 border">先掃描再注入、帳號撞庫</td><td class="py-2 px-4 border">Correlation、Account Takeover Protection、Bot Protection</td><td class="py-2 px-4 border">9、10</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">與 OWASP Top 10 的關係</h3>
+            <p class="text-gray-700 leading-relaxed">WAF 是降低 OWASP Top 10 風險的常見控制之一,但不是每一類都擋得住。v15.4 起 MX 提供 OWASP Top 10 報表(CA 功能,第 12 章)。下表以風險類型說明 WAF 的能力範圍,不綁定 OWASP 特定年版的編號;實際分類與編號請以 OWASP 官方最新版為準【推論】。</p>
+            <div class="overflow-x-auto mt-3">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">風險類型</th><th class="py-2 px-4 border text-left">WAF 能處理的程度</th><th class="py-2 px-4 border text-left">說明</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">注入(SQL、命令、XSS)</td><td class="py-2 px-4 border">高</td><td class="py-2 px-4 border">簽章比對 + Profile 限制參數型別與長度</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">身分驗證失效(撞庫、暴力破解)</td><td class="py-2 px-4 border">部分</td><td class="py-2 px-4 border">ATO、Bot Protection、Correlation;仍需帳號鎖定與 MFA</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">存取控制缺陷(越權讀取他人資料)</td><td class="py-2 px-4 border">低到部分</td><td class="py-2 px-4 border">一般 WAF 看不出「這個帳號能不能讀這筆資料」;API Security Anywhere 可接收 BOLA 阻擋決策(第 11 章)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">安全設定錯誤(目錄列舉、預設頁)</td><td class="py-2 px-4 border">部分</td><td class="py-2 px-4 border">Profile 擋沒學過的 URL;簽章擋已知掃描行為</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">使用含漏洞的元件</td><td class="py-2 px-4 border">部分</td><td class="py-2 px-4 border">Virtual Patching 爭取修補時間,不取代升級</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">不安全的設計、加密失效</td><td class="py-2 px-4 border">低</td><td class="py-2 px-4 border">要從程式與架構面修正</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 二、正面與負面安全模型 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">二、正面與負面安全模型</h2>
+
+            <div class="analogy-box">
+                <p class="font-bold text-green-800 mb-1"><i class="fas fa-clipboard-list mr-1"></i>黑名單與白名單</p>
+                <p class="text-green-900"><strong>負面模型</strong>像一張「通緝名單」:認得名單上的壞人就攔下,名單上沒有的就放行。<strong>正面模型</strong>像一張「賓客名單」:只放名單上的人進來,不在名單上的一律有問題。</p>
+            </div>
+
+            <div class="overflow-x-auto mt-4">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">項目</th><th class="py-2 px-4 border text-left">負面安全模型(Negative / blacklist)</th><th class="py-2 px-4 border text-left">正面安全模型(Positive / whitelist)</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">判斷方式</td><td class="py-2 px-4 border">比對已知攻擊特徵</td><td class="py-2 px-4 border">只允許「學到的正常行為」,偏離即違規</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">WAF Gateway 中的實作</td><td class="py-2 px-4 border">Signatures、ADC 內容、Emergency Feed、Threat Intelligence</td><td class="py-2 px-4 border">Dynamic Profiling 產生的 Web Profile</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">優點</td><td class="py-2 px-4 border">上線即生效,不需學習期</td><td class="py-2 px-4 border">能擋沒有特徵的新手法(含 0-day)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">缺點</td><td class="py-2 px-4 border">擋不到沒有特徵的新手法</td><td class="py-2 px-4 border">需要學習期;應用改版時容易誤報</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">維護方式</td><td class="py-2 px-4 border">跟著 ADC 更新(約每兩週一次)</td><td class="py-2 px-4 border">自動學習 + 手動調整 Profile</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <p class="text-gray-700 leading-relaxed mt-4">舊簡報把 Web Profile 形容為受保護應用的「地圖」,是一種「允許什麼」的正面政策,和黑名單式的負面政策互補(舊簡報 p.20)。Profile 以 URL 為粒度,從 Learning 進入 Protect,管理者也可手動鎖定為 Protect and Lock(舊簡報 p.29;新版細節見第 8 章)。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">WAF 調校的兩難</h3>
+            <p class="text-gray-700 mb-2">舊簡報 p.21 點出這個兩難,今天仍是維運的核心問題:</p>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li><strong>太嚴</strong>:合法操作被擋,業務單位抱怨,最後要求「把 WAF 關掉」。</li>
+                <li><strong>太鬆</strong>:漏掉 0-day 與變形攻擊。</li>
+            </ul>
+            <p class="text-gray-700 mt-3 mb-1">WAF Gateway 用兩個方法降低這個兩難:</p>
+            <ol class="list-decimal pl-6 text-gray-700 space-y-1">
+                <li><strong>自動學習並追蹤應用變更</strong>:Dynamic Profiling 依實際流量學習,應用改版後自動調整,減少手動維護。</li>
+                <li><strong>Correlation(關聯判斷)</strong>:只阻擋「多個條件同時成立」的確定攻擊,降低誤擋(舊簡報 p.58–60)。現名為 <span class="tech-term">Web Service Correlated Validation</span> 與 <span class="tech-term">Web Correlation Policy</span>(第 9 章)。</li>
+            </ol>
+
+            <div class="highlight-box">
+                <p class="font-bold text-sky-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>建議的上線順序</p>
+                <p class="text-gray-800">先讓<strong>負面模型</strong>(簽章、協定檢查)上線阻擋明確攻擊,同時讓 Profile 學習;學習期滿、誤報調完,再讓 Profile 違規進入阻擋(第 8、15 章)。</p>
+            </div>
+        </div>
+
+        <!-- 三、Virtual Patching -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">三、Virtual Patching(虛擬修補)</h2>
+            <p class="text-gray-700 leading-relaxed">
+                <span class="tech-term">Virtual Patching</span>:應用程式真正修好之前,先在 WAF 上加一條只針對該漏洞的規則,縮短暴露窗口。舊簡報指出季度掃描只能「發現」漏洞、不能縮短暴露時間,要搭配 Virtual Patching 才有意義(舊簡報 p.15、p.121)。
+            </p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-4 mb-2">三種來源</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">來源</th><th class="py-2 px-4 border text-left">做法</th><th class="py-2 px-4 border text-left">適用情境</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">弱點掃描結果</td><td class="py-2 px-4 border">匯入第三方掃描報告 → 建立 Scanner Integration Policy → 執行 Web Scanner Assessment Job</td><td class="py-2 px-4 border">自家網站被掃出的漏洞(第 11 章)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">ADC / Emergency Feed</td><td class="py-2 px-4 border">重大漏洞時,Emergency Feed Services 先推送簽章;相關政策預設停用,需手動啟用</td><td class="py-2 px-4 border">公開 CVE、常見框架或元件漏洞(第 9 章)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">自寫 Custom Policy</td><td class="py-2 px-4 border">用 Web Service Custom 等政策,依 URL、參數、header 等比對條件自寫規則</td><td class="py-2 px-4 border">掃描器不支援、或需要精準限縮範圍時</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">建議流程</h3>
+            <ol class="step-list text-gray-700">
+                <li><span class="step-badge">1</span><span>確認漏洞的位置:哪個 Web Application、URL、HTTP 方法、參數。</span></li>
+                <li><span class="step-badge">2</span><span>建立規則,<strong>先只告警不阻擋</strong>,觀察一段時間確認沒有誤報。</span></li>
+                <li><span class="step-badge">3</span><span>改為阻擋,並把規則名稱、對應漏洞編號記到變更紀錄。</span></li>
+                <li><span class="step-badge">4</span><span>開單給開發單位修補;修好、複掃確認後<strong>移除規則</strong>,避免規則越積越多。</span></li>
+            </ol>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-scale-balanced mr-1"></i>法規面</p>
+                <p class="text-gray-800">舊簡報以 PCI DSS 6.6 說明 WAF 的合規用途(舊簡報 p.15、p.98)。PCI DSS 之後已改版,條文編號不同,引用前請以 PCI SSC 官方正本核對【待實機確認】。Imperva 官方文件把 Client-Side Protection 定位為協助 PCI DSS 6.4.3 與 11.6.1(第 14 章)。</p>
+            </div>
+        </div>
+
+        <!-- 四、比較表 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">四、WAF 與網路防火牆 / IPS / NGFW / CDN 比較</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-3 border text-left">項目</th><th class="py-2 px-3 border text-left">網路防火牆</th><th class="py-2 px-3 border text-left">IPS</th><th class="py-2 px-3 border text-left">NGFW</th><th class="py-2 px-3 border text-left">CDN</th><th class="py-2 px-3 border text-left bg-sky-50">WAF</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-3 border font-semibold">主要層級</td><td class="py-2 px-3 border">L3–L4</td><td class="py-2 px-3 border">L3–L7(封包 / 串流)</td><td class="py-2 px-3 border">L3–L7(應用識別)</td><td class="py-2 px-3 border">L7(HTTP 快取與傳遞)</td><td class="py-2 px-3 border bg-sky-50">L7(HTTP / HTTPS 應用)</td></tr>
+                        <tr><td class="py-2 px-3 border font-semibold">判斷依據</td><td class="py-2 px-3 border">IP、port、連線狀態</td><td class="py-2 px-3 border">已知攻擊簽章、協定異常</td><td class="py-2 px-3 border">應用程式 / 使用者識別 + 簽章</td><td class="py-2 px-3 border">快取規則、路由</td><td class="py-2 px-3 border bg-sky-50">URL、參數、cookie、session、學到的正常行為 + 簽章</td></tr>
+                        <tr><td class="py-2 px-3 border font-semibold">理解單一網站的參數與 session</td><td class="py-2 px-3 border">否</td><td class="py-2 px-3 border">否</td><td class="py-2 px-3 border">有限</td><td class="py-2 px-3 border">否</td><td class="py-2 px-3 border bg-sky-50">是</td></tr>
+                        <tr><td class="py-2 px-3 border font-semibold">正面安全模型(學習正常行為)</td><td class="py-2 px-3 border">否</td><td class="py-2 px-3 border">否</td><td class="py-2 px-3 border">否</td><td class="py-2 px-3 border">否</td><td class="py-2 px-3 border bg-sky-50">是(Dynamic Profiling)</td></tr>
+                        <tr><td class="py-2 px-3 border font-semibold">TLS 處理</td><td class="py-2 px-3 border">不解密</td><td class="py-2 px-3 border">需另行設定解密</td><td class="py-2 px-3 border">多半可做 TLS 解密</td><td class="py-2 px-3 border">在邊緣終結 TLS</td><td class="py-2 px-3 border bg-sky-50">Reverse Proxy / ABR 終結並檢查;被動模式有限制(第 4 章)</td></tr>
+                        <tr><td class="py-2 px-3 border font-semibold">典型位置</td><td class="py-2 px-3 border">網路邊界、區段之間</td><td class="py-2 px-3 border">邊界或內部骨幹</td><td class="py-2 px-3 border">網路邊界</td><td class="py-2 px-3 border">網際網路上(DNS 導流)</td><td class="py-2 px-3 border bg-sky-50">Web 伺服器前(地端)或雲端 PoP</td></tr>
+                        <tr><td class="py-2 px-3 border font-semibold">擅長</td><td class="py-2 px-3 border">縮小攻擊面</td><td class="py-2 px-3 border">擋已知網路攻擊、蠕蟲</td><td class="py-2 px-3 border">應用管控、使用者上網防護</td><td class="py-2 px-3 border">加速、吸收大流量</td><td class="py-2 px-3 border bg-sky-50">應用層攻擊、Virtual Patching、Bot</td></tr>
+                        <tr><td class="py-2 px-3 border font-semibold">不擅長</td><td class="py-2 px-3 border">443 裡面的內容</td><td class="py-2 px-3 border">應用邏輯攻擊、沒有特徵的手法</td><td class="py-2 px-3 border">理解單一網站的「正常」</td><td class="py-2 px-3 border">細部應用防護(需另加 WAF)</td><td class="py-2 px-3 border bg-sky-50">L3/L4 大流量 DDoS(地端)、非 HTTP 協定</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-sm text-gray-600 mt-3">這張表是依舊簡報 p.117–120 的觀念、以今天的產品樣貌重新整理的技術定位,不是特定廠商的規格比較【推論】。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">三個重點</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-2">
+                <li><strong>互補,不是替代</strong>:防火牆擋「不該來的連線」,WAF 擋「連線裡不該有的內容」(舊簡報 p.118–119)。NGFW 能辨識「這是某個 Web 應用的流量」,但不知道「這個網站的 <code>account</code> 參數應該是 20 字以內的英數字」。</li>
+                <li><strong>舊簡報「IPS 看不到 SSL」已不成立</strong>:今天的 IPS / NGFW 多半能設定 TLS 解密。WAF 的差異在於理解應用邏輯與學習正常行為,而不是「能不能看 SSL」【推論】。</li>
+                <li><strong>CDN 與 WAF 常合在一起</strong>:Imperva Cloud WAF 本身就是部署在 CDN PoP 上的安全反向代理加 WAF(第 14 章)。</li>
+            </ul>
+        </div>
+
+        <!-- 五、請求經過哪些防線 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">五、一個請求經過哪些防線</h2>
+            <p class="text-gray-700 leading-relaxed">以範例環境為例,<code>shop.example.com</code> 的請求依序經過下面這些設備。各層的分工不同,缺任何一層,對應的那類風險就沒人管。</p>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 360 500" role="img" aria-labelledby="svg2-title" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans TC, sans-serif">
+                    <title id="svg2-title">shop.example.com 的請求路徑:使用者、選用的 Cloud WAF 或 CDN、邊界防火牆、負載平衡器、WAF Gateway GG-Shop、最後到 web01 與 web02</title>
+                    <defs>
+                        <marker id="arrow2" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+                        </marker>
+                    </defs>
+                    <rect x="40" y="8" width="280" height="44" rx="8" fill="#f1f5f9" stroke="#94a3b8"/>
+                    <text x="180" y="36" text-anchor="middle" font-size="14" fill="#1f2937">使用者(DNS 查詢 shop.example.com)</text>
+                    <line x1="180" y1="52" x2="180" y2="76" stroke="#64748b" stroke-width="2" marker-end="url(#arrow2)"/>
+
+                    <rect x="40" y="80" width="280" height="56" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-dasharray="5 4"/>
+                    <text x="180" y="105" text-anchor="middle" font-size="15" font-weight="700" fill="#1f2937">(選用)Cloud WAF / CDN PoP</text>
+                    <text x="180" y="125" text-anchor="middle" font-size="13" fill="#475569">大流量 DDoS、全球加速、邊緣 WAF</text>
+                    <line x1="180" y1="136" x2="180" y2="160" stroke="#64748b" stroke-width="2" marker-end="url(#arrow2)"/>
+
+                    <rect x="40" y="164" width="280" height="56" rx="8" fill="#f1f5f9" stroke="#94a3b8"/>
+                    <text x="180" y="189" text-anchor="middle" font-size="15" font-weight="700" fill="#1f2937">邊界防火牆 / NGFW</text>
+                    <text x="180" y="209" text-anchor="middle" font-size="13" fill="#475569">只開 203.0.113.20 / .21 的 443</text>
+                    <line x1="180" y1="220" x2="180" y2="244" stroke="#64748b" stroke-width="2" marker-end="url(#arrow2)"/>
+
+                    <rect x="40" y="248" width="280" height="56" rx="8" fill="#f1f5f9" stroke="#94a3b8"/>
+                    <text x="180" y="273" text-anchor="middle" font-size="15" font-weight="700" fill="#1f2937">負載平衡器 VIP 10.0.10.20</text>
+                    <text x="180" y="293" text-anchor="middle" font-size="13" fill="#475569">分流、健康檢查,可能終結 TLS</text>
+                    <line x1="180" y1="304" x2="180" y2="328" stroke="#64748b" stroke-width="2" marker-end="url(#arrow2)"/>
+
+                    <rect x="40" y="332" width="280" height="64" rx="8" fill="#f0f9ff" stroke="#0284c7" stroke-width="3"/>
+                    <text x="180" y="358" text-anchor="middle" font-size="15" font-weight="700" fill="#075985">WAF Gateway(GG-Shop)</text>
+                    <text x="180" y="380" text-anchor="middle" font-size="13" fill="#1f2937">內容檢查、Profile、Virtual Patching</text>
+                    <line x1="180" y1="396" x2="180" y2="420" stroke="#64748b" stroke-width="2" marker-end="url(#arrow2)"/>
+
+                    <rect x="40" y="424" width="280" height="44" rx="8" fill="#f1f5f9" stroke="#94a3b8"/>
+                    <text x="180" y="451" text-anchor="middle" font-size="14" fill="#1f2937">web01 10.0.10.21 / web02 10.0.10.22</text>
+                    <text x="180" y="490" text-anchor="middle" font-size="13" fill="#9a3412">每多一層代理,WAF 看到的來源 IP 就可能變成代理</text>
+                </svg>
+            </div>
+
+            <ul class="list-disc pl-6 text-gray-700 space-y-2 mt-4">
+                <li>負載平衡器與 WAF 誰前誰後有兩種做法,影響 Server Group 要填哪些 IP、WAF 能否處理 TLS 1.3,詳見第 5 章 5.6。</li>
+                <li>前面每多一層代理(CDN、LB),WAF 看到的來源 IP 就可能變成代理的位址。信譽情資、地理封鎖都依來源 IP 判斷,所以要靠 <code>X-Forwarded-For</code> 這類 header 還原真實來源(第 7 章 Forwarded Connections)【推論】。</li>
+            </ul>
+        </div>
+
+        <!-- 六、地端或 Cloud WAF -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">六、地端 WAF Gateway 或 Cloud WAF</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">考量</th><th class="py-2 px-4 border text-left">偏向地端 WAF Gateway</th><th class="py-2 px-4 border text-left">偏向 Cloud WAF</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">保護對象</td><td class="py-2 px-4 border">內部系統(如 <code>erp.corp.example.com</code>)、不經公網 DNS 的站台</td><td class="py-2 px-4 border">對外公開網站</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">TLS 金鑰與資料</td><td class="py-2 px-4 border">必須留在內網</td><td class="py-2 px-4 border">可接受 TLS 在 Imperva PoP 終結</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">部署限制</td><td class="py-2 px-4 border">不能改 DNS / IP,需要透通部署(Bridge、Sniffing、ABR)</td><td class="py-2 px-4 border">可以改 DNS(CNAME / A record)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">大流量 DDoS</td><td class="py-2 px-4 border">另有上游對策(ISP、清洗服務)</td><td class="py-2 px-4 border">需要內建吸收能力</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">調校深度</td><td class="py-2 px-4 border">需要 Dynamic Profiling 細部調校</td><td class="py-2 px-4 border">希望由原廠維護規則、少調校</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">維運人力</td><td class="py-2 px-4 border">有人負責 MX、容量規劃、ADC 更新</td><td class="py-2 px-4 border">不想管硬體與容量</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">使用者分布</td><td class="py-2 px-4 border">集中在單一地區</td><td class="py-2 px-4 border">多地區,需要 CDN 加速</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-sm text-gray-600 mt-3">以上依官方文件歸納【推論】。兩者也能並用:Attack Analytics 可同時分析地端與雲端事件(統一分析,不是統一政策管理);另有 Elastic WAF 把 Cloud WAF 引擎裝進客戶自己的 Kubernetes。詳見第 14 章。</p>
+            <div class="highlight-box">
+                <p class="font-bold text-sky-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>範例環境的套用</p>
+                <p class="text-gray-800"><code>shop.example.com</code>、<code>api.example.com</code> 兩種都可以;<code>erp.corp.example.com</code> 只在內部,<strong>只能用地端 WAF Gateway</strong>。</p>
+            </div>
+        </div>
+
+        <!-- 七、模擬器 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">七、動手玩:這個攻擊誰擋得住?</h2>
+            <p class="text-gray-700 mb-2">選一種攻擊,再勾選你的環境裡有哪些設備,看看每種設備對這類攻擊能做到什麼程度。結果依第四節的比較表歸納,屬於技術定位而非特定廠商的規格比較【推論】。</p>
+
+            <div class="grid md:grid-cols-2 gap-4 mt-4">
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-bug mr-1 text-sky-600"></i>攻擊類型</h3>
+                    <select id="atk-select" class="border rounded px-2 py-1 w-full"></select>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-shield-halved mr-1 text-sky-600"></i>你的環境有哪些設備?</h3>
+                    <label class="block mb-1 text-sm"><input type="checkbox" class="dev-check mr-2" value="fw" checked>網路防火牆</label>
+                    <label class="block mb-1 text-sm"><input type="checkbox" class="dev-check mr-2" value="ips">IPS</label>
+                    <label class="block mb-1 text-sm"><input type="checkbox" class="dev-check mr-2" value="ngfw" checked>NGFW</label>
+                    <label class="block mb-1 text-sm"><input type="checkbox" class="dev-check mr-2" value="cdn">CDN</label>
+                    <label class="block text-sm"><input type="checkbox" class="dev-check mr-2" value="waf">WAF</label>
+                </div>
+            </div>
+
+            <div id="atk-summary" class="border rounded-lg p-4 mt-4"></div>
+            <div id="atk-cards" class="grid sm:grid-cols-2 gap-3 mt-3"></div>
+
+            <h3 class="font-bold text-gray-800 mt-6 mb-2">全部攻擊 × 設備一覽</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border" id="atk-matrix"></table>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">◎ 擅長 / 可處理 · △ 有限或部分 · ✕ 不處理 · — 本章比較表未涵蓋。你勾選的設備欄位會標出來,選中的攻擊列會加底色。</p>
+        </div>
+
+        <!-- 八、踩坑 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">八、常見踩坑</h2>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>把 WAF 當修補的替代品</p>
+                <p class="text-gray-800">Virtual Patching 是爭取時間,規則要有到期日,程式仍要修。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>以為有 NGFW / IPS 就不需要 WAF(或反過來)</p>
+                <p class="text-gray-800">兩者看的層級與判斷方式不同,見第四節比較表。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>一上線就全面阻擋</p>
+                <p class="text-gray-800">Profile 還沒學完就阻擋,誤報一多就被要求關掉(舊簡報 p.21)。先告警、再阻擋。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>只保護對外網站</p>
+                <p class="text-gray-800">內部 ERP、會員 API 一樣是攻擊目標,尤其 API 常被忽略。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>WAF 前面有 CDN / LB 卻沒還原來源 IP</p>
+                <p class="text-gray-800">封鎖、信譽判斷全部打到代理的位址,可能一次擋掉所有使用者。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>拿地端 WAF 扛 L3/L4 大流量 DDoS</p>
+                <p class="text-gray-800">Gateway 有容量上限,超載時依 Overload Policy 處理(第 3 章);大流量要在上游解決。</p>
+            </div>
+        </div>
+
+        <!-- 九、新舊對照 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">九、新舊對照</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-purple-50">
+                        <tr><th class="py-2 px-4 border text-left">舊簡報說法</th><th class="py-2 px-4 border text-left">現況</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border">IDS / IPS 看不到 SSL(p.117)</td><td class="py-2 px-4 border">現今 IPS / NGFW 多半可設定 TLS 解密;差異在是否理解應用邏輯【推論】</td></tr>
+                        <tr><td class="py-2 px-4 border">Bot 流量 31% 惡意、20% 搜尋引擎、49% 真人(p.90)</td><td class="py-2 px-4 border">2014 年數字,不再引用;現行 Bot 防護見第 10 章</td></tr>
+                        <tr><td class="py-2 px-4 border">PCI 6.6 要求 WAF 或程式審查(p.15、p.98)</td><td class="py-2 px-4 border">PCI DSS 已改版,條號不同【待實機確認】;Client-Side Protection 對應 6.4.3、11.6.1</td></tr>
+                        <tr><td class="py-2 px-4 border">對特定 ADC、NGFW、sniffing 型 WAF 廠商的比較(p.97–124)</td><td class="py-2 px-4 border">不入教材,只保留技術定位</td></tr>
+                        <tr><td class="py-2 px-4 border">Virtual Patching 支援的掃描器清單(p.84)</td><td class="py-2 px-4 border">掃描器整合仍在,清單已變;文件仍有 WhiteHat Sentinel 章節</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
+                隨堂測驗
+            </h2>
+            <p class="mb-6 text-gray-600">請點選您認為正確的選項,系統將會顯示解析。</p>
+            <div class="space-y-6" id="quiz-container"></div>
+        </div>
+
+        <nav class="mt-4 border-t pt-2" aria-label="章節導覽"><div class="flex items-center justify-between text-sm py-2"><a href="Imperva01.html" class="text-sky-700 hover:underline"><i class="fas fa-arrow-left mr-1"></i>上一章</a><a href="Imperva00.html" class="text-sky-700 hover:underline"><i class="fas fa-list mr-1"></i>課程目錄</a><a href="Imperva03.html" class="text-sky-700 hover:underline">下一章<i class="fas fa-arrow-right ml-1"></i></a></div></nav>
+    </main>
+
+    <footer class="footer-signature">
+        Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver.2026.11.02.12.07
+    </footer>
+
+
+    <script>
+        // ===== 攻擊類型 × 設備模擬器 =====
+        // 依第 2 章 2.4 比較表歸納(屬【推論】)。lv: 2 擅長/可處理, 1 有限/部分, 0 不處理, -1 比較表未涵蓋
+        const DEVICES = [
+            { id: 'fw', name: '網路防火牆' },
+            { id: 'ips', name: 'IPS' },
+            { id: 'ngfw', name: 'NGFW' },
+            { id: 'cdn', name: 'CDN' },
+            { id: 'waf', name: 'WAF' }
+        ];
+        const ATTACKS = [
+            {
+                id: 'worm', name: '已知網路攻擊、蠕蟲',
+                hint: '這類屬於網路層的已知攻擊,IPS 是主力;WAF 只管 HTTP / HTTPS 應用層。',
+                d: {
+                    fw: [0, '判斷依據只有 IP、port、連線狀態'],
+                    ips: [2, '擅長:擋已知網路攻擊、蠕蟲'],
+                    ngfw: [1, '應用識別 + 簽章,可擋部分'],
+                    cdn: [-1, '比較表未涵蓋'],
+                    waf: [-1, '比較表未涵蓋;WAF 的範圍是 HTTP / HTTPS 應用層']
+                }
+            },
+            {
+                id: 'sqli', name: 'SQL injection、XSS 等已知 Web 攻擊(藏在 443 裡)',
+                hint: '防火牆對 443 通常整個打開,看不到裡面的內容;要靠看得懂 HTTP 內容的設備。',
+                d: {
+                    fw: [0, '不擅長:443 裡面的內容'],
+                    ips: [1, '可用已知攻擊簽章比對,但不理解單一網站的參數與 session'],
+                    ngfw: [1, '簽章為主,理解單一網站的程度有限'],
+                    cdn: [0, '細部應用防護需另加 WAF'],
+                    waf: [2, '簽章比對 + Profile 限制參數型別與長度']
+                }
+            },
+            {
+                id: 'deviate', name: '參數長度或型別異常、呼叫從沒出現過的 URL',
+                hint: '「偏離正常使用」要靠正面安全模型(學習正常行為)才判斷得出來。',
+                d: {
+                    fw: [0, '不理解單一網站的參數'],
+                    ips: [0, '不理解單一網站的參數與 session'],
+                    ngfw: [0, '沒有正面安全模型'],
+                    cdn: [0, '依快取規則與路由,不看參數是否正常'],
+                    waf: [2, 'Dynamic Profiling 產生的 Web Profile']
+                }
+            },
+            {
+                id: 'zeroday', name: '沒有簽章的新手法(含 0-day)',
+                hint: '簽章式防護只認得已知特徵;沒有特徵的手法要靠正面安全模型。',
+                d: {
+                    fw: [0, '不看 443 裡面的內容'],
+                    ips: [0, '不擅長:沒有特徵的手法'],
+                    ngfw: [0, '沒有正面安全模型,以簽章為主'],
+                    cdn: [0, '細部應用防護需另加 WAF'],
+                    waf: [2, '正面安全模型能擋沒有特徵的新手法(含 0-day)']
+                }
+            },
+            {
+                id: 'vpatch', name: '公開漏洞、程式還沒修好(要先爭取時間)',
+                hint: 'Virtual Patching 是爭取時間,規則要有到期日,程式仍要修。',
+                d: {
+                    fw: [0, '不看 443 裡面的內容'],
+                    ips: [-1, '比較表未涵蓋'],
+                    ngfw: [-1, '比較表未涵蓋'],
+                    cdn: [0, '細部應用防護需另加 WAF'],
+                    waf: [2, 'Virtual Patching:Emergency Feed、掃描結果或自寫 Custom Policy']
+                }
+            },
+            {
+                id: 'multi', name: '登入撞庫、先掃描再注入等多階段攻擊',
+                hint: '即使是 WAF 也只能部分處理,仍需帳號鎖定與 MFA。',
+                d: {
+                    fw: [0, '不理解單一網站的 session'],
+                    ips: [0, '不理解單一網站的參數與 session'],
+                    ngfw: [1, '比較表只寫「理解單一網站有限」'],
+                    cdn: [0, '細部應用防護需另加 WAF'],
+                    waf: [1, '部分:ATO、Bot Protection、Correlation;仍需帳號鎖定與 MFA']
+                }
+            },
+            {
+                id: 'ddos', name: 'L3/L4 大流量 DDoS',
+                hint: '地端 WAF 有容量上限,超載時依 Overload Policy 處理;大流量要在上游解決。',
+                d: {
+                    fw: [-1, '比較表未涵蓋'],
+                    ips: [-1, '比較表未涵蓋'],
+                    ngfw: [-1, '比較表未涵蓋'],
+                    cdn: [2, '擅長:加速、吸收大流量'],
+                    waf: [0, '地端 WAF 不擅長 L3/L4 大流量 DDoS']
+                }
+            }
+        ];
+        const LV = {
+            2: { label: '擅長 / 可處理', sym: '◎', cls: 'bg-green-50 border-green-300', txt: 'text-green-700', icon: 'fa-circle-check' },
+            1: { label: '有限 / 部分', sym: '△', cls: 'bg-orange-50 border-orange-300', txt: 'text-orange-700', icon: 'fa-circle-half-stroke' },
+            0: { label: '不處理', sym: '✕', cls: 'bg-red-50 border-red-300', txt: 'text-red-700', icon: 'fa-circle-xmark' },
+            '-1': { label: '本章比較表未涵蓋', sym: '—', cls: 'bg-gray-50 border-gray-300', txt: 'text-gray-600', icon: 'fa-circle-question' }
+        };
+
+        const atkSelect = document.getElementById('atk-select');
+        const atkSummary = document.getElementById('atk-summary');
+        const atkCards = document.getElementById('atk-cards');
+        const atkMatrix = document.getElementById('atk-matrix');
+        const devChecks = Array.from(document.querySelectorAll('.dev-check'));
+
+        ATTACKS.forEach((a, i) => {
+            const o = document.createElement('option');
+            o.value = String(i);
+            o.textContent = a.name;
+            atkSelect.appendChild(o);
+        });
+
+        function selectedDevices() { return devChecks.filter(c => c.checked).map(c => c.value); }
+
+        function renderAttack() {
+            const atk = ATTACKS[Number(atkSelect.value)];
+            const sel = selectedDevices();
+            const nameOf = id => DEVICES.find(d => d.id === id).name;
+
+            atkCards.innerHTML = '';
+            DEVICES.forEach(dev => {
+                const isOn = sel.includes(dev.id);
+                const [lv, note] = atk.d[dev.id];
+                const s = LV[lv];
+                const div = document.createElement('div');
+                div.className = 'border rounded-lg p-3 ' + (isOn ? s.cls : 'bg-white border-gray-200 opacity-50');
+                div.innerHTML = `<p class="font-bold text-gray-800">${dev.name}${isOn ? '' : '<span class="text-xs font-normal text-gray-500">(未勾選)</span>'}</p>
+                    <p class="text-sm font-semibold ${s.txt}"><i class="fas ${s.icon} mr-1"></i>${s.label}</p>
+                    <p class="text-xs text-gray-700 mt-1">${note}</p>`;
+                atkCards.appendChild(div);
+            });
+
+            if (sel.length === 0) {
+                atkSummary.className = 'border rounded-lg p-4 mt-4 bg-gray-50 border-gray-300';
+                atkSummary.innerHTML = '<h3 class="font-bold text-gray-700"><i class="fas fa-hand-pointer mr-1"></i>請至少勾選一種設備</h3>';
+                renderMatrix(atk, sel);
+                return;
+            }
+            const strong = sel.filter(id => atk.d[id][0] === 2);
+            const partial = sel.filter(id => atk.d[id][0] === 1);
+            let cls, title, body;
+            if (strong.length) {
+                cls = 'bg-green-50 border-green-300';
+                title = `<span class="text-green-700"><i class="fas fa-circle-check mr-1"></i>你的環境有設備能處理:${strong.map(nameOf).join('、')}</span>`;
+                body = atk.hint;
+            } else if (partial.length) {
+                cls = 'bg-orange-50 border-orange-300';
+                title = `<span class="text-orange-700"><i class="fas fa-triangle-exclamation mr-1"></i>只有有限 / 部分能力:${partial.map(nameOf).join('、')}</span>`;
+                const wafNote = atk.d.waf[0] === 2 && !sel.includes('waf') ? '完整的防護要靠 WAF。' : '';
+                body = atk.hint + ' ' + wafNote;
+            } else {
+                cls = 'bg-red-50 border-red-300';
+                title = '<span class="text-red-700"><i class="fas fa-circle-xmark mr-1"></i>目前勾選的設備都沒有處理這類攻擊的能力(或比較表未涵蓋)</span>';
+                const best = DEVICES.filter(d => atk.d[d.id][0] === 2).map(d => d.name);
+                body = atk.hint + (best.length ? ` 比較表中擅長這類攻擊的是:${best.join('、')}。` : '');
+            }
+            atkSummary.className = 'border rounded-lg p-4 mt-4 ' + cls;
+            atkSummary.innerHTML = `<h3 class="font-bold mb-1">${title}</h3><p class="text-sm text-gray-800">${body}</p>
+                <p class="text-xs text-gray-600 mt-2">記住:防火牆擋「不該來的連線」,WAF 擋「連線裡不該有的內容」,兩者互補、不是替代。</p>`;
+            renderMatrix(atk, sel);
+        }
+
+        function renderMatrix(curAtk, sel) {
+            let h = '<thead class="bg-gray-100"><tr><th class="py-2 px-3 border text-left">攻擊類型</th>' +
+                DEVICES.map(d => `<th class="py-2 px-3 border text-center ${sel.includes(d.id) ? 'bg-sky-100 text-sky-900' : ''}">${d.name}</th>`).join('') + '</tr></thead><tbody>';
+            ATTACKS.forEach(a => {
+                h += `<tr class="${a.id === curAtk.id ? 'bg-sky-50 font-semibold' : ''}"><td class="py-2 px-3 border">${a.name}</td>` +
+                    DEVICES.map(d => {
+                        const lv = a.d[d.id][0];
+                        return `<td class="py-2 px-3 border text-center ${LV[lv].txt}" title="${LV[lv].label}">${LV[lv].sym}</td>`;
+                    }).join('') + '</tr>';
+            });
+            atkMatrix.innerHTML = h + '</tbody>';
+        }
+
+        atkSelect.addEventListener('change', renderAttack);
+        devChecks.forEach(c => c.addEventListener('change', renderAttack));
+        atkSelect.value = '1';
+        renderAttack();
+
+        // ===== 隨堂測驗 =====
+        const quizData = [
+            {
+                question: "Q1. 客戶說「我們已經有防火牆,443 也只開給 Web 伺服器,為什麼還要 WAF?」下列回答哪個最貼切?",
+                options: ["A. 防火牆只會擋外部 IP,WAF 才會擋內部 IP", "B. 防火牆依 IP、port、連線狀態放行,看不到 443 裡面的 URL、參數、cookie;WAF 專門檢查這些 HTTP 內容", "C. WAF 比較貴,所以比較安全", "D. 防火牆無法處理 HTTPS,WAF 可以"],
+                correct: 1,
+                desc: "正解:B。網路防火牆是 L3–L4,判斷依據是 IP、port、連線狀態;攻擊真正動手的地方在 HTTP 請求內部。防火牆擋「不該來的連線」,WAF 擋「連線裡不該有的內容」。"
+            },
+            {
+                question: "Q2. 哪一種安全模型能擋住沒有簽章的新手法(含 0-day),代價是什麼?",
+                options: ["A. 負面模型,代價是需要學習期", "B. 負面模型,代價是上線後才開始生效", "C. 正面模型(Dynamic Profiling),代價是需要學習期,應用改版時容易誤報", "D. 兩種模型都擋不住 0-day"],
+                correct: 2,
+                desc: "正解:C。正面模型只允許學到的正常行為,偏離即違規,所以能擋沒有特徵的新手法;缺點是需要學習期,應用改版時容易誤報。負面模型(Signatures)上線即生效,但擋不到沒有特徵的新手法。"
+            },
+            {
+                question: "Q3. 新站台要上線,最合理的順序是?",
+                options: ["A. 立刻讓所有政策進入阻擋,再慢慢調", "B. 先讓負面模型(簽章、協定檢查)阻擋明確攻擊並讓 Profile 學習,學習期滿、誤報調完,再讓 Profile 違規進入阻擋", "C. 只用 Profile,不要簽章", "D. 先關閉 WAF,等有攻擊再開"],
+                correct: 1,
+                desc: "正解:B。Profile 還沒學完就阻擋,誤報一多就會被要求「把 WAF 關掉」。先告警、再阻擋。"
+            },
+            {
+                question: "Q4. 公開 CVE 影響了貴站使用的元件,開發團隊要一個月後才能修好。下列哪個做法符合 Virtual Patching 的建議流程?",
+                options: ["A. 加一條針對該漏洞的規則,先告警觀察確認沒有誤報,再改阻擋;開單修補,修好複掃後移除規則", "B. 加規則後永久保留,程式就不用修了", "C. 直接把整個網站下線一個月", "D. 等官方 patch,什麼都不做"],
+                correct: 0,
+                desc: "正解:A。Virtual Patching 是爭取時間,不是修補的替代品。建議流程:確認漏洞位置 → 先告警不阻擋 → 改為阻擋並記錄漏洞編號 → 開單修補,修好、複掃確認後移除規則。"
+            },
+            {
+                question: "Q5. WAF 前面有 CDN 與負載平衡器,但沒有用 X-Forwarded-For 之類的 header 還原真實來源 IP。最可能出現什麼問題?",
+                options: ["A. 沒有任何影響", "B. WAF 看到的來源 IP 變成代理的位址,封鎖與信譽判斷都打到代理,可能一次擋掉所有使用者", "C. 網站會變得更快", "D. 簽章全部失效"],
+                correct: 1,
+                desc: "正解:B。信譽情資、地理封鎖都依來源 IP 判斷。前面每多一層代理,WAF 看到的來源 IP 就可能變成代理的位址,所以要還原真實來源(第 7 章 Forwarded Connections)【推論】。"
+            }
+        ];
+
+
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionBox = document.createElement('div');
+            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
+
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border mb-2 text-gray-700" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            questionBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
+                <div class="space-y-2 mb-4">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
+                    <p class="font-bold result-title"></p>
+                    <p class="text-sm text-gray-600 mt-1">${item.desc}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionBox);
+        });
+
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            if (element.parentElement.dataset.answered) return;
+            element.parentElement.dataset.answered = "true";
+
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+                opt.classList.add('disabled');
+            });
+
+            if (optIndex === data.correct) {
+                element.classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了!";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                element.classList.add('bg-red-100', 'border-red-500');
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了!";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+    </script>
+</body>
+</html>

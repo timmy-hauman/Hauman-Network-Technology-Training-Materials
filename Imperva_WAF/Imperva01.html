@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imperva WAF Gateway 實戰課程 - 產品沿革與現況</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        /* 卡片主體樣式 (Imperva Blue) */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #0284c7;
+        }
+
+        /* 重點提示框 (藍) */
+        .highlight-box {
+            background-color: #f0f9ff;
+            border-left: 4px solid #0284c7;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 技術名詞標記 */
+        .tech-term {
+            color: #075985;
+            font-weight: 700;
+            background-color: #e0f2fe;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
+        }
+
+        /* 比喻說明框 (綠) */
+        .analogy-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 版本差異框 (紫) */
+        .version-box {
+            background-color: #faf5ff;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 常見踩坑框 (橘,避開主色藍) */
+        .pitfall-box {
+            background-color: #fff7ed;
+            border-left: 4px solid #ea580c;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .diagram-container {
+            display: block;
+            background-color: #ffffff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-top: 1rem;
+        }
+
+        .diagram-container svg {
+            display: block;
+            width: 100%;
+            max-width: 520px;
+            margin: 0 auto;
+        }
+
+        /* 示意畫面 (仿管理介面) */
+        .mock-window {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            background: #ffffff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            margin-top: 1rem;
+        }
+        .mock-titlebar {
+            background: #e2e8f0;
+            padding: 0.4rem 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: #475569;
+        }
+        .mock-dots span {
+            display: inline-block;
+            width: 0.6rem;
+            height: 0.6rem;
+            border-radius: 50%;
+            background: #94a3b8;
+            margin-right: 0.2rem;
+        }
+        .mock-url {
+            background: #ffffff;
+            border-radius: 0.25rem;
+            padding: 0.1rem 0.5rem;
+            flex: 1;
+            min-width: 0;
+            font-family: ui-monospace, Consolas, monospace;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .mock-nav {
+            background: #1f2937;
+            color: #cbd5e1;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.25rem 1rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+        }
+        .mock-nav .brand { font-weight: 700; color: #ffffff; margin-right: 0.5rem; }
+        .mock-nav .on { color: #ffffff; border-bottom: 2px solid #0284c7; padding-bottom: 0.1rem; }
+        .mock-crumb {
+            font-size: 0.8rem;
+            color: #475569;
+            padding: 0.5rem 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f8fafc;
+        }
+        .mock-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            padding: 0.5rem 0.75rem 0;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.8rem;
+        }
+        .mock-tabs span {
+            padding: 0.3rem 0.7rem;
+            border: 1px solid #e5e7eb;
+            border-bottom: none;
+            border-radius: 0.3rem 0.3rem 0 0;
+            background: #f1f5f9;
+            color: #475569;
+        }
+        .mock-tabs span.on { background: #ffffff; color: #111827; font-weight: 600; }
+        .mock-body { padding: 0.75rem; font-size: 0.85rem; }
+        .mock-section { font-weight: 700; color: #334155; margin: 0.75rem 0 0.25rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.2rem; }
+        .mock-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.35rem 0.6rem;
+            padding: 0.35rem 0;
+        }
+        .mock-label { width: 12rem; color: #374151; font-weight: 500; }
+        .mock-input {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+            padding: 0.2rem 0.5rem;
+            min-width: 12rem;
+            background: #ffffff;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #111827;
+        }
+        .mock-select::after { content: " ▾"; color: #64748b; }
+        .mock-indent { padding-left: 2rem; }
+        .mock-btn {
+            display: inline-block;
+            border: 1px solid #94a3b8;
+            background: #f8fafc;
+            border-radius: 0.25rem;
+            padding: 0.2rem 0.7rem;
+            font-size: 0.8rem;
+            color: #1f2937;
+        }
+        .mock-btn.primary { background: #1f2937; color: #ffffff; border-color: #1f2937; }
+        .mock-hl { outline: 2px solid #0284c7; outline-offset: 2px; border-radius: 0.25rem; }
+        .mock-list {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+            min-width: 9rem;
+            min-height: 4.2rem;
+            padding: 0.25rem 0.5rem;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.8rem;
+            background: #ffffff;
+        }
+        .mock-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 0.5rem; }
+        .mock-table th { background: #f1f5f9; text-align: left; padding: 0.35rem 0.5rem; border: 1px solid #e2e8f0; color: #334155; }
+        .mock-table td { padding: 0.35rem 0.5rem; border: 1px solid #e2e8f0; }
+        .mock-caption {
+            font-size: 0.75rem;
+            color: #6b7280;
+            padding: 0.5rem 0.75rem;
+            background: #f9fafb;
+            border-top: 1px dashed #e5e7eb;
+        }
+        .step-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.4rem;
+            height: 1.4rem;
+            border-radius: 9999px;
+            background: #0284c7;
+            color: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .step-list li { display: flex; gap: 0.6rem; align-items: flex-start; margin-bottom: 0.6rem; }
+
+        /* 模擬器 */
+        .sim-rule {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.4rem 0.75rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            margin-bottom: 0.5rem;
+            background: #ffffff;
+        }
+        .sim-rule .num { font-weight: 700; color: #075985; width: 3.5rem; }
+        .sim-rule .desc { flex: 1; min-width: 12rem; }
+        .sim-arrow { border: 1px solid #cbd5e1; border-radius: 0.25rem; padding: 0 0.45rem; background: #f8fafc; }
+        .sim-arrow:disabled { opacity: 0.35; cursor: not-allowed; }
+        .trace-line { padding: 0.3rem 0; border-bottom: 1px dashed #e5e7eb; }
+
+        @media (max-width: 640px) {
+            main { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+            .section-card { padding: 1rem; }
+            .diagram-container { padding: 0.25rem; }
+            .mock-label { width: calc(100% - 2.2rem); }
+            .mock-indent .mock-label { width: 100%; }
+            .mock-input { min-width: 0; width: 100%; }
+            .mock-indent { padding-left: 0.75rem; }
+            .mock-body { padding: 0.5rem; }
+        }
+
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover:not(.disabled) {
+            background-color: #f3f4f6;
+        }
+
+        .footer-signature {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+            margin-top: 4rem;
+        }
+        /* Long URLs and code wrap on narrow screens */
+        main { overflow-wrap: break-word; } main code { overflow-wrap: anywhere; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-sky-800 to-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-shield-halved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold">Imperva WAF Gateway 實戰課程</h1>
+                    <p class="text-sky-100 mt-1">單元 1:產品沿革與現況</p>
+                </div>
+            </div>
+        </div>
+    </header>
+    <nav class="bg-white border-b shadow-sm px-4" aria-label="章節導覽"><div class="container mx-auto max-w-5xl flex items-center justify-between text-sm py-2"><span class="text-gray-300"><i class="fas fa-arrow-left mr-1"></i>上一章</span><a href="Imperva00.html" class="text-sky-700 hover:underline"><i class="fas fa-list mr-1"></i>課程目錄</a><a href="Imperva02.html" class="text-sky-700 hover:underline">下一章<i class="fas fa-arrow-right ml-1"></i></a></div></nav>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <!-- Introduction -->
+        <div class="mb-8">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
+                <h2 class="text-xl font-bold text-blue-800 mb-2 flex items-center">
+                    <i class="fas fa-user-tie mr-2"></i>講師導言
+                </h2>
+                <p class="text-blue-900 leading-relaxed">
+                    歡迎來到 Imperva WAF Gateway 實戰課程。你手邊的設備或文件,很可能還叫 <strong>SecureSphere</strong>;現場跑的是哪一版、還有多久支援、該不該升 v16.0,都是動手設定之前就要先弄清楚的事。
+                    這一章先帶你把「產品現在叫什麼、現場是哪一代、還能撐多久」看清楚,後面 14 章才不會拿錯版本的文件在操作。
+                </p>
+                <p class="text-blue-900 leading-relaxed mt-2">整套課程共 15 章,每一章一頁,範例都用同一組環境(<code>shop.example.com</code>),走向如下:</p>
+                <div class="grid sm:grid-cols-2 gap-3 mt-3 text-sm">
+                    <div class="bg-white border border-blue-200 rounded p-3">
+                        <p class="font-bold text-blue-800 mb-1">認識產品(第 1–3 章)</p>
+                        <p class="text-gray-700">1 產品沿革與現況 · 2 WAF 技術定位 · 3 架構與元件</p>
+                    </div>
+                    <div class="bg-white border border-blue-200 rounded p-3">
+                        <p class="font-bold text-blue-800 mb-1">部署與安裝(第 4–7 章)</p>
+                        <p class="text-gray-700">4 部署模式 · 5 部署規劃:平台、選型與 HA · 6 安裝與初始化 · 7 Site Tree 與 Web Service 設定</p>
+                    </div>
+                    <div class="bg-white border border-blue-200 rounded p-3">
+                        <p class="font-bold text-blue-800 mb-1">防護與調校(第 8–11 章)</p>
+                        <p class="text-gray-700">8 Dynamic Profiling · 9 安全政策與處置 · 10 威脅情資與反自動化 · 11 進階情境</p>
+                    </div>
+                    <div class="bg-white border border-blue-200 rounded p-3">
+                        <p class="font-bold text-blue-800 mb-1">維運與整合(第 12–15 章)</p>
+                        <p class="text-gray-700">12 監控、稽核與整合 · 13 CLI 與日常維運 · 14 Imperva Cloud WAF · 15 綜合實作:shop.example.com 上線</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 學習目標 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-gray-100 text-gray-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Goals</span>
+                本章學習目標
+            </h2>
+            <ul class="list-disc pl-6 space-y-1 text-gray-700">
+                <li>說出 SecureSphere 與 Imperva WAF Gateway 的關係,以及 v14.4 這個命名分界</li>
+                <li>對照元件的舊名與現名(WAF Gateway、MX、SOM、Threat Intelligence Services)</li>
+                <li>判斷現場版本是否還在支援期內,知道該往哪個版本升級</li>
+                <li>解釋本課程為什麼以 v15.5 LTS 為基準,以及 v16.0 CA 目前不宜當主力</li>
+                <li>知道舊簡報裡的資料庫、檔案、SharePoint 產品現在去了哪裡</li>
+            </ul>
+        </div>
+
+        <!-- 一、怎麼讀 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">一、這套課程怎麼讀</h2>
+            <p class="text-gray-700 leading-relaxed">
+                本課程的觀念保留了 2014 年 SecureSphere 9.0 WAF 技術訓練簡報裡<strong>到今天仍然成立</strong>的部分(Web Profile、Site Tree 層級、Correlation、WAF 放在負載平衡器前或後的考量等);版本、型號、埠號、GUI 路徑一律改用 Imperva / Thales 官方現行文件重寫。
+                UI 名稱與功能名保留英文原文,選單路徑用 <code>&gt;</code> 分隔,例如 <code>Main &gt; Setup &gt; Gateways</code>。
+            </p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">標示約定</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">標記</th><th class="py-2 px-4 border text-left">意思</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">【15.5】</td><td class="py-2 px-4 border">只適用 v15.5 LTS</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">【16.0】</td><td class="py-2 px-4 border">只適用 v16.0 CA。沒有標示的敘述,兩版都成立,或以 15.5 為準</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">【待實機確認】</td><td class="py-2 px-4 border">官方文件互相矛盾、查不到,或 GUI 路徑 / 欄位名稱沒有官方來源佐證。上課示範、拍截圖前,先在實機確認</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">【推論】</td><td class="py-2 px-4 border">由官方資料推得,但原文沒有直接寫出</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-sm text-gray-500 mt-2">引用舊簡報會寫成「舊簡報 p.29」,頁碼是原始 164 張投影片的編號。產品 GUI、CLI 與官方文件內仍大量沿用「SecureSphere」舊名;本課程敘述用現名,引用畫面文字時照原文。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">全課程共用的範例環境</h3>
+            <p class="text-gray-700 mb-2">位址一律採文件專用範圍(RFC 5737 的 <code>203.0.113.0/24</code>、RFC 1918 私有網段、RFC 2606 的 <code>example.com</code>)。</p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">項目</th><th class="py-2 px-4 border text-left">值</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">對外電商網站</td><td class="py-2 px-4 border"><code>shop.example.com</code> → 對外 VIP <code>203.0.113.20</code>(HTTPS 443)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">會員 API</td><td class="py-2 px-4 border"><code>api.example.com</code> → <code>203.0.113.21</code></td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">負載平衡器(LB)內側 VIP</td><td class="py-2 px-4 border"><code>10.0.10.20</code></td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Web 伺服器</td><td class="py-2 px-4 border"><code>web01</code> <code>10.0.10.21</code>、<code>web02</code> <code>10.0.10.22</code>(HTTP 80 / HTTPS 443)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">API 伺服器</td><td class="py-2 px-4 border"><code>10.0.10.31</code>(HTTPS 443)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">內部 ERP</td><td class="py-2 px-4 border"><code>erp.corp.example.com</code> <code>10.0.10.40</code></td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">管理網段</td><td class="py-2 px-4 border"><code>10.0.30.0/24</code></td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">WAF Management Server(MX)</td><td class="py-2 px-4 border"><code>mx01</code> <code>10.0.30.10</code>,GUI <code>https://10.0.30.10:8083</code></td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">WAF Gateway</td><td class="py-2 px-4 border"><code>gw01</code> 管理介面 <code>10.0.30.11</code>、<code>gw02</code> <code>10.0.30.12</code>(同一 Gateway Group <code>GG-Shop</code>)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Syslog / Splunk</td><td class="py-2 px-4 border"><code>10.0.30.50</code>(UDP/TCP 514)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">管理者電腦</td><td class="py-2 px-4 border"><code>10.0.30.100</code></td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Site Tree 範例</td><td class="py-2 px-4 border">Site <code>HQ</code> &gt; Server Group <code>SG-Shop</code> &gt; Web Service <code>HTTPS-Shop</code> &gt; Web Application <code>shop</code>、<code>member</code></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-sm text-gray-600 mt-3">
+                情境:電商網站 <code>shop.example.com</code> 與會員 API <code>api.example.com</code> 對外提供 HTTPS,前面有負載平衡器;兩台 WAF Gateway 組成 <code>GG-Shop</code>,由 <code>mx01</code> 集中管理;告警送到 <code>10.0.30.50</code> 的 Splunk。內部 ERP 只給公司內部使用。各章依主題取用其中一部分,第 15 章把全部串起來。
+            </p>
+        </div>
+
+        <!-- 二、從 SecureSphere 到 WAF Gateway -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">二、從 SecureSphere 到 WAF Gateway</h2>
+
+            <div class="analogy-box">
+                <p class="font-bold text-green-800 mb-1"><i class="fas fa-building mr-1"></i>用「公司改名、換老闆」來想</p>
+                <p class="text-green-900">舊簡報的 SecureSphere 9.0 是一套「資料安全平台」:同一台 MX 管理 Web(WAF)、資料庫(DAM / DBF)、檔案(FAM / FFW)與 SharePoint 的 Gateway。這十二年間,公司改過名、換過母公司,各部門(產品)也分家各自發展,但<strong>辦公室門口還掛著舊招牌</strong>:GUI、CLI 和官方文件裡仍處處是「SecureSphere」。</p>
+            </div>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 360 480" role="img" aria-labelledby="svg1-title" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans TC, sans-serif">
+                    <title id="svg1-title">從 SecureSphere 到 WAF Gateway 的演進時間軸:2014 年 9.0、v14.1、v14.4、v15.0、Thales 併購、7G 硬體、v15.5 與 v16.0</title>
+                    <line x1="40" y1="20" x2="40" y2="450" stroke="#94a3b8" stroke-width="3"/>
+
+                    <circle cx="40" cy="26" r="8" fill="#ffffff" stroke="#64748b" stroke-width="3"/>
+                    <text x="62" y="22" font-size="14" font-weight="700" fill="#1f2937">2014(9.0)</text>
+                    <text x="62" y="42" font-size="13" fill="#475569">WAF、DAM、FAM 同一平台</text>
+
+                    <circle cx="40" cy="82" r="8" fill="#ffffff" stroke="#64748b" stroke-width="3"/>
+                    <text x="62" y="78" font-size="14" font-weight="700" fill="#1f2937">v14.1</text>
+                    <text x="62" y="98" font-size="13" fill="#475569">KRP 移除,改為 NGRP</text>
+
+                    <circle cx="40" cy="138" r="8" fill="#0284c7" stroke="#075985" stroke-width="3"/>
+                    <text x="62" y="134" font-size="14" font-weight="700" fill="#075985">v14.4(命名分界)</text>
+                    <text x="62" y="154" font-size="13" fill="#475569">EOL 表改稱 WAF Gateway</text>
+                    <text x="62" y="171" font-size="13" fill="#475569">WAF 與 DAM 分開發行</text>
+
+                    <circle cx="40" cy="214" r="8" fill="#ffffff" stroke="#64748b" stroke-width="3"/>
+                    <text x="62" y="210" font-size="14" font-weight="700" fill="#1f2937">v15.0</text>
+                    <text x="62" y="230" font-size="13" fill="#475569">CentOS 7.9、新增系統事件記錄</text>
+
+                    <circle cx="40" cy="270" r="8" fill="#ffffff" stroke="#64748b" stroke-width="3"/>
+                    <text x="62" y="266" font-size="14" font-weight="700" fill="#1f2937">2023-12-04</text>
+                    <text x="62" y="286" font-size="13" fill="#475569">Thales 完成併購 Imperva</text>
+
+                    <circle cx="40" cy="326" r="8" fill="#ffffff" stroke="#64748b" stroke-width="3"/>
+                    <text x="62" y="322" font-size="14" font-weight="700" fill="#1f2937">2024-02</text>
+                    <text x="62" y="342" font-size="13" fill="#475569">第 7 代(7G)硬體推出</text>
+
+                    <circle cx="40" cy="382" r="8" fill="#0284c7" stroke="#075985" stroke-width="3"/>
+                    <text x="62" y="378" font-size="14" font-weight="700" fill="#075985">約 2026-02(推論)</text>
+                    <text x="62" y="398" font-size="13" fill="#475569">v15.5 發布,15.5.0.10 起為 LTS</text>
+
+                    <circle cx="40" cy="438" r="8" fill="#ea580c" stroke="#9a3412" stroke-width="3"/>
+                    <text x="62" y="434" font-size="14" font-weight="700" fill="#9a3412">2026-08-20</text>
+                    <text x="62" y="454" font-size="13" fill="#475569">v16.0 僅 CA,改用 Oracle Linux 9.5</text>
+                </svg>
+            </div>
+
+            <div class="overflow-x-auto mt-4">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">時間 / 版本</th><th class="py-2 px-4 border text-left">事件</th><th class="py-2 px-4 border text-left">對維運的影響</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">2014(9.0)</td><td class="py-2 px-4 border">舊簡報年代;同一平台管 WAF、DAM、FAM;支援 7.5、8.0、8.5、9.0(舊簡報 p.48)</td><td class="py-2 px-4 border">—</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">v14.1</td><td class="py-2 px-4 border">Kernel Reverse Proxy(KRP)移除,改由 user-space 的 Next Generation Reverse Proxy(NGRP)取代;不再支援 Onebox(MX 與 Gateway 裝在同一台實體機)</td><td class="py-2 px-4 border">舊 KRP 設定要改寫、容量要重估(第 4 章)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">v14.2</td><td class="py-2 px-4 border">Universal User Tracking(UUT)移除</td><td class="py-2 px-4 border">改用 Web Application User Tracking(第 11 章)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">v14.3 以前</td><td class="py-2 px-4 border">官方 EOL 表歸在「SecureSphere (Up to V14.3)」</td><td class="py-2 px-4 border">—</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">v14.4 起</td><td class="py-2 px-4 border">EOL 表改稱「WAF Gateway」;WAF 與 DAM 拆成兩套完全獨立的版本;Hyper-V 不再支援;SSL cipher、ECC、TLS 協定設定移到 Global Objects 的 TLS Settings</td><td class="py-2 px-4 border">一台 MX 不能同時管 WAF 與 DAM Gateway</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">v15.0</td><td class="py-2 px-4 border">作業系統改為 CentOS 7.9;新增系統事件記錄(誰改了什麼)</td><td class="py-2 px-4 border">—</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">2023-12-04</td><td class="py-2 px-4 border">Thales 完成併購 Imperva(2023 年 7 月宣布),2024 年 1 月開始整合</td><td class="py-2 px-4 border">文件站、社群、支援入口陸續搬到 Thales 網域</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">2024-02</td><td class="py-2 px-4 border">第 7 代(7G)硬體推出</td><td class="py-2 px-4 border">新購硬體為 7G(第 5 章)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">約 2026-02【推論】</td><td class="py-2 px-4 border">v15.5 發布;v15.5.0.10 起指定為 LTS</td><td class="py-2 px-4 border">本課程基準</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">2026-08-20</td><td class="py-2 px-4 border">v16.0(Patch 10)發布,僅 Controlled Availability;改用 Oracle Linux 9.5</td><td class="py-2 px-4 border">功能受限,見第五節</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>日期的查證限制</p>
+                <ul class="list-disc pl-6 text-gray-800 space-y-1">
+                    <li>官方查不到正式的「改名公告」日期,也查不到 v14.4 的發布日期;本課程以 EOL 表的分界(v14.3 / v14.4)為準。</li>
+                    <li>v15.5 的確切 GA 日期官方未明載。「自發布日起至少 3 年,估計到 2029 年 2 月」反推約為 2026-02,官方「Getting Started with WAF Gateway v15.5」頁建立於 2026-02-16 也可佐證【推論】。</li>
+                    <li>v16.0 的 GUI 與文件內文仍大量使用「SecureSphere」字樣,例如 impcfg 選單的 <code>Manage SecureSphere Gateway</code>。看到舊名不代表你讀的文件過時。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 三、母公司、支援入口、元件現名 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">三、母公司、支援入口與元件現名</h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">品牌與支援入口</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>Imperva 現為 Thales 集團旗下公司,官方 datasheet 標示「imperva — a Thales company」。產品名維持 Imperva:地端是 <span class="tech-term">Imperva WAF Gateway</span>,雲端是 <span class="tech-term">Imperva Cloud WAF</span>(前身 Incapsula,第 14 章)。</li>
+                <li>官方文件站 docs.imperva.com 已轉址到 <strong>docs-cybersec.thalesgroup.com</strong>。文件依版本分 bundle,網址會帶版本,例如 <code>.../bundle/v15.5-waf-administration-guide/...</code>;查資料時先確認 bundle 版本與現場一致。</li>
+                <li>社群改到 community-cybersec.thalesgroup.com;開案改走 <strong>Thales Support Portal</strong>。</li>
+                <li><strong>2026-02-15 起不再直接以 email 寄送產品通知</strong>。維運單位要改成定期到支援入口查看公告與 patch 訊息【推論】。</li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">元件現名對照</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">舊簡報名稱</th><th class="py-2 px-4 border text-left">現名</th><th class="py-2 px-4 border text-left">角色</th><th class="py-2 px-4 border text-left">【16.0】</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border">SecureSphere Gateway</td><td class="py-2 px-4 border font-semibold">WAF Gateway</td><td class="py-2 px-4 border">檢查、阻擋 HTTP / HTTPS 流量</td><td class="py-2 px-4 border">支援(只有 NGRP、ABR 模式)</td></tr>
+                        <tr><td class="py-2 px-4 border">MX Management Server(舊簡報 p.39)</td><td class="py-2 px-4 border font-semibold">WAF Management Server(MX)</td><td class="py-2 px-4 border">集中管理 Gateway、政策、Web Profile、告警與報表</td><td class="py-2 px-4 border">支援(不支援 MX-HA)</td></tr>
+                        <tr><td class="py-2 px-4 border">SOM</td><td class="py-2 px-4 border font-semibold">WAF Management Server Manager(SOM)</td><td class="py-2 px-4 border">管理多台 MX</td><td class="py-2 px-4 border">不支援</td></tr>
+                        <tr><td class="py-2 px-4 border">ThreatRadar(舊簡報 p.78–81)</td><td class="py-2 px-4 border font-semibold">Threat Intelligence Services</td><td class="py-2 px-4 border">信譽情資、Bot Protection、Emergency Feed(部分頁面仍叫 ThreatRadar)</td><td class="py-2 px-4 border">見第 10 章</td></tr>
+                        <tr><td class="py-2 px-4 border">ADC(Application Defense Center)</td><td class="py-2 px-4 border font-semibold">名稱不變</td><td class="py-2 px-4 border">原廠研究團隊與簽章 / 政策內容更新</td><td class="py-2 px-4 border">—</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-sm text-gray-600 mt-3">v15.5 的 SOM 文件叫「WAF Management Server Manager User Guide」,目錄裡還有一節「Backward Compatibility with SOM」,可見文件把 SOM 當舊稱、Management Server Manager 當現名。本課程兩個名稱並用,簡寫一律寫 SOM。</p>
+        </div>
+
+        <!-- 四、版本與支援期限 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">四、版本與支援期限(EOS)</h2>
+            <p class="text-gray-700 leading-relaxed">官方 EOL 政策頁把 WAF Gateway、MX、SOM 放在同一列,三者的支援期限相同。下表「狀態」以查證日 <strong>2026-11-02</strong> 計算。</p>
+
+            <div class="overflow-x-auto mt-3">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">版本</th><th class="py-2 px-4 border text-left">類型</th><th class="py-2 px-4 border text-left">End of Support</th><th class="py-2 px-4 border text-left">狀態(2026-11-02)</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">v16.0</td><td class="py-2 px-4 border">CA</td><td class="py-2 px-4 border">未列入 EOL 表</td><td class="py-2 px-4 border">僅 Controlled Availability,需開 support ticket 申請下載</td></tr>
+                        <tr class="bg-sky-50"><td class="py-2 px-4 border font-semibold">15.5-LTS</td><td class="py-2 px-4 border">LTS</td><td class="py-2 px-4 border">TBD(release notes 估至少到 2029-02)</td><td class="py-2 px-4 border">支援中,最新為 Patch 21</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">V15.4</td><td class="py-2 px-4 border">minor</td><td class="py-2 px-4 border">2027-09-10</td><td class="py-2 px-4 border">支援中</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">V15.3</td><td class="py-2 px-4 border">minor</td><td class="py-2 px-4 border">2026-11-09</td><td class="py-2 px-4 border text-orange-700 font-semibold">一週後到期</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">V15.2</td><td class="py-2 px-4 border">minor</td><td class="py-2 px-4 border">2026-05-31</td><td class="py-2 px-4 border">已到期</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">V15.1</td><td class="py-2 px-4 border">minor</td><td class="py-2 px-4 border">2026-03-02</td><td class="py-2 px-4 border">已到期</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">V15.0</td><td class="py-2 px-4 border">minor</td><td class="py-2 px-4 border">2025-08-31</td><td class="py-2 px-4 border">已到期</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">V14.7-LTS</td><td class="py-2 px-4 border">LTS</td><td class="py-2 px-4 border">2027-02-28</td><td class="py-2 px-4 border">支援中,仍在出 patch(Patch 220,2026-09-28)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">V14.6 / 14.5 / 14.4</td><td class="py-2 px-4 border">minor</td><td class="py-2 px-4 border">2024-04-30 / 2024-02-05 / 2023-06-30</td><td class="py-2 px-4 border">已到期</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">SecureSphere v13.x</td><td class="py-2 px-4 border">—</td><td class="py-2 px-4 border">EOL 2023-09-30;v13.6 LTS 延長到 2024-03-31</td><td class="py-2 px-4 border">已到期</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">支援規則</h3>
+            <ol class="list-decimal pl-6 text-gray-700 space-y-2">
+                <li><strong>LTS</strong> 至少支援 2 年才進入 EOL 階段(EOL 頁原文);但 v15.5 release notes 寫「自發布日起至少 3 年」。兩處說法不同,規劃預算與升級時程時以 EOL 表公告的日期為準;15.5 目前是 TBD,先以 2029-02 當參考值。</li>
+                <li><strong>LTS patch</strong> 依 EOL 頁原則只含 bug 與安全修正、不含新功能;但 v15.5 Patch 21 的 release notes 列出新增 Web Custom Policy 比對條件(回應 header 值、request body 參數數量上限)。兩者不一致,套用 LTS patch 前仍要逐條讀 release notes【待實機確認】。</li>
+                <li><strong>minor 版</strong>(如 15.4)自發布起至少支援 1 年。</li>
+                <li>v15.5 指定為 LTS 後,v14.7 LTS 至少再支援 1 年(對應 EOL 表的 2027-02-28)。</li>
+            </ol>
+
+            <div class="highlight-box">
+                <p class="font-bold text-sky-800 mb-1"><i class="fas fa-magnifying-glass mr-1"></i>現場怎麼看版本?</p>
+                <p class="text-gray-800">impcfg 首頁會顯示安裝的元件與狀態(舊簡報 p.153 的畫面即是),MX GUI 也可查看版本資訊;新版確切的顯示位置【待實機確認】。</p>
+            </div>
+        </div>
+
+        <!-- 五、為什麼 15.5 / 16.0 / OS -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">五、為什麼以 v15.5 LTS 為基準?v16.0 又卡在哪?</h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">選 v15.5 LTS 的五個理由</h3>
+            <ol class="list-decimal pl-6 text-gray-700 space-y-1">
+                <li><strong>GA、全平台</strong>:6G / 7G 硬體、VMware ESXi、KVM,以及 AWS、Azure、GCP、AliCloud、OCI 都有支援(第 5 章)。</li>
+                <li><strong>支援期最長</strong>:LTS,估計至少到 2029-02。</li>
+                <li><strong>部署模式齊全</strong>:STP Bridge、IMPVHA Bridge、Sniffing、Reverse Proxy、TRP、ABR 都能用(第 4 章)。</li>
+                <li><strong>是升 16.0 的必經之路</strong>:升 v16.0 必須從任一 v15.5 LTS patch 起跳,v14.0 以下直接升級會被阻擋(第 13 章)。</li>
+                <li><strong>舊 LTS 即將到期</strong>:v14.7 LTS 到 2027-02-28,現場若還在 14.7,現在就該排 15.5 升級。</li>
+            </ol>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 360 340" role="img" aria-labelledby="svg2-title" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans TC, sans-serif">
+                    <title id="svg2-title">升級路線:v14.7 LTS 在 2027-02-28 到期,先升到 v15.5 LTS 這個基準,再視條件評估 v16.0 CA</title>
+                    <defs>
+                        <marker id="arrow1" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+                        </marker>
+                    </defs>
+                    <rect x="30" y="10" width="300" height="70" rx="10" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2"/>
+                    <text x="180" y="38" text-anchor="middle" font-size="16" font-weight="700" fill="#1f2937">V14.7 LTS</text>
+                    <text x="180" y="62" text-anchor="middle" font-size="14" fill="#475569">End of Support 2027-02-28</text>
+                    <line x1="180" y1="80" x2="180" y2="118" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+                    <text x="192" y="104" font-size="13" fill="#475569">現在就排升級</text>
+
+                    <rect x="30" y="122" width="300" height="86" rx="10" fill="#f0f9ff" stroke="#0284c7" stroke-width="3"/>
+                    <text x="180" y="150" text-anchor="middle" font-size="16" font-weight="700" fill="#075985">v15.5 LTS(本課程基準)</text>
+                    <text x="180" y="174" text-anchor="middle" font-size="14" fill="#1f2937">GA、全平台、模式齊全</text>
+                    <text x="180" y="196" text-anchor="middle" font-size="13" fill="#475569">估計至少到 2029-02</text>
+                    <line x1="180" y1="208" x2="180" y2="246" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+                    <text x="192" y="232" font-size="13" fill="#475569">任一 15.5 patch 起跳</text>
+
+                    <rect x="30" y="250" width="300" height="80" rx="10" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
+                    <text x="180" y="278" text-anchor="middle" font-size="16" font-weight="700" fill="#9a3412">v16.0 CA(視條件評估)</text>
+                    <text x="180" y="302" text-anchor="middle" font-size="14" fill="#1f2937">只支援 NGRP、ABR</text>
+                    <text x="180" y="322" text-anchor="middle" font-size="13" fill="#475569">需開 support ticket 申請</text>
+                </svg>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">v16.0 Controlled Availability 的限制</h3>
+            <p class="text-gray-700 leading-relaxed">v16.0 採分階段釋出:先放出 NGRP 與 ABR,Bridge 與 Sniffing 排在最後。目前的 CA 版只適合「全部都是 Reverse Proxy / ABR、沒有 MX-HA 與 SOM 需求、跑在 VM 或硬體上」的環境,而且要開 ticket 申請。</p>
+            <div class="overflow-x-auto mt-3">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">項目</th><th class="py-2 px-4 border text-left">【16.0】CA 狀態</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">Gateway 模式</td><td class="py-2 px-4 border">只支援 <strong>NGRP(Reverse Proxy)、ABR</strong>;<strong>不支援</strong> STP / IMPVHA Bridge、Sniffing</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Gateway HA</td><td class="py-2 px-4 border">用 <strong>VRRP</strong>;不支援 IMPVHA</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">管理端</td><td class="py-2 px-4 border"><strong>不支援 MX-HA、SOM</strong></td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">平台</td><td class="py-2 px-4 border">支援 VM 與硬體(release notes 列 6G 仍支援);<strong>不支援任何雲端 VM</strong>(AWS / GCP / Azure / AliCloud)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">舊硬體</td><td class="py-2 px-4 border">M100、M150 不能升 v16.0;NG6 硬體不支援 USB 全新安裝</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">HSM</td><td class="py-2 px-4 border">不支援清單列出 Luna / nCipher HSM,同一頁卻又列支援 Luna HSM integration;互相矛盾,保守視為不支援【待實機確認】</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">整合</td><td class="py-2 px-4 border">Advanced Bot Protection 整合列為支援</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">作業系統</td><td class="py-2 px-4 border"><strong>Oracle Linux 9.5</strong>(首次離開 CentOS)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">升級流程</td><td class="py-2 px-4 border">新的 client-server 程序:Gateway 先升、MX 後升,需另外部署「s7 server」;必須從 v15.5 LTS 任一 patch 起跳</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">AWS</td><td class="py-2 px-4 border">v16 起淘汰 AWS 的 HTTP Health Check Monitoring</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-code-branch mr-1"></i>路線圖的更正</p>
+                <p class="text-gray-800">v15.0 / 15.2 的 release notes 曾公告 v16 要淘汰 Bridge 與 TRP;<strong>v15.3 Patch 20 / v15.4 更正為 Bridge 保留、TRP 由 ABR 取代</strong>。舊部落格若寫「Bridge 要被淘汰」,是更正前的說法。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">作業系統演變</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">版本</th><th class="py-2 px-4 border text-left">作業系統</th><th class="py-2 px-4 border text-left">備註</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">9.0(舊簡報)</td><td class="py-2 px-4 border">簡報同時出現「受保護的 Linux 2.6」(p.47)與「基於 CentOS」(p.152)</td><td class="py-2 px-4 border">—</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">v14.x</td><td class="py-2 px-4 border">CentOS 7.5</td><td class="py-2 px-4 border">—</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">v15.0–15.5</td><td class="py-2 px-4 border">CentOS 7.9</td><td class="py-2 px-4 border">【15.5】FIPS 模式使用 OpenSSL 3.5.1 + FIPS 驗證模組(NIST Cert #4985);產品本身不是 FIPS 認證</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">v16.0</td><td class="py-2 px-4 border">Oracle Linux 9.5</td><td class="py-2 px-4 border">新升級流程(見上表)</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-sm text-gray-600 mt-3">舊簡報「把 appliance 當黑盒子、不裝額外 Linux 套件、不改 kernel」的原則(舊簡報 p.152)今天依然成立,而且更嚴格:新版登入後進的是 Imperva 專屬受限 shell <strong>impcli</strong>,還可以設成 Sealed 模式完全禁止切到 root(第 13 章)。</p>
+        </div>
+
+        <!-- 六、舊資料安全產品去向 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">六、舊資料安全產品的去向</h2>
+            <p class="text-gray-700 leading-relaxed">本課程只談 WAF。舊簡報裡的資料庫、檔案、SharePoint 產品,現況整理如下,不再展開。</p>
+            <div class="overflow-x-auto mt-3">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">舊簡報產品</th><th class="py-2 px-4 border text-left">現況</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">資料庫安全 DAM / DBF(舊簡報 p.16)</td><td class="py-2 px-4 border"><strong>DAM</strong>(Database Activity Monitoring),歸在 <strong>Data Security Fabric(DSF)</strong> 產品線;最新 DAM v15.4(2026-10-08),LTS 為 DAM 14.19</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">(新)資料風險分析</td><td class="py-2 px-4 border"><strong>DRA</strong>(Data Risk Analytics),同屬 DSF</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">(新)統合平台</td><td class="py-2 px-4 border"><strong>DSF Hub</strong>(前身 Sonar);最新 v15.4(2026-08-12),LTS 為 4.19</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">檔案安全 FAM / FFW(舊簡報 p.17)</td><td class="py-2 px-4 border">FAM 改透過 DSF Hub 操作,多數情境使用 <strong>Thales CipherTrust Manager</strong> 的 agent;SecureSphere 舊 FAM 支援已於 2022-01-31 結束</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">SharePoint 安全(舊簡報 p.18)</td><td class="py-2 px-4 border">SecureSphere SharePoint Protection 支援已於 2022-01-31 結束</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="highlight-box">
+                <p class="text-gray-800"><i class="fas fa-lightbulb mr-1 text-sky-700"></i>v14.4 起 WAF 與 DAM 分開發行,<strong>一台 MX 不能同時管 WAF 與 DAM Gateway,SOM 也不能混管</strong>。同一家客戶若兩者都有,就是兩套 MX。</p>
+            </div>
+        </div>
+
+        <!-- 七、模擬器 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">七、動手玩:版本與支援期限模擬器</h2>
+            <p class="text-gray-700 mb-2">選一個現場版本,看它在指定日期的支援狀態與建議的升級方向。預設日期是查證日 2026-11-02,你也可以把日期往後撥,看哪些版本會陸續到期。日期與版本資料照第四節的 EOL 表。</p>
+
+            <div class="grid md:grid-cols-2 gap-4 mt-4">
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-code-branch mr-1 text-sky-600"></i>現場版本</h3>
+                    <select id="ver-select" class="border rounded px-2 py-1 w-full mb-3"></select>
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-calendar-day mr-1 text-sky-600"></i>假設今天是</h3>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <input type="date" id="today-input" value="2026-11-02" class="border rounded px-2 py-1">
+                        <button type="button" id="today-reset" class="border rounded px-3 py-1 bg-white hover:bg-sky-50 text-sm">回到查證日 2026-11-02</button>
+                    </div>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h3 class="font-bold text-gray-800 mb-1"><i class="fas fa-server mr-1 text-sky-600"></i>現場環境(選 v16.0 時才會用到)</h3>
+                    <p class="text-xs text-gray-500 mb-2">勾選你的環境有用到的項目,看看能不能直接升 v16.0 CA。</p>
+                    <label class="block mb-1 text-sm"><input type="checkbox" id="env-bridge" class="mr-2">用到 STP / IMPVHA Bridge 或 Sniffing 模式</label>
+                    <label class="block mb-1 text-sm"><input type="checkbox" id="env-mxha" class="mr-2">用到 MX-HA</label>
+                    <label class="block mb-1 text-sm"><input type="checkbox" id="env-som" class="mr-2">用到 SOM</label>
+                    <label class="block mb-1 text-sm"><input type="checkbox" id="env-cloud" class="mr-2">跑在雲端 VM(AWS / GCP / Azure / AliCloud)</label>
+                    <label class="block mb-1 text-sm"><input type="checkbox" id="env-oldhw" class="mr-2">用 M100 / M150 舊硬體</label>
+                    <label class="block text-sm"><input type="checkbox" id="env-hsm" class="mr-2">用 Luna / nCipher HSM</label>
+                </div>
+            </div>
+
+            <div id="ver-result" class="border rounded-lg p-4 mt-4"></div>
+            <p class="text-xs text-gray-500 mt-2">只用到查證日整理出的 EOL 表資料;之後官方若更新日期,以官方 EOL 政策頁為準。跨多個版本的升級步驟見第 13 章。</p>
+        </div>
+
+        <!-- 八、踩坑 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">八、常見踩坑</h2>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>以為 SecureSphere 和 WAF Gateway 是兩套產品</p>
+                <p class="text-gray-800">同一系列,v14.4 是命名分界,GUI 與 CLI 仍處處是舊名。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>拿 v13 / v14 時代的文件或部落格操作 v15.5</p>
+                <p class="text-gray-800">KRP、UUT、Hyper-V、Onebox 都已移除。以文件站對應版本的 bundle(網址帶 <code>v15.5-waf-</code>)為準。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>看到 v16.0 就想升</p>
+                <p class="text-gray-800">CA 版要申請、不支援 Bridge / Sniffing / MX-HA / SOM / 雲端 VM。Bridge 或 Sniffing 部署升上去等於整個模式要重做。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>忽略 EOS</p>
+                <p class="text-gray-800">V15.3 在 2026-11-09 到期;V14.7 LTS 在 2027-02-28 到期。停在 minor 版的現場最容易被忽略。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>想在同一台 MX 加管 DAM Gateway</p>
+                <p class="text-gray-800">v14.4 起不可行,要另建 DAM 的 MX。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>還在等原廠 email 通知</p>
+                <p class="text-gray-800">2026-02-15 起不再寄送,要主動到 Thales Support Portal 查看。</p>
+            </div>
+        </div>
+
+        <!-- 九、新舊對照 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">九、新舊對照</h2>
+            <p class="text-gray-700 mb-2">只列和 9.0 舊簡報有差異的地方。</p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-purple-50">
+                        <tr><th class="py-2 px-4 border text-left">舊簡報說法</th><th class="py-2 px-4 border text-left">現況</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border">SecureSphere Data Security Suite,一台 MX 管 Web / DB / File(p.8、p.14)</td><td class="py-2 px-4 border">v14.4 起 WAF 與 DAM 分開發行,MX 與 SOM 都不能混管</td></tr>
+                        <tr><td class="py-2 px-4 border">支援軟體 7.5、8.0、8.5、9.0(p.48)</td><td class="py-2 px-4 border">支援中:14.7 LTS、15.4、15.5 LTS(15.3 到 2026-11-09);16.0 為 CA</td></tr>
+                        <tr><td class="py-2 px-4 border">OS 為 Linux 2.6 / CentOS(p.47、p.152)</td><td class="py-2 px-4 border">v15 為 CentOS 7.9;v16.0 為 Oracle Linux 9.5</td></tr>
+                        <tr><td class="py-2 px-4 border">Reverse Proxy 有多種子模式(p.38)</td><td class="py-2 px-4 border">KRP 已於 v14.1 移除,由 NGRP 取代</td></tr>
+                        <tr><td class="py-2 px-4 border">ThreatRadar(p.78–79)</td><td class="py-2 px-4 border">文件改稱 Threat Intelligence Services</td></tr>
+                        <tr><td class="py-2 px-4 border">FAM、SharePoint 為 SecureSphere 產品(p.17–18)</td><td class="py-2 px-4 border">2022-01-31 結束支援;FAM 改由 DSF Hub + CipherTrust Manager</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
+                隨堂測驗
+            </h2>
+            <p class="mb-6 text-gray-600">請點選您認為正確的選項,系統將會顯示解析。</p>
+            <div class="space-y-6" id="quiz-container"></div>
+        </div>
+
+        <nav class="mt-4 border-t pt-2" aria-label="章節導覽"><div class="flex items-center justify-between text-sm py-2"><span class="text-gray-300"><i class="fas fa-arrow-left mr-1"></i>上一章</span><a href="Imperva00.html" class="text-sky-700 hover:underline"><i class="fas fa-list mr-1"></i>課程目錄</a><a href="Imperva02.html" class="text-sky-700 hover:underline">下一章<i class="fas fa-arrow-right ml-1"></i></a></div></nav>
+    </main>
+
+    <footer class="footer-signature">
+        Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver.2026.11.02.12.07
+    </footer>
+
+
+    <script>
+        // ===== 版本與支援期限模擬器 =====
+        // 資料照第 1 章 1.4 EOL 表(查證日 2026-11-02)。eos 為 null 代表 EOL 表未給日期。
+        const VERSIONS = [
+            { id: 'v160', name: 'v16.0(CA)', kind: 'ca', eos: null },
+            { id: 'v155', name: '15.5-LTS', kind: 'lts155', eos: null },
+            { id: 'v154', name: 'V15.4(minor)', kind: 'minor', eos: '2027-09-10' },
+            { id: 'v153', name: 'V15.3(minor)', kind: 'minor', eos: '2026-11-09' },
+            { id: 'v152', name: 'V15.2(minor)', kind: 'minor', eos: '2026-05-31' },
+            { id: 'v151', name: 'V15.1(minor)', kind: 'minor', eos: '2026-03-02' },
+            { id: 'v150', name: 'V15.0(minor)', kind: 'minor', eos: '2025-08-31' },
+            { id: 'v147', name: 'V14.7-LTS', kind: 'lts147', eos: '2027-02-28' },
+            { id: 'v146', name: 'V14.6(minor)', kind: 'minor', eos: '2024-04-30' },
+            { id: 'v145', name: 'V14.5(minor)', kind: 'minor', eos: '2024-02-05' },
+            { id: 'v144', name: 'V14.4(minor)', kind: 'minor', eos: '2023-06-30' },
+            { id: 'v136', name: 'SecureSphere v13.6 LTS', kind: 'old', eos: '2024-03-31' },
+            { id: 'v13', name: 'SecureSphere v13.x', kind: 'old', eos: '2023-09-30' }
+        ];
+        const LTS155_REF = '2029-02-28'; // release notes 估至少到 2029-02,只當參考值
+
+        const verSelect = document.getElementById('ver-select');
+        const todayInput = document.getElementById('today-input');
+        const verResult = document.getElementById('ver-result');
+        const envIds = ['env-bridge', 'env-mxha', 'env-som', 'env-cloud', 'env-oldhw', 'env-hsm'];
+
+        VERSIONS.forEach(v => {
+            const o = document.createElement('option');
+            o.value = v.id;
+            o.textContent = v.name + (v.eos ? '  — EOS ' + v.eos : '');
+            verSelect.appendChild(o);
+        });
+        verSelect.value = 'v153';
+
+        function toDay(s) {
+            const p = s.split('-').map(Number);
+            return Date.UTC(p[0], p[1] - 1, p[2]) / 86400000;
+        }
+
+        function card(cls, icon, title, lines) {
+            verResult.className = 'border rounded-lg p-4 mt-4 ' + cls.box;
+            verResult.innerHTML = `<h3 class="font-bold ${cls.title} mb-2"><i class="fas ${icon} mr-1"></i>${title}</h3>` +
+                lines.map(l => `<p class="text-sm text-gray-800 mb-1">${l}</p>`).join('');
+        }
+        const GREEN = { box: 'bg-green-50 border-green-300', title: 'text-green-700' };
+        const AMBER = { box: 'bg-orange-50 border-orange-300', title: 'text-orange-700' };
+        const RED = { box: 'bg-red-50 border-red-300', title: 'text-red-700' };
+        const BLUE = { box: 'bg-sky-50 border-sky-300', title: 'text-sky-800' };
+
+        function renderVersion() {
+            const v = VERSIONS.find(x => x.id === verSelect.value);
+            const todayStr = todayInput.value || '2026-11-02';
+            const today = toDay(todayStr);
+
+            if (v.kind === 'ca') {
+                const hits = [];
+                if (document.getElementById('env-bridge').checked) hits.push('STP / IMPVHA Bridge 與 Sniffing 在 16.0 CA 都不支援,整個部署模式要重做');
+                if (document.getElementById('env-mxha').checked) hits.push('16.0 CA 不支援 MX-HA');
+                if (document.getElementById('env-som').checked) hits.push('16.0 CA 不支援 SOM');
+                if (document.getElementById('env-cloud').checked) hits.push('16.0 CA 不支援任何雲端 VM(AWS / GCP / Azure / AliCloud)');
+                if (document.getElementById('env-oldhw').checked) hits.push('M100、M150 不能升 v16.0');
+                if (document.getElementById('env-hsm').checked) hits.push('Luna / nCipher HSM:官方頁面互相矛盾,保守視為不支援【待實機確認】');
+                const base = ['v16.0 未列入 EOL 表,目前僅 Controlled Availability(CA),需開 support ticket 申請下載。',
+                    '只適合「全部都是 Reverse Proxy(NGRP)/ ABR、沒有 MX-HA 與 SOM 需求、跑在 VM 或硬體上」的環境。',
+                    '另外兩項限制:NG6 硬體不支援 USB 全新安裝;使用 Luna / nCipher HSM 的環境保守視為不支援【待實機確認】。'];
+                if (hits.length) {
+                    card(RED, 'fa-circle-xmark', '目前不宜升 v16.0', base.concat(['你的環境有衝突:<ul class="list-disc pl-6 mt-1">' + hits.map(h => `<li>${h}</li>`).join('') + '</ul>',
+                        '建議:先停在 15.5 LTS,等 v16.0 功能補齊再評估。']));
+                } else {
+                    card(AMBER, 'fa-triangle-exclamation', 'Controlled Availability:條件上可評估,但不宜當主力', base.concat([
+                        '升級必須從任一 v15.5 LTS patch 起跳,所以路徑是 …→ 15.5 LTS → 16.0;v14.0 以下直接升級會被阻擋。',
+                        '另外要準備新的 client-server 升級程序(Gateway 先升、MX 後升,需另外部署 s7 server)。']));
+                }
+                return;
+            }
+
+            if (v.kind === 'lts155') {
+                const lines = ['End of Support 官方表列為 TBD;release notes 估至少到 2029-02(參考值)。',
+                    '目前最新為 Patch 21(查證日)。GA、全平台、部署模式齊全,是本課程的基準版本。',
+                    '建議:現場若要選版本或排升級目標,就選這個。套用 LTS patch 前仍要逐條讀 release notes【待實機確認】。'];
+                if (today > toDay(LTS155_REF)) {
+                    lines.push('<strong>你撥到的日期已超過參考值 2029-02,請以官方 EOL 政策頁的最新公告為準。</strong>');
+                    card(AMBER, 'fa-triangle-exclamation', '請以官方 EOL 公告為準', lines);
+                } else {
+                    card(GREEN, 'fa-circle-check', '支援中(基準版本)', lines);
+                }
+                return;
+            }
+
+            const left = toDay(v.eos) - today;
+            const extra = [];
+            if (v.kind === 'lts147') {
+                extra.push('v15.5 指定為 LTS 後,v14.7 LTS 至少再支援 1 年(對應 EOL 表的 2027-02-28)。仍在出 patch(Patch 220,2026-09-28)。');
+                extra.push('建議升級路徑:14.7 LTS → 15.5 LTS(之後才有機會評估 16.0)。<strong>現在就該排 15.5 升級。</strong>');
+            } else if (v.kind === 'minor') {
+                extra.push('minor 版自發布起至少支援 1 年,停在 minor 版的現場最容易被忽略。');
+                extra.push('建議升級目標:15.5 LTS。');
+            } else {
+                extra.push('v13 時代的做法在 15.5 不能照搬:KRP、UUT、Hyper-V、Onebox 都已移除(見第二節)。');
+                extra.push('建議升級目標:15.5 LTS。跨多版的升級步驟見第 13 章。');
+            }
+            if (left < 0) {
+                card(RED, 'fa-circle-xmark', `已到期(End of Support ${v.eos},已過 ${-left} 天)`,
+                    ['官方支援已終止。'].concat(extra, ['盡快規劃升級。']));
+            } else if (left <= 30) {
+                const when = left === 0 ? '今天到期' : `剩 ${left} 天` + (left === 7 ? '(一週後到期)' : '');
+                card(AMBER, 'fa-triangle-exclamation', `即將到期(End of Support ${v.eos},${when})`, extra);
+            } else {
+                card(GREEN, 'fa-circle-check', `支援中(End of Support ${v.eos},還有 ${left} 天)`, extra);
+            }
+        }
+
+        [verSelect, todayInput].concat(envIds.map(id => document.getElementById(id))).forEach(el => {
+            el.addEventListener('change', renderVersion);
+            el.addEventListener('input', renderVersion);
+        });
+        document.getElementById('today-reset').addEventListener('click', () => {
+            todayInput.value = '2026-11-02';
+            renderVersion();
+        });
+        renderVersion();
+
+        // ===== 隨堂測驗 =====
+        const quizData = [
+            {
+                question: "Q1. 現場設備的 GUI 與 CLI 到處都是「SecureSphere」字樣,下列哪個說明最正確?",
+                options: ["A. 這是另一套已停產的舊產品,應該換成 WAF Gateway", "B. SecureSphere 與 WAF Gateway 是同一系列,v14.4 是命名分界,GUI 與 CLI 仍沿用舊名", "C. 代表這台設備一定跑 v9.0", "D. 代表文件過時,不能參考"],
+                correct: 1,
+                desc: "正解:B。官方 EOL 表在 v14.4 起改稱「WAF Gateway」,但 GUI、CLI 與官方文件內仍大量沿用 SecureSphere 舊名;v16.0 的 impcfg 選單也還有 Manage SecureSphere Gateway。看到舊名不代表文件過時。"
+            },
+            {
+                question: "Q2. 以查證日 2026-11-02 來看,現場跑 V15.3 的環境,下列哪個判斷正確?",
+                options: ["A. 已經到期很久了", "B. 2026-11-09 到期,剩一週,應盡快排升級到 15.5 LTS", "C. 它是 LTS,不用擔心", "D. 到 2029-02 才到期"],
+                correct: 1,
+                desc: "正解:B。V15.3 是 minor 版,End of Support 為 2026-11-09,查證日當天只剩一週。minor 版最容易被忽略,建議升級目標是 15.5 LTS。"
+            },
+            {
+                question: "Q3. 下列哪一項「不是」本課程以 v15.5 LTS 為基準的理由?",
+                options: ["A. GA 且全平台(硬體、VMware、KVM、各大公有雲)都支援", "B. 支援期最長,估計至少到 2029-02", "C. 升 v16.0 必須從任一 v15.5 LTS patch 起跳", "D. v16.0 CA 已經支援所有部署模式與雲端 VM,所以不需要 15.5"],
+                correct: 3,
+                desc: "正解:D。v16.0 CA 只支援 NGRP、ABR,不支援 Bridge、Sniffing、MX-HA、SOM 與雲端 VM,功能受限。其他三項都是選 15.5 LTS 的理由。"
+            },
+            {
+                question: "Q4. 現場用 STP Bridge 部署,而且有 SOM 統管多台 MX。能不能直接升 v16.0 CA?",
+                options: ["A. 可以,升級流程相同", "B. 可以,但要先關掉 SOM", "C. 不宜:v16.0 CA 不支援 Bridge 與 SOM,模式要重做", "D. 只要換成 7G 硬體就可以"],
+                correct: 2,
+                desc: "正解:C。v16.0 CA 的 Gateway 只支援 NGRP(Reverse Proxy)與 ABR,不支援 STP / IMPVHA Bridge、Sniffing;管理端也不支援 MX-HA 與 SOM。Bridge 部署升上去等於整個模式要重做。"
+            },
+            {
+                question: "Q5. 客戶希望在已有的 WAF 用 MX 上,順便管理他們的 DAM(資料庫)Gateway。該怎麼回答?",
+                options: ["A. 可以,同一台 MX 能混管 WAF 與 DAM", "B. 不行,v14.4 起 WAF 與 DAM 分開發行,要另建 DAM 的 MX", "C. 只要升級到 v16.0 就可以", "D. 改用 SOM 就能混管"],
+                correct: 1,
+                desc: "正解:B。v14.4 起 WAF 與 DAM 拆成兩套完全獨立的版本,MX 與 SOM 都不能混管。同一家客戶若兩者都有,就是兩套 MX。"
+            }
+        ];
+
+
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionBox = document.createElement('div');
+            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
+
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border mb-2 text-gray-700" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            questionBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
+                <div class="space-y-2 mb-4">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
+                    <p class="font-bold result-title"></p>
+                    <p class="text-sm text-gray-600 mt-1">${item.desc}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionBox);
+        });
+
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            if (element.parentElement.dataset.answered) return;
+            element.parentElement.dataset.answered = "true";
+
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+                opt.classList.add('disabled');
+            });
+
+            if (optIndex === data.correct) {
+                element.classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了!";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                element.classList.add('bg-red-100', 'border-red-500');
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了!";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+    </script>
+</body>
+</html>

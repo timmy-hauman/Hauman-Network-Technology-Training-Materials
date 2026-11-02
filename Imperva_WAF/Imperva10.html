@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imperva WAF Gateway 實戰課程 - 威脅情資與反自動化</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        /* 卡片主體樣式 (Imperva Blue) */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #0284c7;
+        }
+
+        /* 重點提示框 (藍) */
+        .highlight-box {
+            background-color: #f0f9ff;
+            border-left: 4px solid #0284c7;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 技術名詞標記 */
+        .tech-term {
+            color: #075985;
+            font-weight: 700;
+            background-color: #e0f2fe;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
+        }
+
+        /* 比喻說明框 (綠) */
+        .analogy-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 版本差異框 (紫) */
+        .version-box {
+            background-color: #faf5ff;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 常見踩坑框 (橘,避開主色藍) */
+        .pitfall-box {
+            background-color: #fff7ed;
+            border-left: 4px solid #ea580c;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .diagram-container {
+            display: block;
+            background-color: #ffffff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-top: 1rem;
+        }
+
+        .diagram-container svg {
+            display: block;
+            width: 100%;
+            max-width: 520px;
+            margin: 0 auto;
+        }
+
+        /* 示意畫面 (仿管理介面) */
+        .mock-window {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            background: #ffffff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            margin-top: 1rem;
+        }
+        .mock-titlebar {
+            background: #e2e8f0;
+            padding: 0.4rem 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: #475569;
+        }
+        .mock-dots span {
+            display: inline-block;
+            width: 0.6rem;
+            height: 0.6rem;
+            border-radius: 50%;
+            background: #94a3b8;
+            margin-right: 0.2rem;
+        }
+        .mock-url {
+            background: #ffffff;
+            border-radius: 0.25rem;
+            padding: 0.1rem 0.5rem;
+            flex: 1;
+            min-width: 0;
+            font-family: ui-monospace, Consolas, monospace;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .mock-nav {
+            background: #1f2937;
+            color: #cbd5e1;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.25rem 1rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+        }
+        .mock-nav .brand { font-weight: 700; color: #ffffff; margin-right: 0.5rem; }
+        .mock-nav .on { color: #ffffff; border-bottom: 2px solid #38bdf8; padding-bottom: 0.1rem; }
+        .mock-crumb {
+            font-size: 0.8rem;
+            color: #475569;
+            padding: 0.5rem 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f8fafc;
+        }
+        .mock-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            padding: 0.5rem 0.75rem 0;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.8rem;
+        }
+        .mock-tabs span {
+            padding: 0.3rem 0.7rem;
+            border: 1px solid #e5e7eb;
+            border-bottom: none;
+            border-radius: 0.3rem 0.3rem 0 0;
+            background: #f1f5f9;
+            color: #475569;
+        }
+        .mock-tabs span.on { background: #ffffff; color: #111827; font-weight: 600; }
+        .mock-body { padding: 0.75rem; font-size: 0.85rem; }
+        .mock-section { font-weight: 700; color: #334155; margin: 0.75rem 0 0.25rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.2rem; }
+        .mock-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.35rem 0.6rem;
+            padding: 0.35rem 0;
+        }
+        .mock-label { width: 12rem; color: #374151; font-weight: 500; }
+        .mock-input {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+            padding: 0.2rem 0.5rem;
+            min-width: 12rem;
+            background: #ffffff;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #111827;
+        }
+        .mock-select::after { content: " ▾"; color: #64748b; }
+        .mock-indent { padding-left: 2rem; }
+        .mock-btn {
+            display: inline-block;
+            border: 1px solid #94a3b8;
+            background: #f8fafc;
+            border-radius: 0.25rem;
+            padding: 0.2rem 0.7rem;
+            font-size: 0.8rem;
+            color: #1f2937;
+        }
+        .mock-btn.primary { background: #1f2937; color: #ffffff; border-color: #1f2937; }
+        .mock-hl { outline: 2px solid #0284c7; outline-offset: 2px; border-radius: 0.25rem; }
+        .mock-list {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+            min-width: 9rem;
+            min-height: 4.2rem;
+            padding: 0.25rem 0.5rem;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.8rem;
+            background: #ffffff;
+        }
+        .mock-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 0.5rem; }
+        .mock-table th { background: #f1f5f9; text-align: left; padding: 0.35rem 0.5rem; border: 1px solid #e2e8f0; color: #334155; }
+        .mock-table td { padding: 0.35rem 0.5rem; border: 1px solid #e2e8f0; }
+        .mock-caption {
+            font-size: 0.75rem;
+            color: #6b7280;
+            padding: 0.5rem 0.75rem;
+            background: #f9fafb;
+            border-top: 1px dashed #e5e7eb;
+        }
+        .step-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.4rem;
+            height: 1.4rem;
+            border-radius: 9999px;
+            background: #0284c7;
+            color: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .step-list li { display: flex; gap: 0.6rem; align-items: flex-start; margin-bottom: 0.6rem; }
+
+        /* 模擬器 */
+        .sim-rule {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.4rem 0.75rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            margin-bottom: 0.5rem;
+            background: #ffffff;
+        }
+        .sim-rule .num { font-weight: 700; color: #075985; width: 3.5rem; }
+        .sim-rule .desc { flex: 1; min-width: 12rem; }
+        .sim-arrow { border: 1px solid #cbd5e1; border-radius: 0.25rem; padding: 0 0.45rem; background: #f8fafc; }
+        .sim-arrow:disabled { opacity: 0.35; cursor: not-allowed; }
+        .trace-line { padding: 0.3rem 0; border-bottom: 1px dashed #e5e7eb; }
+
+        @media (max-width: 640px) {
+            main { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+            .section-card { padding: 1rem; }
+            .diagram-container { padding: 0.25rem; }
+            .mock-label { width: calc(100% - 2.2rem); }
+            .mock-indent .mock-label { width: 100%; }
+            .mock-input { min-width: 0; width: 100%; }
+            .mock-indent { padding-left: 0.75rem; }
+            .mock-body { padding: 0.5rem; }
+        }
+
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover:not(.disabled) {
+            background-color: #f3f4f6;
+        }
+
+        .footer-signature {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+            margin-top: 4rem;
+        }
+        /* Long URLs and code wrap on narrow screens */
+        main { overflow-wrap: break-word; } main code { overflow-wrap: anywhere; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-sky-800 to-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-shield-halved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold">Imperva WAF Gateway 實戰課程</h1>
+                    <p class="text-sky-100 mt-1">單元 10:威脅情資與反自動化</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <nav class="bg-white border-b border-gray-200" aria-label="章節導覽">
+        <div class="container mx-auto px-4 py-2 max-w-5xl flex flex-wrap items-center justify-between gap-2 text-sm">
+            <a href="Imperva09.html" class="text-sky-700 hover:underline"><i class="fas fa-arrow-left mr-1"></i>上一章</a>
+            <a href="Imperva00.html" class="text-sky-700 hover:underline"><i class="fas fa-list mr-1"></i>課程目錄</a>
+            <a href="Imperva11.html" class="text-sky-700 hover:underline">下一章<i class="fas fa-arrow-right ml-1"></i></a>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+
+        <!-- Introduction -->
+        <div class="mb-8">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
+                <h2 class="text-xl font-bold text-blue-800 mb-2 flex items-center">
+                    <i class="fas fa-user-tie mr-2"></i>講師導言
+                </h2>
+                <p class="text-blue-900 leading-relaxed">
+                    這一章處理兩個問題:<strong>是誰在打</strong>,以及<strong>是不是機器在打</strong>。前者靠 Threat Intelligence Services(原 ThreatRadar)提供的 IP 信譽與社群防禦;後者從內建的 Bot Mitigation、Anti Scraping,一路到雲端的 Advanced Bot Protection(ABP)。
+                    開始之前先記住兩件事:<strong>ThreatRadar 現在的文件名稱是 Threat Intelligence Services</strong>;<strong>舊簡報的 Trusteer Fraud Prevention 整合不適用於現行版本</strong>。
+                </p>
+            </div>
+        </div>
+
+        <!-- 學習目標 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-gray-100 text-gray-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Goals</span>
+                本章學習目標
+            </h2>
+            <ul class="list-disc pl-6 space-y-1 text-gray-700">
+                <li>說出 Threat Intelligence Services 的四大類內容,以及它與舊名 ThreatRadar 的關係</li>
+                <li>依站台敏感度,為 Reputation 情資設計分級處置,而不是「惡意 IP 一律阻擋」</li>
+                <li>分辨 Bot Mitigation、Anti Scraping、CAPTCHA 與 ABP 各自適合的情境</li>
+                <li>列出 ABP 整合的前提與設定流程,並知道上線初期為什麼要用 Simulation Async Mode</li>
+                <li>知道 ATO 與 FPS 的現況,以及為什麼不要再規劃 Trusteer 整合</li>
+            </ul>
+            <p class="text-sm text-gray-500 mt-4"><i class="fas fa-map-signs mr-1"></i>承接第 9 章的政策與 Action;連線需求見第 3 章通訊埠表。</p>
+        </div>
+
+        <!-- 一、Threat Intelligence Services 全貌 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">一、Threat Intelligence Services 全貌</h2>
+
+            <div class="highlight-box">
+                <p class="font-bold text-sky-800 mb-1"><i class="fas fa-tag mr-1"></i>名稱提醒:ThreatRadar 就是現在的 Threat Intelligence Services</p>
+                <p class="text-gray-800">ThreatRadar 現在的文件名稱是 <span class="tech-term">Threat Intelligence Services</span>。部分頁面與政策名稱仍保留 ThreatRadar 字樣(例如政策類型「ThreatRadar Bot Protection」、比對條件「Client Type [ThreatRadar Bot Protection]」);GUI 與文件也仍大量出現 SecureSphere。<strong>看到舊名不代表是舊功能。</strong></p>
+            </div>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 360 440" role="img" aria-labelledby="svg1-title" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans TC, sans-serif">
+                    <title id="svg1-title">Threat Intelligence Services(原 ThreatRadar)的四大類:Reputation Services、Community Defense、Anti Automation Bot Protection、Emergency Feed Services</title>
+                    <rect x="20" y="10" width="320" height="52" rx="10" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="180" y="33" text-anchor="middle" font-size="15" font-weight="700" fill="#075985">Threat Intelligence Services</text>
+                    <text x="180" y="52" text-anchor="middle" font-size="13" fill="#475569">(原 ThreatRadar,訂閱服務)</text>
+
+                    <rect x="20" y="78" width="320" height="86" rx="10" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="34" y="100" font-size="14" font-weight="700" fill="#075985">Intelligence(Reputation Services)</text>
+                    <text x="34" y="120" font-size="13" fill="#1f2937">Anonymous Proxies、Comment Spam IPs、</text>
+                    <text x="34" y="138" font-size="13" fill="#1f2937">GeoLocation、IP Forensics、Malicious IPs、</text>
+                    <text x="34" y="156" font-size="13" fill="#1f2937">Phishing URLs、TOR IPs</text>
+
+                    <rect x="20" y="176" width="320" height="60" rx="10" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="34" y="198" font-size="14" font-weight="700" fill="#075985">Intelligence(Community Defense)</text>
+                    <text x="34" y="220" font-size="13" fill="#1f2937">社群共享的攻擊情資【待實機確認】</text>
+
+                    <rect x="20" y="248" width="320" height="60" rx="10" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="34" y="270" font-size="14" font-weight="700" fill="#075985">Anti Automation(Bot Protection)</text>
+                    <text x="34" y="292" font-size="13" fill="#1f2937">bot 分類,依 Client Type 判斷</text>
+
+                    <rect x="20" y="320" width="320" height="60" rx="10" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="34" y="342" font-size="14" font-weight="700" fill="#075985">Emergency Feed Services</text>
+                    <text x="34" y="364" font-size="13" fill="#1f2937">重大漏洞的緊急簽章(第 9 章 3 節)</text>
+
+                    <text x="180" y="410" text-anchor="middle" font-size="13" fill="#475569">MX 經 443 連 *.impervacloud.com 取得情資</text>
+                    <text x="180" y="430" text-anchor="middle" font-size="13" fill="#475569">ATO、FPS 則由 Gateway 連線</text>
+                </svg>
+            </div>
+
+            <div class="overflow-x-auto mt-4">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">類別</th><th class="py-2 px-4 border text-left">內容</th><th class="py-2 px-4 border text-left">用法</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">Intelligence (Reputation Services)</td><td class="py-2 px-4 border">Anonymous Proxies、Comment Spam IPs、GeoLocation、IP Forensics、Malicious IPs、Phishing URLs、TOR IPs</td><td class="py-2 px-4 border">依來源 IP 信譽或地理位置告警 / 阻擋</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Intelligence (Community Defense)</td><td class="py-2 px-4 border">社群共享的攻擊情資</td><td class="py-2 px-4 border">【待實機確認:現行提供的項目】</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Anti Automation (Bot Protection)</td><td class="py-2 px-4 border">bot 分類(ThreatRadar Bot Protection)</td><td class="py-2 px-4 border">依 Client Type 判斷是否為自動化工具</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Emergency Feed Services</td><td class="py-2 px-4 border">重大漏洞的緊急簽章</td><td class="py-2 px-4 border">見第 9 章 9.3</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">連線需求與授權</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li><strong>MX</strong> 經 443 連 <code>*.impervacloud.com</code> 取得情資;<strong>ATO、FPS</strong> 則是 <strong>Gateway</strong> 經 443 連 <code>*.impervacloud.com</code>(第 3 章通訊埠表)。</li>
+                <li>MX 不能直連網際網路時要設 proxy(External HTTP Settings)。情資停更不會有明顯錯誤,只會讓信譽資料越來越舊【推論】。</li>
+                <li>Threat Intelligence 為訂閱服務,啟用前確認授權包含哪些項目【待實機確認:授權項目與 GUI 啟用位置】。</li>
+            </ul>
+        </div>
+
+        <!-- 二、Reputation 分級處置 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">二、用 Reputation 做分級處置</h2>
+            <p class="text-gray-700 leading-relaxed">
+                不建議「惡意 IP 一律阻擋」,因為誤判的代價依站台而不同。以 <code>shop.example.com</code> 為例,瀏覽區的 <code>shop</code> 和登入、改密碼的 <code>member</code> 就該分開處理:
+            </p>
+            <div class="overflow-x-auto mt-3">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">情資</th><th class="py-2 px-4 border text-left"><code>shop</code>(瀏覽)</th><th class="py-2 px-4 border text-left"><code>member</code>(登入 / 改密碼)</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">Malicious IPs</td><td class="py-2 px-4 border">阻擋</td><td class="py-2 px-4 border">阻擋</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">TOR IPs</td><td class="py-2 px-4 border">告警</td><td class="py-2 px-4 border">阻擋或 CAPTCHA</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Anonymous Proxies</td><td class="py-2 px-4 border">告警</td><td class="py-2 px-4 border">告警 + 提高其他政策敏感度</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">GeoLocation(非營業國家)</td><td class="py-2 px-4 border">告警</td><td class="py-2 px-4 border">依業務決定</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Comment Spam IPs</td><td class="py-2 px-4 border">只對留言 / 評論 URL 阻擋</td><td class="py-2 px-4 border">—</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-gray-700 mt-3">實作方式:使用 Reputation 類政策,或在 Web Application Custom 政策中組合信譽條件與 URL 條件(第 9 章第五節)【待實機確認:Reputation 政策的類型名稱與條件名稱】。</p>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>前提:來源 IP 必須是真實用戶端 IP</p>
+                <p class="text-gray-800">Gateway 若在 SNAT 的 LB 後面,又沒有設 Forwarded Connections(第 7 章 7.5),所有請求看起來都是 LB 的 IP,信譽完全無效。</p>
+            </div>
+        </div>
+
+        <!-- 三、內建反自動化政策 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">三、內建反自動化政策</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">政策</th><th class="py-2 px-4 border text-left">層級</th><th class="py-2 px-4 border text-left">機制</th><th class="py-2 px-4 border text-left">適用</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">Bot Mitigation</td><td class="py-2 px-4 border">Web Application</td><td class="py-2 px-4 border">辨識造成 DoS 與其他自動化攻擊的 bot;舊版機制為要求 client 執行 JavaScript 與處理 cookie</td><td class="py-2 px-4 border">擋低階腳本與工具</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">ThreatRadar Bot Protection</td><td class="py-2 px-4 border">Web Application</td><td class="py-2 px-4 border">搭配 bot 分類;文件描述為與第三方合作判斷連線裝置是否受控,並連到 Fraud Prevention Services 章節</td><td class="py-2 px-4 border">依 Client Type 處置</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Anti Scraping</td><td class="py-2 px-4 border">Web Application</td><td class="py-2 px-4 border">偵測有人大量「刮」網頁資料;舊版以特定時間內存取的不同 URL 數,依 session / user / IP 計數</td><td class="py-2 px-4 border">商品價格、會員目錄被爬</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">CAPTCHA – Event Based</td><td class="py-2 px-4 border">CAPTCHA</td><td class="py-2 px-4 border">特定事件觸發 CAPTCHA,通過前不能存取受保護資源;挑戰在換頁或重新載入時出現</td><td class="py-2 px-4 border">可疑但不確定的流量</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-sm text-gray-600 mt-2">現行 Bot Mitigation / Anti Scraping 的比對欄位(計數門檻、時間窗、排除的搜尋引擎清單)【待實機確認】。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">範例:保護 shop 的商品頁不被大量爬取</h3>
+            <div class="mock-window">
+                <div class="mock-titlebar">
+                    <span class="mock-dots"><span></span><span></span><span></span></span>
+                    <span class="mock-url">https://10.0.30.10:8083</span>
+                </div>
+                <div class="mock-nav">
+                    <span class="brand">MX Management</span>
+                    <span class="on">Main</span>
+                </div>
+                <div class="mock-crumb">Main &gt; Policies &gt; Security &gt; Anti Scraping(建立對話框【待實機確認】)</div>
+                <div class="mock-body">
+                    <div class="mock-row"><span class="step-badge">1</span><span class="mock-label">Policy Name</span><span class="mock-input mock-hl">Shop-AntiScraping</span></div>
+                    <div class="mock-row"><span class="step-badge">2</span><span class="mock-label">計數依據</span><span class="mock-input mock-select mock-hl">IP 或 session【欄位名稱待實機確認】</span></div>
+                    <div class="mock-row"><span class="step-badge" style="visibility:hidden">0</span><span class="mock-label">時間窗與不同 URL 數門檻</span><span class="mock-input mock-hl">【欄位名稱待實機確認】</span></div>
+                    <div class="mock-row"><span class="step-badge">3</span><span class="mock-label">排除對象</span><span class="mock-input mock-hl">合法搜尋引擎、自家監控【待實機確認】</span></div>
+                    <div class="mock-row"><span class="step-badge">4</span><span class="mock-label">Apply To</span><span class="mock-input mock-hl">HQ &gt; SG-Shop &gt; HTTPS-Shop &gt; shop</span></div>
+                    <div class="mock-row"><span class="step-badge">5</span><span class="mock-label">Action</span><span class="mock-input mock-select mock-hl">只告警(先觀察兩週)</span></div>
+                </div>
+                <div class="mock-caption"><i class="fas fa-circle-info mr-1"></i>示意畫面:部分欄位名稱待實機確認(建立對話框、計數與門檻欄位、排除清單),版面與按鈕位置以實機為準。</div>
+            </div>
+            <ol class="step-list mt-4 text-gray-700">
+                <li><span class="step-badge">1</span><span><code>Main &gt; Policies &gt; Security</code>,新增 Anti Scraping 政策 <code>Shop-AntiScraping</code>【待實機確認:建立對話框】。</span></li>
+                <li><span class="step-badge">2</span><span>設定計數依據(IP 或 session)、時間窗與不同 URL 數門檻【待實機確認:欄位名稱】。</span></li>
+                <li><span class="step-badge">3</span><span>排除合法搜尋引擎與自家監控【待實機確認】。</span></li>
+                <li><span class="step-badge">4</span><span>Apply To:<code>HQ &gt; SG-Shop &gt; HTTPS-Shop &gt; shop</code>。</span></li>
+                <li><span class="step-badge">5</span><span>先只告警兩週,看門檻是否會命中正常的大量瀏覽者(例如比價使用者),再決定改 CAPTCHA 或阻擋。</span></li>
+            </ol>
+        </div>
+
+        <!-- 四、ABP -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">四、Advanced Bot Protection(ABP)整合</h2>
+            <p class="text-gray-700 leading-relaxed">
+                內建政策主要辨識行為與簡單挑戰。面對會換 IP、清 cookie 的大量自動化攻擊,WAF Gateway 可以整合 Imperva 雲端的 <span class="tech-term">Advanced Bot Protection</span>,由 ABP 追蹤與封鎖惡意用戶端。
+            </p>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 360 360" role="img" aria-labelledby="svg2-title" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans TC, sans-serif">
+                    <title id="svg2-title">ABP 整合流程:用戶端請求進入 WAF Gateway,Gateway 向 Imperva 雲端 ABP 查詢並等待回應,再決定放行或阻擋</title>
+                    <defs>
+                        <marker id="arrow2" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+                        </marker>
+                    </defs>
+                    <rect x="20" y="10" width="140" height="46" rx="8" fill="#f1f5f9" stroke="#94a3b8"/>
+                    <text x="90" y="38" text-anchor="middle" font-size="14" fill="#1f2937">用戶端請求</text>
+                    <line x1="90" y1="56" x2="90" y2="84" stroke="#64748b" stroke-width="2" marker-end="url(#arrow2)"/>
+
+                    <rect x="10" y="88" width="160" height="108" rx="10" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="90" y="112" text-anchor="middle" font-size="14" font-weight="700" fill="#075985">WAF Gateway</text>
+                    <text x="90" y="134" text-anchor="middle" font-size="13" fill="#1f2937">ABR 或 NGRP</text>
+                    <text x="90" y="154" text-anchor="middle" font-size="13" fill="#1f2937">名稱旁有 (GEN2)</text>
+                    <text x="90" y="178" text-anchor="middle" font-size="13" fill="#b45309">要等 ABP 回應才放行</text>
+
+                    <line x1="170" y1="120" x2="208" y2="120" stroke="#64748b" stroke-width="2" marker-end="url(#arrow2)"/>
+                    <line x1="208" y1="160" x2="170" y2="160" stroke="#64748b" stroke-width="2" marker-end="url(#arrow2)"/>
+                    <text x="190" y="108" text-anchor="middle" font-size="13" fill="#475569">查詢</text>
+                    <text x="190" y="180" text-anchor="middle" font-size="13" fill="#475569">回應</text>
+
+                    <rect x="212" y="88" width="138" height="108" rx="10" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="281" y="112" text-anchor="middle" font-size="14" font-weight="700" fill="#075985">Imperva 雲端</text>
+                    <text x="281" y="134" text-anchor="middle" font-size="13" fill="#1f2937">Advanced Bot</text>
+                    <text x="281" y="154" text-anchor="middle" font-size="13" fill="#1f2937">Protection</text>
+                    <text x="281" y="178" text-anchor="middle" font-size="13" fill="#475569">UMC 管理設定</text>
+
+                    <line x1="90" y1="196" x2="90" y2="224" stroke="#64748b" stroke-width="2" marker-end="url(#arrow2)"/>
+                    <rect x="20" y="228" width="140" height="46" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+                    <text x="90" y="256" text-anchor="middle" font-size="14" fill="#15803d">放行到網站</text>
+
+                    <rect x="20" y="294" width="320" height="58" rx="8" fill="#fff7ed" stroke="#ea580c"/>
+                    <text x="180" y="318" text-anchor="middle" font-size="13" fill="#9a3412">上線初期用 Simulation Async Mode:</text>
+                    <text x="180" y="338" text-anchor="middle" font-size="13" fill="#9a3412">Gateway 不等 ABP 回應,只告警</text>
+                </svg>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">前提(官方)</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">項目</th><th class="py-2 px-4 border text-left">要求</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">版本</td><td class="py-2 px-4 border">MX 與 Gateway 皆 v14.7 以上;【16.0】CA 版也列為支援</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">授權</td><td class="py-2 px-4 border">購買 ABP 授權(同時取得雲端主控台存取,MX 選單會出現 Advanced Bot Protection 分頁)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">DNS</td><td class="py-2 px-4 border">MX 與 Gateway 都要設好並驗證 DNS</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">MX 連線</td><td class="py-2 px-4 border">依 Component Communication 表可連 Imperva 雲端</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Gateway 連線</td><td class="py-2 px-4 border">443 直連網際網路,或經 HTTP proxy 連 <code>*.imperva.com</code>、<code>*.impervaabp.net</code>、<code>*.distil.ninja</code></td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Gateway 模式</td><td class="py-2 px-4 border">必須是 <strong>ABR 或 NGRP</strong>,Main &gt; Setup &gt; Gateways 中 Gateway 名稱旁顯示 <strong>(GEN2)</strong></td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Gateway 走 HTTP proxy 時(官方步驟)</h3>
+            <div class="mock-window">
+                <div class="mock-titlebar">
+                    <span class="mock-dots"><span></span><span></span><span></span></span>
+                    <span class="mock-url">https://10.0.30.10:8083</span>
+                </div>
+                <div class="mock-nav">
+                    <span class="brand">MX Management</span>
+                    <span class="on">Main</span>
+                </div>
+                <div class="mock-crumb">Main &gt; Setup &gt; Gateways &gt; GG-Shop</div>
+                <div class="mock-tabs"><span class="on">Details</span><span>(其他分頁)</span></div>
+                <div class="mock-body">
+                    <div class="mock-row"><span class="step-badge">1</span><span class="mock-hl">Main &gt; Setup &gt; Gateways,點選 Gateway Group GG-Shop</span></div>
+                    <div class="mock-section">Details &gt; HTTP Connections</div>
+                    <div class="mock-row"><span class="step-badge">2</span><span>在 <strong>Details</strong> 分頁展開 <strong>HTTP Connections</strong></span></div>
+                    <div class="mock-row"><span class="step-badge">3</span><span class="mock-hl">☑ Allow Gateway to Connect with Outside Systems</span></div>
+                    <div class="mock-row mock-indent"><span class="mock-label">Proxy</span><span class="mock-input">【proxy 欄位名稱待實機確認】</span></div>
+                </div>
+                <div class="mock-caption"><i class="fas fa-circle-info mr-1"></i>示意畫面:部分欄位名稱待實機確認(proxy 欄位),版面與按鈕位置以實機為準。</div>
+            </div>
+            <ol class="step-list mt-4 text-gray-700">
+                <li><span class="step-badge">1</span><span>Main &gt; <strong>Setup &gt; Gateways</strong>,點選 Gateway Group <code>GG-Shop</code>。</span></li>
+                <li><span class="step-badge">2</span><span>在 <strong>Details</strong> 分頁展開 <strong>HTTP Connections</strong>。</span></li>
+                <li><span class="step-badge">3</span><span>勾選 <strong>Allow Gateway to Connect with Outside Systems</strong>,填入 proxy 資訊【待實機確認:proxy 欄位名稱】。</span></li>
+            </ol>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">設定流程(官方步驟)</h3>
+            <div class="mock-window">
+                <div class="mock-titlebar">
+                    <span class="mock-dots"><span></span><span></span><span></span></span>
+                    <span class="mock-url">https://10.0.30.10:8083</span>
+                </div>
+                <div class="mock-nav">
+                    <span class="brand">MX Management</span>
+                    <span class="on">Main</span>
+                </div>
+                <div class="mock-crumb">Main &gt; Policies &gt; Security &gt; Advanced Bot Protection</div>
+                <div class="mock-tabs"><span>(其他分頁)</span><span class="on">Applied to</span><span>Advanced</span></div>
+                <div class="mock-body">
+                    <div class="mock-row"><span class="step-badge">2</span><span class="mock-hl">☑ 啟用政策(先確認 MX、Gateway 能連雲端,Imperva 已啟用授權)</span></div>
+                    <div class="mock-section">Applied to 分頁</div>
+                    <div class="mock-row"><span class="step-badge">3</span><span class="mock-hl">☑ HTTPS-Shop(必要的 service)</span></div>
+                    <div class="mock-section">Advanced 分頁</div>
+                    <div class="mock-row"><span class="step-badge">4</span><span class="mock-label">Ignore static resources</span><span class="mock-input mock-hl">☑ 依 service 的靜態檔清單略過</span></div>
+                    <div class="mock-row"><span class="step-badge">4</span><span class="mock-label">Simulation Async Mode</span><span class="mock-input mock-hl">☑ 測試用:不等 ABP 回應,只告警</span></div>
+                    <div class="mock-row"><span class="step-badge">4</span><span class="mock-label">Transaction Timeout</span><span class="mock-input mock-hl">(毫秒)</span></div>
+                    <div class="mock-row"><span class="step-badge">5</span><span class="mock-btn mock-hl">Refresh Gateway ABP Config</span><span class="step-badge">6</span><span class="mock-btn primary mock-hl">Save</span></div>
+                </div>
+                <div class="mock-caption"><i class="fas fa-circle-info mr-1"></i>示意畫面:欄位名稱依 Imperva 官方文件,版面、按鈕位置與配色以實機為準。</div>
+            </div>
+            <ol class="step-list mt-4 text-gray-700">
+                <li><span class="step-badge">1</span><span><strong>確認連線與授權</strong>:MX、Gateway 都能連到雲端服務(DNS 與 SSL);確認 Imperva 已啟用授權。</span></li>
+                <li><span class="step-badge">2</span><span>在 MX:<code>Main &gt; Policies &gt; Security &gt; Advanced Bot Protection</code>,啟用政策。</span></li>
+                <li><span class="step-badge">3</span><span>在政策的 <strong>Applied to</strong> 分頁,勾選 <code>HTTPS-Shop</code>(必要的 service)。</span></li>
+                <li><span class="step-badge">4</span><span>在 <strong>Advanced</strong> 分頁確認參數:
+                    <ul class="list-disc pl-6 mt-1">
+                        <li><strong>Ignore static resources</strong>:依 service 的靜態檔清單(字典在 Global Objects 的 file-type groups)略過靜態資源。</li>
+                        <li><strong>Simulation Async Mode</strong>:測試用,Gateway 不等 ABP 回應,只告警。</li>
+                        <li><strong>Transaction Timeout</strong>:等待 ABP 回應的毫秒數。</li>
+                    </ul></span></li>
+                <li><span class="step-badge">5</span><span>按 <strong>Refresh Gateway ABP Config</strong>,讓設定同步到 Unified Management Console(UMC)。</span></li>
+                <li><span class="step-badge">6</span><span>右上角 <strong>Save</strong>。</span></li>
+                <li><span class="step-badge">7</span><span>在 UMC:<code>Applications &gt; Advanced Bot Protection &gt; Settings &gt; Website Groups</code>,選該 service,進入後在 <strong>Website</strong> 區加入 <code>shop.example.com</code>。</span></li>
+            </ol>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">怎麼驗證設好了</h3>
+            <ol class="list-decimal pl-6 text-gray-700 space-y-1">
+                <li>MX 上該政策描述出現 Account ID 與 Hostname。</li>
+                <li>UMC 的 ABP 服務設定中,<code>shop.example.com</code> 旁看得到流量(RPS)。</li>
+                <li>用瀏覽器開發者工具確認回應中已注入 ABP 的 JavaScript。</li>
+                <li>在 ABP 雲端主控台對測試網站加 block policy,MX 應出現 violation「Malicious Bot Traffic Was Detected」。</li>
+            </ol>
+
+            <div class="highlight-box">
+                <p class="font-bold text-sky-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>容量與隱私注意</p>
+                <ul class="list-disc pl-6 text-gray-800 space-y-1">
+                    <li>受 ABP 政策保護的請求,Gateway 要<strong>等 ABP 回應</strong>才放行,系統負載會上升;流量越大、到 ABP 的延遲越高,影響越大。上線初期用 Simulation Async Mode 觀察。</li>
+                    <li>送往 ABP 的流量,除了 ABP 需要的特定 header 外都會遮罩。</li>
+                    <li>只有被政策 Applied to 的站台才會送 ABP 檢查;站台在 ABP 主控台出現,不代表已受保護。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 五、ATO 與 FPS -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">五、ATO 與 Fraud Prevention 現況</h2>
+            <p class="text-gray-700 leading-relaxed">
+                <span class="tech-term">Account Takeover(ATO)Protection</span> 仍以政策類型存在,分「Configuration」(蒐集資料、回報雲端)與「Enforcement」(依結果處置)兩類:
+            </p>
+            <div class="overflow-x-auto mt-2">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">類型</th><th class="py-2 px-4 border text-left">代表政策</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">Device Intelligence</td><td class="py-2 px-4 border">ATO - Device Intelligence Profiling / for failed logins / for successful logins;High Risk Login、+ Anonymous Proxy、+ TOR IP 等 Enforcement</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Privileged Account</td><td class="py-2 px-4 border">Privileged Account Brute Force(+ Bot)Enforcement</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Credential Stuffing</td><td class="py-2 px-4 border">Low / Medium Risk API(登入失敗時送帳號,Medium 另送雜湊密碼);Credential Stuffing(+ Bot)Enforcement</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Dictionary Attack</td><td class="py-2 px-4 border">Dictionary Attack(+ Bot)Enforcement</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-gray-700 mt-3">
+                搭配的比對條件是 <strong>Account Takeover Protection Results</strong>:Credential Stuffing 看雲端給的 <strong>Breach Risk</strong>(Low / Medium / High,High 會被阻擋);Device Intelligence 看 <strong>Profiling Done</strong> 與 <strong>Result</strong>(風險分數,官方寫明來自 iovation)。這些政策需要 Application User Tracking 先定義好登入 URL(第 8、11 章),Gateway 要能連 <code>*.impervacloud.com:443</code>。
+            </p>
+            <p class="text-gray-700 mt-3">
+                <strong>Fraud Prevention Services(FPS)</strong> 仍保留架構:Snippet Injection 政策 + Web Custom 政策的 <strong>Fraud Prevention Results</strong> 條件(Provider、Tag Name、If Information is Missing)。目前可選的 provider,以及 ATO / FPS 是否仍單獨販售【待實機確認】。
+            </p>
+
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-1"><i class="fas fa-ban mr-1"></i>舊 Trusteer 整合不適用</p>
+                <p class="text-gray-800">舊簡報描述的流程是「WAF 把瀏覽器轉址到 Trusteer、下載惡意程式檢查、結果回傳 WAF 決定放行或阻擋」。本次查閱的現行 v16.0 政策類型與比對條件頁面沒有 Trusteer,Device Intelligence 的風險來源寫的是 iovation;舊簡報列舉的惡意程式家族也早已不是現今威脅重點。</p>
+                <p class="text-gray-800 mt-2"><strong>本課程與實作都不要再規劃 Trusteer 整合。</strong>帳號接管情境改用 ATO 政策,大量自動化攻擊改用 ABP。</p>
+            </div>
+        </div>
+
+        <!-- 六、模擬器 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">六、動手玩:情資與 Bot 判定模擬器</h2>
+            <p class="text-gray-700 mb-2">設定請求的目標區域、來源 IP 屬性與用戶端能力,看看 Reputation、Bot Mitigation、Anti Scraping 各自怎麼處置,以及該不該考慮 ABP。</p>
+            <p class="text-xs text-gray-500 mb-2"><i class="fas fa-circle-info mr-1"></i>簡化示意:Reputation 的處置依第二節的分級表;Bot 與 Anti Scraping 只示意「辨識得出來與否」,實際門檻與欄位【待實機確認】,動作以 Anti Scraping 先只告警的建議作法為準。</p>
+
+            <div class="grid md:grid-cols-2 gap-4 mt-4">
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-location-dot mr-1 text-sky-600"></i>請求與來源</h3>
+                    <label class="block mb-2 text-sm">目標區域
+                        <select id="t-site" class="border rounded px-2 py-1 w-full">
+                            <option value="shop">shop(瀏覽)</option>
+                            <option value="member">member(登入 / 改密碼)</option>
+                        </select>
+                    </label>
+                    <label class="block mb-2 text-sm">來源 IP 屬性
+                        <select id="t-ip" class="border rounded px-2 py-1 w-full">
+                            <option value="normal">一般 IP(沒有命中情資)</option>
+                            <option value="malicious">Malicious IPs</option>
+                            <option value="tor">TOR IPs</option>
+                            <option value="proxy">Anonymous Proxies</option>
+                            <option value="geo">GeoLocation(非營業國家)</option>
+                            <option value="spam">Comment Spam IPs</option>
+                        </select>
+                    </label>
+                    <label class="block mb-2 text-sm"><input type="checkbox" id="t-comment" class="mr-2">這個請求是留言 / 評論 URL</label>
+                    <label class="block text-sm"><input type="checkbox" id="t-snat" class="mr-2">Gateway 在 SNAT 的 LB 後面,且沒設 Forwarded Connections</label>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-robot mr-1 text-sky-600"></i>用戶端能力</h3>
+                    <label class="block mb-2 text-sm">用戶端類型
+                        <select id="t-client" class="border rounded px-2 py-1 w-full">
+                            <option value="browser">一般瀏覽器(能執行 JavaScript、處理 cookie)</option>
+                            <option value="script">低階腳本或工具(不執行 JavaScript、不處理 cookie)</option>
+                            <option value="adv">進階自動化(會換 IP、清 cookie、大量請求)</option>
+                        </select>
+                    </label>
+                    <label class="block text-sm">短時間內存取的不同 URL 數
+                        <select id="t-scrape" class="border rounded px-2 py-1 w-full">
+                            <option value="low">一般瀏覽量</option>
+                            <option value="high">異常大量(像在刮資料)</option>
+                        </select>
+                    </label>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-4 mt-4">
+                <div class="bg-white border rounded-lg p-4">
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-shoe-prints mr-1 text-blue-600"></i>各政策的判定</h3>
+                    <div id="t-trace" class="text-sm text-gray-700"></div>
+                </div>
+                <div id="t-result" class="border rounded-lg p-4"></div>
+            </div>
+        </div>
+
+        <!-- 七、踩坑 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">七、常見踩坑</h2>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>SNAT 後才看情資</p>
+                <p class="text-gray-800">來源 IP 全是 LB,Reputation、ATO、Anti Scraping 依 IP 的判斷全部失效;先設 Forwarded Connections。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>ABP 在 Bridge / Sniffing 模式下設定</p>
+                <p class="text-gray-800">ABP 需要 ABR 或 NGRP(GEN2);Gateway 名稱旁沒有 (GEN2) 就不會運作。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>Gateway 連不到 ABP 網域</p>
+                <p class="text-gray-800">proxy 白名單漏了 <code>*.impervaabp.net</code> 或 <code>*.distil.ninja</code>;或 Gateway Group 沒勾 Allow Gateway to Connect with Outside Systems。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>ABP 上線就同步等待</p>
+                <p class="text-gray-800">未先用 Simulation Async Mode 評估延遲,尖峰時 Gateway 負載飆高。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>TOR / 代理一律阻擋</p>
+                <p class="text-gray-800">部分正常使用者(企業 proxy、隱私使用者)被擋;依 URL 敏感度分級處置。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>以為 Trusteer 還能接</p>
+                <p class="text-gray-800">現行文件已無此整合,改用 ATO 與 ABP。</p>
+            </div>
+        </div>
+
+        <!-- 八、新舊對照 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">八、新舊對照</h2>
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-2"><i class="fas fa-code-branch mr-1"></i>舊簡報說法與現況</p>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm border bg-white">
+                        <thead class="bg-gray-100">
+                            <tr><th class="py-2 px-4 border text-left">舊簡報說法</th><th class="py-2 px-4 border text-left">現況</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td class="py-2 px-4 border">ThreatRadar</td><td class="py-2 px-4 border">文件稱 <strong>Threat Intelligence Services</strong>,分 Reputation Services、Community Defense、Anti Automation (Bot Protection)、Emergency Feed;部分頁面仍保留 ThreatRadar 字樣</td></tr>
+                            <tr><td class="py-2 px-4 border">工具:Malicious IPs、Anonymous Proxies、Phishing、IP Forensics、TOR IPs</td><td class="py-2 px-4 border">另有 Comment Spam IPs、GeoLocation;Phishing 列為 Phishing URLs</td></tr>
+                            <tr><td class="py-2 px-4 border">ThreatRadar Fraud Prevention 與 Trusteer 整合</td><td class="py-2 px-4 border"><strong>不適用</strong>;現行為 ATO(Device Intelligence 風險來自 iovation)與 FPS 架構,未見 Trusteer</td></tr>
+                            <tr><td class="py-2 px-4 border">Bot 只靠 JavaScript + cookie 挑戰</td><td class="py-2 px-4 border">內建 Bot Mitigation 仍在,另有 CAPTCHA、ThreatRadar Bot Protection 與雲端 <strong>ABP</strong>;舊的流量比例數字已過時,不引用</td></tr>
+                            <tr><td class="py-2 px-4 border">Anti-Scraping 以 session / user / IP 計數</td><td class="py-2 px-4 border">Anti Scraping 仍為 Web Application 政策類型;欄位細節【待實機確認】</td></tr>
+                            <tr><td class="py-2 px-4 border">Gateway 不需對外連線(舊簡報未提)</td><td class="py-2 px-4 border">ATO / FPS、ABP 需要 Gateway 經 443 連 Imperva 雲端</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
+                隨堂測驗
+            </h2>
+            <p class="mb-6 text-gray-600">請點選您認為正確的選項,系統將會顯示解析。</p>
+            <div class="space-y-6" id="quiz-container"></div>
+        </div>
+
+    </main>
+
+    <footer class="footer-signature">
+        Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver.2026.11.02.12.07
+    </footer>
+
+
+    <script>
+        // ===== 情資與 Bot 判定模擬器(簡化示意) =====
+        const IP_LABEL = {
+            normal: '一般 IP', malicious: 'Malicious IPs', tor: 'TOR IPs',
+            proxy: 'Anonymous Proxies', geo: 'GeoLocation(非營業國家)', spam: 'Comment Spam IPs'
+        };
+        // 依第二節分級表。level: block / challenge / alert / none
+        const REP = {
+            shop: {
+                malicious: { level: 'block', text: '阻擋' },
+                tor: { level: 'alert', text: '告警' },
+                proxy: { level: 'alert', text: '告警' },
+                geo: { level: 'alert', text: '告警' }
+            },
+            member: {
+                malicious: { level: 'block', text: '阻擋' },
+                tor: { level: 'challenge', text: '阻擋或 CAPTCHA(此處以 CAPTCHA 挑戰示意)' },
+                proxy: { level: 'alert', text: '告警 + 提高其他政策敏感度' },
+                geo: { level: 'none', text: '依業務決定(本課程未預設動作,動作未定)' }
+            }
+        };
+
+        const selSite = document.getElementById('t-site');
+        const selIp = document.getElementById('t-ip');
+        const chkComment = document.getElementById('t-comment');
+        const chkSnat = document.getElementById('t-snat');
+        const selClient = document.getElementById('t-client');
+        const selScrape = document.getElementById('t-scrape');
+        const tTrace = document.getElementById('t-trace');
+        const tResult = document.getElementById('t-result');
+
+        const RANK = { none: 0, alert: 1, challenge: 2, block: 3 };
+
+        function evaluateThreat() {
+            const site = selSite.value;
+            const ip = selIp.value;
+            const lines = [];
+            const notes = [];
+            let top = 'none';
+            const bump = lv => { if (RANK[lv] > RANK[top]) top = lv; };
+
+            // 1) Reputation
+            if (chkSnat.checked) {
+                lines.push(`<div class="trace-line"><strong>Reputation</strong>:<span class="text-orange-700 font-semibold">無效</span>。來源 IP 看起來全是 LB 的 IP,看不到真實用戶端(${IP_LABEL[ip]} 這個屬性根本比對不到)。</div>`);
+                notes.push('先設 Forwarded Connections(第 7 章 7.5),Reputation、ATO、Anti Scraping 依 IP 的判斷才有效。');
+            } else if (ip === 'normal') {
+                lines.push(`<div class="trace-line"><strong>Reputation</strong>:<span class="text-gray-500">沒有命中情資</span></div>`);
+            } else if (ip === 'spam') {
+                if (site === 'shop' && chkComment.checked) {
+                    lines.push(`<div class="trace-line"><strong>Reputation</strong>:<span class="text-red-700 font-semibold">Comment Spam IPs,留言 / 評論 URL → 阻擋</span></div>`);
+                    bump('block');
+                } else if (site === 'shop') {
+                    lines.push(`<div class="trace-line"><strong>Reputation</strong>:Comment Spam IPs 只對留言 / 評論 URL 阻擋,這個請求不是,<span class="text-gray-500">不處理</span></div>`);
+                } else {
+                    lines.push(`<div class="trace-line"><strong>Reputation</strong>:<span class="text-gray-500">分級表對 member 的 Comment Spam IPs 沒有定義處置(—)</span></div>`);
+                }
+            } else {
+                const r = REP[site][ip];
+                const cls = r.level === 'block' ? 'text-red-700' : r.level === 'challenge' ? 'text-orange-700' : r.level === 'none' ? 'text-gray-600' : 'text-yellow-700';
+                lines.push(`<div class="trace-line"><strong>Reputation</strong>:${IP_LABEL[ip]} 在 ${site} → <span class="${cls} font-semibold">${r.text}</span></div>`);
+                bump(r.level);
+                if (r.level === 'none') notes.push('GeoLocation 在 member 的動作未定,請依業務決定;因此這一項不計入下方的處置結果。');
+            }
+
+            // 2) Bot
+            const client = selClient.value;
+            if (client === 'browser') {
+                lines.push(`<div class="trace-line"><strong>Bot Mitigation</strong>:<span class="text-gray-500">能執行 JavaScript、處理 cookie,通過</span></div>`);
+            } else if (client === 'script') {
+                lines.push(`<div class="trace-line"><strong>Bot Mitigation</strong>:<span class="text-red-700 font-semibold">不執行 JavaScript、不處理 cookie,判定為 bot</span>(內建政策擅長擋低階腳本與工具;實際動作依政策設定)</div>`);
+                bump('alert');
+            } else {
+                lines.push(`<div class="trace-line"><strong>Bot Mitigation</strong>:<span class="text-orange-700 font-semibold">內建政策主要辨識行為與簡單挑戰,面對會換 IP、清 cookie 的大量自動化較難辨識</span></div>`);
+                notes.push('這類情境考慮整合 Advanced Bot Protection(ABP)。前提:MX 與 Gateway 皆 v14.7 以上、購買 ABP 授權、Gateway 為 ABR 或 NGRP(名稱旁顯示 (GEN2))、能連 Imperva 雲端;上線初期先用 Simulation Async Mode。');
+                bump('alert');
+            }
+
+            // 3) Anti Scraping
+            if (selScrape.value === 'high') {
+                if (chkSnat.checked) {
+                    lines.push(`<div class="trace-line"><strong>Anti Scraping</strong>:<span class="text-orange-700 font-semibold">若依 IP 計數會失效</span>(所有請求都是 LB 的 IP)</div>`);
+                } else {
+                    lines.push(`<div class="trace-line"><strong>Anti Scraping</strong>:<span class="text-yellow-700 font-semibold">不同 URL 數異常大量 → 告警</span>(建議先只告警兩週,再決定改 CAPTCHA 或阻擋)</div>`);
+                    notes.push('比價使用者之類的正常大量瀏覽者也可能被命中,門檻要先觀察。');
+                    bump('alert');
+                }
+            } else {
+                lines.push(`<div class="trace-line"><strong>Anti Scraping</strong>:<span class="text-gray-500">一般瀏覽量,不命中</span></div>`);
+            }
+
+            tTrace.innerHTML = lines.join('');
+
+            let cls, titleCls, icon, title;
+            if (top === 'block') { cls = 'bg-red-50 border-red-300'; titleCls = 'text-red-700'; icon = 'fa-ban'; title = '結果:至少有一條政策阻擋'; }
+            else if (top === 'challenge') { cls = 'bg-orange-50 border-orange-300'; titleCls = 'text-orange-700'; icon = 'fa-user-shield'; title = '結果:有政策要求 CAPTCHA 挑戰(未直接阻擋,通過挑戰才放行)'; }
+            else if (top === 'alert') { cls = 'bg-yellow-50 border-yellow-300'; titleCls = 'text-yellow-700'; icon = 'fa-bell'; title = '結果:有政策命中,依各自的動作處置(告警或政策設定)'; }
+            else { cls = 'bg-green-50 border-green-300'; titleCls = 'text-green-700'; icon = 'fa-circle-check'; title = '結果:沒有政策處置,請求放行'; }
+            tResult.className = 'border rounded-lg p-4 ' + cls;
+            tResult.innerHTML = `<h3 class="font-bold ${titleCls} mb-2"><i class="fas ${icon} mr-1"></i>${title}</h3>` +
+                (notes.length ? `<ul class="list-disc pl-5 text-sm text-gray-800 space-y-1">${notes.map(n => `<li>${n}</li>`).join('')}</ul>` : `<p class="text-sm text-gray-800">各項判定皆正常。</p>`) +
+                `<p class="text-xs text-gray-500 mt-2">簡化示意:實際門檻、欄位與動作以實機設定為準【待實機確認】。</p>`;
+        }
+
+        [selSite, selIp, chkComment, chkSnat, selClient, selScrape].forEach(el => el.addEventListener('change', evaluateThreat));
+        evaluateThreat();
+
+        // ===== 隨堂測驗 =====
+        const quizData = [
+            {
+                question: "Q1. 文件裡看到「Threat Intelligence Services」,它和舊簡報的 ThreatRadar 是什麼關係?",
+                options: ["A. 是兩個完全不同的產品", "B. 是同一服務現行的文件名稱,部分頁面與政策名稱仍保留 ThreatRadar 字樣", "C. Threat Intelligence Services 已取代並移除了 Reputation 情資", "D. ThreatRadar 是雲端版,Threat Intelligence Services 是地端版"],
+                correct: 1,
+                desc: "正解:B。ThreatRadar 現在的文件名稱是 Threat Intelligence Services,分 Reputation Services、Community Defense、Anti Automation (Bot Protection) 與 Emergency Feed。看到舊名不代表是舊功能。"
+            },
+            {
+                question: "Q2. Gateway 位在 SNAT 的 LB 後面,又沒有設 Forwarded Connections。這時 Reputation 情資會怎樣?",
+                options: ["A. 照常運作,因為情資是靠 MX 比對", "B. 全部失效,因為所有請求的來源 IP 都是 LB", "C. 只有 TOR IPs 失效", "D. 會自動改用 GeoLocation 判斷"],
+                correct: 1,
+                desc: "正解:B。信譽判斷的前提是來源 IP 必須是真實用戶端 IP。SNAT 後所有請求都來自 LB,Reputation、ATO、Anti Scraping 依 IP 的判斷全部失效,要先設 Forwarded Connections。"
+            },
+            {
+                question: "Q3. 要啟用 ABP,Gateway 必須滿足下列哪一項?",
+                options: ["A. 任何模式皆可", "B. 必須是 Bridge 或 Sniffing 模式", "C. 必須是 ABR 或 NGRP,Gateway 名稱旁顯示 (GEN2)", "D. 只要 MX 能上網,Gateway 不需要對外連線"],
+                correct: 2,
+                desc: "正解:C。ABP 需要 ABR 或 NGRP(GEN2)。另外 Gateway 要能經 443 連線(或經 HTTP proxy 連 *.imperva.com、*.impervaabp.net、*.distil.ninja)。"
+            },
+            {
+                question: "Q4. 同事想依舊簡報的做法,規劃 WAF 與 Trusteer 的整合來防帳號接管。你應該怎麼建議?",
+                options: ["A. 照舊簡報做,把瀏覽器轉址到 Trusteer", "B. 不要規劃 Trusteer 整合;帳號接管改用 ATO 政策,大量自動化攻擊改用 ABP", "C. 先升級到更舊的版本再整合", "D. 改用 Cookie Signing Validation"],
+                correct: 1,
+                desc: "正解:B。現行 v16.0 政策類型與比對條件沒有 Trusteer,Device Intelligence 的風險來源寫的是 iovation。本課程與實作都不要再規劃 Trusteer 整合。"
+            },
+            {
+                question: "Q5. 對 shop.example.com 的情資處置,下列哪一組符合本章建議的分級?",
+                options: ["A. 所有情資在 shop 與 member 一律阻擋", "B. Malicious IPs 兩區都阻擋;TOR IPs 在 shop 告警,在 member 阻擋或 CAPTCHA", "C. TOR IPs 兩區都只告警", "D. Comment Spam IPs 對 member 的所有 URL 阻擋"],
+                correct: 1,
+                desc: "正解:B。誤判的代價依站台而不同,所以不建議惡意 IP 一律阻擋。登入、改密碼的 member 比瀏覽用的 shop 嚴格;Comment Spam IPs 則只對 shop 的留言 / 評論 URL 阻擋。"
+            }
+        ];
+
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionBox = document.createElement('div');
+            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
+
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border mb-2 text-gray-700" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            questionBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
+                <div class="space-y-2 mb-4">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
+                    <p class="font-bold result-title"></p>
+                    <p class="text-sm text-gray-600 mt-1">${item.desc}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionBox);
+        });
+
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            if (element.parentElement.dataset.answered) return;
+            element.parentElement.dataset.answered = "true";
+
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+                opt.classList.add('disabled');
+            });
+
+            if (optIndex === data.correct) {
+                element.classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了!";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                element.classList.add('bg-red-100', 'border-red-500');
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了!";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+    </script>
+</body>
+</html>

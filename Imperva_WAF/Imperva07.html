@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imperva WAF Gateway 實戰課程 - Site Tree 與 Web Service 設定</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        /* 卡片主體樣式 (Imperva Blue) */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #0284c7;
+        }
+
+        /* 重點提示框 (藍) */
+        .highlight-box {
+            background-color: #f0f9ff;
+            border-left: 4px solid #0284c7;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 技術名詞標記 */
+        .tech-term {
+            color: #075985;
+            font-weight: 700;
+            background-color: #e0f2fe;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
+        }
+
+        /* 比喻說明框 (綠) */
+        .analogy-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 版本差異框 (紫) */
+        .version-box {
+            background-color: #faf5ff;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 常見踩坑框 (橘) */
+        .pitfall-box {
+            background-color: #fff7ed;
+            border-left: 4px solid #ea580c;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .diagram-container {
+            display: block;
+            background-color: #ffffff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-top: 1rem;
+        }
+
+        .diagram-container svg {
+            display: block;
+            width: 100%;
+            max-width: 520px;
+            margin: 0 auto;
+        }
+
+        /* 示意畫面 (仿管理介面) */
+        .mock-window {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            background: #ffffff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            margin-top: 1rem;
+        }
+        .mock-titlebar {
+            background: #e2e8f0;
+            padding: 0.4rem 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: #475569;
+        }
+        .mock-dots span {
+            display: inline-block;
+            width: 0.6rem;
+            height: 0.6rem;
+            border-radius: 50%;
+            background: #94a3b8;
+            margin-right: 0.2rem;
+        }
+        .mock-url {
+            background: #ffffff;
+            border-radius: 0.25rem;
+            padding: 0.1rem 0.5rem;
+            flex: 1;
+            min-width: 0;
+            font-family: ui-monospace, Consolas, monospace;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .mock-nav {
+            background: #1f2937;
+            color: #cbd5e1;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.25rem 1rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+        }
+        .mock-nav .brand { font-weight: 700; color: #ffffff; margin-right: 0.5rem; }
+        .mock-nav .on { color: #ffffff; border-bottom: 2px solid #0284c7; padding-bottom: 0.1rem; }
+        .mock-crumb {
+            font-size: 0.8rem;
+            color: #475569;
+            padding: 0.5rem 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f8fafc;
+        }
+        .mock-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            padding: 0.5rem 0.75rem 0;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.8rem;
+        }
+        .mock-tabs span {
+            padding: 0.3rem 0.7rem;
+            border: 1px solid #e5e7eb;
+            border-bottom: none;
+            border-radius: 0.3rem 0.3rem 0 0;
+            background: #f1f5f9;
+            color: #475569;
+        }
+        .mock-tabs span.on { background: #ffffff; color: #111827; font-weight: 600; }
+        .mock-body { padding: 0.75rem; font-size: 0.85rem; }
+        .mock-section { font-weight: 700; color: #334155; margin: 0.75rem 0 0.25rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.2rem; }
+        .mock-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.35rem 0.6rem;
+            padding: 0.35rem 0;
+        }
+        .mock-label { width: 12rem; color: #374151; font-weight: 500; }
+        .mock-input {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+            padding: 0.2rem 0.5rem;
+            min-width: 12rem;
+            background: #ffffff;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #111827;
+        }
+        .mock-select::after { content: " ▾"; color: #64748b; }
+        .mock-indent { padding-left: 2rem; }
+        .mock-btn {
+            display: inline-block;
+            border: 1px solid #94a3b8;
+            background: #f8fafc;
+            border-radius: 0.25rem;
+            padding: 0.2rem 0.7rem;
+            font-size: 0.8rem;
+            color: #1f2937;
+        }
+        .mock-btn.primary { background: #1f2937; color: #ffffff; border-color: #1f2937; }
+        .mock-hl { outline: 2px solid #0284c7; outline-offset: 2px; border-radius: 0.25rem; }
+        .mock-list {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+            min-width: 9rem;
+            min-height: 4.2rem;
+            padding: 0.25rem 0.5rem;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.8rem;
+            background: #ffffff;
+        }
+        .mock-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 0.5rem; }
+        .mock-table th { background: #f1f5f9; text-align: left; padding: 0.35rem 0.5rem; border: 1px solid #e2e8f0; color: #334155; }
+        .mock-table td { padding: 0.35rem 0.5rem; border: 1px solid #e2e8f0; }
+        .mock-caption {
+            font-size: 0.75rem;
+            color: #6b7280;
+            padding: 0.5rem 0.75rem;
+            background: #f9fafb;
+            border-top: 1px dashed #e5e7eb;
+        }
+        .step-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.4rem;
+            height: 1.4rem;
+            border-radius: 9999px;
+            background: #0284c7;
+            color: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .step-list li { display: flex; gap: 0.6rem; align-items: flex-start; margin-bottom: 0.6rem; }
+
+        /* 模擬器 */
+        .sim-rule {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.4rem 0.75rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            margin-bottom: 0.5rem;
+            background: #ffffff;
+        }
+        .sim-rule .num { font-weight: 700; color: #075985; width: 3.5rem; }
+        .sim-rule .desc { flex: 1; min-width: 12rem; }
+        .sim-arrow { border: 1px solid #cbd5e1; border-radius: 0.25rem; padding: 0 0.45rem; background: #f8fafc; }
+        .sim-arrow:disabled { opacity: 0.35; cursor: not-allowed; }
+        .trace-line { padding: 0.3rem 0; border-bottom: 1px dashed #e5e7eb; }
+
+        @media (max-width: 640px) {
+            main { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+            .section-card { padding: 1rem; }
+            .diagram-container { padding: 0.25rem; }
+            .mock-label { width: calc(100% - 2.2rem); }
+            .mock-indent .mock-label { width: 100%; }
+            .mock-input { min-width: 0; width: 100%; }
+            .mock-indent { padding-left: 0.75rem; }
+            .mock-body { padding: 0.5rem; }
+        }
+
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover:not(.disabled) {
+            background-color: #f3f4f6;
+        }
+
+        .footer-signature {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+            margin-top: 4rem;
+        }
+        /* Long URLs and code wrap on narrow screens */
+        main { overflow-wrap: break-word; } main code { overflow-wrap: anywhere; }
+
+        /* 終端機示意 (impcfg) */
+        .mock-console { background: #0f172a; color: #e2e8f0; font-family: ui-monospace, Consolas, monospace; font-size: 0.8rem; padding: 0.75rem; line-height: 1.7; overflow-x: auto; }
+        .mock-console .dim { color: #94a3b8; }
+        .mock-console .hl { outline: 2px solid #38bdf8; outline-offset: 1px; border-radius: 0.2rem; padding: 0 0.2rem; }
+        .mock-console .step-badge { margin-right: 0.4rem; }
+        .sim-opt { display: block; width: 100%; text-align: left; border: 1px solid #cbd5e1; border-radius: 0.5rem; padding: 0.5rem 0.75rem; margin-bottom: 0.5rem; background: #ffffff; }
+        .sim-opt:hover:not(:disabled) { background: #f0f9ff; }
+        .sim-opt.ok { background: #dcfce7; border-color: #16a34a; }
+        .sim-opt.bad { background: #fee2e2; border-color: #dc2626; }
+        .bar { position: relative; height: 1.1rem; background: #e2e8f0; border-radius: 9999px; }
+        .bar .fill { position: absolute; left: 0; top: 0; bottom: 0; background: #0284c7; border-radius: 9999px; }
+        .bar .mark { position: absolute; top: -0.3rem; bottom: -0.3rem; width: 3px; background: #ea580c; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-sky-800 to-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-shield-halved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold">Imperva WAF Gateway 實戰課程</h1>
+                    <p class="text-sky-100 mt-1">單元 7:Site Tree 與 Web Service 設定</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <nav class="bg-white border-b shadow-sm">
+        <div class="container mx-auto px-4 py-2 max-w-5xl flex flex-wrap items-center justify-between gap-2 text-sm">
+            <a href="Imperva06.html" class="text-sky-700 hover:underline"><i class="fas fa-arrow-left mr-1"></i>上一章</a>
+            <a href="Imperva00.html" class="text-sky-700 hover:underline"><i class="fas fa-list mr-1"></i>課程目錄</a>
+            <a href="Imperva08.html" class="text-sky-700 hover:underline">下一章<i class="fas fa-arrow-right ml-1"></i></a>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+        <!-- Introduction -->
+        <div class="mb-8">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
+                <h2 class="text-xl font-bold text-blue-800 mb-2 flex items-center">
+                    <i class="fas fa-user-tie mr-2"></i>講師導言
+                </h2>
+                <p class="text-blue-900 leading-relaxed">
+                    Gateway 註冊上線後,它還不知道「要保護誰」。<strong>Site Tree</strong> 就是在告訴 WAF:哪些伺服器 IP、哪些埠、哪些 TLS 金鑰、哪些 host 屬於哪個應用。
+                    政策要套在 Site Tree 的物件上才會生效,Dynamic Profiling 也以 Web Application 為單位學習,所以這一層切得好不好,直接決定第 8、9 章能不能調得動。
+                    很多「明明設了政策卻沒反應」的問題,根源都在這一章。
+                </p>
+            </div>
+        </div>
+
+        <!-- 學習目標 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-gray-100 text-gray-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Goals</span>
+                本章學習目標
+            </h2>
+            <ul class="list-disc pl-6 space-y-1 text-gray-700">
+                <li>說出 Site、Server Group、Web Service、Web Application 四層各定義什麼、政策套在哪一層</li>
+                <li>建立 Site、Server Group(含 Servers IP 與 Operation Mode)與 Web Service</li>
+                <li>設定 TLS 金鑰,並判斷「模式 × TLS 版本」能不能解密</li>
+                <li>設定 Host/URL 對應,決定何時該拆分 Web Application</li>
+                <li>辨認 Site Tree 常見踩坑:政策不繼承、Servers 漏填、忘了 Activate</li>
+            </ul>
+            <p class="text-sm text-gray-500 mt-4"><i class="fas fa-map-signs mr-1"></i>範例環境:<code>Site HQ</code> &gt; <code>SG-Shop</code> &gt; <code>HTTPS-Shop</code> &gt; <code>shop</code> / <code>member</code>;對外網站 <code>shop.example.com</code>。</p>
+        </div>
+
+        <!-- 一、層級 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">一、四個層級與各自的用途</h2>
+
+            <div class="analogy-box">
+                <p class="font-bold text-green-800 mb-1"><i class="fas fa-building mr-1"></i>用大樓來想</p>
+                <ul class="list-disc pl-6 text-green-900 space-y-1">
+                    <li><strong>Site</strong> 像一棟大樓(機房、事業單位的分群),本身不做檢查。</li>
+                    <li><strong>Server Group</strong> 像一層樓的門禁:這層有哪些房間(伺服器 IP),第一道關卡在這裡。</li>
+                    <li><strong>Web Service</strong> 像這層的走廊與大門:哪個埠、用什麼鑰匙(TLS)進出。</li>
+                    <li><strong>Web Application</strong> 像房間裡的各個辦公室:哪個 host、哪條路徑,各有自己的規矩(Web Profile)。</li>
+                </ul>
+            </div>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 360 450" role="img" aria-labelledby="svg1-title" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans TC, sans-serif">
+                    <title id="svg1-title">Site Tree 四層結構:Site HQ 下有 Server Group SG-Shop,其下有 Web Service HTTPS-Shop,再下有兩個 Web Application:shop 與 member,每層標註在該層生效的政策</title>
+                    <defs>
+                        <marker id="arrow1" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+                        </marker>
+                    </defs>
+                    <rect x="20" y="10" width="320" height="58" rx="10" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2"/>
+                    <text x="180" y="36" text-anchor="middle" font-size="15" font-weight="700" fill="#1f2937">Site:HQ</text>
+                    <text x="180" y="57" text-anchor="middle" font-size="13" fill="#475569">純容器,沒有政策</text>
+                    <line x1="180" y1="68" x2="180" y2="88" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+
+                    <rect x="20" y="92" width="320" height="86" rx="10" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="180" y="116" text-anchor="middle" font-size="15" font-weight="700" fill="#075985">Server Group:SG-Shop</text>
+                    <text x="180" y="138" text-anchor="middle" font-size="13" fill="#1f2937">伺服器 IP、Operation Mode</text>
+                    <text x="180" y="160" text-anchor="middle" font-size="13" fill="#0369a1">Firewall、網路協定驗證、Stream Signature</text>
+                    <line x1="180" y1="178" x2="180" y2="198" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+
+                    <rect x="20" y="202" width="320" height="100" rx="10" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="180" y="226" text-anchor="middle" font-size="15" font-weight="700" fill="#075985">Web Service:HTTPS-Shop</text>
+                    <text x="180" y="248" text-anchor="middle" font-size="13" fill="#1f2937">埠、TLS 金鑰、錯誤頁、Reverse Proxy</text>
+                    <text x="180" y="270" text-anchor="middle" font-size="13" fill="#0369a1">HTTP Protocol Validation / Signatures</text>
+                    <text x="180" y="290" text-anchor="middle" font-size="13" fill="#0369a1">Service Correlated Validation / Custom</text>
+                    <line x1="110" y1="302" x2="110" y2="326" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+                    <line x1="250" y1="302" x2="250" y2="326" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+
+                    <rect x="20" y="330" width="150" height="104" rx="10" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+                    <text x="95" y="354" text-anchor="middle" font-size="15" font-weight="700" fill="#1d4ed8">App:shop</text>
+                    <text x="95" y="376" text-anchor="middle" font-size="13" fill="#1f2937">商品、搜尋</text>
+                    <text x="95" y="398" text-anchor="middle" font-size="13" fill="#1f2937">Web Profile</text>
+                    <text x="95" y="418" text-anchor="middle" font-size="13" fill="#1f2937">應用層政策</text>
+                    <rect x="190" y="330" width="150" height="104" rx="10" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+                    <text x="265" y="354" text-anchor="middle" font-size="15" font-weight="700" fill="#1d4ed8">App:member</text>
+                    <text x="265" y="376" text-anchor="middle" font-size="13" fill="#1f2937">登入、個資</text>
+                    <text x="265" y="398" text-anchor="middle" font-size="13" fill="#1f2937">Web Profile</text>
+                    <text x="265" y="418" text-anchor="middle" font-size="13" fill="#1f2937">應用層政策</text>
+                </svg>
+            </div>
+
+            <div class="overflow-x-auto mt-4">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">層級</th><th class="py-2 px-4 border text-left">定義什麼</th><th class="py-2 px-4 border text-left">在這層生效的政策(例)</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">Site</td><td class="py-2 px-4 border">組織上的分群(機房、事業單位)</td><td class="py-2 px-4 border">無,純容器</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Server Group</td><td class="py-2 px-4 border">一組提供相同服務的伺服器 IP、運作模式</td><td class="py-2 px-4 border">Firewall、Network Protocol Validation、Stream Signature</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Web Service</td><td class="py-2 px-4 border">埠、TLS、字元集、靜態檔清單、錯誤頁、Reverse Proxy</td><td class="py-2 px-4 border">HTTP Protocol Validation、HTTP Protocol Signatures、Web Service Correlated Validation、Web Service Custom</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Web Application</td><td class="py-2 px-4 border">哪些 host / URL 屬於這個應用;一個 Application 對應一份 Web Profile</td><td class="py-2 px-4 border">Web Profile、Web Application Signatures、Web Application Custom、Bot Mitigation、Anti Scraping</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="highlight-box">
+                <p class="font-bold text-sky-800 mb-1"><i class="fas fa-list-ol mr-1"></i>官方描述的檢查順序</p>
+                <p class="text-gray-800">流量進來時,<strong>先在 Server Group 層</strong>(第一個封包就套 Firewall 等政策),<strong>再看 Service 層</strong>的協定(例如 HTTP Protocol Validation),<strong>最後在 Application 層</strong>檢查請求本身(參數型別、長度)。政策類型細節見第 9 章。</p>
+            </div>
+            <p class="text-sm text-gray-600">所有 Site Tree 操作都在 <strong>Main &gt; Setup &gt; Sites</strong>。變更後按 <strong>Save</strong>;若系統是 <strong>delayed activation mode</strong>(延遲生效模式),還要再執行 Activate 才會生效。</p>
+        </div>
+
+        <!-- 二、Site 與 Server Group -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">二、動手做:建立 Site 與 Server Group</h2>
+
+            <div class="mock-window">
+                <div class="mock-titlebar">
+                    <span class="mock-dots"><span></span><span></span><span></span></span>
+                    <span class="mock-url">https://10.0.30.10:8083</span>
+                </div>
+                <div class="mock-nav">
+                    <span class="brand">Imperva MX</span>
+                    <span class="on">Main</span><span>Admin</span>
+                </div>
+                <div class="mock-crumb">Main &gt; Setup &gt; Sites</div>
+                <div class="mock-body">
+                    <div class="mock-row"><span class="step-badge">1</span><span class="mock-label">Sites Tree</span><span class="mock-btn mock-hl">New</span><span class="text-xs text-gray-500">(先點選 Site HQ,再按標題列的 New)</span></div>
+                    <div class="mock-list" style="min-height:3rem;">
+                        ▾ Site HQ
+                    </div>
+                    <div class="mock-section">Create Server Group</div>
+                    <div class="mock-row"><span class="step-badge">2</span><span class="mock-label">名稱</span><span class="mock-input mock-hl">SG-Shop</span></div>
+                    <div class="mock-row" style="justify-content:flex-end;"><span class="step-badge">3</span><span class="mock-btn primary mock-hl">Create</span><span class="step-badge">4</span><span class="mock-btn mock-hl">Save</span></div>
+                </div>
+                <div class="mock-caption"><i class="fas fa-circle-info mr-1"></i>示意畫面:部分欄位名稱待實機確認(建立 Site 的按鈕位置、對話框欄位標籤),版面以實機為準。</div>
+            </div>
+
+            <ol class="step-list mt-4 text-gray-700">
+                <li><span class="step-badge">1</span><span>Main &gt; Setup &gt; Sites,建立 Site <code>HQ</code>(Sites Tree 標題列 New)<span class="text-xs text-gray-500">【待實機確認:建立 Site 的按鈕位置,官方另有 Creating a New Site 頁】</span>。點選 Site <code>HQ</code>,在 Sites Tree 標題列按 <strong>New</strong>,出現 <strong>Create Server Group</strong> 對話框。</span></li>
+                <li><span class="step-badge">2</span><span>輸入名稱 <code>SG-Shop</code>。</span></li>
+                <li><span class="step-badge">3</span><span>按 <strong>Create</strong>。</span></li>
+                <li><span class="step-badge">4</span><span>再按 <strong>Save</strong>。</span></li>
+            </ol>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Server Group 的分頁</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">分頁</th><th class="py-2 px-4 border text-left">內容</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">Definitions</td><td class="py-2 px-4 border">名稱、<strong>Operation Mode</strong> 等</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Services and Ports</td><td class="py-2 px-4 border">這組伺服器上偵測到 / 定義的服務與埠</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Servers</td><td class="py-2 px-4 border">受保護伺服器的 IP</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Applied Policies</td><td class="py-2 px-4 border">已套用在這個 Server Group 的政策</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Servers:要填哪些 IP</h3>
+            <p class="text-gray-700 leading-relaxed">
+                WAF 只檢查「目的 IP 在 Server Group 裡」的流量,<strong>IP 漏填等於沒保護</strong>。要填哪些,取決於 Gateway 相對 LB 的位置(第 5 章):
+            </p>
+            <div class="overflow-x-auto mt-2">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">Gateway 位置</th><th class="py-2 px-4 border text-left">看到的目的 IP</th><th class="py-2 px-4 border text-left">SG-Shop Servers 要填</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">LB 前(外側)</td><td class="py-2 px-4 border">LB VIP</td><td class="py-2 px-4 border"><code>10.0.10.20</code>(若 NAT 前就檢查,填對外 VIP <code>203.0.113.20</code><span class="text-xs text-gray-500">【推論:依實際拓樸】</span>)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">LB 後(LB 與 Web 之間)</td><td class="py-2 px-4 border">各節點實 IP</td><td class="py-2 px-4 border"><code>10.0.10.21</code>、<code>10.0.10.22</code>;<strong>擴容加 web03 時要記得補</strong></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-xs text-gray-500 mt-1">伺服器 IP 欄位的實際輸入方式(單筆 / 範圍 / 自動探索)【待實機確認】。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Operation Mode</h3>
+            <div class="mock-window">
+                <div class="mock-titlebar">
+                    <span class="mock-dots"><span></span><span></span><span></span></span>
+                    <span class="mock-url">https://10.0.30.10:8083</span>
+                </div>
+                <div class="mock-crumb">Main &gt; Setup &gt; Sites &gt; SG-Shop</div>
+                <div class="mock-tabs"><span class="on">Definitions</span><span>Services and Ports</span><span>Servers</span><span>Applied Policies</span></div>
+                <div class="mock-body">
+                    <div class="mock-row"><span class="step-badge">1</span><span class="mock-label">Name</span><span class="mock-input">SG-Shop</span></div>
+                    <div class="mock-row"><span class="step-badge">2</span><span class="mock-label">Operation Mode</span><span class="mock-input mock-select mock-hl">Simulation</span><span class="text-xs text-gray-500">(Active / Simulation / Disabled)</span></div>
+                    <div class="mock-row" style="justify-content:flex-end;"><span class="step-badge">3</span><span class="mock-btn primary mock-hl">Save</span></div>
+                </div>
+                <div class="mock-caption"><i class="fas fa-circle-info mr-1"></i>示意畫面:欄位名稱依 Imperva 官方文件,版面、按鈕位置與配色以實機為準。</div>
+            </div>
+            <ol class="step-list mt-4 text-gray-700">
+                <li><span class="step-badge">1</span><span>Main &gt; Setup &gt; Sites,點選 <code>SG-Shop</code>,點 <strong>Definitions</strong> 分頁。</span></li>
+                <li><span class="step-badge">2</span><span>在 <strong>Operation Mode</strong> 選擇 Active、Simulation 或 Disabled。</span></li>
+                <li><span class="step-badge">3</span><span>按 <strong>Save</strong>(delayed activation 模式下需再 Activate)。</span></li>
+            </ol>
+            <div class="overflow-x-auto mt-3">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">模式</th><th class="py-2 px-4 border text-left">用途</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">Active</td><td class="py-2 px-4 border">依政策動作執行(含阻擋)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Simulation</td><td class="py-2 px-4 border">只告警不阻擋<span class="text-xs text-gray-500">【推論:依名稱與官方「三種模式」描述;完整定義在 Server Group Definition Parameters 頁】</span>,上線初期與學習期用</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Disabled</td><td class="py-2 px-4 border">不處理此 Server Group 流量</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 三、Web Service -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">三、動手做:建立 Web Service</h2>
+
+            <div class="mock-window">
+                <div class="mock-titlebar">
+                    <span class="mock-dots"><span></span><span></span><span></span></span>
+                    <span class="mock-url">https://10.0.30.10:8083</span>
+                </div>
+                <div class="mock-crumb">Main &gt; Setup &gt; Sites &gt; SG-Shop &gt; Create Service</div>
+                <div class="mock-body">
+                    <div class="mock-row"><span class="step-badge">1</span><span class="mock-label">名稱</span><span class="mock-input mock-hl">HTTPS-Shop</span></div>
+                    <div class="mock-row"><span class="step-badge">2</span><span class="mock-label">類型</span><span class="mock-input mock-select mock-hl">HTTP Service</span></div>
+                    <div class="mock-row" style="justify-content:flex-end;"><span class="step-badge">3</span><span class="mock-btn primary mock-hl">Create</span></div>
+                    <div class="mock-section">Sites Tree(建立後)</div>
+                    <div class="mock-list" style="min-height:5rem;">
+                        ▾ Site HQ<br>&nbsp;&nbsp;▾ SG-Shop<br>&nbsp;&nbsp;&nbsp;&nbsp;▾ HTTPS-Shop<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;• 預設 HTTP application
+                    </div>
+                </div>
+                <div class="mock-caption"><i class="fas fa-circle-info mr-1"></i>示意畫面:欄位名稱依 Imperva 官方文件,版面、按鈕位置與配色以實機為準。</div>
+            </div>
+
+            <ol class="step-list mt-4 text-gray-700">
+                <li><span class="step-badge">1</span><span>Main &gt; Setup &gt; Sites,在 Sites Tree 點選 <code>SG-Shop</code>,標題列按 <strong>New</strong>,出現 <strong>Create Service</strong> 對話框。名稱輸入 <code>HTTPS-Shop</code>。</span></li>
+                <li><span class="step-badge">2</span><span>下拉選單選 <strong>HTTP Service</strong>。</span></li>
+                <li><span class="step-badge">3</span><span>按 <strong>Create</strong>。新 service 會連同一個<strong>預設 HTTP application</strong> 一起出現在 Sites Tree。</span></li>
+            </ol>
+            <p class="text-sm text-gray-600 mt-2">官方註明:同一個 Server Group 下可以建多個 service、各監看不同埠;同一個 service 也可以有多個埠。Web Service 的分頁有:Definitions、Operations、Reverse Proxy、Applications、Applied Policies。</p>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Definitions 分頁欄位</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">欄位</th><th class="py-2 px-4 border text-left">說明</th><th class="py-2 px-4 border text-left">HTTPS-Shop 範例</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">Name</td><td class="py-2 px-4 border">必填</td><td class="py-2 px-4 border"><code>HTTPS-Shop</code></td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">HTTP Ports</td><td class="py-2 px-4 border">要解析的明文 HTTP 埠,預設 80</td><td class="py-2 px-4 border">80(若只走 HTTPS 可留 80 供轉址檢查)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Character Sets</td><td class="py-2 px-4 border">預設字元集,預設 Western European (Windows)</td><td class="py-2 px-4 border">中文站台建議改為 UTF-8<span class="text-xs text-gray-500">【推論】</span></td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Static Files</td><td class="py-2 px-4 border">靜態檔清單,預設 Default Static File List</td><td class="py-2 px-4 border">預設即可</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Encryption Support &gt; TLS Key Name</td><td class="py-2 px-4 border">已安裝的 TLS 金鑰</td><td class="py-2 px-4 border"><code>shop.example.com</code> 的金鑰</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Encryption Support &gt; TLS Ports</td><td class="py-2 px-4 border">TLS 流量的埠,逗號分隔</td><td class="py-2 px-4 border"><code>443</code></td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Plug-ins</td><td class="py-2 px-4 border">已安裝的外掛</td><td class="py-2 px-4 border">—</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Error Page</td><td class="py-2 px-4 border">預設錯誤頁設定(見第五節)</td><td class="py-2 px-4 border">—</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 四、TLS -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">四、TLS:金鑰、TLS Settings 與 SNI</h2>
+            <p class="text-gray-700 leading-relaxed">WAF 要檢查 HTTPS 內容,必須能解密。現行版本分三個地方設定:</p>
+            <div class="overflow-x-auto mt-2">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">設定</th><th class="py-2 px-4 border text-left">位置</th><th class="py-2 px-4 border text-left">說明</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">伺服器金鑰(憑證 + 私鑰)</td><td class="py-2 px-4 border">Web Service &gt; Definitions &gt; <strong>Encryption Support</strong>(Adding TLS Keys)</td><td class="py-2 px-4 border">被動 / Bridge 模式用私鑰解密;Reverse Proxy 用它終結 TLS</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Cipher、ECC、TLS 協定版本</td><td class="py-2 px-4 border">Global Objects 的 <strong>TLS Settings</strong>(v14.4 起)</td><td class="py-2 px-4 border">全域物件,可被多個 service 引用</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">SNI</td><td class="py-2 px-4 border">service 的 <strong>Reverse Proxy</strong> 頁(v14.3 起)</td><td class="py-2 px-4 border">同一 IP:443 承載多個憑證時使用</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">HSM</td><td class="py-2 px-4 border">nCipher card / netHSM;v15 起支援 Thales Luna Network HSM</td><td class="py-2 px-4 border"><span class="text-xs text-gray-500">【16.0】</span>CA 版不支援 Luna / nCipher HSM</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">匯入金鑰步驟</h3>
+            <ol class="step-list text-gray-700">
+                <li><span class="step-badge">1</span><span>Main &gt; Setup &gt; Sites &gt; <code>SG-Shop</code> &gt; <code>HTTPS-Shop</code> &gt; <strong>Definitions</strong>。</span></li>
+                <li><span class="step-badge">2</span><span>在 <strong>Encryption Support</strong> 區新增 TLS Key<span class="text-xs text-gray-500">【待實機確認:按鈕名稱】</span>。</span></li>
+                <li><span class="step-badge">3</span><span>上傳 <code>shop.example.com</code> 的憑證與私鑰(支援格式:舊簡報列 PKCS、PEM,現行格式清單<span class="text-xs text-gray-500">【待實機確認】</span>)。</span></li>
+                <li><span class="step-badge">4</span><span>在 <strong>TLS Ports</strong> 填 <code>443</code>,按 <strong>Save</strong>。</span></li>
+            </ol>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">模式決定能不能解密</h3>
+            <div class="diagram-container">
+                <svg viewBox="0 0 360 330" role="img" aria-labelledby="svg2-title" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans TC, sans-serif">
+                    <title id="svg2-title">能否解密比較:Sniffing 與純 Bridge 只能解 TLS 1.2 靜態 RSA;TLS 1.3 或 ECDHE、DHE 只有 Reverse Proxy 與 ABR 支援</title>
+                    <rect x="20" y="10" width="320" height="130" rx="10" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
+                    <text x="180" y="36" text-anchor="middle" font-size="15" font-weight="700" fill="#c2410c">Sniffing、純 Bridge</text>
+                    <text x="180" y="62" text-anchor="middle" font-size="13" fill="#1f2937">只能解 TLS 1.2 的 TLS_RSA_*</text>
+                    <text x="180" y="82" text-anchor="middle" font-size="13" fill="#1f2937">(靜態 RSA 金鑰交換)</text>
+                    <text x="180" y="108" text-anchor="middle" font-size="13" fill="#b91c1c">TLS 1.3、ECDHE / DHE:解不開</text>
+                    <text x="180" y="128" text-anchor="middle" font-size="13" fill="#b91c1c">DHE 明確不支援 Sniffing</text>
+
+                    <rect x="20" y="160" width="320" height="100" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+                    <text x="180" y="186" text-anchor="middle" font-size="15" font-weight="700" fill="#15803d">Reverse Proxy(NGRP)、ABR</text>
+                    <text x="180" y="212" text-anchor="middle" font-size="13" fill="#1f2937">支援 TLS 1.3、ECDHE / DHE(PFS)</text>
+                    <text x="180" y="234" text-anchor="middle" font-size="13" fill="#1f2937">用 service 的金鑰終結 TLS</text>
+
+                    <rect x="20" y="276" width="320" height="46" rx="10" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="180" y="296" text-anchor="middle" font-size="13" fill="#075985">匯入私鑰也解不開時:先查 cipher,再查金鑰</text>
+                    <text x="180" y="314" text-anchor="middle" font-size="13" fill="#075985">告警會只剩網路層</text>
+                </svg>
+            </div>
+            <div class="highlight-box">
+                <p class="font-bold text-sky-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>實務意義</p>
+                <p class="text-gray-800"><code>shop.example.com</code> 若對外只開 TLS 1.3 / ECDHE,Gateway 用 Sniffing 時<strong>匯入了私鑰也解不開</strong>,告警會只剩網路層。要嘛改 NGRP / ABR,要嘛把解密交給 LB 後在 LB 與 Web 之間檢查明文(第 5 章)。</p>
+            </div>
+        </div>
+
+        <!-- 五、Error Page / Forwarded -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">五、Error Page 與 Forwarded Connections</h2>
+            <h3 class="text-lg font-bold text-gray-800 mb-2">Error Page(Definitions 分頁 &gt; Error Page)</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">選項</th><th class="py-2 px-4 border text-left">行為</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">Use Default Error Page</td><td class="py-2 px-4 border">違規被阻擋時顯示預設錯誤頁</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Redirect</td><td class="py-2 px-4 border">以 302 代表受保護伺服器轉址到指定 URL</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Page</td><td class="py-2 px-4 border">用 HTML 加預定義 placeholder 自訂內容</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">HTTP Response Code</td><td class="py-2 px-4 border">錯誤頁回應的狀態碼</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Web Error Page Policies</td><td class="py-2 px-4 border">依違規類型送不同錯誤頁</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="highlight-box">
+                <p class="text-gray-800">Sniffing 模式只能對伺服器端送 TCP reset,<strong>用戶端看不到錯誤頁</strong>(第 4 章);錯誤頁設定只在 inline 模式有意義。建議在錯誤頁放「事件編號」placeholder,讓客服能把使用者回報對應到 MX 告警<span class="text-xs text-gray-500">【待實機確認:placeholder 名稱】</span>。</p>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Forwarded Connections</h3>
+            <p class="text-gray-700 leading-relaxed">
+                流量若經過 LB 或 proxy 做了 SNAT,WAF 看到的來源 IP 會全部是 LB 的 IP,信譽過濾(第 10 章)與依 IP 的告警全部失準。<span class="tech-term">Forwarded Connections</span> 用來告訴 WAF「從哪些 proxy 來的連線,真實用戶端 IP 要從哪個 header(如 <code>X-Forwarded-For</code>)取」<span class="text-xs text-gray-500">【推論:依舊簡報與一般用途;現行欄位名稱與所在分頁【待實機確認】】</span>。
+            </p>
+        </div>
+
+        <!-- 六、Web Application -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">六、Web Application:host 對應與拆分</h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">建立 Application</h3>
+            <ol class="step-list text-gray-700">
+                <li><span class="step-badge">1</span><span>Main &gt; Setup &gt; Sites,展開 <code>SG-Shop</code> &gt; <code>HTTPS-Shop</code>。標題列按 <strong>New</strong>,出現 <strong>Create Application</strong> 對話框。</span></li>
+                <li><span class="step-badge">2</span><span>輸入 <code>member</code>,按 <strong>Create</strong>,再按 <strong>Save</strong>。</span></li>
+            </ol>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">Host/URL 對應</h3>
+            <p class="text-gray-700 leading-relaxed">
+                在 service 的 <strong>Applications</strong> 分頁設定 Host/URL to Application Mapping,決定哪個 host(以及哪些 URL 路徑)歸哪個 application,並有優先順序<span class="text-xs text-gray-500">【待實機確認:欄位名稱與比對順序規則】</span>。
+            </p>
+
+            <div class="mock-window">
+                <div class="mock-titlebar">
+                    <span class="mock-dots"><span></span><span></span><span></span></span>
+                    <span class="mock-url">https://10.0.30.10:8083</span>
+                </div>
+                <div class="mock-crumb">Main &gt; Setup &gt; Sites &gt; SG-Shop &gt; HTTPS-Shop</div>
+                <div class="mock-tabs"><span>Definitions</span><span>Operations</span><span>Reverse Proxy</span><span class="on">Applications</span><span>Applied Policies</span></div>
+                <div class="mock-body">
+                    <div class="mock-section">Host/URL to Application Mapping</div>
+                    <div class="overflow-x-auto">
+                        <table class="mock-table">
+                            <thead><tr><th>優先序</th><th>Host</th><th>URL 前綴</th><th>Application</th></tr></thead>
+                            <tbody>
+                                <tr class="mock-hl"><td><span class="step-badge">1</span></td><td>shop.example.com</td><td>/member/</td><td>member</td></tr>
+                                <tr class="mock-hl"><td><span class="step-badge">2</span></td><td>shop.example.com</td><td>(全部)</td><td>shop</td></tr>
+                                <tr><td>—</td><td>其他</td><td>—</td><td>預設 application</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="mock-caption"><i class="fas fa-circle-info mr-1"></i>示意畫面:部分欄位名稱待實機確認(對應表欄位與比對順序規則),版面以實機為準。</div>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">為什麼要拆</h3>
+            <p class="text-gray-700 leading-relaxed">
+                一個 Application 對應一份 Web Profile。<code>member</code>(登入、個資、改密碼)與 <code>shop</code>(商品瀏覽、搜尋)的參數型態與敏感度完全不同,混在一起學會讓 profile 變得過寬(搜尋框允許任意字串,連帶讓登入欄位也放寬)。原則:
+            </p>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1 mt-2">
+                <li>參數用法或安全需求不同 → 拆 application。</li>
+                <li>環境簡單、只有一個站 → 用預設 application 即可。</li>
+                <li>別過度切分:每個 application 都要各自累積足夠流量才能轉 Protect(第 8 章)。</li>
+            </ul>
+        </div>
+
+        <!-- 七、模擬器 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">七、動手玩:請求落點判斷</h2>
+            <p class="text-gray-700 mb-3">輸入一個請求的目的 IP、埠、host 與路徑,看看它會落到哪個 Server Group、Web Service、Web Application,以及在每一層會被哪類政策檢查。也可以切換 Gateway 位置、Operation Mode 與 TLS 條件,觀察 Servers 漏填或解不開 TLS 的後果。</p>
+
+            <div class="grid md:grid-cols-2 gap-4">
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-sitemap mr-1 text-sky-600"></i>環境設定</h3>
+                    <label class="block text-sm mb-1">Gateway 位置</label>
+                    <select id="s-pos" class="border rounded px-2 py-1 w-full mb-2">
+                        <option value="after">LB 後(Servers:10.0.10.21、10.0.10.22)</option>
+                        <option value="before">LB 前(Servers:10.0.10.20)</option>
+                    </select>
+                    <label class="block mb-2 text-sm"><input type="checkbox" id="s-web03" class="mr-2">擴容的 web03 已補進 Servers(僅「LB 後」有意義)</label>
+                    <label class="block text-sm mb-1">SG-Shop 的 Operation Mode</label>
+                    <select id="s-mode" class="border rounded px-2 py-1 w-full mb-2">
+                        <option value="active">Active</option>
+                        <option value="simulation">Simulation</option>
+                        <option value="disabled">Disabled</option>
+                    </select>
+                    <label class="block text-sm mb-1">Gateway 運作模式</label>
+                    <select id="s-gw" class="border rounded px-2 py-1 w-full mb-2">
+                        <option value="rp">Reverse Proxy(NGRP)或 ABR</option>
+                        <option value="sniff">Sniffing 或純 Bridge</option>
+                    </select>
+                    <label class="block text-sm"><input type="checkbox" id="s-pfs" class="mr-2">用戶端協商的是 TLS 1.3 或 ECDHE / DHE</label>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-paper-plane mr-1 text-sky-600"></i>這個請求</h3>
+                    <label class="block text-sm mb-1">目的 IP</label>
+                    <select id="r-ip" class="border rounded px-2 py-1 w-full mb-2">
+                        <option value="10.0.10.20">10.0.10.20(LB VIP)</option>
+                        <option value="10.0.10.21" selected>10.0.10.21(web 節點)</option>
+                        <option value="10.0.10.22">10.0.10.22(web 節點)</option>
+                        <option value="web03">web03 的實 IP(擴容新增)</option>
+                        <option value="10.0.99.99">10.0.99.99(不在任何 Server Group)</option>
+                    </select>
+                    <label class="block text-sm mb-1">目的埠</label>
+                    <select id="r-port" class="border rounded px-2 py-1 w-full mb-2">
+                        <option value="443" selected>443</option>
+                        <option value="80">80</option>
+                        <option value="8443">8443(HTTPS-Shop 沒有設定)</option>
+                    </select>
+                    <label class="block text-sm mb-1">Host</label>
+                    <select id="r-host" class="border rounded px-2 py-1 w-full mb-2">
+                        <option value="shop.example.com" selected>shop.example.com</option>
+                        <option value="www.example.com">www.example.com(沒有對應)</option>
+                    </select>
+                    <label class="block text-sm mb-1">路徑</label>
+                    <input id="r-path" type="text" value="/member/login" class="border rounded px-2 py-1 w-full" aria-label="請求路徑">
+                    <div class="flex flex-wrap gap-2 mt-2">
+                        <button type="button" class="px-2 py-1 border rounded bg-white text-xs" data-path="/member/login">/member/login</button>
+                        <button type="button" class="px-2 py-1 border rounded bg-white text-xs" data-path="/product/list">/product/list</button>
+                        <button type="button" class="px-2 py-1 border rounded bg-white text-xs" data-path="/">/</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-4 mt-4">
+                <div class="bg-white border rounded-lg p-4">
+                    <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-shoe-prints mr-1 text-blue-600"></i>比對過程</h3>
+                    <div id="sim-trace" class="text-sm text-gray-700"></div>
+                </div>
+                <div id="sim-result" class="border rounded-lg p-4"></div>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">教學用簡化:「埠不在 HTTPS-Shop 內就不歸這個 service」與 host 對應的比對順序,屬推論或待實機確認。Reverse Proxy 依 RP 規則對應,本模擬以 inline 透通模式示意。</p>
+        </div>
+
+        <!-- 八、踩坑 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">八、常見踩坑</h2>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>政策不會往下繼承</p>
+                <p class="text-gray-800">官方明講,政策套在 Server Group 之後才新建的 child service <strong>不會自動繼承</strong>該政策;新增 service / application 後要回各政策的 <strong>Apply To</strong> 分頁補勾。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>LB 後擴容忘記加 IP</p>
+                <p class="text-gray-800">Servers 沒列的實 IP 流量直接不受保護,且不會有告警提醒。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>忘了 Activate</p>
+                <p class="text-gray-800">delayed activation 模式下只按 Save 不會生效,常被誤判成「政策沒作用」。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>匯了金鑰還是看不到 HTTPS 內容</p>
+                <p class="text-gray-800">多半是 TLS 1.3 / ECDHE 遇上 Sniffing 或 Bridge;先查 cipher 再查金鑰。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>SNAT 後來源 IP 全一樣</p>
+                <p class="text-gray-800">沒設 Forwarded Connections,信譽與依 IP 的政策全部失準。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>字元集用預設 Western European</p>
+                <p class="text-gray-800">中文參數可能被誤判為異常編碼<span class="text-xs text-gray-500">【推論】</span>。</p>
+            </div>
+        </div>
+
+        <!-- 九、新舊對照 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">九、新舊對照</h2>
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-2"><i class="fas fa-code-branch mr-1"></i>舊版說法與現況</p>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm border bg-white">
+                        <thead class="bg-gray-100">
+                            <tr><th class="py-2 px-4 border text-left">舊說法</th><th class="py-2 px-4 border text-left">現況</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td class="py-2 px-4 border">Site &gt; Server Group &gt; Service &gt; Application</td><td class="py-2 px-4 border">層級不變;GUI 名稱為 Web Service、Web Application,建立時選 HTTP Service</td></tr>
+                            <tr><td class="py-2 px-4 border">在 Service 匯入 SSL 公鑰憑證與私鑰</td><td class="py-2 px-4 border">金鑰仍在 service 的 Encryption Support;<strong>cipher / ECC / 協定版本 v14.4 起移到 Global Objects &gt; TLS Settings</strong>;SNI v14.3 起在 Reverse Proxy 頁</td></tr>
+                            <tr><td class="py-2 px-4 border">未提 TLS 版本與 cipher</td><td class="py-2 px-4 border">Sniffing / Bridge 只解 TLS 1.2 靜態 RSA;TLS 1.3 / PFS 需 NGRP 或 ABR</td></tr>
+                            <tr><td class="py-2 px-4 border">每個 Service 自動建立 Default Application</td><td class="py-2 px-4 border">仍成立:建立 service 時會一併建立預設 HTTP application</td></tr>
+                            <tr><td class="py-2 px-4 border">Error Page:Default、Redirect、HTML</td><td class="py-2 px-4 border">同樣三種,另有 HTTP Response Code 與 Web Error Page Policies;Redirect 明確為 302</td></tr>
+                            <tr><td class="py-2 px-4 border">Reverse Proxy 子模式含 kernel 層</td><td class="py-2 px-4 border">KRP 已於 v14.1 移除,改 NGRP(第 4 章)</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
+                隨堂測驗
+            </h2>
+            <p class="mb-6 text-gray-600">請點選您認為正確的選項,系統將會顯示解析。</p>
+            <div class="space-y-6" id="quiz-container"></div>
+        </div>
+
+    </main>
+
+    <footer class="footer-signature">
+        Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver.2026.11.02.12.07
+    </footer>
+
+    <script>
+        // ===== 請求落點判斷模擬器 =====
+        const $ = id => document.getElementById(id);
+        const sPos = $('s-pos'), sWeb03 = $('s-web03'), sMode = $('s-mode'), sGw = $('s-gw'), sPfs = $('s-pfs');
+        const rIp = $('r-ip'), rPort = $('r-port'), rHost = $('r-host'), rPath = $('r-path');
+        const traceBox = $('sim-trace'), resultBox = $('sim-result');
+
+        function serverList() {
+            if (sPos.value === 'before') return ['10.0.10.20'];
+            const list = ['10.0.10.21', '10.0.10.22'];
+            if (sWeb03.checked) list.push('web03');
+            return list;
+        }
+
+        function ipLabel(ip) { return ip === 'web03' ? 'web03 的實 IP' : ip; }
+
+        function evaluate() {
+            const lines = [];
+            const ok = t => '<span class="text-green-700 font-semibold">' + t + '</span>';
+            const ng = t => '<span class="text-red-700 font-semibold">' + t + '</span>';
+            const servers = serverList();
+            const ip = rIp.value;
+            const port = rPort.value;
+            const host = rHost.value.trim().toLowerCase();
+            let path = rPath.value.trim() || '/';
+            if (path.charAt(0) !== '/') path = '/' + path;
+            path = path.split('?')[0].split('#')[0];
+
+            // 1. Server Group
+            lines.push('Server Group 的 Servers:' + servers.map(ipLabel).join('、'));
+            if (servers.indexOf(ip) === -1) {
+                lines.push('目的 IP ' + ipLabel(ip) + ':' + ng('不在 SG-Shop 的 Servers'));
+                traceBox.innerHTML = lines.map(l => '<div class="trace-line">' + l + '</div>').join('');
+                let hint = '';
+                if (ip === 'web03' && sPos.value === 'after') hint = '這就是「LB 後擴容忘記加 IP」:Servers 沒列的實 IP 流量直接不受保護,而且不會有告警提醒。';
+                else if (sPos.value === 'before' && ip !== '10.0.10.20') hint = 'Gateway 在 LB 前時,看到的目的 IP 是 LB VIP,Servers 要填 VIP 而不是各節點實 IP。';
+                else if (sPos.value === 'after' && ip === '10.0.10.20') hint = 'Gateway 在 LB 後時,看到的是各節點實 IP,LB VIP 不會是目的 IP;Servers 要填各節點。';
+                else hint = '這個 IP 不屬於任何 Server Group。';
+                resultBox.className = 'border rounded-lg p-4 bg-red-50 border-red-300';
+                resultBox.innerHTML = '<h3 class="font-bold text-red-700 mb-2"><i class="fas fa-circle-xmark mr-1"></i>不受保護</h3>' +
+                    '<p class="text-sm text-gray-800 mb-1">WAF 只檢查「目的 IP 在 Server Group 裡」的流量,這個請求不會被任何政策檢查。</p>' +
+                    '<p class="text-sm text-gray-800">' + hint + '</p>';
+                return;
+            }
+            lines.push('目的 IP ' + ipLabel(ip) + ':' + ok('命中 SG-Shop'));
+            if (sMode.value === 'disabled') {
+                lines.push('Operation Mode:' + ng('Disabled,不處理此 Server Group 流量'));
+                traceBox.innerHTML = lines.map(l => '<div class="trace-line">' + l + '</div>').join('');
+                resultBox.className = 'border rounded-lg p-4 bg-red-50 border-red-300';
+                resultBox.innerHTML = '<h3 class="font-bold text-red-700 mb-2"><i class="fas fa-ban mr-1"></i>不處理</h3>' +
+                    '<p class="text-sm text-gray-800">SG-Shop 設成 Disabled,這個 Server Group 的流量完全不被處理。</p>';
+                return;
+            }
+            lines.push('Operation Mode:' + ok(sMode.value === 'active' ? 'Active(依政策動作執行,含阻擋)' : 'Simulation(只告警不阻擋)'));
+            const layers = ['Server Group:Firewall、Network Protocol Validation、Stream Signature'];
+
+            // 2. Web Service
+            if (port !== '80' && port !== '443') {
+                lines.push('目的埠 ' + port + ':' + ng('不是 HTTPS-Shop 的 HTTP Ports(80)或 TLS Ports(443)'));
+                traceBox.innerHTML = lines.map(l => '<div class="trace-line">' + l + '</div>').join('');
+                resultBox.className = 'border rounded-lg p-4 bg-orange-50 border-orange-300';
+                resultBox.innerHTML = '<h3 class="font-bold text-orange-700 mb-2"><i class="fas fa-triangle-exclamation mr-1"></i>只到 Server Group 層</h3>' +
+                    '<p class="text-sm text-gray-800 mb-1">這個埠沒有 Web Service 監看(推論),只會套用 Server Group 層的政策:' + layers[0] + '。</p>' +
+                    '<p class="text-sm text-gray-800">要檢查這個埠,得在 service 上加入該埠(同一個 service 可以有多個埠,也可以另建 service)。</p>';
+                return;
+            }
+            lines.push('目的埠 ' + port + ':' + ok(port === '80' ? '符合 HTTPS-Shop 的 HTTP Ports(明文)' : '符合 HTTPS-Shop 的 TLS Ports(需解密)'));
+            layers.push('Web Service:HTTP Protocol Validation、HTTP Protocol Signatures、Web Service Correlated Validation、Web Service Custom');
+
+            if (port === '443' && sGw.value === 'sniff' && sPfs.checked) {
+                lines.push('TLS 解密:' + ng('Sniffing / Bridge 只能解 TLS 1.2 靜態 RSA,這條連線解不開'));
+                traceBox.innerHTML = lines.map(l => '<div class="trace-line">' + l + '</div>').join('');
+                resultBox.className = 'border rounded-lg p-4 bg-orange-50 border-orange-300';
+                resultBox.innerHTML = '<h3 class="font-bold text-orange-700 mb-2"><i class="fas fa-lock mr-1"></i>解不開 HTTPS,只剩網路層</h3>' +
+                    '<p class="text-sm text-gray-800 mb-1">TLS 1.3 與 ECDHE / DHE(PFS)只有 Reverse Proxy(NGRP)與 ABR 支援;匯入了私鑰也解不開,告警只剩網路層。</p>' +
+                    '<p class="text-sm text-gray-800">改用 NGRP / ABR,或把解密交給 LB 後在 LB 與 Web 之間檢查明文(第 5 章)。先查 cipher,再查金鑰。</p>';
+                return;
+            }
+            if (port === '443') lines.push('TLS 解密:' + ok(sGw.value === 'rp' ? 'Reverse Proxy / ABR 用 service 的金鑰終結 TLS' : '用戶端用 TLS 1.2 靜態 RSA,私鑰可解'));
+
+            // 3. Web Application
+            let app, why;
+            if (host !== 'shop.example.com') {
+                app = '預設 application';
+                why = 'Host ' + host + ' 沒有對應規則,歸入預設 application(未對應的流量)';
+            } else if (path.indexOf('/member/') === 0) {
+                app = 'member';
+                why = '優先序 1:shop.example.com + /member/ → member';
+            } else {
+                app = 'shop';
+                why = '優先序 2:shop.example.com(全部)→ shop';
+            }
+            lines.push('Host/URL 對應:' + ok(why));
+            layers.push('Web Application(' + app + '):Web Profile、Web Application Signatures、Web Application Custom、Bot Mitigation、Anti Scraping');
+            traceBox.innerHTML = lines.map(l => '<div class="trace-line">' + l + '</div>').join('');
+
+            const sim = sMode.value === 'simulation';
+            resultBox.className = 'border rounded-lg p-4 bg-green-50 border-green-300';
+            resultBox.innerHTML = '<h3 class="font-bold text-green-700 mb-2"><i class="fas fa-circle-check mr-1"></i>落點:HQ &gt; SG-Shop &gt; HTTPS-Shop &gt; ' + app + '</h3>' +
+                '<p class="text-sm text-gray-800 mb-1">由外往內依序檢查:</p>' +
+                '<ol class="list-decimal pl-5 text-sm text-gray-800 space-y-1">' + layers.map(l => '<li>' + l + '</li>').join('') + '</ol>' +
+                '<p class="text-xs text-gray-600 mt-2">' + (sim ? 'Simulation:違規只告警,不阻擋(推論)。' : 'Active:依各政策的動作執行(含阻擋)。' + (sGw.value === 'sniff' ? 'Sniffing 模式只能對伺服器端送 TCP reset,不能回錯誤頁,用戶端看不到錯誤頁(第 4 章)。' : '')) + '政策不會往下繼承,新建的 service / application 要回各政策的 Apply To 補勾。</p>';
+        }
+
+        [sPos, sWeb03, sMode, sGw, sPfs, rIp, rPort, rHost].forEach(el => el.addEventListener('change', evaluate));
+        rPath.addEventListener('input', evaluate);
+        document.querySelectorAll('button[data-path]').forEach(b => b.addEventListener('click', () => { rPath.value = b.dataset.path; evaluate(); }));
+        evaluate();
+
+        const quizData = [
+            {
+                question: "Q1. 下列哪一層「只是純容器,本身沒有政策」?",
+                options: ["A. Site", "B. Server Group", "C. Web Service", "D. Web Application"],
+                correct: 0,
+                desc: "正解:A。Site 是組織上的分群(機房、事業單位),純容器;Firewall 等在 Server Group,HTTP 協定類在 Web Service,Web Profile 在 Web Application。"
+            },
+            {
+                question: "Q2. Gateway 部署在 LB 與 Web 之間,之後擴容新增了 web03,但 SG-Shop 的 Servers 沒補。會發生什麼事?",
+                options: ["A. web03 的流量照常受保護,只是會產生警示", "B. web03 的流量不受保護,而且不會有告警提醒", "C. 整個 SG-Shop 自動停用", "D. Gateway 自動探索並補上 web03"],
+                correct: 1,
+                desc: "正解:B。WAF 只檢查目的 IP 在 Server Group 裡的流量,Servers 沒列的實 IP 直接不受保護,也不會告警。"
+            },
+            {
+                question: "Q3. shop.example.com 只開 TLS 1.3 / ECDHE,Gateway 用 Sniffing,已匯入私鑰。結果?",
+                options: ["A. 可以正常解密並檢查", "B. 解不開,告警只剩網路層;應改用 NGRP / ABR", "C. 只要把 TLS Ports 改成 8443 就能解", "D. 自動降級成 TLS 1.2"],
+                correct: 1,
+                desc: "正解:B。Sniffing 與純 Bridge 只能解 TLS 1.2 的靜態 RSA;TLS 1.3 與 ECDHE / DHE 只有 Reverse Proxy(NGRP)、ABR 支援。"
+            },
+            {
+                question: "Q4. 為什麼建議把 member 和 shop 拆成兩個 Web Application?",
+                options: ["A. 因為一個 service 只能有一個 application", "B. 因為一個 Application 對應一份 Web Profile,登入與搜尋的參數特性不同,混在一起會讓 profile 過寬", "C. 因為預設 application 無法使用", "D. 因為拆開後可以不用 Activate"],
+                correct: 1,
+                desc: "正解:B。混在一起學,搜尋框允許任意字串會連帶放寬登入欄位。但也別過度切分,每個 application 都要累積足夠流量才能轉 Protect。"
+            },
+            {
+                question: "Q5. 政策套在 Server Group 之後,才新建了一個 child service。這個政策對新 service?",
+                options: ["A. 自動繼承", "B. 不會自動繼承,要到政策的 Apply To 分頁補勾", "C. 只在 Active 模式繼承", "D. 重開機後繼承"],
+                correct: 1,
+                desc: "正解:B。官方明講政策不會往下繼承給之後才新建的 child service;新增 service / application 後要回各政策的 Apply To 分頁補勾。"
+            }
+        ];
+
+
+        // ===== 隨堂測驗 =====
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionBox = document.createElement('div');
+            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
+
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border mb-2 text-gray-700" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            questionBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
+                <div class="space-y-2 mb-4">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
+                    <p class="font-bold result-title"></p>
+                    <p class="text-sm text-gray-600 mt-1">${item.desc}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionBox);
+        });
+
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            if (element.parentElement.dataset.answered) return;
+            element.parentElement.dataset.answered = "true";
+
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+                opt.classList.add('disabled');
+            });
+
+            if (optIndex === data.correct) {
+                element.classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了!";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                element.classList.add('bg-red-100', 'border-red-500');
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了!";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+    </script>
+</body>
+</html>

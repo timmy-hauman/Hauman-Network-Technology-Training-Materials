@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imperva WAF Gateway 實戰課程 - 安裝與初始化</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+
+        /* 卡片主體樣式 (Imperva Blue) */
+        .section-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid #0284c7;
+        }
+
+        /* 重點提示框 (藍) */
+        .highlight-box {
+            background-color: #f0f9ff;
+            border-left: 4px solid #0284c7;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 技術名詞標記 */
+        .tech-term {
+            color: #075985;
+            font-weight: 700;
+            background-color: #e0f2fe;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
+        }
+
+        /* 比喻說明框 (綠) */
+        .analogy-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 版本差異框 (紫) */
+        .version-box {
+            background-color: #faf5ff;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        /* 常見踩坑框 (橘) */
+        .pitfall-box {
+            background-color: #fff7ed;
+            border-left: 4px solid #ea580c;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .diagram-container {
+            display: block;
+            background-color: #ffffff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            margin-top: 1rem;
+        }
+
+        .diagram-container svg {
+            display: block;
+            width: 100%;
+            max-width: 520px;
+            margin: 0 auto;
+        }
+
+        /* 示意畫面 (仿管理介面) */
+        .mock-window {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            background: #ffffff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            margin-top: 1rem;
+        }
+        .mock-titlebar {
+            background: #e2e8f0;
+            padding: 0.4rem 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: #475569;
+        }
+        .mock-dots span {
+            display: inline-block;
+            width: 0.6rem;
+            height: 0.6rem;
+            border-radius: 50%;
+            background: #94a3b8;
+            margin-right: 0.2rem;
+        }
+        .mock-url {
+            background: #ffffff;
+            border-radius: 0.25rem;
+            padding: 0.1rem 0.5rem;
+            flex: 1;
+            min-width: 0;
+            font-family: ui-monospace, Consolas, monospace;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .mock-nav {
+            background: #1f2937;
+            color: #cbd5e1;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.25rem 1rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+        }
+        .mock-nav .brand { font-weight: 700; color: #ffffff; margin-right: 0.5rem; }
+        .mock-nav .on { color: #ffffff; border-bottom: 2px solid #0284c7; padding-bottom: 0.1rem; }
+        .mock-crumb {
+            font-size: 0.8rem;
+            color: #475569;
+            padding: 0.5rem 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f8fafc;
+        }
+        .mock-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            padding: 0.5rem 0.75rem 0;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.8rem;
+        }
+        .mock-tabs span {
+            padding: 0.3rem 0.7rem;
+            border: 1px solid #e5e7eb;
+            border-bottom: none;
+            border-radius: 0.3rem 0.3rem 0 0;
+            background: #f1f5f9;
+            color: #475569;
+        }
+        .mock-tabs span.on { background: #ffffff; color: #111827; font-weight: 600; }
+        .mock-body { padding: 0.75rem; font-size: 0.85rem; }
+        .mock-section { font-weight: 700; color: #334155; margin: 0.75rem 0 0.25rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.2rem; }
+        .mock-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.35rem 0.6rem;
+            padding: 0.35rem 0;
+        }
+        .mock-label { width: 12rem; color: #374151; font-weight: 500; }
+        .mock-input {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+            padding: 0.2rem 0.5rem;
+            min-width: 12rem;
+            background: #ffffff;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #111827;
+        }
+        .mock-select::after { content: " ▾"; color: #64748b; }
+        .mock-indent { padding-left: 2rem; }
+        .mock-btn {
+            display: inline-block;
+            border: 1px solid #94a3b8;
+            background: #f8fafc;
+            border-radius: 0.25rem;
+            padding: 0.2rem 0.7rem;
+            font-size: 0.8rem;
+            color: #1f2937;
+        }
+        .mock-btn.primary { background: #1f2937; color: #ffffff; border-color: #1f2937; }
+        .mock-hl { outline: 2px solid #0284c7; outline-offset: 2px; border-radius: 0.25rem; }
+        .mock-list {
+            border: 1px solid #cbd5e1;
+            border-radius: 0.25rem;
+            min-width: 9rem;
+            min-height: 4.2rem;
+            padding: 0.25rem 0.5rem;
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 0.8rem;
+            background: #ffffff;
+        }
+        .mock-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 0.5rem; }
+        .mock-table th { background: #f1f5f9; text-align: left; padding: 0.35rem 0.5rem; border: 1px solid #e2e8f0; color: #334155; }
+        .mock-table td { padding: 0.35rem 0.5rem; border: 1px solid #e2e8f0; }
+        .mock-caption {
+            font-size: 0.75rem;
+            color: #6b7280;
+            padding: 0.5rem 0.75rem;
+            background: #f9fafb;
+            border-top: 1px dashed #e5e7eb;
+        }
+        .step-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.4rem;
+            height: 1.4rem;
+            border-radius: 9999px;
+            background: #0284c7;
+            color: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .step-list li { display: flex; gap: 0.6rem; align-items: flex-start; margin-bottom: 0.6rem; }
+
+        /* 模擬器 */
+        .sim-rule {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.4rem 0.75rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            margin-bottom: 0.5rem;
+            background: #ffffff;
+        }
+        .sim-rule .num { font-weight: 700; color: #075985; width: 3.5rem; }
+        .sim-rule .desc { flex: 1; min-width: 12rem; }
+        .sim-arrow { border: 1px solid #cbd5e1; border-radius: 0.25rem; padding: 0 0.45rem; background: #f8fafc; }
+        .sim-arrow:disabled { opacity: 0.35; cursor: not-allowed; }
+        .trace-line { padding: 0.3rem 0; border-bottom: 1px dashed #e5e7eb; }
+
+        @media (max-width: 640px) {
+            main { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+            .section-card { padding: 1rem; }
+            .diagram-container { padding: 0.25rem; }
+            .mock-label { width: calc(100% - 2.2rem); }
+            .mock-indent .mock-label { width: 100%; }
+            .mock-input { min-width: 0; width: 100%; }
+            .mock-indent { padding-left: 0.75rem; }
+            .mock-body { padding: 0.5rem; }
+        }
+
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quiz-option:hover:not(.disabled) {
+            background-color: #f3f4f6;
+        }
+
+        .footer-signature {
+            background-color: #2d3748;
+            color: #a0aec0;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.875rem;
+            margin-top: 4rem;
+        }
+        /* Long URLs and code wrap on narrow screens */
+        main { overflow-wrap: break-word; } main code { overflow-wrap: anywhere; }
+
+        /* 終端機示意 (impcfg) */
+        .mock-console { background: #0f172a; color: #e2e8f0; font-family: ui-monospace, Consolas, monospace; font-size: 0.8rem; padding: 0.75rem; line-height: 1.7; overflow-x: auto; }
+        .mock-console .dim { color: #94a3b8; }
+        .mock-console .hl { outline: 2px solid #38bdf8; outline-offset: 1px; border-radius: 0.2rem; padding: 0 0.2rem; }
+        .mock-console .step-badge { margin-right: 0.4rem; }
+        .sim-opt { display: block; width: 100%; text-align: left; border: 1px solid #cbd5e1; border-radius: 0.5rem; padding: 0.5rem 0.75rem; margin-bottom: 0.5rem; background: #ffffff; }
+        .sim-opt:hover:not(:disabled) { background: #f0f9ff; }
+        .sim-opt.ok { background: #dcfce7; border-color: #16a34a; }
+        .sim-opt.bad { background: #fee2e2; border-color: #dc2626; }
+        .bar { position: relative; height: 1.1rem; background: #e2e8f0; border-radius: 9999px; }
+        .bar .fill { position: absolute; left: 0; top: 0; bottom: 0; background: #0284c7; border-radius: 9999px; }
+        .bar .mark { position: absolute; top: -0.3rem; bottom: -0.3rem; width: 3px; background: #ea580c; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-sky-800 to-gray-900 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-shield-halved text-4xl"></i>
+                <div>
+                    <h1 class="text-3xl font-bold">Imperva WAF Gateway 實戰課程</h1>
+                    <p class="text-sky-100 mt-1">單元 6:安裝與初始化(impcfg 首次設定)</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <nav class="bg-white border-b shadow-sm">
+        <div class="container mx-auto px-4 py-2 max-w-5xl flex flex-wrap items-center justify-between gap-2 text-sm">
+            <a href="Imperva05.html" class="text-sky-700 hover:underline"><i class="fas fa-arrow-left mr-1"></i>上一章</a>
+            <a href="Imperva00.html" class="text-sky-700 hover:underline"><i class="fas fa-list mr-1"></i>課程目錄</a>
+            <a href="Imperva07.html" class="text-sky-700 hover:underline">下一章<i class="fas fa-arrow-right ml-1"></i></a>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+        <!-- Introduction -->
+        <div class="mb-8">
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
+                <h2 class="text-xl font-bold text-blue-800 mb-2 flex items-center">
+                    <i class="fas fa-user-tie mr-2"></i>講師導言
+                </h2>
+                <p class="text-blue-900 leading-relaxed">
+                    前面五章都在「紙上談兵」,這一章開始動手裝機。目標很明確:從一台空的 VM 或剛上架的硬體,走到「Gateway 出現在 MX 的 Gateways 清單、狀態正常」。
+                    最重要的一條順序是 <strong>先 MX、後 Gateway</strong>:Gateway 首次設定時要填 MX 的 IP 才能註冊,MX 沒起來,Gateway 就註冊不上。
+                    初始化全程靠 <strong>impcfg</strong> 精靈與 <strong>impcli</strong> 受限 shell,GUI 要等 MX 資料庫建好才能登入。
+                </p>
+            </div>
+        </div>
+
+        <!-- 學習目標 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-gray-100 text-gray-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Goals</span>
+                本章學習目標
+            </h2>
+            <ul class="list-disc pl-6 space-y-1 text-gray-700">
+                <li>說明安裝順序(先 MX 後 Gateway)與安裝前要備妥的項目</li>
+                <li>分辨 VMware、KVM、公有雲、硬體 appliance 四種安裝方式與限制</li>
+                <li>說出 impcli 登入規則,以及 impcfg 首次設定在 MX 與 Gateway 上各填什麼</li>
+                <li>登入 MX GUI、了解授權類型,並完成 ADC 手動或自動更新</li>
+                <li>用檢查清單確認 Gateway 已出現在 MX,並避開常見踩坑</li>
+            </ul>
+            <p class="text-sm text-gray-500 mt-4"><i class="fas fa-map-signs mr-1"></i>範例環境:MX <code>mx01</code> <code>10.0.30.10</code>;Gateway <code>gw01</code> <code>10.0.30.11</code>、<code>gw02</code> <code>10.0.30.12</code>;管理者電腦 <code>10.0.30.100</code>。</p>
+        </div>
+
+        <!-- 一、安裝前準備 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">一、安裝前準備與整體順序</h2>
+
+            <div class="analogy-box">
+                <p class="font-bold text-green-800 mb-1"><i class="fas fa-building mr-1"></i>用公司總機來想</p>
+                <p class="text-green-900">MX 像總機房,Gateway 像各分機。分機要接上線,得先知道總機的號碼(MX 的 IP)並用密碼報到;總機還沒開機,分機再怎麼設定也報到不了。</p>
+            </div>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 360 560" role="img" aria-labelledby="svg1-title" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans TC, sans-serif">
+                    <title id="svg1-title">安裝順序:先備妥網路與防火牆,再裝 MX 並等資料庫初始化 45 到 60 分鐘,登入 GUI 後,才設定 Gateway 並註冊到 MX,最後在 Gateways 清單確認</title>
+                    <defs>
+                        <marker id="arrow1" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+                        </marker>
+                    </defs>
+                    <rect x="20" y="10" width="320" height="76" rx="10" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2"/>
+                    <text x="180" y="36" text-anchor="middle" font-size="15" font-weight="700" fill="#1f2937">① 安裝前準備</text>
+                    <text x="180" y="58" text-anchor="middle" font-size="13" fill="#1f2937">管理 IP、真實 DNS、NTP、授權</text>
+                    <text x="180" y="76" text-anchor="middle" font-size="13" fill="#1f2937">防火牆:GW → MX 8083、MX → GW 22/443</text>
+                    <line x1="180" y1="86" x2="180" y2="112" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+
+                    <rect x="20" y="116" width="320" height="86" rx="10" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="180" y="142" text-anchor="middle" font-size="15" font-weight="700" fill="#075985">② 先裝 MX(mx01)</text>
+                    <text x="180" y="164" text-anchor="middle" font-size="13" fill="#1f2937">impcfg 首次設定 → 建立並初始化資料庫</text>
+                    <text x="180" y="186" text-anchor="middle" font-size="14" font-weight="700" fill="#ea580c">約 45 分鐘到 1 小時</text>
+                    <line x1="180" y1="202" x2="180" y2="228" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+
+                    <rect x="20" y="232" width="320" height="76" rx="10" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+                    <text x="180" y="258" text-anchor="middle" font-size="15" font-weight="700" fill="#075985">③ 登入 MX GUI</text>
+                    <text x="180" y="280" text-anchor="middle" font-size="13" fill="#1f2937">https://10.0.30.10:8083 、授權、ADC 更新</text>
+                    <text x="180" y="298" text-anchor="middle" font-size="13" fill="#6b7280">(要等 MX 資料庫建好才能登入)</text>
+                    <line x1="180" y1="308" x2="180" y2="334" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+
+                    <rect x="20" y="338" width="320" height="100" rx="10" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+                    <text x="180" y="364" text-anchor="middle" font-size="15" font-weight="700" fill="#1d4ed8">④ 再裝 Gateway(gw01、gw02)</text>
+                    <text x="180" y="386" text-anchor="middle" font-size="13" fill="#1f2937">impcfg 首次設定,填 MX 的單一 IP</text>
+                    <text x="180" y="406" text-anchor="middle" font-size="13" fill="#1f2937">(不能填 CIDR)與註冊密碼</text>
+                    <text x="180" y="428" text-anchor="middle" font-size="14" font-weight="700" fill="#ea580c">每台約 10 到 15 分鐘</text>
+                    <line x1="180" y1="438" x2="180" y2="464" stroke="#64748b" stroke-width="2" marker-end="url(#arrow1)"/>
+
+                    <rect x="20" y="468" width="320" height="76" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+                    <text x="180" y="494" text-anchor="middle" font-size="15" font-weight="700" fill="#15803d">⑤ 在 MX 確認</text>
+                    <text x="180" y="516" text-anchor="middle" font-size="13" fill="#1f2937">Main &gt; Setup &gt; Gateways</text>
+                    <text x="180" y="534" text-anchor="middle" font-size="13" fill="#1f2937">Gateway Group GG-Shop 下看到 gw01、gw02</text>
+                </svg>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">安裝前要備妥的項目</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">項目</th><th class="py-2 px-4 border text-left">範例環境的值</th><th class="py-2 px-4 border text-left">說明</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">MX 管理 IP / 遮罩 / 預設閘道</td><td class="py-2 px-4 border"><code>10.0.30.10/24</code>,閘道 <code>10.0.30.1</code><span class="text-xs text-gray-500">【推論:範例網段慣例】</span></td><td class="py-2 px-4 border">MX 只需要管理介面</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Gateway 管理 IP</td><td class="py-2 px-4 border"><code>gw01</code> <code>10.0.30.11</code>、<code>gw02</code> <code>10.0.30.12</code></td><td class="py-2 px-4 border">流量介面另依部署模式規劃(第 4、5 章)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">DNS</td><td class="py-2 px-4 border">內部 DNS 伺服器(必須是真的 DNS)</td><td class="py-2 px-4 border">首次設定若填 DNS client,官方要求填「真實存在」的 DNS 伺服器;ADC 自動更新也依賴 DNS</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">NTP</td><td class="py-2 px-4 border">內部 NTP</td><td class="py-2 px-4 border">MX 與 Gateway 時間不一致會讓告警時間軸錯亂、憑證驗證失敗<span class="text-xs text-gray-500">【推論】</span></td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">對外連線</td><td class="py-2 px-4 border">MX → <code>www.imperva.com:443</code>、MX → <code>*.impervacloud.com:443</code></td><td class="py-2 px-4 border">ADC 更新與威脅情資(第 3 章通訊埠表、第 10 章)</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">授權</td><td class="py-2 px-4 border">傳統授權或 FlexProtect</td><td class="py-2 px-4 border">見第六節</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">防火牆</td><td class="py-2 px-4 border">管理者 <code>10.0.30.100</code> → MX 8083、22;GW → MX 8083;MX → GW 22、443</td><td class="py-2 px-4 border">啟用憑證式 Trusted Connections 後 GW → MX 改走 8085(第 3 章)</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="highlight-box">
+                <p class="font-bold text-sky-800 mb-1"><i class="fas fa-clock mr-1"></i>排維護窗口的時間預估(官方)</p>
+                <ul class="list-disc pl-6 text-gray-800 space-y-1">
+                    <li>MX 首次設定要 <strong>45 分鐘到 1 小時</strong>(要建立並初始化資料庫)。</li>
+                    <li>Gateway 約 <strong>10 到 15 分鐘</strong>。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 二、安裝方式 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">二、四種安裝方式與限制</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">方式</th><th class="py-2 px-4 border text-left">適用</th><th class="py-2 px-4 border text-left">重點</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">VMware OVF</td><td class="py-2 px-4 border">ESXi 6.x / 7.0 / 8.0</td><td class="py-2 px-4 border">需透過 <strong>vCenter</strong> 部署 OVF;MX 用 VM150,Gateway 依容量選 V1000 / V2500 / V4500</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">KVM</td><td class="py-2 px-4 border">Linux KVM</td><td class="py-2 px-4 border">依 KVM 安裝指南匯入映像</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">公有雲</td><td class="py-2 px-4 border">AWS、Azure、GCP、AliCloud、OCI<span class="text-xs text-gray-500">【15.5】</span></td><td class="py-2 px-4 border">用 Cloud Template Tool 產生 Terraform(第 5 章);<span class="text-xs text-gray-500">【16.0】</span>CA 版不支援任何雲端 VM</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">硬體 appliance</td><td class="py-2 px-4 border">7G(X2030…X10K3、M180)</td><td class="py-2 px-4 border">依機器隨附的 Quick Start Guide 接 console 開機,進入首次設定</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>安裝前先確認的四個限制</p>
+                <ul class="list-disc pl-6 text-gray-800 space-y-1">
+                    <li><strong>只支援分散式部署</strong>:MX 與 Gateway 必須是不同的 VM / 機器;Onebox(同機)自 v14.1 起不支援。</li>
+                    <li><strong>Hyper-V 自 v14.4 起不支援</strong>,舊環境若在 Hyper-V 上要先規劃搬遷。</li>
+                    <li><strong>虛擬機只支援 Fail Close</strong>(沒有實體 bypass 網卡),要 Fail Open 只能用有 bypass 介面的硬體(第 5 章)。</li>
+                    <li>硬體重灌(USB 安裝映像)的實際步驟與指令以該型號 Quick Start Guide 為準<span class="text-xs text-gray-500">【待實機確認】</span>;<span class="text-xs text-gray-500">【16.0】</span>官方列 NG6 硬體不支援 USB 全新安裝。</li>
+                </ul>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">VMware 部署步驟(以 MX 為例,Gateway 相同)</h3>
+            <ol class="step-list text-gray-700">
+                <li><span class="step-badge">1</span><span>從 Thales Support Portal 下載對應版本的 MX OVF/OVA<span class="text-xs text-gray-500">【待實機確認:檔名與下載路徑】</span>。</span></li>
+                <li><span class="step-badge">2</span><span>vCenter &gt; Deploy OVF Template,選 MX 映像,指定名稱 <code>mx01</code>、資料存放區、網路(管理 port group 接 <code>10.0.30.0/24</code>)<span class="text-xs text-gray-500">【待實機確認:OVF 精靈內的部署選項名稱】</span>。</span></li>
+                <li><span class="step-badge">3</span><span>確認 vCPU / 記憶體符合 VM150 規格(4 vCPU / 8GB,可擴到 32GB)。</span></li>
+                <li><span class="step-badge">4</span><span>開機,從 vSphere console 進入首次登入(下一節)。</span></li>
+            </ol>
+        </div>
+
+        <!-- 三、impcli -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">三、首次登入:impcli 與改密碼</h2>
+            <p class="text-gray-700 leading-relaxed">
+                登入 appliance 的 shell 是 <span class="tech-term">impcli</span>(Imperva 專屬受限 shell)<span class="text-xs text-gray-500">【待實機確認:起始版本】</span>,不是舊版直接進 Linux。
+            </p>
+            <div class="overflow-x-auto mt-3">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">項目</th><th class="py-2 px-4 border text-left">現況</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border font-semibold">預設使用者</td><td class="py-2 px-4 border"><code>admin</code>,<strong>首次登入必須改密碼</strong></td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">取得 root</td><td class="py-2 px-4 border">在 impcli 下輸入 <code>admin</code> 指令可切到 root</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">Sealed 模式</td><td class="py-2 px-4 border">啟用後<strong>不能切 root</strong>,適合高安全環境</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">root 密碼</td><td class="py-2 px-4 border">每 90 天必須更換</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">root SSH</td><td class="py-2 px-4 border">預設不允許 root 直接 SSH 登入</td></tr>
+                        <tr><td class="py-2 px-4 border font-semibold">稽核</td><td class="py-2 px-4 border">impcli 的所有輸入都會被記錄</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <ol class="step-list mt-4 text-gray-700">
+                <li><span class="step-badge">1</span><span>從 VM console(或硬體序列 console)以 <code>admin</code> 登入。</span></li>
+                <li><span class="step-badge">2</span><span>依提示設定新密碼(密碼複雜度規則<span class="text-xs text-gray-500">【待實機確認】</span>)。</span></li>
+                <li><span class="step-badge">3</span><span>系統接著引導進入 <code>impcfg</code> 首次設定精靈(First Time Login)<span class="text-xs text-gray-500">【待實機確認:是自動進入或需手動執行 impcfg】</span>。</span></li>
+            </ol>
+        </div>
+
+        <!-- 四、impcfg MX -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">四、impcfg 首次設定:MX</h2>
+            <p class="text-gray-700 leading-relaxed">
+                <span class="tech-term">impcfg</span> 是選單 / 問答式設定工具。首次設定時它以問答方式蒐集資料,確認後再呼叫 <code>impctl</code> 套用到系統元件。
+            </p>
+
+            <div class="mock-window">
+                <div class="mock-titlebar">
+                    <span class="mock-dots"><span></span><span></span><span></span></span>
+                    <span class="mock-url">vSphere console - mx01(impcfg 首次設定)</span>
+                </div>
+                <div class="mock-console">
+                    <div><span class="step-badge">1</span><span class="hl">Role: Management Server (MX)</span></div>
+                    <div><span class="step-badge">2</span><span class="hl">Management IP: 10.0.30.10</span></div>
+                    <div class="dim">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Netmask: 255.255.255.0 / Default gateway: 10.0.30.1</div>
+                    <div><span class="step-badge">3</span><span class="hl">Hostname: mx01</span> <span class="dim">/ DNS / NTP / Time zone</span></div>
+                    <div><span class="step-badge">4</span><span class="hl">Registration password: ********</span></div>
+                    <div><span class="step-badge">5</span><span class="hl">Review summary → Apply</span> <span class="dim">(等待 45–60 分鐘)</span></div>
+                </div>
+                <div class="mock-caption"><i class="fas fa-circle-info mr-1"></i>示意畫面:部分欄位名稱待實機確認(精靈選項文字、註冊密碼欄位名稱、NTP 設定位置),版面以實機為準。</div>
+            </div>
+
+            <ol class="step-list mt-4 text-gray-700">
+                <li><span class="step-badge">1</span><span>選擇此 appliance 的角色為 <strong>Management Server(MX)</strong><span class="text-xs text-gray-500">【待實機確認:精靈中的選項文字】</span>。</span></li>
+                <li><span class="step-badge">2</span><span>設定管理介面:IP <code>10.0.30.10</code>、遮罩 <code>255.255.255.0</code>、預設閘道。</span></li>
+                <li><span class="step-badge">3</span><span>設定 hostname <code>mx01</code>、DNS(填真實 DNS)、NTP、時區<span class="text-xs text-gray-500">【待實機確認:NTP 是否在首次精靈中或稍後在 impcfg 的 platform 選單設定】</span>。</span></li>
+                <li><span class="step-badge">4</span><span>設定 MX 與 Gateway 之間的通訊(註冊)密碼,之後 Gateway 註冊要用到<span class="text-xs text-gray-500">【待實機確認:欄位名稱】</span>。</span></li>
+                <li><span class="step-badge">5</span><span>檢視摘要、確認後套用;等待 45–60 分鐘直到資料庫初始化完成。</span></li>
+            </ol>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>官方警告</p>
+                <p class="text-gray-800">對<strong>已設定好</strong>的 appliance 重跑 First-Time 設定腳本,<strong>會覆蓋原有設定</strong>。日常修改請用 impcfg 選單,不要重跑首次精靈。</p>
+            </div>
+        </div>
+
+        <!-- 五、impcfg Gateway -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">五、impcfg 首次設定:Gateway 與註冊</h2>
+
+            <div class="mock-window">
+                <div class="mock-titlebar">
+                    <span class="mock-dots"><span></span><span></span><span></span></span>
+                    <span class="mock-url">vSphere console - gw01(impcfg 首次設定)</span>
+                </div>
+                <div class="mock-console">
+                    <div><span class="step-badge">1</span><span class="dim">以 admin 登入、改密碼、進入 impcfg</span></div>
+                    <div><span class="step-badge">2</span><span class="hl">Role: Gateway</span></div>
+                    <div><span class="step-badge">3</span><span class="hl">Management IP: 10.0.30.11/24</span> <span class="dim">/ gateway / DNS / NTP</span></div>
+                    <div><span class="step-badge">4</span><span class="hl">Management Server IP: 10.0.30.10</span> <span class="dim">(單一 IP,不是 CIDR)</span></div>
+                    <div><span class="step-badge">5</span><span class="hl">Registration password: ********</span></div>
+                    <div><span class="step-badge">6</span><span class="hl">Gateway Group: GG-Shop / Name: gw01</span></div>
+                    <div><span class="step-badge">7</span><span class="hl">Operation mode: Bridge / Sniffing / Reverse Proxy</span></div>
+                    <div><span class="step-badge">8</span><span class="hl">Apply</span> <span class="dim">(約 10–15 分鐘)</span></div>
+                </div>
+                <div class="mock-caption"><i class="fas fa-circle-info mr-1"></i>示意畫面:部分欄位名稱待實機確認(角色選項文字、註冊密碼、是否在精靈中詢問 Gateway Group),版面以實機為準。</div>
+            </div>
+
+            <ol class="step-list mt-4 text-gray-700">
+                <li><span class="step-badge">1</span><span>以 <code>admin</code> 登入 <code>gw01</code> console、改密碼、進入 impcfg 首次設定。</span></li>
+                <li><span class="step-badge">2</span><span>選擇角色為 <strong>Gateway</strong><span class="text-xs text-gray-500">【待實機確認:選項文字】</span>。</span></li>
+                <li><span class="step-badge">3</span><span>設定管理介面 <code>10.0.30.11/24</code>、預設閘道、DNS、NTP。</span></li>
+                <li><span class="step-badge">4</span><span>填入 <strong>Management Server 的 IP</strong>:<code>10.0.30.10</code>。官方註明這裡<strong>不能填 CIDR</strong>,只能填單一 IP。</span></li>
+                <li><span class="step-badge">5</span><span>填入上一節步驟 4 設定的註冊密碼<span class="text-xs text-gray-500">【待實機確認】</span>。</span></li>
+                <li><span class="step-badge">6</span><span>指定 Gateway Group(<code>GG-Shop</code>)與 Gateway 名稱 <code>gw01</code><span class="text-xs text-gray-500">【待實機確認:首次精靈是否詢問 Gateway Group,或註冊後在 MX 指派】</span>。</span></li>
+                <li><span class="step-badge">7</span><span>選擇 Gateway 運作模式(Bridge / Sniffing / Reverse Proxy;見第 4 章)。日後要改模式,官方建議用 impcfg:<code>Top &gt; Manage SecureSphere Gateway &gt; Change operation mode</code>,改完按 <code>S</code> 存檔、<code>A</code> 套用。</span></li>
+                <li><span class="step-badge">8</span><span>確認後套用,約 10–15 分鐘;對 <code>gw02</code>(<code>10.0.30.12</code>)重複一次。</span></li>
+            </ol>
+
+            <div class="highlight-box">
+                <p class="font-bold text-sky-800 mb-1"><i class="fas fa-right-left mr-1"></i>換 MX 註冊</p>
+                <p class="text-gray-800">Gateway 可以用 impcfg 從原 MX 解除註冊、再註冊到另一台 MX;底層對應 <code>impctl gateway unregister</code> / <code>register</code>(impctl 只在必要時或原廠指示下使用,見第 13 章)。</p>
+            </div>
+        </div>
+
+        <!-- 六、模擬器 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">六、動手玩:impcfg 首次設定模擬器</h2>
+            <p class="text-gray-700 mb-3">每一步選出正確的選項才會前進,選錯會告訴你為什麼不行。可以切換成 Gateway 流程;如果在 MX 還沒完成時就去設 Gateway,看看最後會怎樣。</p>
+
+            <div class="bg-gray-50 border rounded-lg p-4">
+                <div class="flex flex-wrap gap-2 mb-3">
+                    <button type="button" id="tab-mx" class="border rounded px-3 py-1 text-sm font-semibold bg-sky-700 text-white">MX 流程(mx01)</button>
+                    <button type="button" id="tab-gw" class="border rounded px-3 py-1 text-sm font-semibold bg-white">Gateway 流程(gw01)</button>
+                    <button type="button" id="sim-reset" class="border rounded px-3 py-1 text-sm bg-white ml-auto"><i class="fas fa-rotate-left mr-1"></i>全部重來</button>
+                </div>
+                <div id="sim-progress" class="text-sm text-gray-600 mb-2"></div>
+                <div class="bar mb-4"><div class="fill" id="sim-bar" style="width:0%"></div></div>
+                <h3 id="sim-q" class="font-bold text-gray-800 mb-3"></h3>
+                <div id="sim-opts"></div>
+                <div id="sim-feedback" class="text-sm mt-2"></div>
+            </div>
+            <div id="sim-final" class="mt-4"></div>
+        </div>
+
+        <!-- 七、GUI、授權、ADC -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">七、登入 MX GUI、授權與 ADC 更新</h2>
+
+            <h3 class="text-lg font-bold text-gray-800 mb-2">登入 GUI</h3>
+            <ol class="step-list text-gray-700">
+                <li><span class="step-badge">1</span><span>在管理者電腦 <code>10.0.30.100</code> 開瀏覽器連 <code>https://10.0.30.10:8083</code>。</span></li>
+                <li><span class="step-badge">2</span><span>第一次會看到 MX 自簽憑證警告;正式環境建議日後換成內部 CA 簽發的憑證<span class="text-xs text-gray-500">【待實機確認:替換 GUI 憑證的路徑】</span>。</span></li>
+                <li><span class="step-badge">3</span><span>以 GUI 管理帳號登入並依提示改密碼<span class="text-xs text-gray-500">【待實機確認:預設 GUI 帳號名稱與首次改密碼流程】</span>。</span></li>
+            </ol>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">授權</h3>
+            <ul class="list-disc pl-6 text-gray-700 space-y-1">
+                <li>除傳統授權檔外,另有 <strong>FlexProtect</strong> 授權(雲端 AppProtect / Flex Protect);v15.5 Patch 10 起還有不設吞吐上限的「CLOUD」虛擬型號,限 AppProtect / Flex Protect 授權。</li>
+                <li>上傳授權檔的 GUI 位置<span class="text-xs text-gray-500">【待實機確認】</span>(官方 Administration Guide 有 License Overview 章節)。</li>
+            </ul>
+
+            <h3 class="text-lg font-bold text-gray-800 mt-6 mb-2">ADC 內容更新(官方步驟)</h3>
+            <p class="text-gray-700 leading-relaxed">
+                <span class="tech-term">ADC</span>(Application Defense Center)內容包含簽章、預建政策與情資定義,一般<strong>約每兩週發布一次</strong>。
+            </p>
+
+            <div class="mock-window">
+                <div class="mock-titlebar">
+                    <span class="mock-dots"><span></span><span></span><span></span></span>
+                    <span class="mock-url">https://10.0.30.10:8083</span>
+                </div>
+                <div class="mock-nav">
+                    <span class="brand">Imperva MX</span>
+                    <span>Main</span><span class="on">Admin</span>
+                </div>
+                <div class="mock-crumb">Admin workspace &gt; ADC</div>
+                <div class="mock-body">
+                    <div class="mock-section">Manual ADC Update</div>
+                    <div class="mock-row"><span class="step-badge">1</span><span class="mock-btn mock-hl">Download</span><span class="text-xs text-gray-500">存下 .mprv 檔</span></div>
+                    <div class="mock-row"><span class="step-badge">2</span><span class="mock-btn">Browse</span><span class="mock-input">adc-update.mprv</span><span class="mock-btn mock-hl">Upload</span></div>
+                    <div class="mock-section">Automatic ADC Update</div>
+                    <div class="mock-row"><span class="step-badge">3</span><span class="mock-input mock-select mock-hl">Recurring</span><span class="mock-btn mock-hl">Update Now</span></div>
+                </div>
+                <div class="mock-caption"><i class="fas fa-circle-info mr-1"></i>示意畫面:欄位名稱依 Imperva 官方文件,版面、按鈕位置與配色以實機為準。</div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-4 mt-4">
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-2"><i class="fas fa-hand text-sky-600 mr-2"></i>手動更新</h4>
+                    <ol class="list-decimal pl-5 text-sm text-gray-700 space-y-1">
+                        <li>Admin workspace &gt; <strong>ADC</strong>。</li>
+                        <li>在 <strong>Manual ADC Update</strong> 下按 <strong>Download</strong>,存下 <code>.mprv</code> 檔。</li>
+                        <li>用 <strong>Browse</strong> 選取該檔,按 <strong>Upload</strong>。</li>
+                        <li>部分更新要 <strong>Apply Settings</strong> 後才生效。</li>
+                    </ol>
+                </div>
+                <div class="bg-gray-50 border rounded-lg p-4">
+                    <h4 class="font-bold text-gray-800 mb-2"><i class="fas fa-rotate text-sky-600 mr-2"></i>自動更新</h4>
+                    <ol class="list-decimal pl-5 text-sm text-gray-700 space-y-1">
+                        <li>Admin workspace &gt; <strong>ADC</strong>。</li>
+                        <li>在 <strong>Automatic ADC Update</strong> 選 <strong>Recurring</strong>,設定排程。</li>
+                        <li>要立即更新按 <strong>Update Now</strong>。</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="highlight-box">
+                <p class="font-bold text-sky-800 mb-1"><i class="fas fa-lightbulb mr-1"></i>前提</p>
+                <p class="text-gray-800"><strong>預設閘道與 DNS 必須已用 impcfg 設好</strong>,否則自動更新會失敗。MX 不能直連網際網路時,可設定 External HTTP Settings 走 proxy,或由可上網的電腦下載 <code>.mprv</code> 再手動上傳。</p>
+            </div>
+        </div>
+
+        <!-- 八、檢查清單 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">八、從零到「Gateway 出現在 MX」檢查清單</h2>
+
+            <div class="mock-window">
+                <div class="mock-titlebar">
+                    <span class="mock-dots"><span></span><span></span><span></span></span>
+                    <span class="mock-url">https://10.0.30.10:8083</span>
+                </div>
+                <div class="mock-nav">
+                    <span class="brand">Imperva MX</span>
+                    <span class="on">Main</span><span>Admin</span>
+                </div>
+                <div class="mock-crumb">Main &gt; Setup &gt; Gateways</div>
+                <div class="mock-body">
+                    <div class="mock-row"><span class="step-badge">1</span><span class="mock-hl">Gateway Group:GG-Shop</span></div>
+                    <div class="overflow-x-auto">
+                        <table class="mock-table">
+                            <thead><tr><th>Gateway</th><th>Management IP</th><th>備註</th></tr></thead>
+                            <tbody>
+                                <tr><td>gw01</td><td>10.0.30.11</td><td>ABR / NGRP 模式會顯示 (GEN2)</td></tr>
+                                <tr><td>gw02</td><td>10.0.30.12</td><td>ABR / NGRP 模式會顯示 (GEN2)</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mock-row"><span class="step-badge">2</span><span class="text-xs text-gray-600">Details:Fail Mode / Overload Policy(分頁名稱待實機確認)</span></div>
+                </div>
+                <div class="mock-caption"><i class="fas fa-circle-info mr-1"></i>示意畫面:部分欄位名稱待實機確認(Details 分頁名稱與表格欄位),版面以實機為準。</div>
+            </div>
+
+            <div class="overflow-x-auto mt-4">
+                <table class="min-w-full text-sm border">
+                    <thead class="bg-gray-100">
+                        <tr><th class="py-2 px-4 border text-left">#</th><th class="py-2 px-4 border text-left">檢查項目</th><th class="py-2 px-4 border text-left">怎麼確認</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="py-2 px-4 border">1</td><td class="py-2 px-4 border">MX 首次設定完成、資料庫初始化完畢</td><td class="py-2 px-4 border">能從 <code>10.0.30.100</code> 開 <code>https://10.0.30.10:8083</code> 登入</td></tr>
+                        <tr><td class="py-2 px-4 border">2</td><td class="py-2 px-4 border">MX DNS、預設閘道、NTP 正確</td><td class="py-2 px-4 border">impcfg 檢視設定;ADC 按 Update Now 成功</td></tr>
+                        <tr><td class="py-2 px-4 border">3</td><td class="py-2 px-4 border">防火牆:GW → MX 8083、MX → GW 22/443 已開</td><td class="py-2 px-4 border">從 GW 端測連 MX 8083<span class="text-xs text-gray-500">【待實機確認:impcli 可用的測試指令】</span></td></tr>
+                        <tr><td class="py-2 px-4 border">4</td><td class="py-2 px-4 border">gw01 / gw02 首次設定完成、填的 MX IP 正確(非 CIDR)</td><td class="py-2 px-4 border">impcfg Top 畫面的 Gateway 狀態<span class="text-xs text-gray-500">【待實機確認】</span></td></tr>
+                        <tr><td class="py-2 px-4 border">5</td><td class="py-2 px-4 border">Gateway 出現在 MX</td><td class="py-2 px-4 border">Main &gt; Setup &gt; Gateways,點 Gateway Group <code>GG-Shop</code> 可看到 gw01、gw02</td></tr>
+                        <tr><td class="py-2 px-4 border">6</td><td class="py-2 px-4 border">模式正確</td><td class="py-2 px-4 border">用 ABR / NGRP 的 Gateway,名稱旁會顯示 <strong>(GEN2)</strong></td></tr>
+                        <tr><td class="py-2 px-4 border">7</td><td class="py-2 px-4 border">授權已套用、ADC 為最新</td><td class="py-2 px-4 border">Admin &gt; ADC 頁面顯示的版本日期<span class="text-xs text-gray-500">【待實機確認】</span></td></tr>
+                        <tr><td class="py-2 px-4 border">8</td><td class="py-2 px-4 border">Gateway Group 的 Fail Mode / Overload Policy 已依第 5 章規劃設定</td><td class="py-2 px-4 border">Main &gt; Setup &gt; Gateways &gt; <code>GG-Shop</code> &gt; Details<span class="text-xs text-gray-500">【待實機確認:分頁名稱】</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 九、踩坑 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">九、常見踩坑</h2>
+
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>先裝 Gateway 再裝 MX</p>
+                <p class="text-gray-800">Gateway 首次設定要填 MX IP 才能註冊;MX 沒好就只能事後再用 impcfg 註冊,浪費一輪。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>DNS 亂填</p>
+                <p class="text-gray-800">官方明講首次設定的 DNS 要填真實伺服器;DNS 錯會讓 ADC 自動更新、威脅情資、ABP(第 10 章)全部連不上。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>MX IP 填成 CIDR</p>
+                <p class="text-gray-800">註冊欄位只接受單一 IP。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>對已上線的 appliance 重跑 First-Time 精靈</p>
+                <p class="text-gray-800">會覆蓋整份設定;要改 IP 或模式請用 impcfg 選單。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>低估 MX 初始化時間</p>
+                <p class="text-gray-800">45–60 分鐘內看起來像「卡住」,中途重開機會讓資料庫初始化失敗<span class="text-xs text-gray-500">【推論】</span>。</p>
+            </div>
+            <div class="pitfall-box">
+                <p class="font-bold text-orange-800 mb-1"><i class="fas fa-triangle-exclamation mr-1"></i>VM 規劃 Fail Open</p>
+                <p class="text-gray-800">虛擬機只支援 Fail Close,要 bypass 只能用硬體。</p>
+            </div>
+        </div>
+
+        <!-- 十、新舊對照 -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">十、新舊對照</h2>
+            <div class="version-box">
+                <p class="font-bold text-purple-800 mb-2"><i class="fas fa-code-branch mr-1"></i>舊版說法與現況</p>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm border bg-white">
+                        <thead class="bg-gray-100">
+                            <tr><th class="py-2 px-4 border text-left">舊說法</th><th class="py-2 px-4 border text-left">現況</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td class="py-2 px-4 border">USB 安裝:序列埠接 console,開機輸入 <code>installserial</code>;Net 安裝用 TFTP push server</td><td class="py-2 px-4 border">虛擬化為主:VMware 經 vCenter 部署 OVF、KVM、公有雲 Terraform;硬體依 Quick Start Guide。網路安裝流程未查到現行文件<span class="text-xs text-gray-500">【待實機確認】</span></td></tr>
+                            <tr><td class="py-2 px-4 border">平台基於 Linux 2.6 / CentOS</td><td class="py-2 px-4 border">v15.x 為 CentOS 7.9;<span class="text-xs text-gray-500">【16.0】</span>Oracle Linux 9.5</td></tr>
+                            <tr><td class="py-2 px-4 border">用 impcfg 建 SSH 使用者,登入後輸入 <code>admin</code> 取得 root</td><td class="py-2 px-4 border">登入即進 <strong>impcli</strong> 受限 shell,預設使用者 <code>admin</code> 首次須改密碼;<code>admin</code> 指令切 root;Sealed 模式可禁止切 root;root 預設不能 SSH</td></tr>
+                            <tr><td class="py-2 px-4 border">impcfg Top 畫面 Server address 為 local(同機 MX + Gateway)</td><td class="py-2 px-4 border">Onebox 自 v14.1 起不支援,MX 與 Gateway 必須分機</td></tr>
+                            <tr><td class="py-2 px-4 border">VMware ESX/ESXi 3.5 以上</td><td class="py-2 px-4 border">ESXi 6.x / 7.0 / 8.0;Hyper-V 自 v14.4 起不支援</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quiz -->
+        <div class="section-card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
+                隨堂測驗
+            </h2>
+            <p class="mb-6 text-gray-600">請點選您認為正確的選項,系統將會顯示解析。</p>
+            <div class="space-y-6" id="quiz-container"></div>
+        </div>
+
+    </main>
+
+    <footer class="footer-signature">
+        Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver.2026.11.02.12.07
+    </footer>
+
+    <script>
+        // ===== impcfg 首次設定模擬器 =====
+        const FLOWS = {
+            mx: {
+                name: 'MX(mx01)',
+                steps: [
+                    { q: '步驟 1:這台 appliance 的角色要選什麼?', opts: [
+                        { t: 'Gateway', ok: false, why: '這台是管理中樞 mx01,選 Gateway 就變成要去註冊到別的 MX。' },
+                        { t: 'Management Server(MX)', ok: true, why: '正確。角色選 MX(精靈中的選項文字待實機確認)。' },
+                        { t: 'Onebox:同一台機器同時當 MX 與 Gateway', ok: false, why: 'Onebox 自 v14.1 起不支援,MX 與 Gateway 必須分機。' }
+                    ] },
+                    { q: '步驟 2:管理介面怎麼設?', opts: [
+                        { t: 'IP 10.0.30.10、遮罩 255.255.255.0、設定預設閘道', ok: true, why: '正確。預設閘道(範例 10.0.30.1,屬推論)之後 ADC 自動更新也依賴它。' },
+                        { t: 'IP 10.0.30.11(沿用 gw01 的設定比較快)', ok: false, why: '10.0.30.11 是 gw01 的管理 IP;MX 是 10.0.30.10。' },
+                        { t: '先不設預設閘道,之後有需要再補', ok: false, why: 'ADC 自動更新要求預設閘道與 DNS 已用 impcfg 設好,否則會失敗。' }
+                    ] },
+                    { q: '步驟 3:hostname、DNS、NTP 怎麼填?', opts: [
+                        { t: 'DNS 先隨便填一個不存在的位址湊數,之後再改', ok: false, why: '官方要求 DNS 填真實存在的伺服器;DNS 錯會讓 ADC 更新、威脅情資、ABP 都連不上。' },
+                        { t: '全部跳過,等上線後再說', ok: false, why: '時間不一致會讓告警時間軸錯亂、憑證驗證失敗(推論);DNS 也是 ADC 更新的前提。' },
+                        { t: 'hostname 設 mx01,DNS 填內部真實 DNS,設定內部 NTP 與時區', ok: true, why: '正確。NTP 是在首次精靈或稍後在 impcfg 的 platform 選單設定,待實機確認。' }
+                    ] },
+                    { q: '步驟 4:MX 與 Gateway 之間的通訊(註冊)密碼?', opts: [
+                        { t: '設定註冊密碼並記下來,Gateway 註冊時要用', ok: true, why: '正確。欄位名稱待實機確認。' },
+                        { t: '不用設,Gateway 只要填 MX 的 IP 就能註冊', ok: false, why: 'Gateway 首次設定第 5 步要填這個註冊密碼,所以 MX 這邊一定要先設。' }
+                    ] },
+                    { q: '步驟 5:最後的確認與等待?', opts: [
+                        { t: '10 分鐘沒動靜就重開機,看看是不是卡住', ok: false, why: '資料庫初始化要 45–60 分鐘,中途重開機會讓初始化失敗(推論)。' },
+                        { t: '套用後再重跑一次首次精靈,確認設定有進去', ok: false, why: '對已設定好的 appliance 重跑 First-Time 腳本會覆蓋原有設定。' },
+                        { t: '檢視摘要確認後套用,耐心等 45–60 分鐘到資料庫初始化完成', ok: true, why: '正確。MX 首次設定官方預估 45 分鐘到 1 小時。' }
+                    ] }
+                ]
+            },
+            gw: {
+                name: 'Gateway(gw01)',
+                steps: [
+                    { q: '步驟 1:這台 appliance 的角色要選什麼?', opts: [
+                        { t: 'Gateway', ok: true, why: '正確(選項文字待實機確認)。登入、改密碼、進入 impcfg 首次設定已在前面完成。' },
+                        { t: 'Management Server(MX)', ok: false, why: '這台是 gw01,要被 MX 管理的流量檢查元件。' }
+                    ] },
+                    { q: '步驟 2:管理介面怎麼設?', opts: [
+                        { t: 'IP 10.0.30.12/24', ok: false, why: '10.0.30.12 是 gw02 的管理 IP;gw01 是 10.0.30.11。' },
+                        { t: 'IP 10.0.30.11/24,並設定預設閘道、DNS、NTP', ok: true, why: '正確。流量介面另依部署模式規劃。' }
+                    ] },
+                    { q: '步驟 3:Management Server 的 IP 要填什麼?', opts: [
+                        { t: '10.0.30.0/24(整個管理網段)', ok: false, why: '官方註明這裡不能填 CIDR,只能填單一 IP。' },
+                        { t: '10.0.30.100(管理者的電腦)', ok: false, why: '10.0.30.100 是管理者電腦;要填的是 MX 的 IP。' },
+                        { t: '10.0.30.10', ok: true, why: '正確。MX 的單一 IP。' }
+                    ] },
+                    { q: '步驟 4:註冊密碼填什麼?', opts: [
+                        { t: '填 MX 首次設定時設定的註冊密碼', ok: true, why: '正確(欄位名稱待實機確認)。' },
+                        { t: '隨便填一組,之後在 MX 端再對上', ok: false, why: '註冊要用 MX 首次設定時設定的那組密碼,填錯就註冊不上。' }
+                    ] },
+                    { q: '步驟 5:Gateway Group 與名稱?', opts: [
+                        { t: 'Gateway Group 填 SG-Shop,名稱 gw01', ok: false, why: 'SG-Shop 是第 7 章的 Server Group;Gateway Group 是 GG-Shop。' },
+                        { t: 'Gateway Group 填 GG-Shop,名稱 gw01', ok: true, why: '正確。首次精靈是否詢問 Gateway Group,或註冊後在 MX 指派,待實機確認。' }
+                    ] },
+                    { q: '步驟 6:運作模式怎麼選?日後要改又怎麼辦?', opts: [
+                        { t: '隨便選一個,之後要改就重跑首次精靈', ok: false, why: '重跑首次精靈會覆蓋原有設定。' },
+                        { t: '依第 4 章規劃選 Bridge / Sniffing / Reverse Proxy;日後用 impcfg:Top > Manage SecureSphere Gateway > Change operation mode,按 S 存檔、A 套用', ok: true, why: '正確。這是官方建議的改模式方式。' }
+                    ] },
+                    { q: '步驟 7:最後的確認與 gw02?', opts: [
+                        { t: '確認後套用,約 10–15 分鐘;再對 gw02(10.0.30.12)重複一次', ok: true, why: '正確。gw02 的管理 IP 不同,其餘流程相同。' },
+                        { t: '套用後等 45–60 分鐘', ok: false, why: '45–60 分鐘是 MX 建資料庫的時間;Gateway 約 10–15 分鐘。' },
+                        { t: '套用後把 gw01 的設定整份照抄給 gw02,包含管理 IP', ok: false, why: 'gw02 的管理 IP 是 10.0.30.12,不能和 gw01 相同。' }
+                    ] }
+                ]
+            }
+        };
+        const state = { flow: 'mx', idx: { mx: 0, gw: 0 }, mxDone: false, gwMx: null, locked: false };
+
+        const elQ = document.getElementById('sim-q');
+        const elOpts = document.getElementById('sim-opts');
+        const elFb = document.getElementById('sim-feedback');
+        const elProg = document.getElementById('sim-progress');
+        const elBar = document.getElementById('sim-bar');
+        const elFinal = document.getElementById('sim-final');
+        const tabMx = document.getElementById('tab-mx');
+        const tabGw = document.getElementById('tab-gw');
+
+        function setTabs() {
+            const on = 'border rounded px-3 py-1 text-sm font-semibold bg-sky-700 text-white';
+            const off = 'border rounded px-3 py-1 text-sm font-semibold bg-white';
+            tabMx.className = state.flow === 'mx' ? on : off;
+            tabGw.className = state.flow === 'gw' ? on : off;
+        }
+
+        function renderStep() {
+            setTabs();
+            const flow = FLOWS[state.flow];
+            const i = state.idx[state.flow];
+            elFb.innerHTML = '';
+            elFinal.innerHTML = '';
+            elBar.style.width = Math.round(i / flow.steps.length * 100) + '%';
+            if (i >= flow.steps.length) {
+                elProg.textContent = flow.name + ':全部完成';
+                elQ.textContent = '這條流程的步驟都完成了';
+                elOpts.innerHTML = '';
+                showFinal();
+                return;
+            }
+            elProg.textContent = flow.name + ':第 ' + (i + 1) + ' / ' + flow.steps.length + ' 步';
+            const step = flow.steps[i];
+            elQ.textContent = step.q;
+            elOpts.innerHTML = '';
+            step.opts.forEach((o, k) => {
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'sim-opt';
+                b.textContent = o.t;
+                b.addEventListener('click', () => pick(k, b));
+                elOpts.appendChild(b);
+            });
+            if (state.flow === 'gw' && i === 0 && !state.mxDone) {
+                elFb.innerHTML = '<span class="text-orange-700"><i class="fas fa-triangle-exclamation mr-1"></i>提醒:你還沒完成 MX 流程。Gateway 首次設定要填 MX 的 IP 才能註冊,可以繼續練習,看看最後會怎樣。</span>';
+            }
+        }
+
+        function pick(k, btn) {
+            const flow = FLOWS[state.flow];
+            const step = flow.steps[state.idx[state.flow]];
+            const o = step.opts[k];
+            if (state.flow === 'gw' && state.gwMx === null) state.gwMx = state.mxDone;
+            if (o.ok) {
+                btn.classList.add('ok');
+                elOpts.querySelectorAll('.sim-opt').forEach(b => { b.disabled = true; });
+                elFb.innerHTML = '<span class="text-green-700 font-semibold"><i class="fas fa-circle-check mr-1"></i>' + o.why + '</span>';
+                setTimeout(() => {
+                    state.idx[state.flow] += 1;
+                    if (state.idx[state.flow] >= flow.steps.length && state.flow === 'mx') state.mxDone = true;
+                    renderStep();
+                }, 900);
+            } else {
+                btn.classList.add('bad');
+                btn.disabled = true;
+                elFb.innerHTML = '<span class="text-red-700 font-semibold"><i class="fas fa-circle-xmark mr-1"></i>不對。</span> ' + o.why;
+            }
+        }
+
+        function showFinal() {
+            if (state.flow === 'mx') {
+                elFinal.innerHTML = '<div class="border rounded-lg p-4 bg-green-50 border-green-300"><h3 class="font-bold text-green-700 mb-2"><i class="fas fa-circle-check mr-1"></i>MX 首次設定完成</h3>' +
+                    '<p class="text-sm text-gray-800">資料庫初始化完成後,就能從 10.0.30.100 開 https://10.0.30.10:8083 登入。接下來切到「Gateway 流程」註冊 gw01。</p></div>';
+            } else if (state.gwMx) {
+                elFinal.innerHTML = '<div class="border rounded-lg p-4 bg-green-50 border-green-300"><h3 class="font-bold text-green-700 mb-2"><i class="fas fa-circle-check mr-1"></i>gw01 註冊完成</h3>' +
+                    '<p class="text-sm text-gray-800">到 MX 的 Main &gt; Setup &gt; Gateways,點 Gateway Group GG-Shop,應該能看到 gw01;對 gw02 重複一次後兩台都會出現。</p></div>';
+            } else {
+                elFinal.innerHTML = '<div class="border rounded-lg p-4 bg-red-50 border-red-300"><h3 class="font-bold text-red-700 mb-2"><i class="fas fa-circle-xmark mr-1"></i>註冊不上</h3>' +
+                    '<p class="text-sm text-gray-800">MX 還沒設好,Gateway 無處註冊;只能等 MX 好了之後,事後再用 impcfg 註冊,浪費一輪。這就是「先 MX、後 Gateway」的原因。</p></div>';
+            }
+        }
+
+        tabMx.addEventListener('click', () => { state.flow = 'mx'; renderStep(); });
+        tabGw.addEventListener('click', () => { state.flow = 'gw'; renderStep(); });
+        document.getElementById('sim-reset').addEventListener('click', () => {
+            state.idx = { mx: 0, gw: 0 }; state.mxDone = false; state.gwMx = null; state.flow = 'mx'; renderStep();
+        });
+        renderStep();
+
+        const quizData = [
+            {
+                question: "Q1. 安裝順序應該是?",
+                options: ["A. 先裝 Gateway,再裝 MX", "B. 先裝 MX、等資料庫初始化完成,再裝 Gateway 並註冊", "C. 兩者可同時開機,順序不影響", "D. 只要裝 Gateway,MX 可選配"],
+                correct: 1,
+                desc: "正解:B。Gateway 首次設定必須填 MX 的 IP 完成註冊,MX 沒起來 Gateway 就註冊不上。"
+            },
+            {
+                question: "Q2. Gateway 首次設定時,「Management Server 的 IP」欄位應填?",
+                options: ["A. 10.0.30.0/24", "B. 10.0.30.10", "C. 10.0.30.100", "D. mx01 的網段與遮罩皆可"],
+                correct: 1,
+                desc: "正解:B。官方註明這裡不能填 CIDR,只能填單一 IP,也就是 MX 的 10.0.30.10。"
+            },
+            {
+                question: "Q3. mx01 套用首次設定後,畫面長時間沒動靜,第 20 分鐘你應該?",
+                options: ["A. 重開機再試一次", "B. 重跑 First-Time 設定腳本", "C. 耐心等待,MX 初始化資料庫要 45 到 60 分鐘", "D. 直接改去設定 Gateway"],
+                correct: 2,
+                desc: "正解:C。MX 首次設定官方預估 45 分鐘到 1 小時;中途重開機可能讓資料庫初始化失敗(推論),重跑首次精靈則會覆蓋設定。"
+            },
+            {
+                question: "Q4. 下列關於 impcli 的敘述,哪個正確?",
+                options: ["A. 登入 appliance 一律直接進 Linux bash", "B. 預設使用者 admin 首次登入必須改密碼,impcli 的輸入都會被記錄", "C. Sealed 模式啟用後仍可切到 root", "D. root 預設允許直接 SSH 登入"],
+                correct: 1,
+                desc: "正解:B。登入即進 impcli 受限 shell;Sealed 模式不能切 root;root 預設不允許直接 SSH。"
+            },
+            {
+                question: "Q5. ADC 自動更新一直失敗,最先該檢查什麼?",
+                options: ["A. 預設閘道與 DNS 是否已用 impcfg 設好", "B. Gateway 的運作模式", "C. 授權是不是 FlexProtect", "D. 是否啟用 Sealed 模式"],
+                correct: 0,
+                desc: "正解:A。預設閘道與 DNS 必須已設好,否則自動更新會失敗;MX 不能直連網際網路時可改走 proxy 或手動上傳 .mprv。"
+            }
+        ];
+
+
+        // ===== 隨堂測驗 =====
+        const quizContainer = document.getElementById('quiz-container');
+
+        quizData.forEach((item, index) => {
+            const questionBox = document.createElement('div');
+            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
+
+            let optionsHtml = '';
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <div class="quiz-option p-3 rounded border mb-2 text-gray-700" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            questionBox.innerHTML = `
+                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
+                <div class="space-y-2 mb-4">
+                    ${optionsHtml}
+                </div>
+                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
+                    <p class="font-bold result-title"></p>
+                    <p class="text-sm text-gray-600 mt-1">${item.desc}</p>
+                </div>
+            `;
+            quizContainer.appendChild(questionBox);
+        });
+
+        function checkAnswer(qIndex, optIndex, element) {
+            const data = quizData[qIndex];
+            const resultBox = document.getElementById(`result-${qIndex}`);
+            const resultTitle = resultBox.querySelector('.result-title');
+            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
+
+            if (element.parentElement.dataset.answered) return;
+            element.parentElement.dataset.answered = "true";
+
+            allOptions.forEach(opt => {
+                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
+                opt.classList.add('disabled');
+            });
+
+            if (optIndex === data.correct) {
+                element.classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-red-500');
+                resultBox.classList.add('border-green-500', 'bg-green-50');
+                resultTitle.textContent = "✅ 答對了!";
+                resultTitle.classList.add('text-green-700');
+            } else {
+                element.classList.add('bg-red-100', 'border-red-500');
+                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
+                resultBox.classList.remove('hidden', 'border-green-500');
+                resultBox.classList.add('border-red-500', 'bg-red-50');
+                resultTitle.textContent = "❌ 答錯了!";
+                resultTitle.classList.add('text-red-700');
+            }
+        }
+    </script>
+</body>
+</html>
