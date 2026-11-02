@@ -633,6 +633,25 @@
 
         .empty { color: var(--text-secondary); padding: 40px 0; text-align: center; }
 
+        /* 實用工具下拉選單 (Tools 不是課程,不列入系列) */
+        .tools-menu { position: relative; }
+        .tools-btn { font: inherit; font-size: 0.95rem; background: transparent; cursor: pointer; }
+        .tools-btn[aria-expanded="true"] { color: var(--brand-purple-dark); background-color: #f0ebfa; border-color: var(--brand-purple); }
+        .tools-panel {
+            position: absolute; right: 0; top: calc(100% + 8px); z-index: 1100;
+            width: 300px; list-style: none; padding: 6px;
+            background: var(--bg-white); border: 1px solid var(--border-color); border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+        .tools-panel[hidden] { display: none; }
+        .tool-link { display: block; padding: 9px 12px; border-radius: 6px; text-decoration: none; color: var(--text-primary); }
+        .tool-link:hover, .tool-link:focus-visible { background: #f0ebfa; outline: none; }
+        .tool-name { display: block; font-weight: 500; }
+        .tool-link:hover .tool-name { color: var(--brand-purple-dark); }
+        .tool-desc { display: block; font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4; }
+        /* 標頭按鈕在手機上改用短名稱,讓搜尋框有足夠寬度 */
+        .label-short { display: none; }
+
         @media (max-width: 1080px) {
             .header-tools { flex-basis: 100%; justify-content: center; }
         }
@@ -641,6 +660,14 @@
         @media (max-width: 820px) {
             .search-box { max-width: none; }
             .search-box kbd { display: none; }
+            .search-box input { padding-right: 12px; }
+            .header-tools { gap: 6px; }
+            .header-tools .nav-link { padding: 8px; font-size: 0.88rem; }
+            .label-long { display: none; }
+            .label-short { display: inline; }
+            /* 手機上選單改成與標頭同寬,貼在標頭下方 */
+            .tools-menu { position: static; }
+            .tools-panel { left: 16px; right: 16px; width: auto; top: 100%; }
             .shell { grid-template-columns: minmax(0, 1fr); padding: 0 16px 50px; gap: 16px; }
             .sidebar {
                 top: var(--header-h, 90px); z-index: 900;
@@ -696,14 +723,19 @@
                 <a href="#sec-basic" class="nav-link">零基礎大解密</a>
             </div>
 
-            <!-- 搜尋 + 資訊安全通報 (新版首頁,需 JavaScript) -->
+            <!-- 搜尋 + 實用工具 + 資訊安全通報 (新版首頁,需 JavaScript) -->
             <div class="header-tools">
                 <div class="search-box">
                     <span class="icon">🔍</span>
                     <input id="search" type="search" placeholder="搜尋單元名稱" autocomplete="off" aria-label="搜尋單元">
                     <kbd>Ctrl K</kbd>
                 </div>
-                <a href="CyberSecInfo_comic/hauman_csi-comic.htm" class="nav-link" target="_blank">資訊安全通報</a>
+                <!-- 實用工具選單:項目由腳本從下方 Tools 區塊產生 -->
+                <div class="tools-menu">
+                    <button type="button" class="nav-link tools-btn" id="toolsBtn" aria-expanded="false" aria-controls="toolsPanel"><span class="label-long">實用工具</span><span class="label-short">工具</span> ▾</button>
+                    <ul class="tools-panel" id="toolsPanel" hidden></ul>
+                </div>
+                <a href="CyberSecInfo_comic/hauman_csi-comic.htm" class="nav-link" target="_blank"><span class="label-long">資訊安全通報</span><span class="label-short">資安通報</span></a>
             </div>
         </div>
     </nav>
@@ -3298,14 +3330,14 @@
         <!-- ========================================================= -->
         <!-- 區塊 8: Tools -->
         <!-- ========================================================= -->
-        <div class="section-container" id="sec-tools">
+        <div class="section-container" id="sec-tools" data-type="tools">
             <header class="section-header">
                 <h2>Tools</h2>
             </header>
             <div class="grid">
                 
                 <!-- 01: Website SpeedTest -->
-                <a href="WebSite_SpeedTest_Ver1.0.html" class="card" target="_blank">
+                <a href="WebSite_SpeedTest_Ver1.0.html" class="card" target="_blank" data-desc="測試網站連線與回應速度">
                     <div class="card-body">
                         <span class="card-number">01</span>
                         <h3 class="card-title">網站連通速度測試</h3>
@@ -3314,7 +3346,7 @@
                 </a>
                 
                 <!-- 02: 網路查詢工具箱 -->
-                <a href="network_toolbox.html" class="card" target="_blank">
+                <a href="network_toolbox.html" class="card" target="_blank" data-desc="DNS、WHOIS、IP、Port、SSL、MAC 查詢與計算">
                     <div class="card-body">
                         <span class="card-number">02</span>
                         <h3 class="card-title">網路查詢工具箱</h3>
@@ -3323,7 +3355,7 @@
                 </a>
 
                 <!-- 03: IP 黑名單檢測工具 -->
-                <a href="IP_Reputation.html" class="card" target="_blank">
+                <a href="IP_Reputation.html" class="card" target="_blank" data-desc="IP 黑名單檢測與信譽查詢">
                     <div class="card-body">
                         <span class="card-number">03</span>
                         <h3 class="card-title">IP 黑名單檢測工具</h3>
@@ -3332,7 +3364,7 @@
                 </a>
 
                 <!-- 04: 資安威脅情資聚合 -->
-                <a href="CyberSecNews.html" class="card" target="_blank">
+                <a href="CyberSecNews.html" class="card" target="_blank" data-desc="近期資安情資儀表板,含 CVE 追蹤">
                     <div class="card-body">
                         <span class="card-number">04</span>
                         <h3 class="card-title">資安威脅情資聚合</h3>
@@ -3525,7 +3557,10 @@
         // 系統開了「減少動態效果」就不播動畫;網址加 ?motion=1 可強制播放
         var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches && !/[?&]motion=1/.test(location.search);
         var series = [];          // [{id, name, short, units:[...]}]
+        var tools = [];           // [{name, desc, href}],標了 data-type="tools" 的區塊
         var view = document.getElementById('view');
+        var toolsBtn = document.getElementById('toolsBtn');
+        var toolsPanel = document.getElementById('toolsPanel');
         var catList = document.getElementById('catList');
         var searchInput = document.getElementById('search');
 
@@ -3538,6 +3573,14 @@
                 shortNames[a.getAttribute('href').slice(1)] = a.textContent.trim();
             });
             document.querySelectorAll('main.container .section-container').forEach(function (sec) {
+                // 工具類區塊不算課程,放進標頭的「實用工具」選單
+                if (sec.getAttribute('data-type') === 'tools') {
+                    sec.querySelectorAll('a.card').forEach(function (card) {
+                        var t = card.querySelector('.card-title');
+                        tools.push({ name: t ? t.textContent.trim() : '', desc: card.getAttribute('data-desc') || '', href: card.getAttribute('href') });
+                    });
+                    return;
+                }
                 var units = [];
                 sec.querySelectorAll('a.card').forEach(function (card) {
                     var titleEl = card.querySelector('.card-title');
@@ -3687,6 +3730,21 @@
         // html 設了平滑捲動,這裡要立即回到頂端,發牌起點才不會偏移
         function scrollTop() { window.scrollTo({ top: 0, left: 0, behavior: 'instant' }); }
 
+        function renderTools() {
+            toolsPanel.innerHTML = tools.map(function (t) {
+                return '<li><a class="tool-link" href="' + esc(t.href) + '" target="_blank">' +
+                    '<span class="tool-name">' + esc(t.name) + '</span>' +
+                    (t.desc ? '<span class="tool-desc">' + esc(t.desc) + '</span>' : '') + '</a></li>';
+            }).join('');
+        }
+
+        function setToolsOpen(open) {
+            toolsPanel.hidden = !open;
+            toolsBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        }
+
+        toolsBtn.addEventListener('click', function () { setToolsOpen(toolsPanel.hidden); });
+
         // 以網址 #sec-xxx 記住目前系列,沿用原本的錨點,瀏覽器上一頁也能用
         var pendingOrigin = null;
         function route() {
@@ -3695,6 +3753,8 @@
             var origin = pendingOrigin; pendingOrigin = null;
             scrollTop();
             if (s) renderSeries(s, origin); else renderOverview();
+            // 舊網址 #sec-tools 改為打開實用工具選單
+            if (id === 'sec-tools') setToolsOpen(true);
         }
 
         function go(id, originEl) {
@@ -3719,6 +3779,8 @@
         }
 
         document.addEventListener('click', function (e) {
+            // 點選單外面或點了某個工具,就收起實用工具選單
+            if (!e.target.closest('.tools-menu') || e.target.closest('.tool-link')) setToolsOpen(false);
             var badge = e.target.closest('.badge');
             if (badge) {
                 e.preventDefault(); e.stopPropagation();
@@ -3744,6 +3806,7 @@
         document.addEventListener('keydown', function (e) {
             if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); searchInput.focus(); searchInput.select(); }
             else if (e.key === '/' && document.activeElement !== searchInput) { e.preventDefault(); searchInput.focus(); }
+            else if (e.key === 'Escape' && !toolsPanel.hidden) { setToolsOpen(false); toolsBtn.focus(); }
             else if (e.key === 'Escape' && document.activeElement === searchInput && searchInput.value) { searchInput.value = ''; route(); }
         });
 
@@ -3758,6 +3821,7 @@
         syncHeader();
 
         readSections();
+        renderTools();
         route();
     })();
     </script>
