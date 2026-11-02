@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>網路與資訊安全技術教學資源 | Network Engineering Docs</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script>document.documentElement.classList.add('js');</script>
     <style>
         :root {
             /* 豪勉科技 (Hauman) 風格配色修正 - 紫色系 */
@@ -484,6 +485,181 @@
                 font-size: 1.5rem;
             }
         }
+
+        /* ========================================================= */
+        /* 新版首頁：左側系列分類 + 搜尋 + 牌堆發牌                    */
+        /* 卡片資料仍寫在下方各區塊；有 JavaScript 時由腳本改用新版面呈現， */
+        /* 沒有 JavaScript 時維持原本的長頁面                          */
+        /* ========================================================= */
+        .header-tools, .shell { display: none; }
+        .js .section-nav, .js main.container { display: none; }
+        .js .header-tools { display: flex; }
+        .js .shell { display: grid; }
+
+        .header-tools {
+            align-items: center;
+            gap: 12px;
+            flex: 1 1 320px;
+            justify-content: flex-end;
+        }
+
+        /* 搜尋框 */
+        .search-box { position: relative; flex: 1 1 auto; max-width: 380px; }
+        .search-box input {
+            width: 100%;
+            font: inherit;
+            font-size: 0.95rem;
+            padding: 9px 64px 9px 36px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-body);
+            color: var(--text-primary);
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+        }
+        .search-box input:focus { border-color: var(--brand-purple); background: #fff; box-shadow: 0 0 0 3px rgba(103, 58, 183, 0.15); }
+        .search-box .icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-size: 0.9rem; pointer-events: none; }
+        .search-box kbd {
+            position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+            font: 500 0.75rem 'Roboto', sans-serif; color: var(--text-secondary);
+            border: 1px solid var(--border-color); border-radius: 4px; padding: 1px 6px; background: #fff;
+        }
+
+        /* 主版面：左側分類 + 右側內容 */
+        .shell {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 4px 20px 60px;
+            grid-template-columns: 230px minmax(0, 1fr);
+            gap: 28px;
+            align-items: start;
+        }
+
+        .sidebar {
+            position: sticky;
+            top: calc(var(--header-h, 90px) + 20px);
+            background: var(--bg-white);
+            border-radius: 6px;
+            box-shadow: var(--shadow-card);
+            padding: 14px 10px;
+        }
+        .sidebar h2 { font-size: 0.75rem; letter-spacing: 0.08em; color: var(--text-secondary); font-weight: 700; padding: 0 10px 8px; }
+        .cat-list { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+        .cat-btn {
+            width: 100%;
+            display: flex; align-items: center; justify-content: space-between; gap: 8px;
+            font: inherit; font-size: 0.95rem; text-align: left;
+            color: var(--text-primary);
+            background: transparent; border: 0; border-radius: 6px;
+            padding: 8px 10px; cursor: pointer; transition: background 0.15s, color 0.15s;
+        }
+        .cat-btn:hover { background: #f0ebfa; color: var(--brand-purple-dark); }
+        .cat-btn[aria-current="true"] { background: var(--brand-purple); color: #fff; }
+        .cat-count {
+            font: 500 0.78rem 'Roboto', sans-serif; min-width: 28px; text-align: center;
+            padding: 1px 7px; border-radius: 10px; background: rgba(0, 0, 0, 0.06); color: inherit;
+        }
+        .cat-btn[aria-current="true"] .cat-count { background: rgba(255, 255, 255, 0.25); }
+        .cat-divider { height: 1px; background: var(--border-color); margin: 6px 10px; }
+
+        /* 內容區標題 */
+        .view-head { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 16px; border-bottom: 2px solid var(--border-color); padding-bottom: 10px; margin-bottom: 22px; }
+        .view-head h2 { font-size: 1.6rem; font-weight: 700; color: var(--brand-purple-dark); position: relative; padding-left: 15px; line-height: 1.3; }
+        .view-head h2::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 8px; height: 8px; background: var(--brand-purple); border-radius: 50%; }
+        .view-meta { color: var(--text-secondary); font-size: 0.95rem; }
+        .back-btn {
+            font: inherit; font-size: 0.9rem; color: var(--brand-purple);
+            background: transparent; border: 1px solid var(--brand-purple); border-radius: 16px;
+            padding: 3px 12px; cursor: pointer; transition: all 0.2s;
+        }
+        .back-btn:hover { background: var(--brand-purple); color: #fff; }
+
+        /* 總覽：每個系列是一疊牌 */
+        .deck-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 34px 28px; padding: 8px 6px 10px; }
+        .deck {
+            position: relative; display: block; width: 100%; min-height: 168px;
+            font: inherit; text-align: left; color: inherit;
+            background: transparent; border: 0; padding: 0; cursor: pointer;
+        }
+        .deck-layer, .deck-face {
+            position: absolute; inset: 0;
+            background: var(--bg-white); border-radius: 6px; box-shadow: var(--shadow-card);
+            border: 1px solid var(--border-color);
+            transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.35s, border-color 0.35s;
+        }
+        .deck-layer.l3 { transform: translate(8px, 8px) rotate(2.5deg); background: #ece7f6; }
+        .deck-layer.l2 { transform: translate(4px, 4px) rotate(1.2deg); background: #f6f3fb; }
+        .deck-face { position: relative; min-height: 168px; padding: 20px 22px; display: flex; flex-direction: column; gap: 10px; overflow: hidden; }
+        .deck-face::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--brand-purple); transform: scaleX(0); transform-origin: left; transition: transform 0.3s; }
+        .deck:hover .deck-face, .deck:focus-visible .deck-face { transform: translateY(-6px); box-shadow: var(--shadow-hover); border-color: rgba(103, 58, 183, 0.3); }
+        .deck:hover .deck-face::before, .deck:focus-visible .deck-face::before { transform: scaleX(1); }
+        .deck:hover .l2, .deck:focus-visible .l2 { transform: translate(-10px, 2px) rotate(-5deg); }
+        .deck:hover .l3, .deck:focus-visible .l3 { transform: translate(14px, 4px) rotate(6deg); }
+        .deck:focus-visible { outline: none; }
+        .deck:focus-visible .deck-face { outline: 2px solid var(--brand-purple); outline-offset: 2px; }
+        .deck-name { font-size: 1.15rem; font-weight: 700; color: var(--brand-purple-dark); line-height: 1.35; }
+        .deck-count { font: 700 2rem 'Roboto', sans-serif; color: var(--brand-purple); line-height: 1; }
+        .deck-count small { font: 500 0.9rem 'Noto Sans TC', sans-serif; color: var(--text-secondary); margin-left: 4px; }
+        .deck-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; }
+        .deck-tag { font-size: 0.78rem; color: var(--text-secondary); background: var(--bg-body); border-radius: 10px; padding: 1px 8px; }
+
+        /* 單元卡片 (精簡版) */
+        .unit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 16px; }
+        .unit {
+            position: relative; display: flex; gap: 14px; align-items: flex-start;
+            background: var(--bg-white); border-radius: 6px; box-shadow: var(--shadow-card);
+            border: 1px solid transparent; padding: 16px 18px;
+            text-decoration: none; color: inherit; overflow: hidden;
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s, border-color 0.3s;
+        }
+        .unit::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: var(--brand-purple); transform: scaleX(0); transform-origin: left; transition: transform 0.3s; }
+        .unit:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); border-color: rgba(103, 58, 183, 0.3); }
+        .unit:hover::before { transform: scaleX(1); }
+        .unit-no { font: 700 1.25rem 'Roboto', sans-serif; color: rgba(0, 0, 0, 0.14); min-width: 30px; text-align: right; line-height: 1.3; transition: color 0.3s; }
+        .unit:hover .unit-no { color: var(--brand-purple); }
+        .unit-body { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+        .unit-series { font-size: 0.75rem; color: var(--brand-purple); font-weight: 500; }
+        .unit-title { font-size: 1rem; font-weight: 500; line-height: 1.45; color: var(--text-primary); }
+        .unit-title .sub { display: block; font-size: 0.82rem; color: var(--text-secondary); font-weight: 400; }
+        .unit:hover .unit-title { color: var(--brand-purple-dark); }
+        .unit-title mark { background: #fff3a8; color: inherit; border-radius: 2px; }
+        .badge {
+            font-size: 0.8rem; color: var(--brand-purple); border: 1px solid var(--brand-purple);
+            padding: 1px 8px; border-radius: 12px; cursor: pointer; white-space: nowrap; transition: all 0.2s;
+        }
+        .badge:hover { background: var(--brand-purple); color: #fff; box-shadow: 0 2px 5px rgba(103, 58, 183, 0.3); }
+        .badge.off { opacity: 0.4; cursor: not-allowed; }
+        .badge.off:hover { background: transparent; color: var(--brand-purple); box-shadow: none; }
+
+        .empty { color: var(--text-secondary); padding: 40px 0; text-align: center; }
+
+        @media (max-width: 1080px) {
+            .header-tools { flex-basis: 100%; justify-content: center; }
+        }
+
+        /* 手機：側欄改為標頭下方可橫向捲動的分類列 */
+        @media (max-width: 820px) {
+            .search-box { max-width: none; }
+            .search-box kbd { display: none; }
+            .shell { grid-template-columns: minmax(0, 1fr); padding: 0 16px 50px; gap: 16px; }
+            .sidebar {
+                top: var(--header-h, 90px); z-index: 900;
+                margin: -20px -16px 0; border-radius: 0; padding: 8px 16px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            }
+            .sidebar h2, .cat-divider { display: none; }
+            .cat-list { flex-direction: row; overflow-x: auto; gap: 6px; scrollbar-width: none; }
+            .cat-list::-webkit-scrollbar { display: none; }
+            .cat-btn { white-space: nowrap; width: auto; border: 1px solid var(--border-color); border-radius: 18px; padding: 5px 12px; font-size: 0.88rem; }
+            .view-head h2 { font-size: 1.3rem; }
+            .deck-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 16px; padding: 4px 4px 8px; }
+            .deck, .deck-face { min-height: 136px; }
+            .deck-face { padding: 14px 16px; }
+            .deck-name { font-size: 1rem; }
+            .deck-count { font-size: 1.6rem; }
+            .unit-grid { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+            .unit { padding: 12px 14px; }
+        }
     </style>
 </head>
 <body>
@@ -518,10 +694,29 @@
                 <a href="#sec-tools" class="nav-link">Tools</a>
                 <a href="#sec-basic" class="nav-link">零基礎大解密</a>
             </div>
+
+            <!-- 搜尋 + 資訊安全通報 (新版首頁,需 JavaScript) -->
+            <div class="header-tools">
+                <div class="search-box">
+                    <span class="icon">🔍</span>
+                    <input id="search" type="search" placeholder="搜尋單元名稱" autocomplete="off" aria-label="搜尋單元">
+                    <kbd>Ctrl K</kbd>
+                </div>
+                <a href="CyberSecInfo_comic/hauman_csi-comic.htm" class="nav-link" target="_blank">資訊安全通報</a>
+            </div>
         </div>
     </nav>
 
-    <!-- 主要列表區 -->
+    <!-- 新版首頁:左側系列分類 + 右側內容 (由頁尾腳本依「主要列表區」的卡片產生) -->
+    <div class="shell">
+        <aside class="sidebar">
+            <h2>課程系列</h2>
+            <ul class="cat-list" id="catList"></ul>
+        </aside>
+        <div id="view" aria-live="polite"></div>
+    </div>
+
+    <!-- 主要列表區 (新版首頁的卡片資料來源;沒有 JavaScript 時直接顯示) -->
     <main class="container">
 
         <!-- ========================================================= -->
@@ -3038,6 +3233,249 @@
                 document.getElementById('imageLightbox').style.display = "none";
             }
         });
+    </script>
+
+    <!-- 新版首頁腳本:讀取「主要列表區」的卡片,改以系列分類 + 搜尋 + 牌堆呈現 -->
+    <script>
+    (function () {
+        // 系統開了「減少動態效果」就不播動畫;網址加 ?motion=1 可強制播放
+        var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches && !/[?&]motion=1/.test(location.search);
+        var series = [];          // [{id, name, short, units:[...]}]
+        var view = document.getElementById('view');
+        var catList = document.getElementById('catList');
+        var searchInput = document.getElementById('search');
+
+        function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+        // 從頁面上原本的區塊讀出所有系列與單元
+        function readSections() {
+            var shortNames = {};
+            document.querySelectorAll('.section-nav a[href^="#"]').forEach(function (a) {
+                shortNames[a.getAttribute('href').slice(1)] = a.textContent.trim();
+            });
+            document.querySelectorAll('main.container .section-container').forEach(function (sec) {
+                var units = [];
+                sec.querySelectorAll('a.card').forEach(function (card) {
+                    var titleEl = card.querySelector('.card-title');
+                    var lines = titleEl ? titleEl.innerHTML.split(/<br\s*\/?>/i).map(function (s) {
+                        var d = document.createElement('div'); d.innerHTML = s; return d.textContent.trim();
+                    }).filter(Boolean) : [];
+                    var badges = [];
+                    card.querySelectorAll('.preview-badge').forEach(function (b) {
+                        var oc = b.getAttribute('onclick') || '';
+                        var img = oc.match(/openLightbox\('([^']+)'\)/);
+                        var page = oc.match(/window\.open\('([^']+)'/);
+                        if (img) badges.push({ kind: 'img', label: b.textContent.trim(), url: img[1] });
+                        else if (b.hasAttribute('data-yt')) badges.push({ kind: 'video', label: b.textContent.trim(), url: b.getAttribute('data-yt') });
+                        else if (page) badges.push({ kind: 'page', label: b.textContent.trim(), url: page[1] });
+                    });
+                    var num = card.querySelector('.card-number');
+                    units.push({ no: num ? num.textContent.trim() : '', lines: lines, href: card.getAttribute('href'), badges: badges });
+                });
+                // 系列內每張卡標題第一行都相同時(例如「Palo Alto Networks NGFW」),拿掉重複的系列名
+                if (units.length > 1 && units.every(function (u) { return u.lines.length > 1 && u.lines[0] === units[0].lines[0]; })) {
+                    units.forEach(function (u) { u.lines = u.lines.slice(1); });
+                }
+                var h2 = sec.querySelector('h2');
+                var name = h2 ? h2.textContent.trim() : sec.id;
+                series.push({ id: sec.id, name: name, short: shortNames[sec.id] || name, units: units });
+            });
+        }
+
+        function highlight(text, q) {
+            if (!q) return esc(text);
+            var i = text.toLowerCase().indexOf(q.toLowerCase());
+            if (i < 0) return esc(text);
+            return esc(text.slice(0, i)) + '<mark>' + esc(text.slice(i, i + q.length)) + '</mark>' + esc(text.slice(i + q.length));
+        }
+
+        function renderSidebar(activeId) {
+            var total = series.reduce(function (n, s) { return n + s.units.length; }, 0);
+            var html = '<li><button class="cat-btn" data-id="" aria-current="' + (activeId === '') + '"><span>所有系列</span><span class="cat-count">' + total + '</span></button></li><li class="cat-divider" role="presentation"></li>';
+            series.forEach(function (s) {
+                html += '<li><button class="cat-btn" data-id="' + s.id + '" aria-current="' + (s.id === activeId) + '"><span>' + esc(s.short) + '</span><span class="cat-count">' + s.units.length + '</span></button></li>';
+            });
+            catList.innerHTML = html;
+            var cur = catList.querySelector('[aria-current="true"]');
+            if (cur && window.innerWidth <= 820) cur.scrollIntoView({ block: 'nearest', inline: 'center' });
+        }
+
+        function unitCard(u, q, seriesName) {
+            // 最後一行是章名;前面的行(篇章、單元編號)以小字顯示
+            var lines = u.lines.map(function (l) { return highlight(l, q); });
+            var main = lines.pop() || '';
+            var badges = u.badges.map(function (b) {
+                var off = b.kind === 'video' && !b.url;
+                return '<span class="badge' + (off ? ' off' : '') + '" data-kind="' + b.kind + '" data-url="' + esc(b.url || '') + '">' + esc(b.label) + '</span>';
+            }).join('');
+            return '<a class="unit" href="' + esc(u.href) + '" target="_blank">' +
+                '<span class="unit-no">' + esc(u.no) + '</span>' +
+                '<div class="unit-body">' +
+                (seriesName ? '<span class="unit-series">' + esc(seriesName) + '</span>' : '') +
+                '<div class="unit-title">' + lines.map(function (l) { return '<span class="sub">' + l + '</span>'; }).join('') + main + '</div>' +
+                (badges ? '<div class="badge-row">' + badges + '</div>' : '') +
+                '</div></a>';
+        }
+
+        function renderOverview() {
+            renderSidebar('');
+            var html = '<div class="view-head"><h2>所有課程系列</h2><span class="view-meta">' + series.length + ' 個系列 · 點一疊牌展開</span></div><div class="deck-grid">';
+            series.forEach(function (s) {
+                var v = 0, p = 0, c = 0;
+                s.units.forEach(function (u) {
+                    u.badges.forEach(function (b) {
+                        if (b.kind === 'video' && b.url) v++;
+                        if (b.kind === 'page') p++;
+                        if (b.kind === 'img') c++;
+                    });
+                });
+                var tags = [];
+                if (c) tags.push('導讀圖說 ' + c);
+                if (v) tags.push('影片 ' + v);
+                if (p) tags.push('網頁 ' + p);
+                html += '<button class="deck" data-id="' + s.id + '" aria-label="' + esc(s.name) + ',' + s.units.length + ' 個單元">' +
+                    '<span class="deck-layer l3"></span><span class="deck-layer l2"></span>' +
+                    '<span class="deck-face"><span class="deck-name">' + esc(s.name) + '</span>' +
+                    '<span class="deck-count">' + s.units.length + '<small>個單元</small></span>' +
+                    '<span class="deck-tags">' + tags.map(function (t) { return '<span class="deck-tag">' + t + '</span>'; }).join('') + '</span></span></button>';
+            });
+            view.innerHTML = html + '</div>';
+            riseIn(view.querySelectorAll('.deck'));
+        }
+
+        function renderSeries(s, origin) {
+            renderSidebar(s.id);
+            view.innerHTML = '<div class="view-head"><button class="back-btn" data-id="">← 所有系列</button><h2>' + esc(s.name) + '</h2><span class="view-meta">' + s.units.length + ' 個單元</span></div>' +
+                '<div class="unit-grid">' + s.units.map(function (u) { return unitCard(u, ''); }).join('') + '</div>';
+            deal(view.querySelectorAll('.unit'), origin);
+        }
+
+        function renderSearch(q) {
+            renderSidebar(null);
+            var ql = q.toLowerCase(), hits = [];
+            series.forEach(function (s) {
+                s.units.forEach(function (u) {
+                    if ((s.name + ' ' + u.lines.join(' ')).toLowerCase().indexOf(ql) >= 0) hits.push({ s: s, u: u });
+                });
+            });
+            view.innerHTML = '<div class="view-head"><h2>搜尋「' + esc(q) + '」</h2><span class="view-meta">找到 ' + hits.length + ' 個單元</span></div>' +
+                (hits.length ? '<div class="unit-grid">' + hits.map(function (h) { return unitCard(h.u, q, h.s.short); }).join('') + '</div>'
+                    : '<p class="empty">找不到符合的單元,換個關鍵字試試。</p>');
+            riseIn(view.querySelectorAll('.unit'));
+        }
+
+        // 發牌動畫:每張卡從牌堆(或側欄按鈕)的位置飛到自己的格子
+        function deal(cards, origin) {
+            if (reduceMotion || !origin) { riseIn(cards); return; }
+            var ox = origin.left + origin.width / 2, oy = origin.top + origin.height / 2;
+            cards.forEach(function (el, i) {
+                var r = el.getBoundingClientRect();
+                var dx = ox - (r.left + r.width / 2), dy = oy - (r.top + r.height / 2);
+                var rot = (i % 2 ? 1 : -1) * (4 + (i * 7) % 9);
+                el.style.transition = 'none';
+                el.style.transform = 'translate(' + dx + 'px,' + dy + 'px) rotate(' + rot + 'deg) scale(.55)';
+                el.style.opacity = '0';
+            });
+            void view.offsetWidth;
+            cards.forEach(function (el, i) {
+                var delay = Math.min(i * 32, 640);
+                el.style.transition = 'transform 560ms cubic-bezier(.2,.85,.25,1.08) ' + delay + 'ms, opacity 180ms ease ' + delay + 'ms';
+                el.style.transform = '';
+                el.style.opacity = '';
+                setTimeout(function () { el.style.transition = ''; }, 600 + delay);
+            });
+        }
+
+        function riseIn(els) {
+            if (reduceMotion) return;
+            els.forEach(function (el) {
+                el.style.transition = 'none'; el.style.opacity = '0'; el.style.transform = 'translateY(14px)';
+            });
+            void view.offsetWidth;
+            els.forEach(function (el, i) {
+                var delay = Math.min(i * 25, 400);
+                el.style.transition = 'transform 380ms cubic-bezier(.2,.8,.2,1) ' + delay + 'ms, opacity 300ms ease ' + delay + 'ms';
+                el.style.opacity = ''; el.style.transform = '';
+                setTimeout(function () { el.style.transition = ''; }, 420 + delay);
+            });
+        }
+
+        // html 設了平滑捲動,這裡要立即回到頂端,發牌起點才不會偏移
+        function scrollTop() { window.scrollTo({ top: 0, left: 0, behavior: 'instant' }); }
+
+        // 以網址 #sec-xxx 記住目前系列,沿用原本的錨點,瀏覽器上一頁也能用
+        var pendingOrigin = null;
+        function route() {
+            var id = location.hash.slice(1);
+            var s = series.filter(function (x) { return x.id === id; })[0];
+            var origin = pendingOrigin; pendingOrigin = null;
+            scrollTop();
+            if (s) renderSeries(s, origin); else renderOverview();
+        }
+
+        function go(id, originEl) {
+            if (searchInput.value) searchInput.value = '';
+            pendingOrigin = null;
+            if (originEl) {
+                var r = originEl.getBoundingClientRect();
+                var before = r.top;
+                scrollTop();
+                var shift = originEl.getBoundingClientRect().top - before;
+                pendingOrigin = { left: r.left, top: r.top + shift, width: r.width, height: r.height };
+            }
+            if (location.hash.slice(1) === id) {
+                route();
+            } else if (id) {
+                location.hash = id;
+            } else {
+                // 回總覽時清掉網址的 #,不留下空的「#」
+                history.pushState(null, '', location.pathname + location.search);
+                route();
+            }
+        }
+
+        document.addEventListener('click', function (e) {
+            var badge = e.target.closest('.badge');
+            if (badge) {
+                e.preventDefault(); e.stopPropagation();
+                var url = badge.getAttribute('data-url');
+                if (!url) return;
+                if (badge.getAttribute('data-kind') === 'img') openLightbox(url);
+                else window.open(url, '_blank');
+                return;
+            }
+            var btn = e.target.closest('.deck, .cat-btn, .back-btn');
+            if (btn) go(btn.getAttribute('data-id'), btn.classList.contains('back-btn') ? null : btn);
+        });
+
+        var searchTimer;
+        searchInput.addEventListener('input', function () {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(function () {
+                var q = searchInput.value.trim();
+                if (q) renderSearch(q); else route();
+            }, 150);
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); searchInput.focus(); searchInput.select(); }
+            else if (e.key === '/' && document.activeElement !== searchInput) { e.preventDefault(); searchInput.focus(); }
+            else if (e.key === 'Escape' && document.activeElement === searchInput && searchInput.value) { searchInput.value = ''; route(); }
+        });
+
+        window.addEventListener('hashchange', route);
+        window.addEventListener('popstate', route);
+
+        // 固定標頭的高度會隨視窗寬度改變,手機版分類列要貼在標頭下方
+        function syncHeader() {
+            document.documentElement.style.setProperty('--header-h', document.querySelector('.navbar').offsetHeight + 'px');
+        }
+        window.addEventListener('resize', syncHeader);
+        syncHeader();
+
+        readSections();
+        route();
+    })();
     </script>
 
 </body>
