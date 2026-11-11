@@ -153,20 +153,16 @@
                         "<strong>關鍵參數 - Administrative Distance (AD)：</strong>靜態路由的 AD 值通常預設為 1 (ExtremeXOS 預設 Gateway 也是優先)，代表可信度極高。"
                     ]
                 },
-                diagram: `graph LR
-    subgraph HQ [總公司 HQ]
-    R1[Core Router]
-    end
-    subgraph Branch [分公司 Branch]
-    R2[Edge Router]
-    end
-    
-    PC1[PC 192.168.1.10] --> R1
-    R1 -- "Static Route: 192.168.2.0/24 -> 10.0.0.2" --> R2
-    R2 -- "Connected" --> PC2[PC 192.168.2.10]
-    
-    style R1 fill:#f9f,stroke:#333,stroke-width:2px
-    style R2 fill:#bbf,stroke:#333,stroke-width:2px`,
+                svg: `<svg viewBox="0 0 890 250" role="img" aria-labelledby="sr-title sr-desc" style="width:100%;min-width:560px;max-width:890px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif"><title id="sr-title">靜態路由架構示意</title><desc id="sr-desc">總公司 HQ 的 Core Router 以一條手動設定的靜態路由 (192.168.2.0/24 的下一跳為 10.0.0.2) 指向分公司 Branch 的 Edge Router;左側 PC 192.168.1.10 連到 Core Router,右側 PC 192.168.2.10 直接連在 Edge Router (Connected)。</desc><defs>
+    <linearGradient id="sr-sw" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7e57c2"/><stop offset="1" stop-color="#311b92"/></linearGradient>
+    <filter id="sr-shadow" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#311b92" flood-opacity="0.18"/></filter>
+    <marker id="sr-arr-p" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#673ab7"/></marker>
+    <marker id="sr-arr-g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#64748b"/></marker>
+    <g id="sr-rt"><circle r="13" fill="#ffffff" fill-opacity="0.15" stroke="#ffffff" stroke-opacity="0.55" stroke-width="1.2"/><path d="M-8 -3.5 H7 M3.5 -7 L7 -3.5 L3.5 0 M8 3.5 H-7 M-3.5 0 L-7 3.5 L-3.5 7" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></g>
+</defs><rect x="170" y="40" width="170" height="130" rx="16" fill="#f6f2fe" stroke="#b39ddb" stroke-width="1.5" stroke-dasharray="6 5"/><text x="186" y="62" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#673ab7">總公司 HQ</text><rect x="520" y="40" width="170" height="130" rx="16" fill="#effafc" stroke="#67c5d6" stroke-width="1.5" stroke-dasharray="6 5"/><text x="536" y="62" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#0891b2">分公司 Branch</text><g stroke="#0891b2" stroke-width="4" stroke-linecap="round" fill="none"><line x1="150" y1="110" x2="185" y2="110"/><line x1="675" y1="110" x2="740" y2="110"/></g><line x1="325" y1="110" x2="533" y2="110" stroke="#673ab7" stroke-width="4" stroke-linecap="round" marker-end="url(#sr-arr-p)"/><rect x="347" y="62" width="166" height="38" rx="8" fill="#fff" stroke="#673ab7"/><text x="430" y="77" text-anchor="middle" font-size="11" font-weight="700" fill="#4527a0">Static Route</text><text x="430" y="93" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="10.5" fill="#4527a0">192.168.2.0/24 → 10.0.0.2</text><text x="708" y="101" text-anchor="middle" font-size="11" fill="#0e7490">Connected</text><g filter="url(#sr-shadow)"><rect x="185" y="82" width="140" height="56" rx="10" fill="url(#sr-sw)"/></g><use href="#sr-rt" x="209" y="110.0"/><text x="267.0" y="115.0" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">Core Router</text><g filter="url(#sr-shadow)"><rect x="535" y="82" width="140" height="56" rx="10" fill="url(#sr-sw)"/></g><use href="#sr-rt" x="559" y="110.0"/><text x="617.0" y="115.0" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">Edge Router</text><rect x="20" y="82" width="130" height="56" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/><rect x="32" y="98.0" width="22" height="15" rx="2" fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2"/><rect x="39" y="114.0" width="8" height="3" fill="#0891b2"/><rect x="35" y="117.0" width="16" height="2" fill="#0891b2"/><text x="101.0" y="107.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">PC</text><text x="101.0" y="123.0" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#0e7490">192.168.1.10</text><rect x="740" y="82" width="130" height="56" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/><rect x="752" y="98.0" width="22" height="15" rx="2" fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2"/><rect x="759" y="114.0" width="8" height="3" fill="#0891b2"/><rect x="755" y="117.0" width="16" height="2" fill="#0891b2"/><text x="821.0" y="107.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">PC</text><text x="821.0" y="123.0" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#0e7490">192.168.2.10</text><g font-size="12" fill="#5b6278">
+<line x1="190" y1="222" x2="222" y2="222" stroke="#0891b2" stroke-width="4" stroke-linecap="round"/><text x="230" y="226">直連 / 實體連線</text>
+<line x1="370" y1="222" x2="402" y2="222" stroke="#673ab7" stroke-width="4" stroke-linecap="round" marker-end="url(#sr-arr-p)"/><text x="414" y="226">手動設定的靜態路由 (Next Hop)</text>
+</g></svg>`,
                 useCase: {
                     scenario: "小型企業或末端辦公室 (Stub Network)。",
                     desc: "例如一家只有單一出口連接 ISP 的分公司。無論要去 Google、總公司還是 AWS，都只有這條路可走，設定一條 `Default Route (0.0.0.0/0)` 指向 ISP 即可。",
@@ -235,27 +231,17 @@
                         "<strong>ExtremeXOS 設定：</strong><span class='code-block'>configure ospf add vlan [vlan] area 0.0.0.0</span>"
                     ]
                 },
-                diagram: `graph TD
-    subgraph Area0 [Backbone Area 0]
-    R1((Core SW 1))
-    R2((Core SW 2))
-    R1 --- R2
-    end
-    
-    subgraph Area1 [User Area 1]
-    R3[Access SW A]
-    R4[Access SW B]
-    R3 --- R1
-    R4 --- R1
-    end
-    
-    subgraph Area2 [Server Area 2]
-    R5[Server SW]
-    R5 --- R2
-    end
-    
-    classDef backbone fill:#f96,stroke:#333,stroke-width:2px;
-    class R1,R2 backbone;`,
+                svg: `<svg viewBox="0 0 760 440" role="img" aria-labelledby="ospf-title ospf-desc" style="width:100%;min-width:560px;max-width:760px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif"><title id="ospf-title">OSPF 區域架構示意</title><desc id="ospf-desc">Backbone Area 0 內有 Core SW 1 與 Core SW 2 相連;User Area 1 的 Access SW A、Access SW B 連到 Core SW 1,Server Area 2 的 Server SW 連到 Core SW 2。兩台核心交換器同時屬於 Area 0 與其他區域,擔任 ABR,所有非骨幹區域都經由 Area 0 互通。</desc><defs>
+    <linearGradient id="ospf-sw" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7e57c2"/><stop offset="1" stop-color="#311b92"/></linearGradient>
+    <filter id="ospf-shadow" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#311b92" flood-opacity="0.18"/></filter>
+    <marker id="ospf-arr-p" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#673ab7"/></marker>
+    <marker id="ospf-arr-g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#64748b"/></marker>
+    <g id="ospf-rt"><circle r="13" fill="#ffffff" fill-opacity="0.15" stroke="#ffffff" stroke-opacity="0.55" stroke-width="1.2"/><path d="M-8 -3.5 H7 M3.5 -7 L7 -3.5 L3.5 0 M8 3.5 H-7 M-3.5 0 L-7 3.5 L-3.5 7" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></g>
+</defs><rect x="150" y="24" width="460" height="140" rx="16" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5" stroke-dasharray="6 5"/><text x="166" y="46" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#c2410c">Backbone Area 0</text><rect x="30" y="232" width="410" height="150" rx="16" fill="#effafc" stroke="#67c5d6" stroke-width="1.5" stroke-dasharray="6 5"/><text x="46" y="372" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#0891b2">User Area 1</text><rect x="470" y="232" width="260" height="150" rx="16" fill="#f6f2fe" stroke="#b39ddb" stroke-width="1.5" stroke-dasharray="6 5"/><text x="486" y="372" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#673ab7">Server Area 2</text><g stroke="#0891b2" stroke-width="4" stroke-linecap="round"><line x1="355" y1="104" x2="405" y2="104"/><line x1="240" y1="136" x2="140" y2="262"/><line x1="300" y1="136" x2="330" y2="262"/><line x1="520" y1="136" x2="600" y2="262"/></g><g filter="url(#ospf-shadow)"><rect x="185" y="72" width="170" height="64" rx="10" fill="url(#ospf-sw)"/></g><use href="#ospf-rt" x="209" y="104.0"/><text x="282.0" y="101.0" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">Core SW 1</text><text x="282.0" y="118.0" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#d1c4e9">ABR (Area 0/1)</text><g filter="url(#ospf-shadow)"><rect x="405" y="72" width="170" height="64" rx="10" fill="url(#ospf-sw)"/></g><use href="#ospf-rt" x="429" y="104.0"/><text x="502.0" y="101.0" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">Core SW 2</text><text x="502.0" y="118.0" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#d1c4e9">ABR (Area 0/2)</text><g filter="url(#ospf-shadow)"><rect x="60" y="262" width="160" height="56" rx="10" fill="url(#ospf-sw)"/></g><use href="#ospf-rt" x="84" y="290.0"/><text x="152.0" y="295.0" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">Access SW A</text><g filter="url(#ospf-shadow)"><rect x="250" y="262" width="160" height="56" rx="10" fill="url(#ospf-sw)"/></g><use href="#ospf-rt" x="274" y="290.0"/><text x="342.0" y="295.0" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">Access SW B</text><g filter="url(#ospf-shadow)"><rect x="520" y="262" width="160" height="56" rx="10" fill="url(#ospf-sw)"/></g><use href="#ospf-rt" x="544" y="290.0"/><text x="612.0" y="295.0" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">Server SW</text><g font-size="12" fill="#5b6278">
+<rect x="150" y="414" width="26" height="14" rx="4" fill="#fff7ed" stroke="#fdba74" stroke-dasharray="4 3"/><text x="184" y="425">Area 0 骨幹區域</text>
+<line x1="320" y1="421" x2="352" y2="421" stroke="#0891b2" stroke-width="4" stroke-linecap="round"/><text x="360" y="425">OSPF 鏈路</text>
+<text x="470" y="425">非骨幹區域都經由 Area 0 互通</text>
+</g></svg>`,
                 useCase: {
                     scenario: "中大型企業園區網路、資料中心。",
                     desc: "企業內部有核心層、匯聚層、存取層，線路頻寬不一 (1G/10G/40G)。OSPF 能準確選擇 40G 的路徑而不是 1G 的捷徑。",
@@ -284,36 +270,18 @@
                         "<strong>ExtremeXOS 設定指令：</strong><br>Stub 設定：<span class='code-block'>configure ospf area 0.0.0.1 stub</span><br>NSSA 設定：<span class='code-block'>configure ospf area 0.0.0.2 nssa</span><br>完全末梢 (Totally Stub/NSSA) 通常透過 <span class='code-block'>no-summary</span> 選項或預設 summary 行為控制。"
                     ]
                 },
-                diagram: `graph TB
-    subgraph Backbone ["Area 0 (Backbone)"]
-    R1((Core R1))
-    R2((Core R2))
-    end
-
-    subgraph Stub ["Area 1 (Stub)"]
-    R3[Stub Router]
-    note1[阻擋 Type 5 External<br>僅接受 Type 3 Summary<br>ABR 注入 Default Route]
-    end
-
-    subgraph NSSA ["Area 2 (NSSA)"]
-    R4[NSSA ABR]
-    R5[ASBR]
-    ext[外部網路/4G]
-    note2[阻擋骨幹來的 Type 5<br>允許本地引入 Type 7<br>ABR 將 Type 7 轉 Type 5]
-    end
-    
-    R1 --- R3
-    R2 --- R4
-    R4 --- R5
-    R5 -.->|Redistribute| ext
-    
-    R3 -.->|Block LSA 5| R1
-    R5 == Type 7 ==> R4
-    R4 == Type 5 ==> R2
-    
-    style Backbone fill:#fef3c7,stroke:#d97706,stroke-width:2px
-    style Stub fill:#d1fae5,stroke:#059669,stroke-width:2px
-    style NSSA fill:#e0e7ff,stroke:#4f46e5,stroke-width:2px`,
+                svg: `<svg viewBox="0 0 800 530" role="img" aria-labelledby="oa-title oa-desc" style="width:100%;min-width:560px;max-width:800px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif"><title id="oa-title">OSPF 特殊區域:Stub 與 NSSA</title><desc id="oa-desc">Area 0 (Backbone) 內有 Core R1 與 Core R2。Area 1 (Stub) 的 Stub Router 連到 Core R1,Core R1 阻擋 Type 5 External LSA 進入 Stub 區域,只送 Type 3 Summary 並注入 Default Route。Area 2 (NSSA) 的 NSSA ABR 連到 Core R2,區域內的 ASBR 把外部網路/4G 的路由重分發進來,以 Type 7 LSA 送到 NSSA ABR,再由 ABR 轉成 Type 5 送進骨幹。</desc><defs>
+    <linearGradient id="oa-sw" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7e57c2"/><stop offset="1" stop-color="#311b92"/></linearGradient>
+    <filter id="oa-shadow" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#311b92" flood-opacity="0.18"/></filter>
+    <marker id="oa-arr-p" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#673ab7"/></marker>
+    <marker id="oa-arr-g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#64748b"/></marker>
+    <g id="oa-rt"><circle r="13" fill="#ffffff" fill-opacity="0.15" stroke="#ffffff" stroke-opacity="0.55" stroke-width="1.2"/><path d="M-8 -3.5 H7 M3.5 -7 L7 -3.5 L3.5 0 M8 3.5 H-7 M-3.5 0 L-7 3.5 L-3.5 7" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></g>
+</defs><rect x="170" y="20" width="460" height="124" rx="16" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5" stroke-dasharray="6 5"/><text x="186" y="42" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#c2410c">Area 0 (Backbone)</text><rect x="24" y="196" width="340" height="290" rx="16" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5" stroke-dasharray="6 5"/><text x="40" y="476" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#047857">Area 1 (Stub)</text><rect x="436" y="196" width="340" height="290" rx="16" fill="#eef2ff" stroke="#a5b4fc" stroke-width="1.5" stroke-dasharray="6 5"/><text x="452" y="476" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#4338ca">Area 2 (NSSA)</text><g stroke="#0891b2" stroke-width="4" stroke-linecap="round"><line x1="370" y1="82" x2="430" y2="82"/><line x1="250" y1="112" x2="190" y2="232"/><line x1="530" y1="112" x2="540" y2="232"/><line x1="608" y1="262" x2="632" y2="262"/></g><line x1="274" y1="116" x2="236" y2="186" stroke="#dc2626" stroke-width="2.5" stroke-dasharray="6 5"/><circle cx="236" cy="190" r="9" fill="#fff" stroke="#dc2626" stroke-width="2"/><text x="236" y="194.5" text-anchor="middle" font-size="12" font-weight="700" fill="#dc2626">✕</text><text x="286" y="166" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#b91c1c">Block LSA Type 5</text><path d="M694 232 Q650 196 584 232" fill="none" stroke="#673ab7" stroke-width="2.5" marker-end="url(#oa-arr-p)"/><text x="640" y="208" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#4527a0">Type 7</text><line x1="556" y1="230" x2="548" y2="122" stroke="#673ab7" stroke-width="2.5" marker-end="url(#oa-arr-p)"/><text x="562" y="170" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#4527a0">Type 5</text><path d="M694 292 L694 334" fill="none" stroke="#64748b" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#oa-arr-g)"/><text x="702" y="318" font-size="11" fill="#475569">Redistribute</text><path d="M650 392 H738 A20 20 0 0 0 742 354 A26 26 0 0 0 694 342 A20 20 0 0 0 652 357 A18 18 0 0 0 650 392 Z" fill="#eef2ff" stroke="#9fa8da" stroke-width="2"/><text x="696" y="376" text-anchor="middle" font-size="12" font-weight="700" fill="#1e2235">外部網路/4G</text><g filter="url(#oa-shadow)"><rect x="210" y="52" width="160" height="60" rx="10" fill="url(#oa-sw)"/></g><use href="#oa-rt" x="234" y="82.0"/><text x="302.0" y="79.0" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">Core R1</text><text x="302.0" y="96.0" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#d1c4e9">ABR</text><g filter="url(#oa-shadow)"><rect x="430" y="52" width="160" height="60" rx="10" fill="url(#oa-sw)"/></g><use href="#oa-rt" x="454" y="82.0"/><text x="522.0" y="79.0" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">Core R2</text><text x="522.0" y="96.0" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#d1c4e9">ABR</text><g filter="url(#oa-shadow)"><rect x="110" y="232" width="160" height="60" rx="10" fill="url(#oa-sw)"/></g><use href="#oa-rt" x="134" y="262.0"/><text x="202.0" y="267.0" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">Stub Router</text><g filter="url(#oa-shadow)"><rect x="470" y="232" width="138" height="60" rx="10" fill="url(#oa-sw)"/></g><use href="#oa-rt" x="494" y="262.0"/><text x="551.0" y="267.0" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">NSSA ABR</text><g filter="url(#oa-shadow)"><rect x="632" y="232" width="124" height="60" rx="10" fill="url(#oa-sw)"/></g><use href="#oa-rt" x="656" y="262.0"/><text x="706.0" y="267.0" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">ASBR</text><rect x="54" y="330" width="280" height="70" rx="8" fill="#fff" stroke="#6ee7b7"/><text x="66" y="352" font-size="12" fill="#065f46">• 阻擋 Type 5 External</text><text x="66" y="370" font-size="12" fill="#065f46">• 僅接受 Type 3 Summary</text><text x="66" y="388" font-size="12" fill="#065f46">• ABR 注入 Default Route</text><rect x="452" y="330" width="180" height="70" rx="8" fill="#fff" stroke="#a5b4fc"/><text x="464" y="352" font-size="12" fill="#3730a3">• 阻擋骨幹來的 Type 5</text><text x="464" y="370" font-size="12" fill="#3730a3">• 允許本地引入 Type 7</text><text x="464" y="388" font-size="12" fill="#3730a3">• ABR 將 Type 7 轉 Type 5</text><g font-size="12" fill="#5b6278">
+<line x1="96" y1="512" x2="128" y2="512" stroke="#0891b2" stroke-width="4" stroke-linecap="round"/><text x="136" y="516">實體鏈路</text>
+<line x1="226" y1="512" x2="258" y2="512" stroke="#673ab7" stroke-width="2.5" marker-end="url(#oa-arr-p)"/><text x="266" y="516">LSA 傳遞方向</text>
+<line x1="380" y1="512" x2="412" y2="512" stroke="#dc2626" stroke-width="2.5" stroke-dasharray="6 5"/><text x="420" y="516">被阻擋的 LSA</text>
+<line x1="530" y1="512" x2="562" y2="512" stroke="#64748b" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#oa-arr-g)"/><text x="570" y="516">重分發 (Redistribute)</text>
+</g></svg>`,
                 useCase: {
                     scenario: "分公司網路設計選擇。",
                     desc: "<strong>Stub：</strong> 一般分公司，只有一條專線連回總部。不需要知道外部 Internet 的詳細路由，給它一條 Default Route 指向總部即可。<br><strong>NSSA：</strong> 分公司有一條主要的專線連總部，但同時有一條本地的 Internet 線路 (DSL/4G) 用於備援或供客用 WiFi 上網。我們需要把這條本地路由告訴總部，但不希望總部把幾萬條 Internet 路由灌爆分公司路由器。",
@@ -416,9 +384,9 @@
                         <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
                             <i class="fa-solid fa-project-diagram text-purple-500 mr-2"></i>三、架構視覺化 (Visuals)
                         </h2>
-                        <div class="mermaid overflow-x-auto">
-                            ${data.diagram}
-                        </div>
+                        ${data.svg
+                            ? `<div style="width:100%;overflow-x:auto">${data.svg}</div>`
+                            : `<div class="mermaid overflow-x-auto">${data.diagram}</div>`}
                         <p class="text-center text-sm text-gray-500 mt-2">圖表：${data.title} 架構示意圖</p>
                     </section>
 

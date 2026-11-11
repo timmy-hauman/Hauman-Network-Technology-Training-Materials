@@ -269,47 +269,65 @@
                 <span>三、故障排除流程圖 (Visuals)</span>
             </div>
             <div class="section-content">
-                <p class="mb-4">以下圖表展示了標準的故障排除決策樹。<strong>為了確保文字清晰可讀，圖表已設定為原始大小，請左右滑動捲軸以查看完整大圖。</strong></p>
+                <p class="mb-4">以下圖表展示了標準的故障排除決策樹。圖一會依畫面寬度自動縮放；<strong>圖二較寬，請左右滑動捲軸查看完整內容。</strong></p>
                 
                 <h4 class="font-bold text-center mb-2">圖一：標準故障排除決策樹 (含動態路由)</h4>
                 <div class="diagram-container">
-                    <div class="mermaid">
-                        %%{init: { 'flowchart': { 'useMaxWidth': false }, 'theme': 'base', 'themeVariables': { 'fontSize': '15px', 'fontFamily': 'Noto Sans TC'}}}%%
-                        flowchart TD
-                            Start[故障發生] --> CheckLog[查看 Log:<br/>show log]
-                            CheckLog --> Analyze{是硬體<br/>還是軟體?}
-                            
-                            Analyze -- 硬體/L1 --> PhyCheck[實體層檢查]
-                            PhyCheck --> Cabling[檢查線材<br/>與模組]
-                            Cabling --> SpeedDup[檢查 Speed<br/>Duplex]
-                            SpeedDup --> Errors[檢查 Rx/Tx<br/>Errors]
-                            Errors --> ResolveL1[更換線材<br/>或固定速率]
-                            
-                            Analyze -- 軟體/L2/L3 --> L2Check[資料連結層<br/>檢查]
-                            L2Check --> VLANCheck[檢查 VLAN<br/>Tag/Untag]
-                            VLANCheck --> FDBCheck[檢查 MAC<br/>FDB 表]
-                            FDBCheck --> LoopCheck[檢查 Loop:<br/>ELRP/STP]
-                            LoopCheck --> L3Check[網路層<br/>檢查]
-                            
-                            L3Check --> IPCheck[檢查 IP &<br/>Mask 設定]
-                            IPCheck --> RoutingType{路由類型?}
-                            
-                            RoutingType -- 靜態 Static --> RouteCheck[檢查 Routing<br/>Table]
-                            RoutingType -- 動態 Dynamic --> ProtocolCheck{RIP 或<br/>OSPF?}
-                            
-                            ProtocolCheck -- RIP --> RipVer[檢查 RIP<br/>Version/Interface]
-                            ProtocolCheck -- OSPF --> OspfNeigh[檢查 OSPF<br/>Neighbor/Area]
-                            
-                            RipVer --> Resolve[問題解決]
-                            OspfNeigh --> Resolve
-                            RouteCheck --> Resolve
-
-                            style Start fill:#f56565,stroke:#333,color:white
-                            style Resolve fill:#48bb78,stroke:#333,color:white
-                            style CheckLog fill:#4299e1,stroke:#333,color:white
-                            style IPCheck fill:#d69e2e,stroke:#333,color:white
-                            style Errors fill:#d69e2e,stroke:#333,color:white
-                            style OspfNeigh fill:#805ad5,stroke:#333,color:white
+                    <!-- 圖一 (手繪 SVG):直式決策樹,左欄為硬體/L1 分支,中欄為軟體/L2/L3 分支,右欄為 OSPF -->
+                    <div style="width:100%;overflow-x:auto">
+                    <svg viewBox="0 0 860 1240" role="img" aria-labelledby="tsdiag1-title tsdiag1-desc" style="width:100%;min-width:560px;max-width:860px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+                    <title id="tsdiag1-title">標準故障排除決策樹 (含動態路由)</title>
+                    <desc id="tsdiag1-desc">故障發生後先查看 Log (show log),判斷是硬體還是軟體問題。硬體/L1 分支:實體層檢查,依序檢查線材與模組、Speed/Duplex、Rx/Tx Errors,最後更換線材或固定速率，完成後同樣到達問題解決。軟體/L2/L3 分支:資料連結層檢查,依序檢查 VLAN Tag/Untag、MAC FDB 表、Loop (ELRP/STP),再進入網路層檢查,檢查 IP 與 Mask 設定,然後判斷路由類型:靜態 Static 時檢查 Routing Table;動態 Dynamic 時再分 RIP 或 OSPF,RIP 檢查 Version/Interface,OSPF 檢查 Neighbor/Area。Routing Table、RIP、OSPF 三條檢查最後都導向問題解決。</desc>
+                    <defs><linearGradient id="tsdiag1-pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7e57c2"/><stop offset="1" stop-color="#311b92"/></linearGradient><linearGradient id="tsdiag1-rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f56565"/><stop offset="1" stop-color="#b91c1c"/></linearGradient><marker id="tsdiag1-arr" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5b6278"/></marker><marker id="tsdiag1-arr-r" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker></defs>
+                    <path d="M450 62 V100" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#tsdiag1-arr)"/>
+                    <path d="M450 152 V190" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#tsdiag1-arr)"/>
+                    <path d="M350 230 H140 V320" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#tsdiag1-arr)"/>
+                    <text x="272" y="222" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">硬體/L1</text>
+                    <path d="M450 270 V320" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#tsdiag1-arr)"/>
+                    <text x="462" y="298" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">軟體/L2/L3</text>
+                    <path d="M140 372 V406" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#tsdiag1-arr)"/>
+                    <path d="M140 458 V492" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#tsdiag1-arr)"/>
+                    <path d="M140 544 V578" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#tsdiag1-arr)"/>
+                    <path d="M140 630 V664" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#tsdiag1-arr)"/>
+                    <path d="M450 372 V406" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#tsdiag1-arr)"/>
+                    <path d="M450 458 V492" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#tsdiag1-arr)"/>
+                    <path d="M450 544 V578" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#tsdiag1-arr)"/>
+                    <path d="M450 630 V664" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#tsdiag1-arr)"/>
+                    <path d="M450 716 V750" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#tsdiag1-arr)"/>
+                    <path d="M450 802 V840" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#tsdiag1-arr)"/>
+                    <path d="M360 876 H140 V946" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#tsdiag1-arr)"/>
+                    <text x="272" y="868" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">靜態 Static</text>
+                    <path d="M450 912 V946" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#tsdiag1-arr)"/>
+                    <text x="462" y="931" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">動態 Dynamic</text>
+                    <path d="M450 1026 V1064" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#tsdiag1-arr)"/>
+                    <text x="462" y="1050" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">RIP</text>
+                    <path d="M540 986 H740 V1064" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#tsdiag1-arr)"/>
+                    <text x="615" y="978" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">OSPF</text>
+                    <path d="M450 1116 V1180" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#tsdiag1-arr)"/>
+                    <path d="M40 690 H20 V1202 H140" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round"/>
+                    <path d="M140 998 V1202 H360" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#tsdiag1-arr)"/>
+                    <path d="M740 1116 V1202 H540" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#tsdiag1-arr)"/>
+                    <rect x="360.0" y="18.0" width="180" height="44" rx="22.0" fill="url(#tsdiag1-rg)" stroke="#991b1b" stroke-width="2"/><text x="450" y="45" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">故障發生</text>
+                    <rect x="350.0" y="100.0" width="200" height="52" rx="10" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/><text x="450" y="121.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">查看 Log:</text><text x="450" y="139.0" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="10.5" fill="#5b6278">show log</text>
+                    <polygon points="450,190 550,230 450,270 350,230" fill="#e0f7fa" stroke="#0891b2" stroke-width="2"/><text x="450" y="227" text-anchor="middle" font-size="13" font-weight="700" fill="#0e7490">是硬體</text><text x="450" y="244" text-anchor="middle" font-size="13" font-weight="700" fill="#0e7490">還是軟體?</text>
+                    <rect x="40.0" y="320.0" width="200" height="52" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/><text x="140" y="351" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">實體層檢查</text>
+                    <rect x="40.0" y="406.0" width="200" height="52" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/><text x="140" y="437" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">檢查線材與模組</text>
+                    <rect x="40.0" y="492.0" width="200" height="52" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/><text x="140" y="523" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">檢查 Speed Duplex</text>
+                    <rect x="40.0" y="578.0" width="200" height="52" rx="10" fill="#fef3c7" stroke="#d97706" stroke-width="2"/><text x="140" y="609" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">檢查 Rx/Tx Errors</text>
+                    <rect x="40.0" y="664.0" width="200" height="52" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/><text x="140" y="695" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">更換線材或固定速率</text>
+                    <rect x="350.0" y="320.0" width="200" height="52" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/><text x="450" y="351" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">資料連結層檢查</text>
+                    <rect x="350.0" y="406.0" width="200" height="52" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/><text x="450" y="437" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">檢查 VLAN Tag/Untag</text>
+                    <rect x="350.0" y="492.0" width="200" height="52" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/><text x="450" y="523" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">檢查 MAC FDB 表</text>
+                    <rect x="350.0" y="578.0" width="200" height="52" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/><text x="450" y="599.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">檢查 Loop:</text><text x="450" y="617.0" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="10.5" fill="#5b6278">ELRP/STP</text>
+                    <rect x="350.0" y="664.0" width="200" height="52" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/><text x="450" y="695" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">網路層檢查</text>
+                    <rect x="350.0" y="750.0" width="200" height="52" rx="10" fill="#fef3c7" stroke="#d97706" stroke-width="2"/><text x="450" y="781" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">檢查 IP &amp; Mask 設定</text>
+                    <polygon points="450,840 540,876 450,912 360,876" fill="#e0f7fa" stroke="#0891b2" stroke-width="2"/><text x="450" y="881" text-anchor="middle" font-size="13" font-weight="700" fill="#0e7490">路由類型?</text>
+                    <rect x="40.0" y="946.0" width="200" height="52" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/><text x="140" y="977" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">檢查 Routing Table</text>
+                    <polygon points="450,946 540,986 450,1026 360,986" fill="#e0f7fa" stroke="#0891b2" stroke-width="2"/><text x="450" y="983" text-anchor="middle" font-size="13" font-weight="700" fill="#0e7490">RIP 或</text><text x="450" y="1000" text-anchor="middle" font-size="13" font-weight="700" fill="#0e7490">OSPF?</text>
+                    <rect x="350.0" y="1064.0" width="200" height="52" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/><text x="450" y="1085.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">檢查 RIP</text><text x="450" y="1103.0" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="10.5" fill="#5b6278">Version/Interface</text>
+                    <rect x="640.0" y="1064.0" width="200" height="52" rx="10" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/><text x="740" y="1085.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">檢查 OSPF</text><text x="740" y="1103.0" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="10.5" fill="#5b6278">Neighbor/Area</text>
+                    <rect x="360.0" y="1180.0" width="180" height="44" rx="22.0" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/><text x="450" y="1207" text-anchor="middle" font-size="13" font-weight="700" fill="#15803d">問題解決</text>
+                    </svg>
                     </div>
                 </div>
 

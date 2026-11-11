@@ -167,37 +167,36 @@
                 <!-- Diagram 1: Packet Structure (Traditional Horizontal View) -->
                 <div>
                     <h4 class="text-center font-bold mb-4 text-gray-600 text-xl">乙太網封包結構</h4>
-                    <div class="mermaid">
-                        graph LR
-                            %% Nodes representing fields horizontally
-                            EthH["Ethernet Header<br>(14 Bytes)"]
-                            
-                            subgraph MTU_Zone ["MTU (1500 Bytes)"]
-                                direction LR
-                                IPH["IP Header<br>(20 Bytes)"]
-                                L4H["TCP/UDP Header<br>(20/8 Bytes)"]
-                                Data["Data Payload<br>(MSS)"]
-                            end
-                            
-                            FCS["FCS<br>(4 Bytes)"]
-
-                            %% Connections
-                            EthH --- IPH --- L4H --- Data --- FCS
-
-                            %% Styling
-                            classDef eth fill:#e2e8f0,stroke:#64748b;
-                            classDef ip fill:#dbeafe,stroke:#3b82f6;
-                            classDef l4 fill:#dcfce7,stroke:#22c55e;
-                            classDef data fill:#fef9c3,stroke:#eab308;
-                            classDef fcs fill:#f1f5f9,stroke:#94a3b8;
-                            classDef mtuZone fill:#f8fafc,stroke:#334155,stroke-dasharray: 5 5;
-
-                            class EthH eth;
-                            class IPH ip;
-                            class L4H l4;
-                            class Data data;
-                            class FCS fcs;
-                            class MTU_Zone mtuZone;
+                    <div style="width:100%;overflow-x:auto">
+                    <svg viewBox="0 0 860 252" role="img" aria-labelledby="mtu-frame-title mtu-frame-desc" style="width:100%;min-width:560px;max-width:860px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+                    <title id="mtu-frame-title">乙太網封包結構</title>
+                    <desc id="mtu-frame-desc">乙太網訊框由左至右依序為 Ethernet Header (14 Bytes)、IP Header (20 Bytes)、TCP/UDP Header (20/8 Bytes)、Data Payload (TCP 時即 MSS,1500 − 20 − 20 = 1460 Bytes;UDP 最多 1472 Bytes) 與 FCS (4 Bytes);虛線框內的 IP Header、TCP/UDP Header 與 Data Payload 合計為 MTU (1500 Bytes),其中 Data Payload 即為 MSS。</desc>
+                    <defs><filter id="mtu-frame-shadow" x="-10%" y="-20%" width="120%" height="160%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#311b92" flood-opacity="0.14"/></filter></defs>
+                    <rect x="160" y="40" width="580" height="132" rx="10" fill="#f8fafc" stroke="#334155" stroke-width="1.6" stroke-dasharray="5 5"/>
+                    <rect x="370" y="28" width="160" height="24" rx="12" fill="#fff" stroke="#334155" stroke-width="1.5"/>
+                    <text x="450" y="45" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#334155">MTU (1500 Bytes)</text>
+                    <g filter="url(#mtu-frame-shadow)">
+                    <rect x="30" y="78" width="130" height="80" fill="#e2e8f0" stroke="#64748b" stroke-width="2"/>
+                    <rect x="160" y="78" width="120" height="80" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+                    <rect x="280" y="78" width="150" height="80" fill="#dcfce7" stroke="#22c55e" stroke-width="2"/>
+                    <rect x="430" y="78" width="310" height="80" fill="#fef9c3" stroke="#eab308" stroke-width="2"/>
+                    <rect x="740" y="78" width="90" height="80" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2"/>
+                    </g>
+                    <text x="95" y="112" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">Ethernet Header</text>
+                    <text x="95" y="134" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#5b6278">(14 Bytes)</text>
+                    <text x="220" y="112" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">IP Header</text>
+                    <text x="220" y="134" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#5b6278">(20 Bytes)</text>
+                    <text x="355" y="112" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">TCP/UDP Header</text>
+                    <text x="355" y="134" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#5b6278">(20/8 Bytes)</text>
+                    <text x="585" y="112" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">Data Payload</text>
+                    <text x="585" y="134" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#5b6278">(TCP 時即 MSS)</text>
+                    <text x="785" y="112" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">FCS</text>
+                    <text x="785" y="134" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#5b6278">(4 Bytes)</text>
+                    <path d="M432 184 V194 H738 V184" fill="none" stroke="#b45309" stroke-width="2"/>
+                    <line x1="585" y1="194" x2="585" y2="200" stroke="#b45309" stroke-width="2"/>
+                    <text x="585" y="216" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#b45309">MSS = 1500 − 20 − 20 = 1460 (TCP)</text>
+                    <text x="30" y="244" font-size="10.5" fill="#6b7280">* 欄位寬度為示意,非實際比例;IP / TCP 表頭以無選項的 20 Bytes 計算。MSS 是 TCP 的概念,UDP 表頭為 8 Bytes,單一封包資料最多 1472 Bytes。</text>
+                    </svg>
                     </div>
                     <p class="text-center text-sm text-gray-500 mt-2">傳統線性封包結構：左至右依序排列，虛線框內為 MTU 範圍</p>
                 </div>
@@ -220,7 +219,7 @@
 
                             Note over PC, Server: 資料傳輸階段 (問題發生)
                             PC->>Router: 發送 1500 bytes 封包 (DF=1)
-                            Router--xRouter: 封包太大 (1500 > 1400) 且 DF=1
+                            Note over Router: 封包太大 (1500 > 1400) 且 DF=1，直接丟棄
                             Router-->>PC: ICMP Type 3 Code 4 (需分片但 DF 設為 1)
                             
                             Note over PC, Server: 解決方案：MSS Clamping
@@ -389,28 +388,50 @@ configure ip tcp-mss 1360 vlan "VPN-Vlan"
                     <!-- Visualization of Efficiency (Full width & Syntax Fixed) -->
                     <div class="w-full">
                         <h4 class="text-center font-bold mb-4 text-gray-600 text-xl">傳輸效率對比圖 (封包流比較)</h4>
-                        <div class="mermaid">
-                            graph LR
-                                %% Visualizing Overhead comparison
-                                
-                                subgraph STD ["標準傳輸 (6 x 1500 Bytes)"]
-                                    direction LR
-                                    S1["Head|Data"] --- S2["Head|Data"] --- S3["Head|Data"] --- S4["Head|Data"] --- S5["Head|Data"] --- S6["Head|Data"]
-                                end
-                                
-                                subgraph JUMBO ["Jumbo Frame (1 x 9000 Bytes)"]
-                                    direction LR
-                                    J1["Header | --------------------------------------------- Huge Data Payload ---------------------------------------------"]
-                                end
-                                
-                                %% Styling
-                                classDef stdPacket fill:#e2e8f0,stroke:#64748b,stroke-width:1px;
-                                classDef jumboPacket fill:#dcfce7,stroke:#16a34a,stroke-width:2px;
-                                
-                                class S1,S2,S3,S4,S5,S6 stdPacket;
-                                class J1 jumboPacket;
+                        <div style="width:100%;overflow-x:auto">
+                        <svg viewBox="0 0 860 280" role="img" aria-labelledby="mtu-eff-title mtu-eff-desc" style="width:100%;min-width:560px;max-width:860px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+                        <title id="mtu-eff-title">傳輸效率對比圖 (封包流比較)</title>
+                        <desc id="mtu-eff-desc">上方為標準傳輸 (6 x 1500 Bytes):同樣的資料被切成 6 個封包,每個封包都有自己的 Head 與 Data,共 6 個 Header 開銷;下方為 Jumbo Frame (1 x 9000 Bytes):只有 1 個 Header 加上一大段 Huge Data Payload,Header 開銷只有 1 個。</desc>
+                        <defs><filter id="mtu-eff-shadow" x="-10%" y="-20%" width="120%" height="160%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#311b92" flood-opacity="0.14"/></filter></defs>
+                        <rect x="20" y="16" width="820" height="114" rx="10" fill="#f8fafc" stroke="#64748b" stroke-width="1.6" stroke-dasharray="5 5"/>
+                        <text x="40" y="42" font-size="14" font-weight="700" fill="#334155">標準傳輸 (6 x 1500 Bytes)</text>
+                        <text x="820" y="42" text-anchor="end" font-size="12" font-weight="700" fill="#b45309">Header 開銷 × 6</text>
+                        <rect x="20" y="150" width="820" height="114" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.6" stroke-dasharray="5 5"/>
+                        <text x="40" y="176" font-size="14" font-weight="700" fill="#166534">Jumbo Frame (1 x 9000 Bytes)</text>
+                        <text x="820" y="176" text-anchor="end" font-size="12" font-weight="700" fill="#15803d">Header 開銷 × 1</text>
+                        <g filter="url(#mtu-eff-shadow)">
+                        <rect x="40" y="60" width="120" height="50" rx="4" fill="#e2e8f0" stroke="#64748b" stroke-width="1"/>
+                        <rect x="172" y="60" width="120" height="50" rx="4" fill="#e2e8f0" stroke="#64748b" stroke-width="1"/>
+                        <rect x="304" y="60" width="120" height="50" rx="4" fill="#e2e8f0" stroke="#64748b" stroke-width="1"/>
+                        <rect x="436" y="60" width="120" height="50" rx="4" fill="#e2e8f0" stroke="#64748b" stroke-width="1"/>
+                        <rect x="568" y="60" width="120" height="50" rx="4" fill="#e2e8f0" stroke="#64748b" stroke-width="1"/>
+                        <rect x="700" y="60" width="120" height="50" rx="4" fill="#e2e8f0" stroke="#64748b" stroke-width="1"/>
+                        <rect x="40" y="194" width="780" height="50" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+                        </g>
+                        <rect x="40" y="60" width="48" height="50" rx="4" fill="#cbd5e1" stroke="#64748b" stroke-width="1"/>
+                        <text x="64" y="89" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#334155">Head</text>
+                        <text x="124" y="89" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#475569">Data</text>
+                        <rect x="172" y="60" width="48" height="50" rx="4" fill="#cbd5e1" stroke="#64748b" stroke-width="1"/>
+                        <text x="196" y="89" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#334155">Head</text>
+                        <text x="256" y="89" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#475569">Data</text>
+                        <rect x="304" y="60" width="48" height="50" rx="4" fill="#cbd5e1" stroke="#64748b" stroke-width="1"/>
+                        <text x="328" y="89" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#334155">Head</text>
+                        <text x="388" y="89" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#475569">Data</text>
+                        <rect x="436" y="60" width="48" height="50" rx="4" fill="#cbd5e1" stroke="#64748b" stroke-width="1"/>
+                        <text x="460" y="89" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#334155">Head</text>
+                        <text x="520" y="89" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#475569">Data</text>
+                        <rect x="568" y="60" width="48" height="50" rx="4" fill="#cbd5e1" stroke="#64748b" stroke-width="1"/>
+                        <text x="592" y="89" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#334155">Head</text>
+                        <text x="652" y="89" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#475569">Data</text>
+                        <rect x="700" y="60" width="48" height="50" rx="4" fill="#cbd5e1" stroke="#64748b" stroke-width="1"/>
+                        <text x="724" y="89" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#334155">Head</text>
+                        <text x="784" y="89" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#475569">Data</text>
+                        <rect x="40" y="194" width="48" height="50" rx="4" fill="#bbf7d0" stroke="#16a34a" stroke-width="2"/>
+                        <text x="64" y="223" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="10.5" font-weight="700" fill="#166534">Header</text>
+                        <text x="454" y="223" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#15803d">Huge Data Payload</text>
+                        </svg>
                         </div>
-                        <p class="text-center text-sm text-gray-500 mt-2">上方需要 6 個 Header 開銷，下方僅需 1 個。Jumbo Frame 大幅減少了「過路費」(Overhead)。</p>
+                        <p class="text-center text-sm text-gray-500 mt-2">上方需要 6 個 Header 開銷，下方僅需 1 個。Jumbo Frame 大幅減少了「過路費」(Overhead)。<br><span class="text-xs">註：「6 x 1500 = 9000」是以封包總長度概算。實際可承載的 TCP 資料量：6 個 1500 封包約 6 × 1460 = 8760 Bytes，1 個 9000 Jumbo Frame 約 9000 − 40 = 8960 Bytes。</span></p>
                     </div>
                 </div>
             </div>
@@ -421,20 +442,48 @@ configure ip tcp-mss 1360 vlan "VPN-Vlan"
                 <p class="text-gray-700 mb-4">
                     Jumbo Frame 就像一輛超寬卡車，路徑上<span class="font-bold">所有的橋樑與隧道 (Switch, Router, Server, Storage)</span> 都必須拓寬 (支援 MTU 9000)。只要中間有一個設備只支援 1500，封包就會被丟棄 (Drop)，導致連線中斷。
                 </p>
-                <div class="mermaid">
-                    graph LR
-                        A[Server A<br>MTU 9000] --OK--> B[Extreme Switch<br>MTU 9000]
-                        B --OK--> C[Storage Array<br>MTU 9000]
-                        B -- "DROP!" --> D[Legacy Switch<br>MTU 1500]
-                        D -.- E[Server B<br>MTU 9000]
-                        
-                        style A fill:#dcfce7,stroke:#16a34a
-                        style B fill:#dcfce7,stroke:#16a34a
-                        style C fill:#dcfce7,stroke:#16a34a
-                        style D fill:#fee2e2,stroke:#ef4444,stroke-width:2px
-                        style E fill:#f3f4f6,stroke:#9ca3af,stroke-dasharray: 5 5
-                        
-                        linkStyle 2 stroke:#ef4444,stroke-width:3px,color:red
+                <!-- 拓撲圖 (手繪 SVG):9000 的路徑上只要有一台 1500 的設備,Jumbo Frame 就會被丟棄 -->
+                <div style="width:100%;overflow-x:auto">
+                <svg viewBox="0 0 900 345" role="img" aria-labelledby="mtu-e2e-title mtu-e2e-desc" style="width:100%;min-width:560px;max-width:900px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+                <title id="mtu-e2e-title">Jumbo Frame 端對端一致性</title>
+                <desc id="mtu-e2e-desc">Server A (MTU 9000) 經 Extreme Switch (MTU 9000) 送到 Storage Array (MTU 9000),全程 MTU 一致所以 OK;同一個 Jumbo Frame 送往 Legacy Switch (MTU 1500) 時被丟棄 (DROP),因此後面的 Server B (MTU 9000) 也無法到達。</desc>
+                <defs>
+                <linearGradient id="mtu-sw" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7e57c2"/><stop offset="1" stop-color="#311b92"/></linearGradient>
+                <filter id="mtu-shadow" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#311b92" flood-opacity="0.18"/></filter>
+                <marker id="mtu-arr-g" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="13" markerHeight="13" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#16a34a"/></marker>
+                <marker id="mtu-arr-r" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="13" markerHeight="13" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker>
+                </defs>
+                <line x1="170" y1="150" x2="246" y2="150" stroke="#16a34a" stroke-width="4" stroke-linecap="round" marker-end="url(#mtu-arr-g)"/>
+                <text x="208" y="140" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#15803d">OK</text>
+                <path d="M420 132 C470 132, 470 66, 516 66" fill="none" stroke="#16a34a" stroke-width="4" stroke-linecap="round" marker-end="url(#mtu-arr-g)"/>
+                <text x="490" y="112" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#15803d">OK</text>
+                <path d="M420 168 C470 168, 470 234, 516 234" fill="none" stroke="#dc2626" stroke-width="4" stroke-linecap="round" marker-end="url(#mtu-arr-r)"/>
+                <rect x="440" y="200" width="70" height="22" rx="11" fill="#fff" stroke="#dc2626" stroke-width="1.5"/>
+                <text x="475" y="215" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#b91c1c">DROP!</text>
+                <line x1="680" y1="234" x2="724" y2="234" stroke="#9ca3af" stroke-width="3" stroke-dasharray="6 5"/>
+                <g filter="url(#mtu-shadow)">
+                <rect x="20" y="112" width="150" height="76" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/><rect x="32" y="124" width="22" height="9" rx="2" fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2"/><rect x="32" y="137" width="22" height="9" rx="2" fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2"/><rect x="32" y="150" width="22" height="9" rx="2" fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2"/><text x="109.0" y="138" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">Server A</text>
+                </g>
+                <rect x="49" y="154" width="92" height="20" rx="10" fill="#dcfce7" stroke="#16a34a"/><text x="95" y="168" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#15803d">MTU 9000 ✓</text>
+                <g filter="url(#mtu-shadow)"><rect x="250" y="112" width="170" height="76" rx="10" fill="url(#mtu-sw)"/></g>
+                <text x="335" y="140" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">Extreme Switch</text>
+                <rect x="289" y="154" width="92" height="20" rx="10" fill="#dcfce7" stroke="#16a34a"/><text x="335" y="168" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#15803d">MTU 9000 ✓</text>
+                <g filter="url(#mtu-shadow)">
+                <rect x="520" y="28" width="160" height="76" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/><rect x="532" y="40" width="22" height="9" rx="2" fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2"/><rect x="532" y="53" width="22" height="9" rx="2" fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2"/><rect x="532" y="66" width="22" height="9" rx="2" fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2"/><text x="614.0" y="54" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">Storage Array</text>
+                </g>
+                <rect x="554" y="70" width="92" height="20" rx="10" fill="#dcfce7" stroke="#16a34a"/><text x="600" y="84" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#15803d">MTU 9000 ✓</text>
+                <g filter="url(#mtu-shadow)"><rect x="520" y="196" width="160" height="76" rx="10" fill="#fee2e2" stroke="#dc2626" stroke-width="2.5"/></g>
+                <text x="600" y="224" text-anchor="middle" font-size="14" font-weight="700" fill="#991b1b">Legacy Switch</text>
+                <rect x="554" y="238" width="92" height="20" rx="10" fill="#fee2e2" stroke="#dc2626"/><text x="600" y="252" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#b91c1c">MTU 1500 ✕</text>
+                <rect x="728" y="196" width="150" height="76" rx="10" fill="#fff" stroke="#9ca3af" stroke-width="2" stroke-dasharray="6 5"/><rect x="740" y="208" width="22" height="9" rx="2" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1.2"/><rect x="740" y="221" width="22" height="9" rx="2" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1.2"/><rect x="740" y="234" width="22" height="9" rx="2" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1.2"/><text x="817.0" y="222" text-anchor="middle" font-size="13" font-weight="700" fill="#6b7280">Server B</text>
+                <rect x="757" y="238" width="92" height="20" rx="10" fill="#dcfce7" stroke="#16a34a"/><text x="803" y="252" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#15803d">MTU 9000 ✓</text>
+                <text x="803" y="292" text-anchor="middle" font-size="11" fill="#6b7280">前一段只有 1500,無法到達</text>
+                <g font-size="12" fill="#5b6278">
+                <line x1="150" y1="326" x2="182" y2="326" stroke="#16a34a" stroke-width="4" stroke-linecap="round" marker-end="url(#mtu-arr-g)"/><text x="192" y="330">MTU 一致,Jumbo Frame 可通過</text>
+                <line x1="420" y1="326" x2="452" y2="326" stroke="#dc2626" stroke-width="4" stroke-linecap="round" marker-end="url(#mtu-arr-r)"/><text x="462" y="330">MTU 不足,封包被丟棄</text>
+                <line x1="630" y1="326" x2="662" y2="326" stroke="#9ca3af" stroke-width="3" stroke-dasharray="6 5"/><text x="670" y="330">無法到達</text>
+                </g>
+                </svg>
                 </div>
             </div>
 

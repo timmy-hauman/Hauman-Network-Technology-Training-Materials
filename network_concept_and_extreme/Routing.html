@@ -174,23 +174,51 @@
             <div class="mb-8">
                 <h3 class="font-bold text-gray-700 mb-2">路由決策流程圖 (Flowchart)</h3>
                 <p class="text-sm text-gray-500 mb-2">封包進入路由器內部的處理邏輯。</p>
-                <div class="mermaid">
-flowchart TD
-    Start[封包進入介面 Ingress] --> L2Check{L2 檢查 FCS/MAC?}
-    L2Check -- 錯誤/非本機MAC --> Drop[丟棄封包 Drop]
-    L2Check -- 正確 --> StripL2[剝離 L2 Header]
-    StripL2 --> ReadIP[讀取 Destination IP]
-    ReadIP --> Lookup{查詢 Routing Table}
-    Lookup -- 無匹配且無 Default Route --> ICMPErr[回傳 ICMP Unreachable]
-    Lookup -- 匹配成功 (最長比對) --> TTLCheck{TTL > 1?}
-    TTLCheck -- 否 --> ICMPTime[回傳 ICMP Time Exceeded]
-    TTLCheck -- 是 --> DecrementTTL[TTL 減 1]
-    DecrementTTL --> ARPCheck{ARP Table 有 Next Hop MAC?}
-    ARPCheck -- 否 --> SendARP[發送 ARP Request]
-    SendARP --> WaitARP[等待 ARP Reply]
-    WaitARP --> ARPCheck
-    ARPCheck -- 是 --> RewriteL2[重寫 L2 Header <br> Source MAC=本機出口, Dest MAC=Next Hop]
-    RewriteL2 --> Forward[從 Egress Interface 送出]
+                <!-- 路由決策流程圖 (手繪 SVG):直式流程,錯誤分支往左右兩側分出 -->
+                <div style="width:100%;overflow-x:auto">
+                <svg viewBox="0 0 780 1046" role="img" aria-labelledby="rtflow-title rtflow-desc" style="width:100%;min-width:560px;max-width:780px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+                <title id="rtflow-title">路由決策流程圖</title>
+                <desc id="rtflow-desc">封包進入介面 (Ingress) 後先做 L2 檢查 (FCS/MAC):錯誤或非本機 MAC 就丟棄封包 (Drop);正確則剝離 L2 Header、讀取 Destination IP,再查詢 Routing Table。無匹配且無 Default Route 時回傳 ICMP Unreachable;匹配成功 (最長比對) 則檢查 TTL 是否大於 1,否則回傳 ICMP Time Exceeded,是則將 TTL 減 1。接著檢查 ARP Table 是否有 Next Hop 的 MAC:沒有就發送 ARP Request、等待 ARP Reply 後再回到檢查;有則重寫 L2 Header (Source MAC=本機出口,Dest MAC=Next Hop),最後從 Egress Interface 送出。</desc>
+                <defs><linearGradient id="rtflow-pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7e57c2"/><stop offset="1" stop-color="#311b92"/></linearGradient><linearGradient id="rtflow-rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f56565"/><stop offset="1" stop-color="#b91c1c"/></linearGradient><marker id="rtflow-arr" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5b6278"/></marker><marker id="rtflow-arr-r" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker></defs>
+                <path d="M400 62 V92" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#rtflow-arr)"/>
+                <path d="M280 128 H115 V202" fill="none" stroke="#dc2626" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#rtflow-arr-r)"/>
+                <text x="198" y="120" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#b91c1c">錯誤/非本機MAC</text>
+                <path d="M400 164 V202" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#rtflow-arr)"/>
+                <text x="412" y="188" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#15803d">正確</text>
+                <path d="M400 250 V286" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#rtflow-arr)"/>
+                <path d="M400 334 V372" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#rtflow-arr)"/>
+                <path d="M285 408 H115 V482" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#rtflow-arr)"/>
+                <text x="196" y="400" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#b45309">無匹配且無 Default Route</text>
+                <path d="M400 444 V486" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#rtflow-arr)"/>
+                <text x="412" y="470" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#15803d">匹配成功 (最長比對)</text>
+                <path d="M490 522 H665 V596" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#rtflow-arr)"/>
+                <text x="578" y="514" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#b45309">否</text>
+                <path d="M400 558 V596" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#rtflow-arr)"/>
+                <text x="412" y="582" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#15803d">是</text>
+                <path d="M400 644 V712" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#rtflow-arr)"/>
+                <path d="M515 756 H570" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#rtflow-arr)"/>
+                <text x="543" y="748" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#b45309">否</text>
+                <path d="M665 780 V818" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#rtflow-arr)"/>
+                <path d="M570 842 H458 V778.8" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#rtflow-arr)"/>
+                <path d="M400 800 V880" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#rtflow-arr)"/>
+                <text x="412" y="844" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#15803d">是</text>
+                <path d="M400 948 V986" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#rtflow-arr)"/>
+                <rect x="285.0" y="18.0" width="230" height="44" rx="22.0" fill="url(#rtflow-pg)" stroke="#311b92" stroke-width="2"/><text x="400" y="45" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">封包進入介面 Ingress</text>
+                <polygon points="400,92 520,128 400,164 280,128" fill="#e0f7fa" stroke="#0891b2" stroke-width="2"/><text x="400" y="133" text-anchor="middle" font-size="13" font-weight="700" fill="#0e7490">L2 檢查 FCS/MAC?</text>
+                <rect x="20.0" y="202.0" width="190" height="44" rx="22.0" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/><text x="115" y="229" text-anchor="middle" font-size="13" font-weight="700" fill="#b91c1c">丟棄封包 Drop</text>
+                <rect x="290.0" y="202.0" width="220" height="48" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/><text x="400" y="231" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">剝離 L2 Header</text>
+                <rect x="290.0" y="286.0" width="220" height="48" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/><text x="400" y="315" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">讀取 Destination IP</text>
+                <polygon points="400,372 515,408 400,444 285,408" fill="#e0f7fa" stroke="#0891b2" stroke-width="2"/><text x="400" y="413" text-anchor="middle" font-size="13" font-weight="700" fill="#0e7490">查詢 Routing Table</text>
+                <rect x="15.0" y="482.0" width="200" height="44" rx="22.0" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/><text x="115" y="509" text-anchor="middle" font-size="13" font-weight="700" fill="#b91c1c">回傳 ICMP Unreachable</text>
+                <polygon points="400,486 490,522 400,558 310,522" fill="#e0f7fa" stroke="#0891b2" stroke-width="2"/><text x="400" y="527" text-anchor="middle" font-size="13" font-weight="700" fill="#0e7490">TTL > 1?</text>
+                <rect x="560.0" y="596.0" width="210" height="44" rx="22.0" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/><text x="665" y="623" text-anchor="middle" font-size="13" font-weight="700" fill="#b91c1c">回傳 ICMP Time Exceeded</text>
+                <rect x="290.0" y="596.0" width="220" height="48" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/><text x="400" y="625" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">TTL 減 1</text>
+                <polygon points="400,712 515,756 400,800 285,756" fill="#e0f7fa" stroke="#0891b2" stroke-width="2"/><text x="400" y="753" text-anchor="middle" font-size="13" font-weight="700" fill="#0e7490">ARP Table 有</text><text x="400" y="770" text-anchor="middle" font-size="13" font-weight="700" fill="#0e7490">Next Hop MAC?</text>
+                <rect x="570.0" y="732.0" width="190" height="48" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/><text x="665" y="761" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">發送 ARP Request</text>
+                <rect x="570.0" y="818.0" width="190" height="48" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/><text x="665" y="847" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">等待 ARP Reply</text>
+                <rect x="260.0" y="880.0" width="280" height="68" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/><text x="400" y="901.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">重寫 L2 Header</text><text x="400" y="919.0" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="10.5" fill="#5b6278">Source MAC=本機出口,</text><text x="400" y="935.0" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="10.5" fill="#5b6278">Dest MAC=Next Hop</text>
+                <rect x="280.0" y="986.0" width="240" height="44" rx="22.0" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/><text x="400" y="1013" text-anchor="middle" font-size="13" font-weight="700" fill="#15803d">從 Egress Interface 送出</text>
+                </svg>
                 </div>
             </div>
 

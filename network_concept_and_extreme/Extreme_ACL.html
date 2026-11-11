@@ -485,30 +485,44 @@
             <!-- Diagram 3: Stateless vs Stateful -->
             <div class="border rounded p-4">
                 <h3 class="text-center font-bold text-gray-600 mb-2">圖三：無狀態 (Stateless) vs 有狀態 (Stateful) 運作差異</h3>
-                <div class="mermaid">
-                    graph TD
-                        subgraph ACL_Stateless ["ACL (無狀態) - 笨拙但快速"]
-                            P1["封包 1: 來源A -> 目的B (Port 80)"] --> Check1{"檢查規則"}
-                            Check1 -- "符合 Permit" --> Pass1["放行"]
-                            
-                            P2["封包 2: 目的B -> 來源A (回傳封包)"] --> Check2{"檢查規則"}
-                            Check2 -- "需額外設定規則<br/>否則會被擋下!" --> Drop1["丟棄?"]
-                            
-                            style Drop1 fill:#f9f,stroke:#333
-                        end
-
-                        subgraph FW_Stateful ["Firewall (有狀態) - 聰明且自動"]
-                            FP1["封包 1: 來源A -> 目的B (SYN)"] --> FWCheck{"檢查策略"}
-                            FWCheck -- "允許" --> Session["建立連線表 (Session Table)<br/>A <--> B"]
-                            
-                            FP2["封包 2: 目的B -> 來源A (SYN-ACK)"] --> LookSession{"查表"}
-                            LookSession -- "表中有紀錄<br/>自動放行!" --> Pass2["放行"]
-                            
-                            style Session fill:#d1fae5,stroke:#059669
-                        end
-
-                        %% Invisible link to force vertical layout
-                        Drop1 ~~~ FP1
+                <!-- 比較圖 (手繪 SVG)：左右兩欄對照無狀態 ACL 與有狀態 Firewall，每一列為同一步驟 -->
+                <div style="width:100%;overflow-x:auto">
+                <svg viewBox="0 0 820 680" role="img" aria-labelledby="acl3-title acl3-desc" style="width:100%;min-width:560px;max-width:820px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+                <title id="acl3-title">無狀態 ACL vs 有狀態 Firewall 運作差異</title>
+                <desc id="acl3-desc">左右兩欄比較無狀態 ACL 與有狀態 Firewall 對同一組來回封包的處理。左欄 ACL (無狀態) - 笨拙但快速：封包 1 (來源A -&gt; 目的B, SYN, Port 80) 經檢查規則，符合 Permit 即放行；封包 2 (目的B -&gt; 來源A 的 SYN-ACK 回傳) 會再被檢查規則一次，需額外設定規則，否則會被擋下而丟棄。右欄 Firewall (有狀態) - 聰明且自動：封包 1 (來源A -&gt; 目的B, SYN, Port 80) 經檢查策略允許後，建立連線表 (Session Table) 紀錄 A &lt;--&gt; B；封包 2 (目的B -&gt; 來源A, SYN-ACK) 查表時表中有紀錄，自動放行。綠色代表放行，紅色代表被擋下或丟棄。</desc>
+                <defs><marker id="acl3-arr-gn" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#059669"/></marker><linearGradient id="acl3-pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7e57c2"/><stop offset="1" stop-color="#311b92"/></linearGradient><marker id="acl3-arr" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5b6278"/></marker><marker id="acl3-arr-r" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker></defs>
+                <rect x="10" y="10" width="390" height="624" rx="16" fill="#f6f2fe" stroke="#b39ddb" stroke-width="1.5" stroke-dasharray="6 5"/>
+                <text x="205" y="38" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="13" font-weight="700" fill="#673ab7">ACL (無狀態) - 笨拙但快速</text>
+                <rect x="420" y="10" width="390" height="624" rx="16" fill="#effafc" stroke="#67c5d6" stroke-width="1.5" stroke-dasharray="6 5"/>
+                <text x="615" y="38" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="13" font-weight="700" fill="#0e7490">Firewall (有狀態) - 聰明且自動</text>
+                <path d="M205 110 V138" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#acl3-arr)"/>
+                <path d="M205 412 V440" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#acl3-arr)"/>
+                <path d="M615 110 V138" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#acl3-arr)"/>
+                <path d="M615 412 V440" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#acl3-arr)"/>
+                <path d="M205 210 V266" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#acl3-arr)"/>
+                <text x="217" y="243" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#15803d">符合 Permit</text>
+                <path d="M205 512 V568" fill="none" stroke="#dc2626" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#acl3-arr-r)"/>
+                <text x="217" y="537" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#b91c1c">需額外設定規則</text><text x="217" y="552" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#b91c1c">否則會被擋下!</text>
+                <path d="M615 210 V262" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#acl3-arr)"/>
+                <text x="627" y="241" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#15803d">允許</text>
+                <path d="M615 512 V568" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#acl3-arr)"/>
+                <text x="627" y="537" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#15803d">表中有紀錄</text><text x="627" y="552" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#15803d">自動放行!</text>
+                <rect x="85.0" y="58" width="240" height="52" rx="22" fill="url(#acl3-pg)" stroke="#311b92" stroke-width="2"/><text x="205" y="80" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">封包 1</text><text x="205" y="98" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="10.5" fill="#ede7f6">來源A -&gt; 目的B (SYN, Port 80)</text>
+                <polygon points="205,138 305,174 205,210 105,174" fill="#e0f7fa" stroke="#0891b2" stroke-width="2"/><text x="205" y="179" text-anchor="middle" font-size="13" font-weight="700" fill="#0e7490">檢查規則</text>
+                <rect x="115.0" y="266" width="180" height="44" rx="22" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/><text x="205" y="293" text-anchor="middle" font-size="13" font-weight="700" fill="#15803d">放行</text>
+                <rect x="85.0" y="360" width="240" height="52" rx="22" fill="url(#acl3-pg)" stroke="#311b92" stroke-width="2"/><text x="205" y="382" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">封包 2</text><text x="205" y="400" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="10.5" fill="#ede7f6">目的B -&gt; 來源A (SYN-ACK 回傳)</text>
+                <polygon points="205,440 305,476 205,512 105,476" fill="#e0f7fa" stroke="#0891b2" stroke-width="2"/><text x="205" y="481" text-anchor="middle" font-size="13" font-weight="700" fill="#0e7490">檢查規則</text>
+                <rect x="115.0" y="568" width="180" height="44" rx="22" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/><text x="205" y="595" text-anchor="middle" font-size="13" font-weight="700" fill="#b91c1c">丟棄?</text>
+                <rect x="495.0" y="58" width="240" height="52" rx="22" fill="url(#acl3-pg)" stroke="#311b92" stroke-width="2"/><text x="615" y="80" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">封包 1</text><text x="615" y="98" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="10.5" fill="#ede7f6">來源A -&gt; 目的B (SYN, Port 80)</text>
+                <polygon points="615,138 715,174 615,210 515,174" fill="#e0f7fa" stroke="#0891b2" stroke-width="2"/><text x="615" y="179" text-anchor="middle" font-size="13" font-weight="700" fill="#0e7490">檢查策略</text>
+                <rect x="495.0" y="262" width="240" height="52" rx="10" fill="#d1fae5" stroke="#059669" stroke-width="2"/><text x="615" y="284" text-anchor="middle" font-size="13" font-weight="700" fill="#065f46">建立連線表 (Session Table)</text><text x="615" y="302" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="10.5" fill="#047857">A &lt;--&gt; B</text>
+                <rect x="495.0" y="360" width="240" height="52" rx="22" fill="url(#acl3-pg)" stroke="#311b92" stroke-width="2"/><text x="615" y="382" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">封包 2</text><text x="615" y="400" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="10.5" fill="#ede7f6">目的B -&gt; 來源A (SYN-ACK 回傳)</text>
+                <path d="M735 288 H770 V476 H719" fill="none" stroke="#059669" stroke-width="2" stroke-dasharray="6 4" stroke-linejoin="round" marker-end="url(#acl3-arr-gn)"/><text x="762" y="456" text-anchor="end" font-size="11" font-weight="700" fill="#047857">查此表</text><polygon points="615,440 715,476 615,512 515,476" fill="#e0f7fa" stroke="#0891b2" stroke-width="2"/><text x="615" y="481" text-anchor="middle" font-size="13" font-weight="700" fill="#0e7490">查表</text>
+                <rect x="525.0" y="568" width="180" height="44" rx="22" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/><text x="615" y="595" text-anchor="middle" font-size="13" font-weight="700" fill="#15803d">放行</text>
+                <rect x="170" y="652" width="22" height="14" rx="7" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/><text x="200" y="663" font-size="11.5" fill="#1e2235">放行</text>
+                <rect x="280" y="652" width="22" height="14" rx="7" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/><text x="310" y="663" font-size="11.5" fill="#1e2235">被擋下 / 丟棄</text>
+                <rect x="440" y="652" width="22" height="14" rx="3" fill="#d1fae5" stroke="#059669" stroke-width="1.5"/><text x="470" y="663" font-size="11.5" fill="#1e2235">連線狀態表 (Session Table)</text>
+                </svg>
                 </div>
                 <p class="text-center text-sm text-gray-500 mt-2">
                     重點：ACL 必須明確設定「雙向」規則才能通訊；Firewall 只要允許「去程」，「回程」會自動依據狀態表放行。
