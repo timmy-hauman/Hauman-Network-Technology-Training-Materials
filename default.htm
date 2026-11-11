@@ -924,6 +924,10 @@
         /* 側欄內容超過畫面高度時,側欄自己捲動 */
         @media (min-width: 821px) {
             .sidebar { max-height: calc(100vh - var(--header-h, 90px) - 40px); overflow-y: auto; scrollbar-width: thin; }
+            /* 桌機:實用工具緊接在資安NEWS 下方,「更多資源」標題已無內容,隱藏 */
+            .sidebar .news-link { order: -2; margin-bottom: 6px; }
+            .sidebar .tools-menu { order: -1; margin-bottom: 14px; }
+            .side-links-title { display: none; }
         }
 
         @media (max-width: 820px) {

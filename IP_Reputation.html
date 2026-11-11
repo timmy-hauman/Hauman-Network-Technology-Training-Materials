@@ -6,27 +6,108 @@
     <title>IP 黑名單檢測與信譽查詢 - Hauman Training Tools</title>
     <!-- 使用 Tailwind CSS 進行樣式設計 -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // 與教學網站首頁一致的字型
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Roboto', 'Noto Sans TC', 'Microsoft JhengHei', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'Consolas', 'monospace'],
+                    },
+                },
+            },
+        };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Roboto:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <!-- 引入 Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
-        
-        body {
-            font-family: 'Noto Sans TC', sans-serif;
-            background-color: #f8fafc; /* Slate 50 - 明亮背景 */
-            color: #334155; /* Slate 700 - 深灰文字 */
+        /* 教學網站共用的淺色科技風:淡網格 + 紫/青光暈 + 漸層線 + 等寬字點綴 */
+        :root {
+            --brand-purple: #673ab7;
+            --brand-purple-dark: #311b92;
+            --accent-cyan: #0891b2;
+            --accent-cyan-soft: rgba(6, 182, 212, 0.14);
+            --bg-body: #f5f7fc;
+            --text-primary: #1e2235;
+            --text-secondary: #5b6278;
+            --border-color: #e3e6f0;
+            --shadow-card: 0 1px 2px rgba(30, 34, 53, 0.04), 0 4px 14px rgba(30, 34, 53, 0.05);
+            --tech-gradient: linear-gradient(90deg, #673ab7, #06b6d4);
         }
 
-        /* 模擬文件頁面的質感 */
-        .doc-card {
-            background-color: #ffffff;
-            border: 1px solid #e2e8f0; /* Slate 200 */
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        body {
+            font-family: 'Roboto', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
+            color: var(--text-primary);
+            background-color: var(--bg-body);
+            background-image:
+                radial-gradient(800px 420px at 8% -8%, rgba(103, 58, 183, 0.10), transparent 60%),
+                radial-gradient(700px 380px at 96% 4%, rgba(6, 182, 212, 0.10), transparent 60%),
+                linear-gradient(rgba(103, 58, 183, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(103, 58, 183, 0.05) 1px, transparent 1px);
+            background-size: auto, auto, 32px 32px, 32px 32px;
+            background-attachment: fixed;
+            -webkit-font-smoothing: antialiased;
         }
+        ::selection { background: rgba(6, 182, 212, 0.25); }
+
+        /* 頂部標頭:白色毛玻璃 + 頂部漸層線 */
+        .site-header {
+            position: sticky; top: 0; z-index: 50;
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 4px 20px rgba(30, 34, 53, 0.05);
+        }
+        .site-header::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+            background: linear-gradient(90deg, #673ab7, #06b6d4, #673ab7);
+        }
+        .site-header::after {
+            content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(6, 182, 212, 0.5), rgba(103, 58, 183, 0.5), transparent);
+        }
+        .site-title {
+            background: linear-gradient(90deg, #311b92, #673ab7 55%, #0891b2);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+        .back-link {
+            font-family: 'JetBrains Mono', Consolas, monospace; font-size: 0.82rem;
+            color: var(--brand-purple); border: 1px solid rgba(103, 58, 183, 0.5); border-radius: 16px;
+            padding: 4px 12px; white-space: nowrap; transition: all 0.2s;
+        }
+        .back-link:hover { color: #fff; background: var(--tech-gradient); border-color: transparent; }
+
+        /* 面板 */
+        .panel {
+            background: #fff; border: 1px solid var(--border-color); border-radius: 12px;
+            box-shadow: var(--shadow-card); position: relative;
+        }
+        .panel-head { border-bottom: 1px solid var(--border-color); position: relative; background: #fbfaff; }
+        .panel-head::after {
+            content: ''; position: absolute; left: 16px; bottom: -1px; width: 90px; height: 2px;
+            background: var(--tech-gradient);
+        }
+        .label-mono { font-family: 'JetBrains Mono', Consolas, monospace; color: var(--accent-cyan); letter-spacing: 0.08em; }
+        .label-mono::before { content: '// '; opacity: 0.6; }
+
+        /* 按鈕 */
+        .btn-primary { background: var(--tech-gradient); box-shadow: 0 6px 16px rgba(103, 58, 183, 0.28); }
+        .btn-primary:hover { box-shadow: 0 0 0 1px rgba(103, 58, 183, 0.35), 0 12px 28px rgba(103, 58, 183, 0.22), 0 0 22px rgba(6, 182, 212, 0.18); }
+        .btn-outline { color: var(--brand-purple); border: 1px solid rgba(103, 58, 183, 0.5); background: #faf8ff; transition: all 0.2s; }
+        .btn-outline:hover { color: #fff; background: var(--tech-gradient); border-color: transparent; }
+        .field:focus { outline: none; border-color: var(--accent-cyan); box-shadow: 0 0 0 3px var(--accent-cyan-soft); background: #fff; }
+
+        /* 頁尾:與首頁相同的深紫色 + 漸層上框線 */
+        .site-footer {
+            background: #1b1534; color: #eceff1; border-top: 3px solid transparent;
+            border-image: linear-gradient(90deg, #673ab7, #06b6d4) 1;
+        }
+        .site-footer .ver { font-family: 'JetBrains Mono', Consolas, monospace; color: #67e8f9; }
 
         .loader {
-            border: 2px solid #e2e8f0;
-            border-left-color: #2563eb; /* Blue 600 */
+            border: 2px solid #e3e6f0;
+            border-left-color: #673ab7; /* 品牌紫 */
             border-radius: 50%;
             width: 20px;
             height: 20px;
@@ -50,52 +131,44 @@
 </head>
 <body class="min-h-screen flex flex-col">
 
-    <!-- 頂部導航欄 (模擬 Hauman Training Materials 風格) -->
-    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center gap-3">
-                    <div class="flex-shrink-0 flex items-center justify-center bg-blue-700 text-white w-8 h-8 rounded-md font-bold text-lg">
-                        H
-                    </div>
-                    <div>
-                        <span class="font-bold text-slate-800 text-lg tracking-tight">Hauman</span>
-                        <span class="text-slate-500 text-sm ml-1 hidden sm:inline-block">Network Technology Training</span>
-                    </div>
-                </div>
-                <div class="flex items-center text-sm text-slate-500">
-                    <span class="mr-2">Tools</span> / <span class="ml-2 font-medium text-blue-700">IP Reputation</span>
-                </div>
-            </div>
+    <!-- 網站共用標頭 -->
+    <header class="site-header">
+        <div class="max-w-5xl mx-auto px-4 md:px-8 pt-5 pb-3 flex items-center justify-between gap-4">
+            <a href="index.html" class="flex items-center gap-3 min-w-0">
+                <img src="https://www.hauman.com.tw/images_v4/logo.png" alt="Hauman" class="h-9 w-auto flex-shrink-0" onerror="this.style.display='none'">
+                <span class="site-title font-bold text-lg truncate hidden sm:inline">網路與資訊安全技術教學資源</span>
+            </a>
+            <a href="index.html" class="back-link">← 回教學首頁</a>
         </div>
-    </nav>
+    </header>
 
     <!-- 主要內容區 -->
     <main class="flex-grow max-w-5xl mx-auto w-full p-4 sm:p-8 space-y-8">
 
         <!-- 頁面標題區 -->
-        <div class="space-y-2 border-b border-slate-200 pb-6">
-            <h1 class="text-3xl font-bold text-slate-900 flex items-center gap-3">
-                <i data-lucide="shield-search" class="w-8 h-8 text-blue-700"></i>
+        <div class="panel p-6 space-y-2">
+            <div class="label-mono text-xs font-bold">實用工具</div>
+            <h1 class="text-2xl sm:text-3xl font-bold text-[#311b92] flex items-center gap-3">
+                <i data-lucide="shield-check" class="w-8 h-8 text-[#0891b2] flex-shrink-0"></i>
                 IP 黑名單檢測工具
             </h1>
-            <p class="text-slate-600 max-w-3xl">
-                此工具整合了 <span class="font-mono text-blue-600 bg-blue-50 px-1 py-0.5 rounded">ipapi</span> 地理位置查詢與各大 DNSBL 資料庫連結。用於協助網路工程師快速診斷 IP 信譽問題。
+            <p class="text-[#5b6278] max-w-3xl">
+                此工具整合了 <span class="font-mono text-[#673ab7] bg-[#f3eefc] px-1 py-0.5 rounded">ipapi</span> 地理位置查詢與各大 DNSBL 資料庫連結。用於協助網路工程師快速診斷 IP 信譽問題。
             </p>
         </div>
 
         <!-- 搜尋與輸入區 -->
-        <div class="doc-card rounded-xl p-6 sm:p-8">
+        <div class="panel p-6 sm:p-8">
             <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                 <div class="md:col-span-9 relative">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <i data-lucide="search" class="w-5 h-5 text-slate-400"></i>
+                        <i data-lucide="search" class="w-5 h-5 text-[#0891b2]"></i>
                     </div>
-                    <input type="text" id="ipInput" placeholder="輸入 IP 位址 (例如: 8.8.8.8)" 
-                        class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white text-slate-800 placeholder-slate-400 transition-all font-mono">
+                    <input type="text" id="ipInput" placeholder="輸入 IP 位址 (例如: 8.8.8.8)"
+                        class="field w-full pl-10 pr-4 py-3 bg-[#f8f9fd] border border-[#e3e6f0] rounded-lg text-[#1e2235] placeholder-[#9aa0b4] transition-all font-mono">
                 </div>
                 <div class="md:col-span-3">
-                    <button onclick="checkIP()" class="w-full h-full bg-blue-700 hover:bg-blue-800 text-white font-medium py-3 px-6 rounded-lg transition-colors shadow-sm flex items-center justify-center gap-2">
+                    <button onclick="checkIP()" class="btn-primary w-full h-full text-white font-medium py-3 px-6 rounded-lg transition-all flex items-center justify-center gap-2">
                         開始檢測
                     </button>
                 </div>
@@ -103,11 +176,11 @@
 
             <!-- 輔助按鈕 -->
             <div class="mt-4 flex flex-wrap gap-3">
-                <button onclick="useMyIP()" class="text-sm px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-md transition-colors flex items-center gap-2 border border-slate-200">
+                <button onclick="useMyIP()" class="btn-outline text-sm px-3 py-1.5 rounded-md flex items-center gap-2">
                     <i data-lucide="map-pin" class="w-3 h-3"></i>
                     使用我的 IP
                 </button>
-                <button onclick="pasteFromClipboard()" class="text-sm px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-md transition-colors flex items-center gap-2 border border-slate-200">
+                <button onclick="pasteFromClipboard()" class="btn-outline text-sm px-3 py-1.5 rounded-md flex items-center gap-2">
                     <i data-lucide="clipboard" class="w-3 h-3"></i>
                     貼上
                 </button>
@@ -127,54 +200,54 @@
                 
                 <!-- 左側：IP 基本資訊卡片 -->
                 <div class="lg:col-span-1 space-y-6">
-                    <div class="doc-card rounded-xl overflow-hidden">
-                        <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex items-center gap-2">
-                            <i data-lucide="info" class="w-4 h-4 text-blue-600"></i>
-                            <h3 class="font-semibold text-slate-700">基本資訊</h3>
+                    <div class="panel overflow-hidden">
+                        <div class="panel-head px-6 py-4 flex items-center gap-2">
+                            <i data-lucide="info" class="w-4 h-4 text-[#0891b2]"></i>
+                            <h3 class="font-semibold text-[#311b92]">基本資訊</h3>
                         </div>
                         <div class="p-6 space-y-5">
                             <div>
-                                <label class="text-xs uppercase text-slate-500 font-bold tracking-wider block mb-1">查詢 IP</label>
-                                <div class="flex items-center justify-between bg-slate-50 p-2 rounded border border-slate-200">
-                                    <span id="resIP" class="text-lg font-mono text-slate-800 font-bold select-all">---</span>
-                                    <button onclick="copyResultIP()" class="text-slate-400 hover:text-blue-600 transition-colors" title="複製">
+                                <label class="label-mono text-xs uppercase font-bold block mb-1">查詢 IP</label>
+                                <div class="flex items-center justify-between gap-2 bg-[#f8f9fd] p-2 rounded border border-[#e3e6f0]">
+                                    <span id="resIP" class="text-lg font-mono text-[#1e2235] font-bold select-all break-all">---</span>
+                                    <button onclick="copyResultIP()" class="text-[#9aa0b4] hover:text-[#673ab7] transition-colors flex-shrink-0" title="複製">
                                         <i data-lucide="copy" class="w-4 h-4"></i>
                                     </button>
                                 </div>
                             </div>
 
                             <div>
-                                <label class="text-xs uppercase text-slate-500 font-bold tracking-wider block mb-1">地理位置</label>
+                                <label class="label-mono text-xs uppercase font-bold block mb-1">地理位置</label>
                                 <div class="flex items-center gap-2">
                                     <span id="resFlag" class="text-2xl shadow-sm rounded-sm overflow-hidden"></span>
-                                    <span id="resCountry" class="text-slate-700 font-medium">---</span>
+                                    <span id="resCountry" class="text-[#1e2235] font-medium">---</span>
                                 </div>
-                                <div id="resCity" class="text-sm text-slate-500 mt-1 pl-9">---</div>
+                                <div id="resCity" class="text-sm text-[#5b6278] mt-1 pl-9">---</div>
                             </div>
 
-                            <div class="pt-4 border-t border-slate-100">
-                                <label class="text-xs uppercase text-slate-500 font-bold tracking-wider block mb-1">ISP / 組織</label>
-                                <div id="resISP" class="text-slate-700 font-medium">---</div>
-                                <div id="resASN" class="text-xs text-slate-400 font-mono mt-1">---</div>
+                            <div class="pt-4 border-t border-[#e3e6f0]">
+                                <label class="label-mono text-xs uppercase font-bold block mb-1">ISP / 組織</label>
+                                <div id="resISP" class="text-[#1e2235] font-medium break-words">---</div>
+                                <div id="resASN" class="text-xs text-[#5b6278] font-mono mt-1">---</div>
                             </div>
                         </div>
                     </div>
 
                     <!-- 權威檢測外連 -->
-                    <div class="doc-card rounded-xl p-5 bg-blue-50/50 border-blue-100">
-                        <h3 class="text-sm font-bold text-blue-800 mb-3 flex items-center gap-2">
-                            <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                    <div class="panel p-5">
+                        <h3 class="text-sm font-bold text-[#311b92] mb-3 flex items-center gap-2">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-[#0891b2]"></i>
                             第三方權威驗證
                         </h3>
-                        <p class="text-xs text-blue-600/80 mb-4">建議使用以下工具進行最終確認：</p>
+                        <p class="text-xs text-[#5b6278] mb-4">建議使用以下工具進行最終確認：</p>
                         <div class="space-y-2">
-                            <a id="mxToolboxLink" href="#" target="_blank" class="block w-full py-2 px-4 bg-white hover:bg-blue-50 border border-blue-200 hover:border-blue-300 text-blue-700 rounded-md text-sm transition-all flex items-center justify-between group">
+                            <a id="mxToolboxLink" href="#" target="_blank" class="btn-outline block w-full py-2 px-4 rounded-md text-sm flex items-center justify-between group">
                                 <span>MXToolbox</span>
-                                <i data-lucide="external-link" class="w-3 h-3 text-blue-300 group-hover:text-blue-500"></i>
+                                <i data-lucide="external-link" class="w-3 h-3"></i>
                             </a>
-                            <a id="talosLink" href="#" target="_blank" class="block w-full py-2 px-4 bg-white hover:bg-blue-50 border border-blue-200 hover:border-blue-300 text-blue-700 rounded-md text-sm transition-all flex items-center justify-between group">
+                            <a id="talosLink" href="#" target="_blank" class="btn-outline block w-full py-2 px-4 rounded-md text-sm flex items-center justify-between group">
                                 <span>Cisco Talos</span>
-                                <i data-lucide="external-link" class="w-3 h-3 text-blue-300 group-hover:text-blue-500"></i>
+                                <i data-lucide="external-link" class="w-3 h-3"></i>
                             </a>
                         </div>
                     </div>
@@ -182,13 +255,13 @@
 
                 <!-- 右側：資料庫列表 -->
                 <div class="lg:col-span-2">
-                    <div class="doc-card rounded-xl h-full flex flex-col">
-                        <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-                            <h3 class="font-semibold text-slate-700 flex items-center gap-2">
-                                <i data-lucide="database" class="w-4 h-4 text-slate-400"></i>
+                    <div class="panel h-full flex flex-col">
+                        <div class="panel-head rounded-t-xl px-6 py-4 flex items-center justify-between gap-2">
+                            <h3 class="font-semibold text-[#311b92] flex items-center gap-2">
+                                <i data-lucide="database" class="w-4 h-4 text-[#0891b2]"></i>
                                 黑名單資料庫狀態
                             </h3>
-                            <div id="scanStatus" class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-200 text-slate-600">
+                            <div id="scanStatus" class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#eef0f6] text-[#5b6278]">
                                 準備就緒
                             </div>
                         </div>
@@ -209,8 +282,8 @@
                             </div>
                         </div>
 
-                        <div class="bg-slate-50 px-6 py-3 border-t border-slate-200 text-xs text-slate-400 flex justify-between">
-                            <span>Last check: <span id="updateTime">---</span></span>
+                        <div class="bg-[#fbfaff] rounded-b-xl px-6 py-3 border-t border-[#e3e6f0] text-xs text-[#5b6278] font-mono flex flex-wrap gap-2 justify-between">
+                            <span>Last check: <span id="updateTime" class="text-[#0891b2]">---</span></span>
                             <span>Client-side Analysis</span>
                         </div>
                     </div>
@@ -220,12 +293,14 @@
 
     </main>
 
-    <!-- 底部版權 -->
-    <footer class="bg-white border-t border-slate-200 mt-auto">
-        <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-            <p class="text-center text-sm text-slate-500">
-                Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0
-            </p>
+    <!-- 頁尾:與首頁相同的頁尾 -->
+    <footer class="site-footer mt-auto text-center text-sm px-5 py-8">
+        <div class="flex flex-wrap justify-center gap-x-4 gap-y-2 opacity-90">
+            <span>Planning & Design by Timmy (timmyc@hauman.com.tw)</span>
+            <span class="opacity-50">|</span>
+            <span>豪勉科技 Hauman Technologies Corporation</span>
+            <span class="opacity-50">|</span>
+            <span class="ver">Ver 1.0</span>
         </div>
     </footer>
 
@@ -375,19 +450,19 @@
             
             blacklists.forEach(bl => {
                 const item = document.createElement('div');
-                item.className = "flex items-center justify-between p-3 bg-white rounded border border-slate-200";
+                item.className = "flex items-center justify-between p-3 bg-white rounded border border-[#e3e6f0]";
                 item.innerHTML = `
                     <div class="flex items-center gap-2">
-                        <div class="w-2 h-2 rounded-full bg-slate-300"></div>
-                        <span class="text-sm font-medium text-slate-600">${bl.name}</span>
+                        <div class="w-2 h-2 rounded-full bg-[#d5d9e6]"></div>
+                        <span class="text-sm font-medium text-[#5b6278]">${bl.name}</span>
                     </div>
                     <div class="loader w-4 h-4"></div>
                 `;
                 grid.appendChild(item);
             });
 
-            scanStatus.className = "px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 flex items-center gap-1";
-            scanStatus.innerHTML = '<div class="loader w-3 h-3 border-blue-600 border-t-transparent"></div> 掃描中...';
+            scanStatus.className = "px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#f3eefc] text-[#673ab7] flex items-center gap-1";
+            scanStatus.innerHTML = '<div class="loader w-3 h-3 border-[#673ab7] border-t-transparent"></div> 掃描中...';
         }
 
         function runBlacklistSimulation(ip) {
@@ -406,13 +481,13 @@
                     const statusText = isCheckLink ? "需人工確認" : "Pass";
                     const indicatorColor = isCheckLink ? "bg-amber-500" : "bg-emerald-500";
 
-                    item.className = "flex items-center justify-between p-3 bg-white rounded border border-slate-200 hover:border-blue-300 transition-colors group";
+                    item.className = "flex items-center justify-between p-3 bg-white rounded border border-[#e3e6f0] hover:border-[#673ab7]/50 hover:bg-[#f8f6fd] transition-colors group";
                     item.innerHTML = `
                         <div class="flex items-center gap-3">
                             <div class="w-2 h-2 rounded-full ${indicatorColor}"></div>
-                            <a href="${blacklists[index].url}" target="_blank" class="text-sm font-medium text-slate-700 group-hover:text-blue-700 transition-colors flex items-center gap-1">
+                            <a href="${blacklists[index].url}" target="_blank" class="text-sm font-medium text-[#1e2235] group-hover:text-[#673ab7] transition-colors flex items-center gap-1">
                                 ${blacklists[index].name}
-                                <i data-lucide="external-link" class="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-blue-400"></i>
+                                <i data-lucide="external-link" class="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-[#0891b2]"></i>
                             </a>
                         </div>
                         <div class="px-2 py-0.5 rounded text-xs font-medium border ${statusClass} flex items-center gap-1">

@@ -14,14 +14,119 @@
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+    <script>
+        // 與教學網站首頁一致的字型
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Roboto', 'Noto Sans TC', 'Microsoft JhengHei', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'Consolas', 'monospace'],
+                    },
+                },
+            },
+        };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Roboto:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
     <style>
-        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        /* 教學網站共用的淺色科技風:淡網格 + 紫/青光暈 + 漸層線 + 等寬字點綴 */
+        :root {
+            --brand-purple: #673ab7;
+            --brand-purple-dark: #311b92;
+            --accent-cyan: #0891b2;
+            --accent-cyan-soft: rgba(6, 182, 212, 0.14);
+            --bg-body: #f5f7fc;
+            --text-primary: #1e2235;
+            --text-secondary: #5b6278;
+            --border-color: #e3e6f0;
+            --shadow-card: 0 1px 2px rgba(30, 34, 53, 0.04), 0 4px 14px rgba(30, 34, 53, 0.05);
+            --tech-gradient: linear-gradient(90deg, #673ab7, #06b6d4);
+        }
+
+        body {
+            color: var(--text-primary);
+            background-color: var(--bg-body);
+            background-image:
+                radial-gradient(800px 420px at 8% -8%, rgba(103, 58, 183, 0.10), transparent 60%),
+                radial-gradient(700px 380px at 96% 4%, rgba(6, 182, 212, 0.10), transparent 60%),
+                linear-gradient(rgba(103, 58, 183, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(103, 58, 183, 0.05) 1px, transparent 1px);
+            background-size: auto, auto, 32px 32px, 32px 32px;
+            background-attachment: fixed;
+            -webkit-font-smoothing: antialiased;
+        }
+        ::selection { background: rgba(6, 182, 212, 0.25); }
+
+        /* 頂部標頭:白色毛玻璃 + 頂部漸層線 */
+        .site-header {
+            position: sticky; top: 0; z-index: 50;
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 4px 20px rgba(30, 34, 53, 0.05);
+        }
+        .site-header::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+            background: linear-gradient(90deg, #673ab7, #06b6d4, #673ab7);
+        }
+        .site-header::after {
+            content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(6, 182, 212, 0.5), rgba(103, 58, 183, 0.5), transparent);
+        }
+        .site-title {
+            background: linear-gradient(90deg, #311b92, #673ab7 55%, #0891b2);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+        .back-link {
+            font-family: 'JetBrains Mono', Consolas, monospace; font-size: 0.82rem;
+            color: var(--brand-purple); border: 1px solid rgba(103, 58, 183, 0.5); border-radius: 16px;
+            padding: 4px 12px; white-space: nowrap; transition: all 0.2s;
+        }
+        .back-link:hover { color: #fff; background: var(--tech-gradient); border-color: transparent; }
+
+        /* 面板 */
+        .panel {
+            background: #fff; border: 1px solid var(--border-color); border-radius: 12px;
+            box-shadow: var(--shadow-card); position: relative;
+        }
+        .panel-head { border-bottom: 1px solid var(--border-color); position: relative; }
+        .panel-head::after {
+            content: ''; position: absolute; left: 16px; bottom: -1px; width: 90px; height: 2px;
+            background: var(--tech-gradient);
+        }
+        .label-mono { font-family: 'JetBrains Mono', Consolas, monospace; color: var(--accent-cyan); letter-spacing: 0.08em; }
+        .label-mono::before { content: '// '; opacity: 0.6; }
+
+        /* 統計卡:頂部漸層線 + 漸層數字 */
+        .stat-card { overflow: hidden; }
+        .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--tech-gradient); }
+        .stat-value {
+            font-family: 'JetBrains Mono', Consolas, monospace;
+            background: var(--tech-gradient); -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+
+        /* 主要按鈕 */
+        .btn-primary { background: var(--tech-gradient); box-shadow: 0 6px 16px rgba(103, 58, 183, 0.28); }
+        .btn-primary:hover { box-shadow: 0 0 0 1px rgba(103, 58, 183, 0.35), 0 12px 28px rgba(103, 58, 183, 0.22), 0 0 22px rgba(6, 182, 212, 0.18); }
+        .btn-outline { color: var(--brand-purple); border: 1px solid rgba(103, 58, 183, 0.5); background: #faf8ff; }
+        .btn-outline:hover { color: #fff; background: var(--tech-gradient); border-color: transparent; }
+        .field:focus { outline: none; border-color: var(--accent-cyan); box-shadow: 0 0 0 3px var(--accent-cyan-soft); }
+
+        .progress-fill { background: var(--tech-gradient); box-shadow: 0 0 10px rgba(6, 182, 212, 0.5); }
+        .site-row:hover { background: #f8f6fd; }
+
+        /* 頁尾:與首頁相同的深紫色 + 漸層上框線 */
+        .site-footer {
+            background: #1b1534; color: #eceff1; border-top: 3px solid transparent;
+            border-image: linear-gradient(90deg, #673ab7, #06b6d4) 1;
+        }
+        .site-footer .ver { font-family: 'JetBrains Mono', Consolas, monospace; color: #67e8f9; }
+
         .fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
+<body>
     <div id="root"></div>
 
     <script type="text/babel">
@@ -264,28 +369,41 @@
             const totalCompletedSites = allStats.filter(s => s.validCount > 0).length;
 
             return (
-                <div className="min-h-screen bg-gray-50 text-gray-800 font-sans p-4 md:p-8">
+                <div className="min-h-screen flex flex-col font-sans">
+                    {/* 網站共用標頭 */}
+                    <header className="site-header">
+                        <div className="max-w-5xl mx-auto px-4 md:px-8 pt-5 pb-3 flex items-center justify-between gap-4">
+                            <a href="index.html" className="flex items-center gap-3 min-w-0">
+                                <img src="https://www.hauman.com.tw/images_v4/logo.png" alt="Hauman" className="h-9 w-auto flex-shrink-0" onError={(e) => {e.target.style.display='none'}} />
+                                <span className="site-title font-bold text-lg truncate hidden sm:inline">網路與資訊安全技術教學資源</span>
+                            </a>
+                            <a href="index.html" className="back-link">← 回教學首頁</a>
+                        </div>
+                    </header>
+
+                    <main className="flex-1 p-4 md:p-8">
                     <div className="max-w-5xl mx-auto space-y-6">
-                        
+
                         {/* Header */}
-                        <div className="bg-white rounded-2xl shadow-sm p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div className="panel p-6 flex flex-col md:flex-row items-center justify-between gap-4">
                             <div>
-                                <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                                    <IconActivity className="text-blue-600" />
+                                <div className="label-mono text-xs font-bold mb-1">實用工具</div>
+                                <h1 className="text-2xl font-bold text-[#311b92] flex items-center gap-2">
+                                    <IconActivity className="text-[#0891b2]" />
                                     網站回應速度測試
                                 </h1>
-                                <p className="text-gray-500 text-sm mt-1">
+                                <p className="text-[#5b6278] text-sm mt-1">
                                     每站進行 {TEST_ROUNDS} 次循環測試，並計算平均值以求精確
                                 </p>
                             </div>
                             <div className="flex gap-3">
-                                <button 
+                                <button
                                     onClick={handleReset}
                                     disabled={isTesting}
-                                    className={`px-4 py-3 rounded-xl border font-medium transition-all shadow-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${
-                                        resetConfirm 
-                                            ? 'bg-red-50 text-red-600 border-red-200 animate-pulse' 
-                                            : 'text-gray-600 bg-white border-gray-200 hover:bg-gray-50 hover:text-blue-600'
+                                    className={`px-4 py-3 rounded-xl font-medium transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+                                        resetConfirm
+                                            ? 'bg-red-50 text-red-600 border border-red-200 animate-pulse'
+                                            : 'btn-outline'
                                     }`}
                                     title="重置回預設列表"
                                 >
@@ -297,9 +415,9 @@
                                     onClick={runAllTests}
                                     disabled={isTesting}
                                     className={`flex items-center gap-2 px-6 py-3 rounded-xl text-white font-medium transition-all min-w-[160px] justify-center ${
-                                        isTesting 
-                                        ? 'bg-gray-400 cursor-not-allowed' 
-                                        : 'bg-blue-600 hover:bg-blue-700 shadow-lg hover:shadow-blue-200 active:scale-95'
+                                        isTesting
+                                        ? 'bg-gray-400 cursor-not-allowed'
+                                        : 'btn-primary active:scale-95'
                                     }`}
                                 >
                                     {isTesting ? (
@@ -319,9 +437,9 @@
 
                         {/* Progress Bar */}
                         {isTesting && (
-                            <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
-                                <div 
-                                    className="bg-blue-500 h-full transition-all duration-300 ease-out"
+                            <div className="w-full bg-[#e3e6f0] rounded-full h-1.5 overflow-hidden">
+                                <div
+                                    className="progress-fill h-full rounded-full transition-all duration-300 ease-out"
                                     style={{ width: `${progress}%` }}
                                 ></div>
                             </div>
@@ -330,18 +448,18 @@
                         {/* Stats Summary */}
                         {allStats.length > 0 && (
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 fade-in">
-                                <div className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-green-500">
-                                    <div className="text-gray-500 text-xs uppercase font-bold tracking-wider">最佳單次回應</div>
-                                    <div className="text-2xl font-bold text-gray-900 mt-1">{globalFastest} <span className="text-sm font-normal text-gray-500">ms</span></div>
+                                <div className="panel stat-card p-4">
+                                    <div className="text-[#5b6278] text-xs font-bold tracking-wider">最佳單次回應</div>
+                                    <div className="text-2xl font-bold mt-1"><span className="stat-value">{globalFastest}</span> <span className="text-sm font-normal text-[#5b6278]">ms</span></div>
                                 </div>
-                                <div className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-500">
-                                    <div className="text-gray-500 text-xs uppercase font-bold tracking-wider">總平均延遲</div>
-                                    <div className="text-2xl font-bold text-gray-900 mt-1">{globalAvg} <span className="text-sm font-normal text-gray-500">ms</span></div>
+                                <div className="panel stat-card p-4">
+                                    <div className="text-[#5b6278] text-xs font-bold tracking-wider">總平均延遲</div>
+                                    <div className="text-2xl font-bold mt-1"><span className="stat-value">{globalAvg}</span> <span className="text-sm font-normal text-[#5b6278]">ms</span></div>
                                 </div>
-                                <div className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-purple-500 col-span-2 md:col-span-1">
-                                    <div className="text-gray-500 text-xs uppercase font-bold tracking-wider">有效連線網站</div>
-                                    <div className="text-2xl font-bold text-gray-900 mt-1">
-                                        {totalCompletedSites} <span className="text-gray-400 text-lg">/ {sites.length}</span>
+                                <div className="panel stat-card p-4 col-span-2 md:col-span-1">
+                                    <div className="text-[#5b6278] text-xs font-bold tracking-wider">有效連線網站</div>
+                                    <div className="text-2xl font-bold mt-1">
+                                        <span className="stat-value">{totalCompletedSites}</span> <span className="text-gray-400 text-lg font-mono">/ {sites.length}</span>
                                     </div>
                                 </div>
                             </div>
@@ -352,18 +470,18 @@
                             
                             {/* List Section */}
                             <div className="lg:col-span-2 space-y-4">
-                                <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-                                    <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                                        <h3 className="font-semibold text-gray-700 flex items-center gap-2">
-                                            <IconGlobe className="w-4 h-4" />
+                                <div className="panel overflow-hidden">
+                                    <div className="panel-head p-4 flex justify-between items-center">
+                                        <h3 className="font-semibold text-[#311b92] flex items-center gap-2">
+                                            <IconGlobe className="w-4 h-4 text-[#0891b2]" />
                                             目標網站列表
                                         </h3>
-                                        <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full">
-                                            5 次平均值
+                                        <span className="text-xs font-mono text-[#5b6278] bg-[#f8f9fd] border border-[#e3e6f0] px-2 py-1 rounded-full">
+                                            {TEST_ROUNDS} 次平均值
                                         </span>
                                     </div>
 
-                                    <div className="divide-y divide-gray-100 max-h-[600px] overflow-y-auto">
+                                    <div className="divide-y divide-[#eef0f6] max-h-[600px] overflow-y-auto">
                                         {sites.map((site) => {
                                             const result = results[site.id];
                                             const samples = result ? result.samples : [];
@@ -371,9 +489,9 @@
                                             const stats = calculateStats(samples);
                                             
                                             return (
-                                                <div key={site.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between hover:bg-gray-50 transition-colors gap-3">
+                                                <div key={site.id} className="site-row p-4 flex flex-col sm:flex-row sm:items-center justify-between transition-colors gap-3">
                                                     <div className="flex items-center gap-3 min-w-0 flex-1">
-                                                        <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 flex-shrink-0">
+                                                        <div className="w-8 h-8 rounded-full bg-[#f3effc] flex items-center justify-center text-gray-500 flex-shrink-0">
                                                             <img 
                                                                 src={`https://www.google.com/s2/favicons?domain=${site.url}&sz=32`} 
                                                                 alt="icon" 
@@ -382,8 +500,8 @@
                                                             />
                                                         </div>
                                                         <div className="min-w-0">
-                                                            <div className="font-medium text-gray-900 truncate">{site.name}</div>
-                                                            <div className="text-xs text-gray-400 truncate max-w-[200px] hidden sm:block">{site.url}</div>
+                                                            <div className="font-medium text-[#1e2235] truncate">{site.name}</div>
+                                                            <div className="text-xs font-mono text-gray-400 truncate max-w-[200px] hidden sm:block">{site.url}</div>
                                                         </div>
                                                     </div>
 
@@ -393,7 +511,7 @@
                                                                 <div className="flex gap-2 fade-in items-center">
                                                                     <div className={`flex flex-col items-center px-3 py-1 rounded-lg ${getLatencyColor(stats.avg)} min-w-[70px]`}>
                                                                         <span className="text-xs font-semibold uppercase opacity-70">平均</span>
-                                                                        <span className="font-bold">{stats.avg} ms</span>
+                                                                        <span className="font-bold font-mono">{stats.avg} ms</span>
                                                                     </div>
                                                                     
                                                                     <div className="hidden sm:flex flex-col justify-center gap-1 text-xs text-gray-500 min-w-[60px]">
@@ -427,7 +545,7 @@
                                                         </div>
                                                         
                                                         <div className="w-5 flex justify-center">
-                                                            {loading && <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>}
+                                                            {loading && <div className="w-4 h-4 border-2 border-[#0891b2] border-t-transparent rounded-full animate-spin"></div>}
                                                         </div>
 
                                                         <button 
@@ -445,25 +563,25 @@
                                 </div>
 
                                 {/* Add New Site Form */}
-                                <form onSubmit={handleAddSite} className="bg-white rounded-2xl shadow-sm p-4 flex flex-col gap-2">
+                                <form onSubmit={handleAddSite} className="panel p-4 flex flex-col gap-2">
                                     <div className="flex flex-col md:flex-row gap-3">
                                         <input
                                             type="text"
                                             placeholder="網站名稱 (選填)"
-                                            className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                            className="field px-4 py-2 border border-[#e3e6f0] rounded-lg text-sm transition-shadow"
                                             value={newName}
                                             onChange={(e) => setNewName(e.target.value)}
                                         />
                                         <input
                                             type="text"
                                             placeholder="輸入網址 (例如: example.com)"
-                                            className={`flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${errorMsg ? 'border-red-500 bg-red-50' : 'border-gray-200'}`}
+                                            className={`field flex-1 px-4 py-2 border rounded-lg text-sm transition-shadow ${errorMsg ? 'border-red-500 bg-red-50' : 'border-[#e3e6f0]'}`}
                                             value={newUrl}
                                             onChange={(e) => setNewUrl(e.target.value)}
                                         />
                                         <button 
                                             type="submit"
-                                            className="bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-900 transition-colors flex items-center justify-center gap-2 text-sm font-medium whitespace-nowrap"
+                                            className="btn-primary text-white px-4 py-2 rounded-lg transition-shadow flex items-center justify-center gap-2 text-sm font-medium whitespace-nowrap"
                                         >
                                             <IconPlus className="w-4 h-4" />
                                             加入列表
@@ -475,14 +593,14 @@
 
                             {/* Visual Chart Section */}
                             <div className="lg:col-span-1">
-                                <div className="bg-white rounded-2xl shadow-sm p-5 h-full sticky top-6">
-                                    <h3 className="font-semibold text-gray-700 flex items-center gap-2 mb-6">
-                                        <IconBarChart3 className="w-4 h-4" />
+                                <div className="panel p-5 h-full sticky top-24">
+                                    <h3 className="font-semibold text-[#311b92] flex items-center gap-2 mb-6">
+                                        <IconBarChart3 className="w-4 h-4 text-[#0891b2]" />
                                         平均速度排名
                                     </h3>
 
                                     {allStats.length === 0 ? (
-                                        <div className="h-48 flex flex-col items-center justify-center text-gray-400 text-sm border-2 border-dashed border-gray-100 rounded-xl">
+                                        <div className="h-48 flex flex-col items-center justify-center text-gray-400 text-sm border-2 border-dashed border-[#e3e6f0] rounded-xl">
                                             <IconWifiOff className="w-8 h-8 mb-2 opacity-50" />
                                             尚未有測試數據
                                         </div>
@@ -504,10 +622,10 @@
                                                     return (
                                                         <div key={site.id} className="group">
                                                             <div className="flex justify-between text-xs mb-1">
-                                                                <span className="font-medium text-gray-600 truncate max-w-[120px]">{site.name}</span>
-                                                                <span className="text-gray-500">{lat}ms</span>
+                                                                <span className="font-medium text-[#1e2235] truncate max-w-[120px]">{site.name}</span>
+                                                                <span className="text-[#5b6278] font-mono">{lat}ms</span>
                                                             </div>
-                                                            <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden relative">
+                                                            <div className="w-full bg-[#eef0f6] rounded-full h-2.5 overflow-hidden relative">
                                                                 <div 
                                                                     className={`h-full rounded-full transition-all duration-500 ease-out ${
                                                                         lat < 200 ? 'bg-green-500' : lat < 500 ? 'bg-blue-500' : 'bg-orange-500'
@@ -521,9 +639,9 @@
                                         </div>
                                     )}
 
-                                    <div className="mt-6 pt-6 border-t border-gray-100">
-                                        <div className="flex items-start gap-2 text-xs text-gray-500">
-                                            <IconAlertCircle className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
+                                    <div className="mt-6 pt-6 border-t border-[#e3e6f0]">
+                                        <div className="flex items-start gap-2 text-xs text-[#5b6278]">
+                                            <IconAlertCircle className="w-4 h-4 text-[#0891b2] flex-shrink-0 mt-0.5" />
                                             <p>
                                                 <strong>注意：</strong> 
                                                 目前採用 5 次循環測試取平均值。
@@ -536,11 +654,19 @@
                             </div>
                         </div>
 
-                        {/* Footer Signature */}
-                        <div className="text-center text-gray-400 text-sm mt-4 pb-6 font-mono">
-                            Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0
-                        </div>
                     </div>
+                    </main>
+
+                    {/* Footer Signature:與首頁相同的頁尾 */}
+                    <footer className="site-footer text-center text-sm px-5 py-8">
+                        <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 opacity-90">
+                            <span>Planning & Design by Timmy (timmyc@hauman.com.tw)</span>
+                            <span className="opacity-50">|</span>
+                            <span>豪勉科技 Hauman Technologies Corporation</span>
+                            <span className="opacity-50">|</span>
+                            <span className="ver">Ver 1.0</span>
+                        </div>
+                    </footer>
                 </div>
             );
         }

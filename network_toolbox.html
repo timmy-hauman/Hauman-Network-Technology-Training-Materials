@@ -5,20 +5,116 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>網路工具箱 | DNS、WHOIS、IP、Port、SSL、MAC、Calc</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // 與教學網站首頁一致的字型
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Roboto', 'Noto Sans TC', 'Microsoft JhengHei', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'Consolas', 'monospace'],
+                    },
+                },
+            },
+        };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Roboto:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Noto Sans TC', sans-serif;
-            background-color: #f3f4f6;
+        /* 教學網站共用的淺色科技風:淡網格 + 紫/青光暈 + 漸層線 + 等寬字點綴 */
+        :root {
+            --brand-purple: #673ab7;
+            --brand-purple-dark: #311b92;
+            --accent-cyan: #0891b2;
+            --accent-cyan-soft: rgba(6, 182, 212, 0.14);
+            --bg-body: #f5f7fc;
+            --text-primary: #1e2235;
+            --text-secondary: #5b6278;
+            --border-color: #e3e6f0;
+            --shadow-card: 0 1px 2px rgba(30, 34, 53, 0.04), 0 4px 14px rgba(30, 34, 53, 0.05);
+            --tech-gradient: linear-gradient(90deg, #673ab7, #06b6d4);
         }
+
+        body {
+            font-family: 'Roboto', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
+            color: var(--text-primary);
+            background-color: var(--bg-body);
+            background-image:
+                radial-gradient(800px 420px at 8% -8%, rgba(103, 58, 183, 0.10), transparent 60%),
+                radial-gradient(700px 380px at 96% 4%, rgba(6, 182, 212, 0.10), transparent 60%),
+                linear-gradient(rgba(103, 58, 183, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(103, 58, 183, 0.05) 1px, transparent 1px);
+            background-size: auto, auto, 32px 32px, 32px 32px;
+            background-attachment: fixed;
+            -webkit-font-smoothing: antialiased;
+        }
+        ::selection { background: rgba(6, 182, 212, 0.25); }
+
+        /* 頂部標頭:白色毛玻璃 + 頂部漸層線 */
+        .site-header {
+            position: sticky; top: 0; z-index: 50;
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 4px 20px rgba(30, 34, 53, 0.05);
+        }
+        .site-header::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+            background: linear-gradient(90deg, #673ab7, #06b6d4, #673ab7);
+        }
+        .site-header::after {
+            content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(6, 182, 212, 0.5), rgba(103, 58, 183, 0.5), transparent);
+        }
+        .site-title {
+            background: linear-gradient(90deg, #311b92, #673ab7 55%, #0891b2);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+        .back-link {
+            font-family: 'JetBrains Mono', Consolas, monospace; font-size: 0.82rem;
+            color: var(--brand-purple); border: 1px solid rgba(103, 58, 183, 0.5); border-radius: 16px;
+            padding: 4px 12px; white-space: nowrap; transition: all 0.2s;
+        }
+        .back-link:hover { color: #fff; background: var(--tech-gradient); border-color: transparent; }
+
+        /* 面板 */
+        .panel {
+            background: #fff; border: 1px solid var(--border-color); border-radius: 12px;
+            box-shadow: var(--shadow-card); position: relative;
+        }
+        .panel-head { border-bottom: 1px solid var(--border-color); position: relative; }
+        .panel-head::after {
+            content: ''; position: absolute; left: 16px; bottom: -1px; width: 90px; height: 2px;
+            background: var(--tech-gradient);
+        }
+        .label-mono { font-family: 'JetBrains Mono', Consolas, monospace; color: var(--accent-cyan); letter-spacing: 0.08em; }
+        .label-mono::before { content: '// '; opacity: 0.6; }
+
+        /* 統計卡:頂部漸層線 */
+        .stat-card { overflow: hidden; }
+        .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--tech-gradient); }
+
+        /* 主要按鈕 */
+        .btn-primary { background: var(--tech-gradient); box-shadow: 0 6px 16px rgba(103, 58, 183, 0.28); }
+        .btn-primary:hover { box-shadow: 0 0 0 1px rgba(103, 58, 183, 0.35), 0 12px 28px rgba(103, 58, 183, 0.22), 0 0 22px rgba(6, 182, 212, 0.18); }
+        .btn-outline { color: var(--brand-purple); border: 1px solid rgba(103, 58, 183, 0.5); background: #faf8ff; }
+        .btn-outline:hover { color: #fff; background: var(--tech-gradient); border-color: transparent; }
+        .field:focus { outline: none; border-color: var(--accent-cyan); box-shadow: 0 0 0 3px var(--accent-cyan-soft); }
+
+        /* 頁尾:與首頁相同的深紫色 + 漸層上框線 */
+        .site-footer {
+            background: #1b1534; color: #eceff1; border-top: 3px solid transparent;
+            border-image: linear-gradient(90deg, #673ab7, #06b6d4) 1;
+        }
+        .site-footer .ver { font-family: 'JetBrains Mono', Consolas, monospace; color: #67e8f9; }
+
         .glass-panel {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: #fff;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-card);
         }
         .loading-spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3b82f6;
+            border: 4px solid #e3e6f0;
+            border-top: 4px solid #0891b2;
             border-radius: 50%;
             width: 30px;
             height: 30px;
@@ -31,19 +127,25 @@
         /* JSON Syntax Highlighting */
         .string { color: #059669; }
         .number { color: #d97706; }
-        .boolean { color: #2563eb; }
+        .boolean { color: #0891b2; }
         .null { color: #dc2626; }
-        .key { color: #4b5563; font-weight: bold; }
-        
+        .key { color: #b39ddb; font-weight: bold; }
+
         /* Tab Transitions */
-        .tab-btn { transition: all 0.3s; border-bottom: 2px solid transparent; }
-        .tab-btn.active { border-bottom-color: #2563eb; color: #2563eb; background-color: #eff6ff; }
+        .tab-btn { transition: all 0.3s; border-bottom: 2px solid transparent; position: relative; color: var(--text-secondary); }
+        .tab-btn:hover { color: var(--brand-purple); background-color: #faf8ff; }
+        .tab-btn.active { color: var(--brand-purple-dark); background-color: #f3effc; }
+        .tab-btn.active::after {
+            content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 3px;
+            background: var(--tech-gradient);
+        }
+        .tab-btn.active i { color: var(--accent-cyan); }
 
         /* Terminal Style for Nmap */
         .terminal {
             background-color: #1e1e1e;
             color: #00ff00;
-            font-family: 'Courier New', Courier, monospace;
+            font-family: 'JetBrains Mono', Consolas, monospace;
             padding: 1rem;
             border-radius: 0.5rem;
             overflow-x: auto;
@@ -52,62 +154,76 @@
         }
         
         /* Binary Bit Styles */
-        .bit-net { color: #2563eb; font-weight: bold; } /* Blue for Network */
+        .bit-net { color: #673ab7; font-weight: bold; } /* Purple for Network */
+        .dark-code .bit-net { color: #67e8f9; } /* Cyan on dark panel */
         .bit-host { color: #9ca3af; } /* Gray for Host */
         .bit-dot { color: #d1d5db; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center py-10 px-4">
+<body class="min-h-screen flex flex-col">
+
+    <!-- 網站共用標頭 -->
+    <header class="site-header">
+        <div class="max-w-5xl mx-auto px-4 md:px-8 pt-5 pb-3 flex items-center justify-between gap-4">
+            <a href="index.html" class="flex items-center gap-3 min-w-0">
+                <img src="https://www.hauman.com.tw/images_v4/logo.png" alt="Hauman" class="h-9 w-auto flex-shrink-0" onerror="this.style.display='none'">
+                <span class="site-title font-bold text-lg truncate hidden sm:inline">網路與資訊安全技術教學資源</span>
+            </a>
+            <a href="index.html" class="back-link">← 回教學首頁</a>
+        </div>
+    </header>
 
     <!-- Main Container -->
-    <div class="w-full max-w-5xl space-y-6 flex-grow">
-        
+    <main class="flex-grow w-full px-4 py-8 md:py-10">
+    <div class="w-full max-w-5xl mx-auto space-y-6">
+
         <!-- Header -->
         <div class="text-center space-y-2">
-            <h1 class="text-3xl md:text-4xl font-bold text-gray-800 tracking-tight">
-                <i class="fa-solid fa-toolbox text-blue-600 mr-2"></i>網路查詢工具箱
+            <div class="label-mono text-xs font-bold">實用工具</div>
+            <h1 class="text-3xl md:text-4xl font-bold text-[#311b92] tracking-tight">
+                <i class="fa-solid fa-toolbox text-[#0891b2] mr-2"></i>網路查詢工具箱
             </h1>
-            <p class="text-gray-500">DNS 紀錄、WHOIS、IP 地理位置、Port 掃描、SSL 檢測、MAC 廠商、IP 計算</p>
+            <p class="text-[#5b6278]">DNS 紀錄、WHOIS、IP 地理位置、Port 掃描、SSL 檢測、MAC 廠商、IP 計算</p>
         </div>
 
         <!-- Tool Selection Tabs -->
-        <div class="bg-white rounded-t-2xl shadow-sm border-b border-gray-200 flex overflow-x-auto">
-            <button onclick="switchTab('dns')" id="tab-dns" class="tab-btn active flex-1 py-4 px-4 md:px-6 text-sm font-bold text-gray-600 hover:text-blue-600 whitespace-nowrap">
+        <div class="bg-white rounded-t-xl border border-[#e3e6f0] flex overflow-x-auto">
+            <button onclick="switchTab('dns')" id="tab-dns" class="tab-btn active flex-1 py-4 px-4 md:px-6 text-sm font-bold whitespace-nowrap">
                 <i class="fa-solid fa-network-wired mr-2"></i>DNS 查詢
             </button>
-            <button onclick="switchTab('whois')" id="tab-whois" class="tab-btn flex-1 py-4 px-4 md:px-6 text-sm font-bold text-gray-600 hover:text-blue-600 whitespace-nowrap">
+            <button onclick="switchTab('whois')" id="tab-whois" class="tab-btn flex-1 py-4 px-4 md:px-6 text-sm font-bold whitespace-nowrap">
                 <i class="fa-solid fa-id-card mr-2"></i>WHOIS
             </button>
-            <button onclick="switchTab('location')" id="tab-location" class="tab-btn flex-1 py-4 px-4 md:px-6 text-sm font-bold text-gray-600 hover:text-blue-600 whitespace-nowrap">
+            <button onclick="switchTab('location')" id="tab-location" class="tab-btn flex-1 py-4 px-4 md:px-6 text-sm font-bold whitespace-nowrap">
                 <i class="fa-solid fa-location-dot mr-2"></i>IP Location
             </button>
-            <button onclick="switchTab('port')" id="tab-port" class="tab-btn flex-1 py-4 px-4 md:px-6 text-sm font-bold text-gray-600 hover:text-blue-600 whitespace-nowrap">
+            <button onclick="switchTab('port')" id="tab-port" class="tab-btn flex-1 py-4 px-4 md:px-6 text-sm font-bold whitespace-nowrap">
                 <i class="fa-solid fa-crosshairs mr-2"></i>Port Scan
             </button>
-            <button onclick="switchTab('ssl')" id="tab-ssl" class="tab-btn flex-1 py-4 px-4 md:px-6 text-sm font-bold text-gray-600 hover:text-blue-600 whitespace-nowrap">
+            <button onclick="switchTab('ssl')" id="tab-ssl" class="tab-btn flex-1 py-4 px-4 md:px-6 text-sm font-bold whitespace-nowrap">
                 <i class="fa-solid fa-lock mr-2"></i>SSL 檢測
             </button>
-            <button onclick="switchTab('mac')" id="tab-mac" class="tab-btn flex-1 py-4 px-4 md:px-6 text-sm font-bold text-gray-600 hover:text-blue-600 whitespace-nowrap">
+            <button onclick="switchTab('mac')" id="tab-mac" class="tab-btn flex-1 py-4 px-4 md:px-6 text-sm font-bold whitespace-nowrap">
                 <i class="fa-solid fa-barcode mr-2"></i>MAC ADDRESS 製造商查詢
             </button>
-            <button onclick="switchTab('ipcalc')" id="tab-ipcalc" class="tab-btn flex-1 py-4 px-4 md:px-6 text-sm font-bold text-gray-600 hover:text-blue-600 whitespace-nowrap">
+            <button onclick="switchTab('ipcalc')" id="tab-ipcalc" class="tab-btn flex-1 py-4 px-4 md:px-6 text-sm font-bold whitespace-nowrap">
                 <i class="fa-solid fa-calculator mr-2"></i>IP 計算
             </button>
         </div>
 
         <!-- Input Area -->
-        <div class="glass-panel shadow-xl rounded-b-2xl p-6 md:p-8 -mt-6 z-10 relative">
+        <div class="glass-panel rounded-b-xl border-t-0 p-6 md:p-8 -mt-6 z-10 relative">
             <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-                
+
                 <!-- Input Field -->
                 <div class="md:col-span-6" id="inputContainer">
-                    <label class="block text-sm font-medium text-gray-700 mb-1" id="inputLabel">網域名稱 / IP 位址</label>
+                    <label class="block text-sm font-medium text-[#5b6278] mb-1" id="inputLabel">網域名稱 / IP 位址</label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
+                            <i class="fa-solid fa-magnifying-glass text-[#0891b2]"></i>
                         </div>
-                        <input type="text" id="domainInput" 
-                            class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition shadow-sm" 
+                        <input type="text" id="domainInput"
+                            class="field block w-full pl-10 pr-3 py-3 border border-[#e3e6f0] rounded-lg font-mono text-[#1e2235] transition"
                             placeholder="例如: google.com 或 8.8.8.8"
                             onkeypress="handleEnter(event)">
                     </div>
@@ -115,9 +231,9 @@
 
                 <!-- Record Type Dropdown (DNS Only) -->
                 <div class="md:col-span-4" id="dnsTypeContainer">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">紀錄類型</label>
+                    <label class="block text-sm font-medium text-[#5b6278] mb-1">紀錄類型</label>
                     <div class="relative">
-                        <select id="typeInput" class="block w-full pl-3 pr-10 py-3 border border-gray-300 bg-white rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm appearance-none">
+                        <select id="typeInput" class="field block w-full pl-3 pr-10 py-3 border border-[#e3e6f0] bg-white rounded-lg text-[#1e2235] appearance-none">
                             <option value="A" selected>A (IPv4 地址)</option>
                             <option value="AAAA">AAAA (IPv6 地址)</option>
                             <option value="MX">MX (郵件伺服器)</option>
@@ -128,7 +244,7 @@
                             <option value="SOA">SOA (起始授權)</option>
                             <option value="ANY">ANY (所有紀錄)</option>
                         </select>
-                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[#673ab7]">
                             <i class="fa-solid fa-chevron-down text-xs"></i>
                         </div>
                     </div>
@@ -136,23 +252,23 @@
 
                 <!-- Search Button -->
                 <div class="md:col-span-2 flex items-end" id="btnContainer">
-                    <button onclick="performAction()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200 shadow-lg flex justify-center items-center gap-2">
+                    <button onclick="performAction()" class="btn-primary w-full text-white font-bold py-3 px-4 rounded-lg transition duration-200 flex justify-center items-center gap-2 active:scale-95">
                         查詢 <i class="fa-solid fa-arrow-right"></i>
                     </button>
                 </div>
             </div>
-            
-            <div class="mt-2 text-xs text-gray-400 flex justify-between">
-                <span id="apiInfoText">* 使用 Google Public DNS API</span>
-                <span id="autoPtrMsg" class="text-blue-500 hidden"><i class="fa-solid fa-wand-magic-sparkles"></i> 偵測到 IP，已自動切換為 PTR</span>
-                <span id="autoResolveMsg" class="text-blue-500 hidden"><i class="fa-solid fa-wand-magic-sparkles"></i> 偵測到網域，將自動解析 IP</span>
+
+            <div class="mt-2 text-xs text-[#5b6278] flex flex-wrap justify-between gap-x-4 gap-y-1">
+                <span id="apiInfoText" class="font-mono">* 使用 Google Public DNS API</span>
+                <span id="autoPtrMsg" class="text-[#0891b2] hidden"><i class="fa-solid fa-wand-magic-sparkles"></i> 偵測到 IP，已自動切換為 PTR</span>
+                <span id="autoResolveMsg" class="text-[#0891b2] hidden"><i class="fa-solid fa-wand-magic-sparkles"></i> 偵測到網域，將自動解析 IP</span>
             </div>
         </div>
 
         <!-- Loading State -->
         <div id="loading" class="hidden flex flex-col items-center justify-center py-12">
             <div class="loading-spinner mb-4"></div>
-            <p class="text-gray-500 animate-pulse" id="loadingText">正在查詢...</p>
+            <p class="text-[#5b6278] font-mono animate-pulse" id="loadingText">正在查詢...</p>
         </div>
 
         <!-- Error Message -->
@@ -173,37 +289,37 @@
             
             <!-- Summary Stats (DNS Only) -->
             <div id="dnsStats" class="grid grid-cols-1 md:grid-cols-3 gap-4 hidden">
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-                    <div class="text-xs text-gray-500 uppercase font-bold tracking-wider">查詢狀態</div>
+                <div class="panel stat-card p-4">
+                    <div class="text-xs text-[#5b6278] uppercase font-bold tracking-wider">查詢狀態</div>
                     <div id="resStatus" class="text-lg font-mono font-bold mt-1 text-green-600">NOERROR</div>
                 </div>
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-                    <div class="text-xs text-gray-500 uppercase font-bold tracking-wider">回應時間</div>
-                    <div id="resTime" class="text-lg font-mono mt-1 text-gray-800">45ms</div>
+                <div class="panel stat-card p-4">
+                    <div class="text-xs text-[#5b6278] uppercase font-bold tracking-wider">回應時間</div>
+                    <div id="resTime" class="text-lg font-mono font-bold mt-1 text-[#311b92]">45ms</div>
                 </div>
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-                    <div class="text-xs text-gray-500 uppercase font-bold tracking-wider">DNSSEC</div>
-                    <div id="resDnssec" class="text-lg font-mono mt-1 text-gray-800">False</div>
+                <div class="panel stat-card p-4">
+                    <div class="text-xs text-[#5b6278] uppercase font-bold tracking-wider">DNSSEC</div>
+                    <div id="resDnssec" class="text-lg font-mono font-bold mt-1 text-[#311b92]">False</div>
                 </div>
             </div>
 
             <!-- DNS Table -->
-            <div id="dnsResultBlock" class="hidden bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
-                <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                    <h3 class="font-bold text-gray-700">DNS 解析結果</h3>
-                    <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full" id="resultCount">0 筆紀錄</span>
+            <div id="dnsResultBlock" class="hidden panel overflow-hidden">
+                <div class="panel-head px-6 py-4 flex justify-between items-center gap-2">
+                    <h3 class="font-bold text-[#311b92]"><i class="fa-solid fa-network-wired text-[#0891b2] mr-2"></i>DNS 解析結果</h3>
+                    <span class="text-xs font-mono bg-[#f3effc] text-[#673ab7] border border-[#e3e6f0] px-2 py-1 rounded-full whitespace-nowrap" id="resultCount">0 筆紀錄</span>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
+                    <table class="min-w-full divide-y divide-[#e3e6f0]">
+                        <thead class="bg-[#f8f9fd]">
                             <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">類型</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">名稱 (Name)</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">TTL</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">資料內容 (Data)</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[#5b6278] uppercase tracking-wider">類型</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[#5b6278] uppercase tracking-wider">名稱 (Name)</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[#5b6278] uppercase tracking-wider">TTL</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[#5b6278] uppercase tracking-wider">資料內容 (Data)</th>
                             </tr>
                         </thead>
-                        <tbody id="dnsTableBody" class="bg-white divide-y divide-gray-200">
+                        <tbody id="dnsTableBody" class="bg-white divide-y divide-[#eef0f6]">
                             <!-- Rows inserted via JS -->
                         </tbody>
                     </table>
@@ -211,24 +327,31 @@
             </div>
 
             <!-- Generic Content Block (WHOIS, Geo, Port, SSL, MAC, Calc) -->
-            <div id="genericResultBlock" class="hidden bg-white p-6 rounded-xl shadow-lg border border-gray-200">
-                 <div id="genericContent" class="prose max-w-none text-gray-800"></div>
+            <div id="genericResultBlock" class="hidden panel p-4 md:p-6">
+                 <div id="genericContent" class="prose max-w-none text-[#1e2235]"></div>
             </div>
 
             <!-- Raw JSON Toggle -->
             <div class="text-right" id="rawJsonToggleContainer">
-                <button onclick="toggleRawJson()" class="text-sm text-blue-600 hover:text-blue-800 underline">顯示/隱藏 原始資料</button>
+                <button onclick="toggleRawJson()" class="btn-outline text-sm font-mono px-3 py-1 rounded-full transition">顯示/隱藏 原始資料</button>
             </div>
             <div id="rawJsonArea" class="hidden">
-                <pre id="jsonOutput" class="bg-gray-900 text-gray-100 p-4 rounded-lg text-sm overflow-x-auto font-mono shadow-inner"></pre>
+                <pre id="jsonOutput" class="bg-[#1b1534] text-[#eceff1] p-4 rounded-lg text-sm overflow-x-auto font-mono shadow-inner"></pre>
             </div>
         </div>
 
     </div>
+    </main>
 
-    <!-- Footer -->
-    <footer class="mt-12 text-center text-xs text-gray-400 w-full max-w-5xl border-t border-gray-200 pt-6">
-        <p>Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.3</p>
+    <!-- Footer Signature:與首頁相同的頁尾 -->
+    <footer class="site-footer text-center text-sm px-5 py-8">
+        <div class="flex flex-wrap justify-center gap-x-4 gap-y-2 opacity-90">
+            <span>Planning & Design by Timmy (timmyc@hauman.com.tw)</span>
+            <span class="opacity-50">|</span>
+            <span>豪勉科技 Hauman Technologies Corporation</span>
+            <span class="opacity-50">|</span>
+            <span class="ver">Ver 1.3</span>
+        </div>
     </footer>
 
     <script>
@@ -466,10 +589,10 @@
                     const typeName = dnsTypes[rec.type] || rec.type;
                     tbody.innerHTML += `
                         <tr>
-                            <td class="px-6 py-4"><span class="px-2 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">${typeName}</span></td>
-                            <td class="px-6 py-4 text-sm font-mono text-gray-500">${rec.name}</td>
-                            <td class="px-6 py-4 text-sm text-gray-500">${rec.TTL}s</td>
-                            <td class="px-6 py-4 text-sm font-mono break-all text-gray-800">${rec.data}</td>
+                            <td class="px-6 py-4"><span class="px-2 text-xs font-mono font-semibold rounded-full bg-[#f3effc] text-[#673ab7]">${typeName}</span></td>
+                            <td class="px-6 py-4 text-sm font-mono text-[#5b6278]">${rec.name}</td>
+                            <td class="px-6 py-4 text-sm font-mono text-[#5b6278]">${rec.TTL}s</td>
+                            <td class="px-6 py-4 text-sm font-mono break-all text-[#1e2235]">${rec.data}</td>
                         </tr>
                     `;
                 });
@@ -562,7 +685,7 @@
                  </div>`;
             }
 
-            html += `<h3 class="text-xl font-bold mb-4 flex items-center"><i class="fa-solid fa-id-card text-blue-500 mr-2"></i> 註冊資訊 (${isIp ? 'IP' : 'Domain'})</h3>`;
+            html += `<h3 class="text-xl font-bold text-[#311b92] mb-4 flex items-center"><i class="fa-solid fa-id-card text-[#0891b2] mr-2"></i> 註冊資訊 (${isIp ? 'IP' : 'Domain'})</h3>`;
             html += `<div class="grid grid-cols-1 md:grid-cols-2 gap-4">`;
             const getEventDate = (action) => {
                 const ev = data.events?.find(e => e.eventAction === action);
@@ -571,29 +694,29 @@
             const safeGet = (val) => val || 'N/A';
 
             html += `
-                <div class="bg-gray-50 p-4 rounded-lg">
+                <div class="bg-[#f8f9fd] border border-[#e3e6f0] p-4 rounded-lg">
                     <span class="block text-xs text-gray-500 font-bold uppercase">Handle / ID</span>
-                    <span class="font-mono font-bold text-gray-800 break-all">${safeGet(data.handle)}</span>
+                    <span class="font-mono font-bold text-[#1e2235] break-all">${safeGet(data.handle)}</span>
                 </div>
-                <div class="bg-gray-50 p-4 rounded-lg">
+                <div class="bg-[#f8f9fd] border border-[#e3e6f0] p-4 rounded-lg">
                     <span class="block text-xs text-gray-500 font-bold uppercase">名稱 (Name)</span>
-                    <span class="font-mono text-gray-800 break-all">${safeGet(data.name || data.ldhName)}</span>
+                    <span class="font-mono text-[#1e2235] break-all">${safeGet(data.name || data.ldhName)}</span>
                 </div>
-                <div class="bg-gray-50 p-4 rounded-lg">
+                <div class="bg-[#f8f9fd] border border-[#e3e6f0] p-4 rounded-lg">
                     <span class="block text-xs text-gray-500 font-bold uppercase">註冊商 (Registrar)</span>
-                    <span class="text-gray-800 font-bold">${data.entities ? getEntityName(data.entities) : 'N/A'}</span>
+                    <span class="text-[#1e2235] font-bold">${data.entities ? getEntityName(data.entities) : 'N/A'}</span>
                 </div>
-                <div class="bg-gray-50 p-4 rounded-lg">
+                <div class="bg-[#f8f9fd] border border-[#e3e6f0] p-4 rounded-lg">
                     <span class="block text-xs text-gray-500 font-bold uppercase">最後更新</span>
-                    <span class="text-gray-800">${getEventDate('last changed')}</span>
+                    <span class="text-[#1e2235]">${getEventDate('last changed')}</span>
                 </div>
-                <div class="bg-gray-50 p-4 rounded-lg">
+                <div class="bg-[#f8f9fd] border border-[#e3e6f0] p-4 rounded-lg">
                     <span class="block text-xs text-gray-500 font-bold uppercase">註冊日期</span>
-                    <span class="text-gray-800">${getEventDate('registration')}</span>
+                    <span class="text-[#1e2235]">${getEventDate('registration')}</span>
                 </div>
-                <div class="bg-gray-50 p-4 rounded-lg">
+                <div class="bg-[#f8f9fd] border border-[#e3e6f0] p-4 rounded-lg">
                     <span class="block text-xs text-gray-500 font-bold uppercase">到期日期</span>
-                    <span class="text-gray-800">${getEventDate('expiration')}</span>
+                    <span class="text-[#1e2235]">${getEventDate('expiration')}</span>
                 </div>
             `;
             html += `</div>`;
@@ -601,7 +724,7 @@
             // Status Tags
             if (data.status && data.status.length > 0) {
                 html += `<div class="mt-4"><span class="text-xs text-gray-500 font-bold uppercase mr-2">狀態:</span>`;
-                html += data.status.map(s => `<span class="inline-block px-2 py-0.5 bg-gray-200 text-gray-700 rounded text-xs mr-1 mb-1">${s}</span>`).join('');
+                html += data.status.map(s => `<span class="inline-block px-2 py-0.5 bg-[#f3effc] text-[#673ab7] border border-[#e3e6f0] rounded text-xs font-mono mr-1 mb-1">${s}</span>`).join('');
                 html += `</div>`;
             }
 
@@ -689,20 +812,20 @@
         }
 
         function formatGeoData(data, originalInput, wasIp) {
-            let flagHtml = data.flag_img ? `<img src="${data.flag_img}" class="w-6 h-4 mr-2 shadow-sm">` : `<i class="fa-solid fa-flag text-blue-500 mr-2"></i>`;
+            let flagHtml = data.flag_img ? `<img src="${data.flag_img}" class="w-6 h-4 mr-2 shadow-sm">` : `<i class="fa-solid fa-flag text-[#0891b2] mr-2"></i>`;
             return `
                 <div class="flex flex-col md:flex-row gap-6">
-                    <div class="flex-1 space-y-4">
-                        <h3 class="text-xl font-bold flex items-center"><i class="fa-solid fa-location-dot text-red-500 mr-2"></i> 地理位置資訊</h3>
-                        ${!wasIp ? `<div class="bg-blue-50 text-blue-800 p-3 rounded text-sm mb-4"><i class="fa-solid fa-link mr-1"></i> 已解析 <strong>${originalInput}</strong> 為 <strong>${data.ip}</strong></div>` : ''}
+                    <div class="flex-1 min-w-0 space-y-4">
+                        <h3 class="text-xl font-bold text-[#311b92] flex items-center"><i class="fa-solid fa-location-dot text-[#0891b2] mr-2"></i> 地理位置資訊</h3>
+                        ${!wasIp ? `<div class="bg-[#ecfeff] border border-[#a5f3fc] text-[#0e7490] p-3 rounded-lg text-sm mb-4 break-all"><i class="fa-solid fa-link mr-1"></i> 已解析 <strong class="font-mono">${originalInput}</strong> 為 <strong class="font-mono">${data.ip}</strong></div>` : ''}
                         <div class="grid grid-cols-2 gap-4">
-                            <div class="p-3 bg-gray-50 rounded"><div class="text-xs text-gray-500 font-bold">IP 位址</div><div class="font-mono font-bold text-lg">${data.ip}</div></div>
-                            <div class="p-3 bg-gray-50 rounded"><div class="text-xs text-gray-500 font-bold">國家</div><div class="font-bold flex items-center">${flagHtml}${data.country}</div></div>
-                            <div class="p-3 bg-gray-50 rounded"><div class="text-xs text-gray-500 font-bold">城市</div><div class="font-bold">${data.city}</div></div>
-                            <div class="p-3 bg-gray-50 rounded"><div class="text-xs text-gray-500 font-bold">ISP</div><div class="font-bold text-sm">${data.isp}</div></div>
+                            <div class="p-3 bg-[#f8f9fd] border border-[#e3e6f0] rounded-lg min-w-0 break-words"><div class="text-xs text-gray-500 font-bold">IP 位址</div><div class="font-mono font-bold text-lg">${data.ip}</div></div>
+                            <div class="p-3 bg-[#f8f9fd] border border-[#e3e6f0] rounded-lg min-w-0 break-words"><div class="text-xs text-gray-500 font-bold">國家</div><div class="font-bold flex items-center">${flagHtml}${data.country}</div></div>
+                            <div class="p-3 bg-[#f8f9fd] border border-[#e3e6f0] rounded-lg min-w-0 break-words"><div class="text-xs text-gray-500 font-bold">城市</div><div class="font-bold">${data.city}</div></div>
+                            <div class="p-3 bg-[#f8f9fd] border border-[#e3e6f0] rounded-lg min-w-0 break-words"><div class="text-xs text-gray-500 font-bold">ISP</div><div class="font-bold text-sm">${data.isp}</div></div>
                         </div>
                     </div>
-                     <div class="flex-1 min-h-[250px] bg-gray-100 rounded-xl overflow-hidden relative shadow-inner border border-gray-300">
+                     <div class="flex-1 min-h-[250px] bg-[#f8f9fd] rounded-xl overflow-hidden relative border border-[#e3e6f0]">
                          <iframe width="100%" height="100%" frameborder="0" style="border:0" src="https://maps.google.com/maps?q=${data.raw.latitude || data.raw.lat},${data.raw.longitude || data.raw.lon}&z=10&output=embed"></iframe>
                     </div>
                 </div>`;
@@ -735,28 +858,28 @@
 
         function formatPortData(data, ip, originalInput, wasIp) {
             let html = `
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-xl font-bold flex items-center"><i class="fa-solid fa-crosshairs text-purple-600 mr-2"></i> Port 掃描結果</h3>
-                    ${!wasIp ? `<span class="text-sm bg-gray-100 px-3 py-1 rounded text-gray-600 font-mono">Target: ${ip}</span>` : ''}
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                    <h3 class="text-xl font-bold text-[#311b92] flex items-center"><i class="fa-solid fa-crosshairs text-[#0891b2] mr-2"></i> Port 掃描結果</h3>
+                    ${!wasIp ? `<span class="text-sm bg-[#f3effc] px-3 py-1 rounded text-[#673ab7] font-mono break-all">Target: ${ip}</span>` : ''}
                 </div>
             `;
 
             if (data) {
                 html += `
-                    <div class="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg mb-6 flex justify-between items-center">
+                    <div class="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg mb-6 flex flex-wrap gap-2 justify-between items-center">
                         <div><i class="fa-solid fa-check-circle mr-2"></i> 找到公開資料庫紀錄 (Passive Scan)</div>
                         <div class="text-xs text-green-600">Source: Shodan InternetDB</div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="bg-white border rounded-xl overflow-hidden shadow-sm">
-                            <div class="bg-gray-50 px-4 py-3 border-b font-bold text-gray-700">開放連接埠 (Open Ports)</div>
+                        <div class="panel overflow-hidden">
+                            <div class="panel-head bg-[#f8f9fd] px-4 py-3 font-bold text-[#311b92]">開放連接埠 (Open Ports)</div>
                             <div class="p-4">
                                 ${data.ports && data.ports.length > 0 
                                     ? `<div class="flex flex-wrap gap-2">
                                         ${data.ports.map(p => {
                                             const service = commonPorts[p] ? `(${commonPorts[p]})` : '';
-                                            return `<span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-lg text-sm font-mono font-bold">${p} ${service}</span>`;
+                                            return `<span class="px-3 py-1 bg-[#f3effc] text-[#673ab7] border border-[#e3e6f0] rounded-lg text-sm font-mono font-bold">${p} ${service}</span>`;
                                         }).join('')}
                                        </div>`
                                     : `<p class="text-gray-500 italic">無開放 Port 紀錄</p>`
@@ -765,9 +888,9 @@
                         </div>
 
                         <div class="space-y-4">
-                            <div class="bg-white border rounded-xl overflow-hidden shadow-sm">
-                                <div class="bg-gray-50 px-4 py-3 border-b font-bold text-gray-700">主機名稱 (Hostnames)</div>
-                                <div class="p-4 text-sm text-gray-600">
+                            <div class="panel overflow-hidden">
+                                <div class="panel-head bg-[#f8f9fd] px-4 py-3 font-bold text-[#311b92]">主機名稱 (Hostnames)</div>
+                                <div class="p-4 text-sm font-mono text-[#5b6278] break-all">
                                     ${data.hostnames && data.hostnames.length > 0 ? data.hostnames.join('<br>') : 'N/A'}
                                 </div>
                             </div>
@@ -783,17 +906,17 @@
             }
 
             html += `
-                <div class="mt-8 border-t pt-6">
-                    <h4 class="font-bold text-gray-700 mb-2">進階主動掃描 (Active Scan)</h4>
-                    <p class="text-sm text-gray-500 mb-4">如果您需要即時 (Real-time) 的 Port Scan，請使用以下支援自動執行的外部工具：</p>
+                <div class="mt-8 border-t border-[#e3e6f0] pt-6">
+                    <h4 class="font-bold text-[#311b92] mb-2">進階主動掃描 (Active Scan)</h4>
+                    <p class="text-sm text-[#5b6278] mb-4">如果您需要即時 (Real-time) 的 Port Scan，請使用以下支援自動執行的外部工具：</p>
                     <div class="flex flex-wrap gap-3">
-                        <a href="https://viewdns.info/portscan/?host=${ip}" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition flex items-center shadow-md">
+                        <a href="https://viewdns.info/portscan/?host=${ip}" target="_blank" class="btn-primary text-white font-bold py-2 px-4 rounded-lg transition flex items-center">
                             <i class="fa-solid fa-external-link-alt mr-2"></i> ViewDNS
                         </a>
-                        <a href="https://dnschecker.org/port-scanner.php?query=${ip}" target="_blank" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded transition flex items-center shadow-md">
+                        <a href="https://dnschecker.org/port-scanner.php?query=${ip}" target="_blank" class="btn-outline font-bold py-2 px-4 rounded-lg transition flex items-center">
                             <i class="fa-solid fa-network-wired mr-2"></i> DNSChecker
                         </a>
-                        <a href="https://www.shodan.io/host/${ip}" target="_blank" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition flex items-center shadow-md">
+                        <a href="https://www.shodan.io/host/${ip}" target="_blank" class="btn-outline font-bold py-2 px-4 rounded-lg transition flex items-center">
                             <i class="fa-solid fa-search mr-2"></i> Shodan
                         </a>
                     </div>
@@ -839,12 +962,12 @@
                 .slice(0, 5);
 
             let html = `
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-xl font-bold flex items-center"><i class="fa-solid fa-lock text-green-600 mr-2"></i> SSL/TLS 安全檢測</h3>
-                    <span class="text-sm bg-gray-100 px-3 py-1 rounded text-gray-600 font-mono">${domain}</span>
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                    <h3 class="text-xl font-bold text-[#311b92] flex items-center"><i class="fa-solid fa-lock text-[#0891b2] mr-2"></i> SSL/TLS 安全檢測</h3>
+                    <span class="text-sm bg-[#f3effc] px-3 py-1 rounded text-[#673ab7] font-mono break-all">${domain}</span>
                 </div>
 
-                <div class="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg mb-6 text-sm">
+                <div class="bg-[#ecfeff] border border-[#a5f3fc] text-[#0e7490] px-4 py-3 rounded-lg mb-6 text-sm">
                     <i class="fa-solid fa-info-circle mr-2"></i> 
                     <strong>注意：</strong> 瀏覽器限制無法直接透過網頁檢測 TLS 協定版本 (1.0/1.1/1.2/1.3)。
                     <br>請使用下方的「外部專業檢測」按鈕，它們會從伺服器端發起完整的握手測試。
@@ -852,61 +975,61 @@
 
                 <!-- External Deep Scanners -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                    <a href="https://www.ssllabs.com/ssltest/analyze.html?d=${domain}&hideResults=on" target="_blank" class="block p-4 border rounded-xl hover:shadow-md transition bg-white group">
+                    <a href="https://www.ssllabs.com/ssltest/analyze.html?d=${domain}&hideResults=on" target="_blank" class="block p-4 border border-[#e3e6f0] rounded-xl hover:border-[#673ab7] hover:shadow-md transition bg-white group">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center">
-                                <div class="bg-blue-100 text-blue-600 w-10 h-10 rounded-lg flex items-center justify-center mr-3 group-hover:bg-blue-600 group-hover:text-white transition">
+                                <div class="bg-[#f3effc] text-[#673ab7] w-10 h-10 rounded-lg flex items-center justify-center mr-3 group-hover:bg-[#673ab7] group-hover:text-white transition">
                                     <i class="fa-solid fa-shield-halved"></i>
                                 </div>
                                 <div>
-                                    <div class="font-bold text-gray-800">Qualys SSL Labs</div>
-                                    <div class="text-xs text-gray-500">業界標準 (等級 A-F, TLS 版本)</div>
+                                    <div class="font-bold text-[#1e2235]">Qualys SSL Labs</div>
+                                    <div class="text-xs text-[#5b6278]">業界標準 (等級 A-F, TLS 版本)</div>
                                 </div>
                             </div>
-                            <i class="fa-solid fa-external-link-alt text-gray-400"></i>
+                            <i class="fa-solid fa-external-link-alt text-[#0891b2]"></i>
                         </div>
                     </a>
 
-                    <a href="https://decoder.link/sslchecker/${domain}/443" target="_blank" class="block p-4 border rounded-xl hover:shadow-md transition bg-white group">
+                    <a href="https://decoder.link/sslchecker/${domain}/443" target="_blank" class="block p-4 border border-[#e3e6f0] rounded-xl hover:border-[#0891b2] hover:shadow-md transition bg-white group">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center">
-                                <div class="bg-purple-100 text-purple-600 w-10 h-10 rounded-lg flex items-center justify-center mr-3 group-hover:bg-purple-600 group-hover:text-white transition">
+                                <div class="bg-[#ecfeff] text-[#0891b2] w-10 h-10 rounded-lg flex items-center justify-center mr-3 group-hover:bg-[#0891b2] group-hover:text-white transition">
                                     <i class="fa-solid fa-wand-magic-sparkles"></i>
                                 </div>
                                 <div>
-                                    <div class="font-bold text-gray-800">Decoder.link</div>
-                                    <div class="text-xs text-gray-500">快速檢測 (中間憑證, Chain)</div>
+                                    <div class="font-bold text-[#1e2235]">Decoder.link</div>
+                                    <div class="text-xs text-[#5b6278]">快速檢測 (中間憑證, Chain)</div>
                                 </div>
                             </div>
-                            <i class="fa-solid fa-external-link-alt text-gray-400"></i>
+                            <i class="fa-solid fa-external-link-alt text-[#0891b2]"></i>
                         </div>
                     </a>
                 </div>
 
                 <!-- CT Logs Table -->
-                <h4 class="font-bold text-gray-700 mb-3 flex items-center">
-                    <i class="fa-solid fa-file-contract mr-2"></i> 最近簽發的憑證 (CT Logs)
-                    <span class="ml-2 text-xs font-normal text-gray-500 bg-gray-100 px-2 py-0.5 rounded">來源: crt.sh</span>
+                <h4 class="font-bold text-[#311b92] mb-3 flex flex-wrap items-center gap-y-1">
+                    <i class="fa-solid fa-file-contract text-[#0891b2] mr-2"></i> 最近簽發的憑證 (CT Logs)
+                    <span class="ml-2 text-xs font-normal font-mono text-[#5b6278] bg-[#f8f9fd] border border-[#e3e6f0] px-2 py-0.5 rounded">來源: crt.sh</span>
                 </h4>
             `;
 
             if (certs.length > 0) {
                 html += `
-                    <div class="overflow-x-auto border rounded-lg">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
+                    <div class="overflow-x-auto border border-[#e3e6f0] rounded-lg">
+                        <table class="min-w-full divide-y divide-[#e3e6f0]">
+                            <thead class="bg-[#f8f9fd]">
                                 <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">簽發日期</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">簽發單位 (Issuer)</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">通用名稱 (CN)</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-[#5b6278] uppercase tracking-wider">簽發日期</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-[#5b6278] uppercase tracking-wider">簽發單位 (Issuer)</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-[#5b6278] uppercase tracking-wider">通用名稱 (CN)</th>
                                 </tr>
                             </thead>
-                            <tbody class="bg-white divide-y divide-gray-200 text-sm">
+                            <tbody class="bg-white divide-y divide-[#eef0f6] text-sm">
                                 ${certs.map(c => `
                                     <tr>
-                                        <td class="px-4 py-3 whitespace-nowrap text-gray-500">${new Date(c.entry_timestamp).toLocaleDateString()}</td>
-                                        <td class="px-4 py-3 text-gray-800 font-bold">${c.issuer_name.split('O=')[1]?.split(',')[0] || 'Unknown'}</td>
-                                        <td class="px-4 py-3 text-gray-600 font-mono">${c.common_name}</td>
+                                        <td class="px-4 py-3 whitespace-nowrap font-mono text-[#5b6278]">${new Date(c.entry_timestamp).toLocaleDateString()}</td>
+                                        <td class="px-4 py-3 text-[#1e2235] font-bold">${c.issuer_name.split('O=')[1]?.split(',')[0] || 'Unknown'}</td>
+                                        <td class="px-4 py-3 text-[#673ab7] font-mono">${c.common_name}</td>
                                     </tr>
                                 `).join('')}
                             </tbody>
@@ -915,8 +1038,8 @@
                 `;
             } else {
                 html += `
-                    <div class="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-                        <p class="text-gray-500">未找到近期的憑證透明度紀錄，或查詢逾時。</p>
+                    <div class="text-center py-8 bg-[#f8f9fd] rounded-lg border border-dashed border-[#e3e6f0]">
+                        <p class="text-[#5b6278]">未找到近期的憑證透明度紀錄，或查詢逾時。</p>
                     </div>
                 `;
             }
@@ -980,21 +1103,21 @@
             const type = data.blockType || "N/A";
 
             let html = `
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-xl font-bold flex items-center"><i class="fa-solid fa-barcode text-gray-700 mr-2"></i> MAC 廠商查詢結果</h3>
-                    <span class="text-lg bg-gray-100 text-gray-800 px-3 py-1 rounded font-mono font-bold">${originalInput}</span>
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-6">
+                    <h3 class="text-xl font-bold text-[#311b92] flex items-center"><i class="fa-solid fa-barcode text-[#0891b2] mr-2"></i> MAC 廠商查詢結果</h3>
+                    <span class="text-lg bg-[#f3effc] text-[#673ab7] px-3 py-1 rounded font-mono font-bold break-all">${originalInput}</span>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Manufacturer Info -->
-                    <div class="bg-white border rounded-xl overflow-hidden shadow-sm">
-                        <div class="bg-blue-50 px-4 py-3 border-b border-blue-100 font-bold text-blue-800 flex items-center">
-                            <i class="fa-solid fa-building mr-2"></i> 製造商資訊
+                    <div class="panel overflow-hidden">
+                        <div class="panel-head bg-[#f3effc] px-4 py-3 font-bold text-[#311b92] flex items-center">
+                            <i class="fa-solid fa-building text-[#0891b2] mr-2"></i> 製造商資訊
                         </div>
                         <div class="p-6 space-y-4">
                             <div>
                                 <div class="text-xs text-gray-500 uppercase font-bold mb-1">公司名稱 (Company)</div>
-                                <div class="text-xl font-bold text-gray-800">${company}</div>
+                                <div class="text-xl font-bold text-[#1e2235]">${company}</div>
                             </div>
                             <div>
                                 <div class="text-xs text-gray-500 uppercase font-bold mb-1">地址 (Address)</div>
@@ -1002,29 +1125,29 @@
                             </div>
                             <div>
                                 <div class="text-xs text-gray-500 uppercase font-bold mb-1">國家 (Country)</div>
-                                <div class="text-sm text-gray-800 font-bold">${country}</div>
+                                <div class="text-sm text-[#1e2235] font-bold">${country}</div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Block Info -->
-                    <div class="bg-white border rounded-xl overflow-hidden shadow-sm">
-                        <div class="bg-gray-50 px-4 py-3 border-b border-gray-200 font-bold text-gray-700 flex items-center">
-                            <i class="fa-solid fa-network-wired mr-2"></i> OUI 區塊資訊
+                    <div class="panel overflow-hidden">
+                        <div class="panel-head bg-[#f8f9fd] px-4 py-3 font-bold text-[#311b92] flex items-center">
+                            <i class="fa-solid fa-network-wired text-[#0891b2] mr-2"></i> OUI 區塊資訊
                         </div>
                         <div class="p-6 space-y-4">
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <div class="text-xs text-gray-500 uppercase font-bold mb-1">MAC 前綴</div>
-                                    <div class="font-mono text-gray-800 font-bold">${data.macPrefix || 'N/A'}</div>
+                                    <div class="font-mono text-[#673ab7] font-bold">${data.macPrefix || 'N/A'}</div>
                                 </div>
                                 <div>
                                     <div class="text-xs text-gray-500 uppercase font-bold mb-1">類型</div>
-                                    <div class="font-mono text-gray-800 font-bold">${type}</div>
+                                    <div class="font-mono text-[#1e2235] font-bold">${type}</div>
                                 </div>
                             </div>
                             
-                            <div class="border-t border-gray-100 pt-4 mt-2">
+                            <div class="border-t border-[#eef0f6] pt-4 mt-2">
                                 <div class="text-xs text-gray-500 uppercase font-bold mb-2">區塊範圍 (Hex)</div>
                                 <div class="flex flex-col space-y-1 font-mono text-sm">
                                     <div class="flex justify-between">
@@ -1249,40 +1372,40 @@
 
         function formatIPv6CalcHtml(d) {
             return `
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-xl font-bold flex items-center"><i class="fa-solid fa-calculator text-purple-600 mr-2"></i> IPv6 計算結果</h3>
-                    <span class="text-lg bg-purple-100 text-purple-800 px-3 py-1 rounded font-mono font-bold">${d.ip}/${d.prefix}</span>
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-6">
+                    <h3 class="text-xl font-bold text-[#311b92] flex items-center"><i class="fa-solid fa-calculator text-[#0891b2] mr-2"></i> IPv6 計算結果</h3>
+                    <span class="text-lg bg-[#f3effc] text-[#673ab7] px-3 py-1 rounded font-mono font-bold break-all">${d.ip}/${d.prefix}</span>
                 </div>
 
                 <div class="space-y-6">
                     <!-- Basic Info -->
-                    <div class="bg-white border rounded-xl overflow-hidden shadow-sm">
-                        <div class="bg-gray-50 px-4 py-3 border-b font-bold text-gray-700">基本資訊</div>
+                    <div class="panel overflow-hidden">
+                        <div class="panel-head bg-[#f8f9fd] px-4 py-3 font-bold text-[#311b92]">基本資訊</div>
                         <div class="p-4 space-y-3">
-                            <div class="flex flex-col md:flex-row justify-between border-b border-gray-100 pb-2">
+                            <div class="flex flex-col md:flex-row justify-between border-b border-[#eef0f6] pb-2">
                                 <span class="text-gray-500">完整展開 (Expanded)</span>
-                                <span class="font-mono text-gray-800 break-all">${d.expanded}</span>
+                                <span class="font-mono text-[#1e2235] break-all">${d.expanded}</span>
                             </div>
-                            <div class="flex justify-between border-b border-gray-100 pb-2">
+                            <div class="flex justify-between border-b border-[#eef0f6] pb-2">
                                 <span class="text-gray-500">位址類型 (Type)</span>
-                                <span class="font-bold text-blue-600">${d.type}</span>
+                                <span class="font-bold text-[#0891b2]">${d.type}</span>
                             </div>
-                            <div class="flex flex-col md:flex-row justify-between border-b border-gray-100 pb-2">
+                            <div class="flex flex-col md:flex-row justify-between border-b border-[#eef0f6] pb-2">
                                 <span class="text-gray-500">網路前綴 (Network Prefix)</span>
-                                <span class="font-mono font-bold text-purple-600 break-all">${d.networkAddress}/${d.prefix}</span>
+                                <span class="font-mono font-bold text-[#673ab7] break-all">${d.networkAddress}/${d.prefix}</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-500">總位址數量 (Total IPs)</span>
-                                <span class="font-mono text-gray-800">2^${128-d.prefix} (${d.totalHosts.length > 20 ? '> 10^20' : d.totalHosts})</span>
+                                <span class="font-mono text-[#1e2235]">2^${128-d.prefix} (${d.totalHosts.length > 20 ? '> 10^20' : d.totalHosts})</span>
                             </div>
                         </div>
                     </div>
 
                     <!-- Range Info -->
-                    <div class="bg-white border rounded-xl overflow-hidden shadow-sm">
-                        <div class="bg-gray-50 px-4 py-3 border-b font-bold text-gray-700">網段範圍</div>
+                    <div class="panel overflow-hidden">
+                        <div class="panel-head bg-[#f8f9fd] px-4 py-3 font-bold text-[#311b92]">網段範圍</div>
                         <div class="p-4 space-y-3">
-                             <div class="flex flex-col border-b border-gray-100 pb-2">
+                             <div class="flex flex-col border-b border-[#eef0f6] pb-2">
                                 <span class="text-gray-500 text-sm mb-1">起始位址 (Start)</span>
                                 <span class="font-mono font-bold text-green-600 break-all">${d.startIp}</span>
                             </div>
@@ -1298,8 +1421,8 @@
 
         function formatIPv6CompareHtml(d1, d2, isMatch) {
              return `
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-xl font-bold flex items-center"><i class="fa-solid fa-code-compare text-orange-600 mr-2"></i> IPv6 網段比對</h3>
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-6">
+                    <h3 class="text-xl font-bold text-[#311b92] flex items-center"><i class="fa-solid fa-code-compare text-[#0891b2] mr-2"></i> IPv6 網段比對</h3>
                     ${isMatch 
                         ? '<span class="text-lg bg-green-100 text-green-800 px-4 py-1 rounded font-bold border border-green-200"><i class="fa-solid fa-check-circle"></i> 相同網段</span>' 
                         : '<span class="text-lg bg-red-100 text-red-800 px-4 py-1 rounded font-bold border border-red-200"><i class="fa-solid fa-times-circle"></i> 不同網段</span>'
@@ -1308,9 +1431,9 @@
 
                 <div class="grid grid-cols-1 gap-6 mb-6">
                     <!-- Comparison Table -->
-                    <div class="bg-white border rounded-xl overflow-hidden shadow-sm">
+                    <div class="panel overflow-hidden">
                         <table class="min-w-full divide-y divide-gray-200 text-sm">
-                            <thead class="bg-gray-50">
+                            <thead class="bg-[#f8f9fd]">
                                 <tr>
                                     <th class="px-4 py-3 text-left font-medium text-gray-500">項目</th>
                                     <th class="px-4 py-3 text-left font-medium text-gray-500">IP 1 (${d1.ip})</th>
@@ -1319,17 +1442,17 @@
                             </thead>
                             <tbody class="divide-y divide-gray-200">
                                 <tr>
-                                    <td class="px-4 py-3 font-bold text-gray-700">Prefix 長度</td>
+                                    <td class="px-4 py-3 font-bold text-[#311b92]">Prefix 長度</td>
                                     <td class="px-4 py-3 font-mono">/${d1.prefix}</td>
                                     <td class="px-4 py-3 font-mono">/${d2.prefix}</td>
                                 </tr>
                                 <tr>
-                                    <td class="px-4 py-3 font-bold text-gray-700">網路位址</td>
-                                    <td class="px-4 py-3 font-mono break-all text-purple-600">${d1.networkAddress}</td>
-                                    <td class="px-4 py-3 font-mono break-all text-purple-600">${d2.networkAddress}</td>
+                                    <td class="px-4 py-3 font-bold text-[#311b92]">網路位址</td>
+                                    <td class="px-4 py-3 font-mono break-all text-[#673ab7]">${d1.networkAddress}</td>
+                                    <td class="px-4 py-3 font-mono break-all text-[#673ab7]">${d2.networkAddress}</td>
                                 </tr>
                                 <tr>
-                                    <td class="px-4 py-3 font-bold text-gray-700">類型</td>
+                                    <td class="px-4 py-3 font-bold text-[#311b92]">類型</td>
                                     <td class="px-4 py-3">${d1.type}</td>
                                     <td class="px-4 py-3">${d2.type}</td>
                                 </tr>
@@ -1429,78 +1552,78 @@
         function formatIpCalcHtml(d) {
             // ... (Keep existing implementation)
             return `
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-xl font-bold flex items-center"><i class="fa-solid fa-calculator text-indigo-600 mr-2"></i> IP 子網路計算</h3>
-                    <span class="text-lg bg-indigo-100 text-indigo-800 px-3 py-1 rounded font-mono font-bold">${d.ip}/${d.cidr}</span>
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-6">
+                    <h3 class="text-xl font-bold text-[#311b92] flex items-center"><i class="fa-solid fa-calculator text-[#0891b2] mr-2"></i> IP 子網路計算</h3>
+                    <span class="text-lg bg-[#f3effc] text-[#673ab7] px-3 py-1 rounded font-mono font-bold break-all">${d.ip}/${d.cidr}</span>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Basic Info -->
-                    <div class="bg-white border rounded-xl overflow-hidden shadow-sm">
-                        <div class="bg-gray-50 px-4 py-3 border-b font-bold text-gray-700">網路資訊</div>
+                    <div class="panel overflow-hidden">
+                        <div class="panel-head bg-[#f8f9fd] px-4 py-3 font-bold text-[#311b92]">網路資訊</div>
                         <div class="p-4 space-y-3">
-                            <div class="flex justify-between border-b border-gray-100 pb-2">
+                            <div class="flex justify-between border-b border-[#eef0f6] pb-2">
                                 <span class="text-gray-500">網路位址 (Network)</span>
-                                <span class="font-mono font-bold text-indigo-600">${d.network}</span>
+                                <span class="font-mono font-bold text-[#673ab7]">${d.network}</span>
                             </div>
-                            <div class="flex justify-between border-b border-gray-100 pb-2">
+                            <div class="flex justify-between border-b border-[#eef0f6] pb-2">
                                 <span class="text-gray-500">廣播位址 (Broadcast)</span>
-                                <span class="font-mono font-bold text-indigo-600">${d.broadcast}</span>
+                                <span class="font-mono font-bold text-[#673ab7]">${d.broadcast}</span>
                             </div>
-                            <div class="flex justify-between border-b border-gray-100 pb-2">
+                            <div class="flex justify-between border-b border-[#eef0f6] pb-2">
                                 <span class="text-gray-500">子網路遮罩 (Mask)</span>
-                                <span class="font-mono text-gray-800">${d.netmask}</span>
+                                <span class="font-mono text-[#1e2235]">${d.netmask}</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-500">萬用字元遮罩 (Wildcard)</span>
-                                <span class="font-mono text-gray-800">${d.wildcard}</span>
+                                <span class="font-mono text-[#1e2235]">${d.wildcard}</span>
                             </div>
                         </div>
                     </div>
 
                     <!-- Host Info -->
-                    <div class="bg-white border rounded-xl overflow-hidden shadow-sm">
-                        <div class="bg-gray-50 px-4 py-3 border-b font-bold text-gray-700">主機範圍與數量</div>
+                    <div class="panel overflow-hidden">
+                        <div class="panel-head bg-[#f8f9fd] px-4 py-3 font-bold text-[#311b92]">主機範圍與數量</div>
                         <div class="p-4 space-y-3">
-                             <div class="flex justify-between border-b border-gray-100 pb-2">
+                             <div class="flex justify-between border-b border-[#eef0f6] pb-2">
                                 <span class="text-gray-500">可用 IP 起始 (First)</span>
                                 <span class="font-mono font-bold text-green-600">${d.firstIp}</span>
                             </div>
-                            <div class="flex justify-between border-b border-gray-100 pb-2">
+                            <div class="flex justify-between border-b border-[#eef0f6] pb-2">
                                 <span class="text-gray-500">可用 IP 結束 (Last)</span>
                                 <span class="font-mono font-bold text-green-600">${d.lastIp}</span>
                             </div>
-                             <div class="flex justify-between border-b border-gray-100 pb-2">
+                             <div class="flex justify-between border-b border-[#eef0f6] pb-2">
                                 <span class="text-gray-500">可用主機數</span>
-                                <span class="font-bold text-gray-800">${d.usableHosts}</span>
+                                <span class="font-bold text-[#1e2235]">${d.usableHosts}</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-500">總 IP 數量</span>
-                                <span class="text-gray-800">${d.totalHosts}</span>
+                                <span class="text-[#1e2235]">${d.totalHosts}</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Advanced Info -->
-                <div class="mt-6 bg-gray-50 border border-gray-200 rounded-xl p-4">
-                    <h4 class="font-bold text-gray-700 mb-3 text-sm uppercase">進階資訊 (二進位)</h4>
+                <div class="mt-6 bg-[#f8f9fd] border border-[#e3e6f0] rounded-xl p-4">
+                    <h4 class="label-mono font-bold mb-3 text-sm uppercase">進階資訊 (二進位)</h4>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                         <div>
                             <span class="block text-gray-500 text-xs">IP 二進位</span>
-                            <span class="font-mono text-gray-800 tracking-wider">${formatBinary(d.binaryIp, d.cidr)}</span>
+                            <span class="font-mono text-[#1e2235] tracking-wider break-all">${formatBinary(d.binaryIp, d.cidr)}</span>
                         </div>
                         <div>
                             <span class="block text-gray-500 text-xs">遮罩 二進位</span>
-                            <span class="font-mono text-gray-800 tracking-wider">${formatBinary(d.binaryMask, d.cidr)}</span>
+                            <span class="font-mono text-[#1e2235] tracking-wider break-all">${formatBinary(d.binaryMask, d.cidr)}</span>
                         </div>
                         <div>
                              <span class="block text-gray-500 text-xs">IP 類別</span>
-                             <span class="font-bold text-gray-800">${d.ipClass}</span>
+                             <span class="font-bold text-[#1e2235]">${d.ipClass}</span>
                         </div>
                         <div>
                              <span class="block text-gray-500 text-xs">CIDR 表示法</span>
-                             <span class="font-bold text-gray-800">/${d.cidr}</span>
+                             <span class="font-bold text-[#1e2235]">/${d.cidr}</span>
                         </div>
                     </div>
                 </div>
@@ -1509,8 +1632,8 @@
 
         function formatIpCompareHtml(d1, d2, isMatch) {
             return `
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-xl font-bold flex items-center"><i class="fa-solid fa-code-compare text-orange-600 mr-2"></i> 網段比對結果</h3>
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-6">
+                    <h3 class="text-xl font-bold text-[#311b92] flex items-center"><i class="fa-solid fa-code-compare text-[#0891b2] mr-2"></i> 網段比對結果</h3>
                     ${isMatch 
                         ? '<span class="text-lg bg-green-100 text-green-800 px-4 py-1 rounded font-bold border border-green-200"><i class="fa-solid fa-check-circle"></i> 相同網段</span>' 
                         : '<span class="text-lg bg-red-100 text-red-800 px-4 py-1 rounded font-bold border border-red-200"><i class="fa-solid fa-times-circle"></i> 不同網段</span>'
@@ -1520,8 +1643,8 @@
                 <!-- Comparison Cards -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <!-- IP 1 -->
-                    <div class="bg-white border rounded-xl overflow-hidden shadow-sm">
-                        <div class="bg-gray-50 px-4 py-2 border-b font-bold text-gray-700">IP 1: ${d1.ip}/${d1.cidr}</div>
+                    <div class="panel overflow-hidden">
+                        <div class="panel-head bg-[#f8f9fd] px-4 py-2 font-bold font-mono text-[#311b92] break-all">IP 1: ${d1.ip}/${d1.cidr}</div>
                         <div class="p-4 space-y-2">
                             <div class="flex justify-between">
                                 <span class="text-gray-500 text-sm">網路位址 (Network)</span>
@@ -1532,8 +1655,8 @@
                     </div>
 
                     <!-- IP 2 -->
-                    <div class="bg-white border rounded-xl overflow-hidden shadow-sm">
-                        <div class="bg-gray-50 px-4 py-2 border-b font-bold text-gray-700">IP 2: ${d2.ip}/${d2.cidr}</div>
+                    <div class="panel overflow-hidden">
+                        <div class="panel-head bg-[#f8f9fd] px-4 py-2 font-bold font-mono text-[#311b92] break-all">IP 2: ${d2.ip}/${d2.cidr}</div>
                         <div class="p-4 space-y-2">
                             <div class="flex justify-between">
                                 <span class="text-gray-500 text-sm">網路位址 (Network)</span>
@@ -1545,12 +1668,12 @@
                 </div>
 
                 <!-- Detailed Analysis -->
-                <div class="bg-gray-800 text-gray-200 rounded-xl p-6 font-mono text-sm overflow-x-auto shadow-inner">
-                    <h4 class="text-gray-400 mb-4 uppercase tracking-widest text-xs font-bold">二進位運算過程</h4>
+                <div class="dark-code bg-[#1b1534] text-gray-200 rounded-xl p-4 md:p-6 font-mono text-sm overflow-x-auto shadow-inner">
+                    <h4 class="text-[#67e8f9] mb-4 uppercase tracking-widest text-xs font-bold">// 二進位運算過程</h4>
                     
                     <!-- IP 1 Process -->
                     <div class="mb-6">
-                        <div class="text-orange-300 mb-1">Target 1: ${d1.ip} / ${d1.cidr}</div>
+                        <div class="text-[#b39ddb] mb-1">Target 1: ${d1.ip} / ${d1.cidr}</div>
                         <div class="grid grid-cols-[80px_1fr] gap-2">
                             <div class="text-gray-500">IP Addr:</div>
                             <div>${formatBinary(d1.binaryIp, d1.cidr)}</div>
@@ -1565,7 +1688,7 @@
 
                     <!-- IP 2 Process -->
                     <div>
-                        <div class="text-orange-300 mb-1">Target 2: ${d2.ip} / ${d2.cidr}</div>
+                        <div class="text-[#b39ddb] mb-1">Target 2: ${d2.ip} / ${d2.cidr}</div>
                         <div class="grid grid-cols-[80px_1fr] gap-2">
                             <div class="text-gray-500">IP Addr:</div>
                             <div>${formatBinary(d2.binaryIp, d2.cidr)}</div>
