@@ -1,0 +1,96 @@
+/* =========================================================
+   教學網站共用外觀 (淺色科技風)
+   給各教學網頁引用,統一字型、背景、頁首橫幅與頁尾;
+   課程內容與圖解的配色不在這裡覆寫,以免改變教材原意。
+   頁首橫幅與頂端導覽列由 site-chrome.js 標記與插入。
+   ========================================================= */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Roboto:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+:root {
+    --hm-purple: #673ab7;
+    --hm-purple-dark: #311b92;
+    --hm-cyan: #0891b2;
+    --hm-text: #1e2235;
+    --hm-text-secondary: #5b6278;
+    --hm-border: #e3e6f0;
+    --hm-gradient: linear-gradient(90deg, #673ab7, #06b6d4);
+    --hm-mono: 'JetBrains Mono', 'Consolas', monospace;
+}
+
+/* 字型與背景:淡網格 + 紫/青光暈 */
+body {
+    font-family: 'Roboto', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif !important;
+    background-color: #f5f7fc !important;
+    background-image:
+        radial-gradient(800px 420px at 8% -8%, rgba(103, 58, 183, 0.10), transparent 60%),
+        radial-gradient(700px 380px at 96% 4%, rgba(6, 182, 212, 0.10), transparent 60%),
+        linear-gradient(rgba(103, 58, 183, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(103, 58, 183, 0.05) 1px, transparent 1px) !important;
+    background-size: auto, auto, 32px 32px, 32px 32px !important;
+    background-attachment: fixed !important;
+    -webkit-font-smoothing: antialiased;
+}
+::selection { background: rgba(6, 182, 212, 0.25); }
+
+code, pre, kbd, samp, .font-mono { font-family: var(--hm-mono) !important; }
+
+/* ---- 頂端導覽列 (site-chrome.js 插入) ---- */
+.hm-topbar {
+    position: relative; z-index: 60;
+    background: rgba(255, 255, 255, 0.86);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 4px 20px rgba(30, 34, 53, 0.05);
+    font-family: 'Roboto', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
+    flex-shrink: 0;
+}
+.hm-topbar::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, #673ab7, #06b6d4, #673ab7);
+}
+.hm-topbar::after {
+    content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(6, 182, 212, 0.5), rgba(103, 58, 183, 0.5), transparent);
+}
+.hm-topbar-inner {
+    max-width: 1200px; margin: 0 auto; padding: 14px 20px 10px;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+}
+.hm-brand { display: flex; align-items: center; gap: 12px; min-width: 0; text-decoration: none !important; }
+.hm-brand img { height: 34px; width: auto; flex-shrink: 0; }
+.hm-brand span {
+    font-weight: 700; font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    background: linear-gradient(90deg, #311b92, #673ab7 55%, #0891b2);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.hm-back {
+    font-family: var(--hm-mono); font-size: 0.8rem; white-space: nowrap; text-decoration: none !important;
+    color: var(--hm-purple) !important; border: 1px solid rgba(103, 58, 183, 0.5); border-radius: 16px;
+    padding: 4px 12px; background: #faf8ff; transition: all 0.2s;
+}
+.hm-back:hover { color: #fff !important; background: var(--hm-gradient); border-color: transparent; }
+@media (max-width: 640px) {
+    .hm-brand span { display: none; }
+}
+
+/* ---- 頁首橫幅:深色底的頁首統一換成品牌漸層 (site-chrome.js 加上 .hm-hero) ---- */
+.hm-hero {
+    background: linear-gradient(120deg, #311b92 0%, #673ab7 55%, #0891b2 100%) !important;
+    color: #fff !important;
+    box-shadow: 0 10px 30px rgba(49, 27, 146, 0.18) !important;
+    position: relative;
+}
+.hm-hero::after {
+    content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(103, 232, 249, 0.8), transparent);
+    pointer-events: none;
+}
+
+/* ---- 頁尾:與首頁相同的深紫色 + 漸層上框線 ---- */
+footer {
+    background: #1b1534 !important;
+    color: #cfd3e6 !important;
+    border-top: 3px solid transparent !important;
+    border-image: linear-gradient(90deg, #673ab7, #06b6d4) 1 !important;
+}
+footer *:not(a) { color: inherit !important; border-color: rgba(255, 255, 255, 0.12) !important; }
+footer a { color: #67e8f9 !important; }

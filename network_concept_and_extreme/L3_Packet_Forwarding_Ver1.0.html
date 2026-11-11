@@ -9,10 +9,13 @@
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         
         /* Layout & Boxes */
-        /* Enforce min-width on canvas to prevent overlapping on small screens */
+        /* 模擬圖以 1280px 寬設計;視窗較窄時由 fitCanvas() 等比縮小,
+           讓所有設備與封包都在畫面內 (原本直接撐寬畫布,右半邊會被切掉) */
         #canvas-area {
-            min-width: 1280px; 
-            overflow-x: auto;
+            overflow: hidden;
+        }
+        #devices {
+            width: 1280px;
         }
 
         .device-box {
@@ -139,6 +142,9 @@
         }
         .animate-fade-in { animation: fadeIn 0.4s ease-out; }
     </style>
+    <!-- 教學網站共用外觀 -->
+    <link rel="stylesheet" href="../assets/site-theme.css">
+    <script src="../assets/site-chrome.js" defer></script>
 </head>
 <body class="bg-slate-100 h-screen flex flex-col overflow-hidden">
 
@@ -164,18 +170,18 @@
         </div>
 
         <!-- Devices Container -->
-        <div class="relative w-full h-full text-xs">
+        <div id="devices" class="relative h-full text-xs">
             
-            <!-- Lines (Centers: 5%, 30%, 70%, 95%) -->
-            <!-- A (5%) to SW1 (30%) -->
-            <div class="line" style="top: 23%; left: 5%; width: 25%;"></div> 
+            <!-- Lines (Centers: 8%, 30%, 70%, 92%);主機往內移,方塊才不會凸出畫布 -->
+            <!-- A (8%) to SW1 (30%) -->
+            <div class="line" style="top: 23%; left: 8%; width: 22%;"></div> 
             <!-- SW1 (30%) to SW2 (70%) -->
             <div class="line" style="top: 23%; left: 30%; width: 40%;"></div> 
-            <!-- SW2 (70%) to B (95%) -->
-            <div class="line" style="top: 23%; left: 70%; width: 25%;"></div>
+            <!-- SW2 (70%) to B (92%) -->
+            <div class="line" style="top: 23%; left: 70%; width: 22%;"></div>
 
-            <!-- Host A (Center: 5%) -->
-            <div class="device-box absolute top-[15%] left-[5%] w-44 border-2 border-blue-500 rounded bg-blue-50 p-2">
+            <!-- Host A (Center: 8%) -->
+            <div class="device-box absolute top-[15%] left-[8%] w-44 border-2 border-blue-500 rounded bg-blue-50 p-2">
                 <div class="font-bold text-blue-800 text-sm mb-1">Host A</div>
                 <div class="text-gray-700 font-mono text-[9px] w-full text-center">192.168.1.10/24</div>
                 <div class="text-gray-500 font-mono text-[9px] w-full text-center">00:00:00:00:00:AA</div>
@@ -274,8 +280,8 @@
                 </div>
             </div>
 
-            <!-- Host B (Center: 95%) -->
-            <div class="device-box absolute top-[15%] left-[95%] w-44 border-2 border-green-500 rounded bg-green-50 p-2">
+            <!-- Host B (Center: 92%) -->
+            <div class="device-box absolute top-[15%] left-[92%] w-44 border-2 border-green-500 rounded bg-green-50 p-2">
                 <div class="font-bold text-green-800 text-sm mb-1">Host B</div>
                 <div class="text-gray-700 font-mono text-[9px] w-full text-center">192.168.2.10/24</div>
                 <div class="text-gray-500 font-mono text-[9px] w-full text-center">00:00:00:00:00:BB</div>
@@ -291,7 +297,7 @@
             </div>
 
             <!-- Packet -->
-            <div id="packet" class="packet hidden absolute w-12 h-8 bg-yellow-300 border-2 border-yellow-600 rounded flex items-center justify-center text-[10px] font-bold shadow-lg top-[20%] left-[5%]">
+            <div id="packet" class="packet hidden absolute w-12 h-8 bg-yellow-300 border-2 border-yellow-600 rounded flex items-center justify-center text-[10px] font-bold shadow-lg top-[20%] left-[8%]">
                 Pkt
             </div>
         </div>
@@ -345,6 +351,18 @@
         };
 
         const packetEl = document.getElementById('packet');
+
+        // 依畫布寬度等比縮放 1280px 寬的模擬圖;較寬的視窗則撐滿畫布寬度
+        function fitCanvas() {
+            const area = document.getElementById('canvas-area');
+            const devices = document.getElementById('devices');
+            const scale = Math.min(1, area.clientWidth / 1280);
+            devices.style.zoom = scale;
+            devices.style.width = scale < 1 ? '1280px' : '100%';
+            devices.style.height = (area.clientHeight / scale) + 'px';
+        }
+        window.addEventListener('resize', fitCanvas);
+        fitCanvas();
         const nextBtn = document.getElementById('nextBtn');
         const logContainer = document.getElementById('log-container');
 
@@ -478,12 +496,12 @@
         // Coordinates
         const Y_LINE = '23%';
         const Y_SW = '28%';
-        const X_A = '5%';
+        const X_A = '8%';
         const X_SW1_IN = '22%'; 
         const X_SW1_OUT = '42%'; 
         const X_SW2_IN = '58%'; 
         const X_SW2_OUT = '78%'; 
-        const X_B = '95%';
+        const X_B = '92%';
 
         const steps = [
             { action: () => { showPacket(false); } },
@@ -496,7 +514,7 @@
                     logPacket("1. ARP Request", "ARP Request", data.hostA.mac, "FF:FF:FF:FF:FF:FF", data.hostA.ip, data.l3sw1.int1.ip, "Host A 廣播：誰是 192.168.1.254？");
                 }
             },
-            { title: "傳輸至 SW1", desc: "ARP 請求經線路傳至 L3 Switch 1。", action: () => { movePacket(Y_LINE, '18.5%'); } },
+            { title: "傳輸至 SW1", desc: "ARP 請求經線路傳至 L3 Switch 1。", action: () => { movePacket(Y_LINE, '19%'); } },
             {
                 title: "SW1: L2 MAC 學習", desc: "SW1 學習 Source MAC AA 到 Port 1。",
                 action: () => {
@@ -516,7 +534,7 @@
                     logPacket("4. ARP Reply", "ARP Reply", data.l3sw1.int1.mac, data.hostA.mac, data.l3sw1.int1.ip, data.hostA.ip, "SW1 回覆：我是 192.168.1.254，MAC 是 ...:01:01");
                 }
             },
-            { title: "回覆傳輸至 A", desc: "ARP Reply 傳回 Host A。", action: () => { movePacket(Y_LINE, '18.5%'); } },
+            { title: "回覆傳輸至 A", desc: "ARP Reply 傳回 Host A。", action: () => { movePacket(Y_LINE, '19%'); } },
             {
                 title: "Host A 更新 ARP", desc: "Host A 學習 Gateway MAC。",
                 action: () => {
@@ -532,7 +550,7 @@
                     logPacket("7. ICMP Req (A->SW1)", "IP Packet", data.hostA.mac, data.l3sw1.int1.mac, data.hostA.ip, data.hostB.ip, "IP Dst 是 Host B，MAC Dst 是 Gateway。");
                 }
             },
-            { title: "傳輸至 SW1", desc: "封包抵達 SW1。", action: () => { movePacket(Y_LINE, '18.5%'); } },
+            { title: "傳輸至 SW1", desc: "封包抵達 SW1。", action: () => { movePacket(Y_LINE, '19%'); } },
             {
                 title: "SW1: 路由與 ARP 請求", desc: "SW1 查路由往 10.0.0.2。ARP 無紀錄，發 ARP Req。",
                 action: () => {
@@ -578,7 +596,7 @@
                     logPacket("19. ARP Request", "ARP Request", data.l3sw2.int2.mac, "FF:FF:FF:FF:FF:FF", data.l3sw2.int2.ip, data.hostB.ip, "SW2 廣播：誰是 192.168.2.10？");
                 }
             },
-            { title: "傳輸至 B", desc: "ARP 傳至 Host B。", action: () => { movePacket(Y_LINE, '81.5%'); } },
+            { title: "傳輸至 B", desc: "ARP 傳至 Host B。", action: () => { movePacket(Y_LINE, '81%'); } },
             {
                 title: "Host B: 學習與回覆", desc: "Host B 收到 ARP Req，學習 Gateway，並回覆自己的 MAC。",
                 action: () => {
@@ -588,7 +606,7 @@
                     logPacket("21. ARP Reply", "ARP Reply", data.hostB.mac, data.l3sw2.int2.mac, data.hostB.ip, data.l3sw2.int2.ip, "Host B 學習 Gateway，並回覆 MAC。");
                 }
             },
-            { title: "回覆至 SW2", desc: "SW2 收到 Host B MAC。", action: () => { movePacket(Y_LINE, '81.5%'); } },
+            { title: "回覆至 SW2", desc: "SW2 收到 Host B MAC。", action: () => { movePacket(Y_LINE, '81%'); } },
             {
                 title: "SW2: 轉發 (Hop 3)", desc: "SW2 更新 ARP。L3 轉發至 Host B。",
                 action: () => {
@@ -609,7 +627,7 @@
                     logPacket("26. ICMP Reply (B->SW2)", "IP Packet", data.hostB.mac, data.l3sw2.int2.mac, data.hostB.ip, data.hostA.ip, "回程：Src IP 變為 Host B，Dst IP 變為 Host A。");
                 }
             },
-            { title: "傳輸至 SW2", desc: "Reply 傳至 SW2。", action: () => { movePacket(Y_LINE, '81.5%'); } },
+            { title: "傳輸至 SW2", desc: "Reply 傳至 SW2。", action: () => { movePacket(Y_LINE, '81%'); } },
             {
                 title: "SW2: 路由查表",
                 desc: "SW2 收到。Dst IP 192.168.1.10。查表：Static Route 往 10.0.0.1 (Port 1)。ARP 已知下一跳 MAC。",
@@ -641,7 +659,7 @@
                     logPacket("32. ICMP Reply (SW1->A)", "IP Packet", data.l3sw1.int1.mac, data.hostA.mac, data.hostB.ip, data.hostA.ip, "SW1 直連轉發至 Host A。");
                 }
             },
-            { title: "傳輸至 Host A", desc: "Reply 抵達 Host A。", action: () => { movePacket(Y_LINE, '18.5%'); } },
+            { title: "傳輸至 Host A", desc: "Reply 抵達 Host A。", action: () => { movePacket(Y_LINE, '19%'); } },
             {
                 title: "Host A 接收",
                 desc: "Host A 收到 ICMP Reply。Ping 成功！雙向通訊完成。",
