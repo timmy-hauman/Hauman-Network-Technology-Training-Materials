@@ -102,19 +102,100 @@
                 <div class="bg-white p-6 rounded-lg shadow-sm">
                     <h3 class="text-2xl font-bold text-blue-800 mb-4 border-b pb-2">三、架構視覺化 (Visuals)</h3>
                     <p class="text-sm text-gray-500 mb-2">圖解：電腦 A 發送資料給 B，但紅色的虛線顯示資料也被強迫送給了 C 和 D。</p>
-                    <div class="mermaid">
-                        graph TD
-                            Hub["HUB 集線器"]
-                            PC_A["電腦 A <br/>(發送者)"] -->|"資料封包"| Hub
-                            Hub -.->|"廣播 Copy"| PC_B["電腦 B <br/>(目標)"]
-                            Hub -.->|"廣播 Copy"| PC_C["電腦 C <br/>(被強迫接收)"]
-                            Hub -.->|"廣播 Copy"| PC_D["電腦 D <br/>(被強迫接收)"]
-                            
-                            style Hub fill:#f87171,stroke:#333,stroke-width:2px,color:white
-                            style PC_A fill:#dbeafe,stroke:#333
-                            style PC_B fill:#dcfce7,stroke:#333
-                            style PC_C fill:#fee2e2,stroke:#ef4444,stroke-dasharray: 5 5
-                            style PC_D fill:#fee2e2,stroke:#ef4444,stroke-dasharray: 5 5
+                    <!-- 拓撲圖 (手繪 SVG):電腦 A 在上,Hub 居中,B/C/D 在下並排 -->
+                    <div style="width:100%;overflow-x:auto">
+                    <svg viewBox="0 0 720 410" role="img" aria-labelledby="hub1-title hub1-desc"
+                         style="width:100%;min-width:560px;max-width:720px;height:auto;display:block;margin:0 auto"
+                         font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+                        <title id="hub1-title">Hub 廣播運作示意</title>
+                        <desc id="hub1-desc">電腦 A (發送者) 將資料封包送進 HUB 集線器,Hub 把封包以廣播 Copy 的方式複製給電腦 B (目標),也強迫送給電腦 C 與電腦 D (被強迫接收,紅色虛線)。</desc>
+                        <defs>
+                            <linearGradient id="hub1-hub" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0" stop-color="#f87171"/>
+                                <stop offset="1" stop-color="#b91c1c"/>
+                            </linearGradient>
+                            <filter id="hub1-shadow" x="-20%" y="-20%" width="140%" height="160%">
+                                <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#311b92" flood-opacity="0.18"/>
+                            </filter>
+                            <marker id="hub1-arr-c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto">
+                                <path d="M0 0 L10 5 L0 10 z" fill="#0891b2"/>
+                            </marker>
+                            <marker id="hub1-arr-g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto">
+                                <path d="M0 0 L10 5 L0 10 z" fill="#16a34a"/>
+                            </marker>
+                            <marker id="hub1-arr-r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto">
+                                <path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/>
+                            </marker>
+                        </defs>
+
+                        <!-- 連線 -->
+                        <g fill="none" stroke-width="4" stroke-linecap="round">
+                            <line x1="360" y1="80" x2="360" y2="148" stroke="#0891b2" marker-end="url(#hub1-arr-c)"/>
+                            <path d="M310 214 C310 258, 140 252, 140 298" stroke="#16a34a" stroke-dasharray="6 5" marker-end="url(#hub1-arr-g)"/>
+                            <line x1="360" y1="214" x2="360" y2="298" stroke="#dc2626" stroke-dasharray="6 5" marker-end="url(#hub1-arr-r)"/>
+                            <path d="M410 214 C410 258, 580 252, 580 298" stroke="#dc2626" stroke-dasharray="6 5" marker-end="url(#hub1-arr-r)"/>
+                        </g>
+                        <text x="372" y="120" font-size="13" font-weight="700" fill="#0e7490">資料封包</text>
+
+                        <!-- 電腦 A (發送者) -->
+                        <g filter="url(#hub1-shadow)">
+                            <rect x="280" y="20" width="160" height="60" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+                        </g>
+                        <rect x="292" y="33" width="24" height="17" rx="2" fill="#dbeafe" stroke="#2563eb" stroke-width="1.2"/>
+                        <g stroke="#2563eb" stroke-width="1.5" stroke-linecap="round"><line x1="304" y1="50" x2="304" y2="56"/><line x1="298" y1="57" x2="310" y2="57"/></g>
+                        <text x="374" y="45" text-anchor="middle" font-size="14" font-weight="700" fill="#1e2235">電腦 A</text>
+                        <text x="374" y="63" text-anchor="middle" font-size="12" fill="#5b6278">(發送者)</text>
+
+                        <!-- HUB -->
+                        <g filter="url(#hub1-shadow)">
+                            <rect x="270" y="150" width="180" height="64" rx="10" fill="url(#hub1-hub)"/>
+                        </g>
+                        <text x="360" y="184" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">HUB 集線器</text>
+                        <g fill="#fee2e2"><rect x="324" y="198" width="8" height="5" rx="1"/><rect x="336" y="198" width="8" height="5" rx="1"/><rect x="348" y="198" width="8" height="5" rx="1"/><rect x="360" y="198" width="8" height="5" rx="1"/><rect x="372" y="198" width="8" height="5" rx="1"/><rect x="384" y="198" width="8" height="5" rx="1"/></g>
+
+                        <!-- 廣播 Copy 標籤 -->
+                        <g font-size="12" text-anchor="middle">
+                            <rect x="187" y="245" width="76" height="20" rx="10" fill="#f0fdf4" stroke="#16a34a"/>
+                            <text x="225" y="259" fill="#15803d">廣播 Copy</text>
+                            <rect x="322" y="245" width="76" height="20" rx="10" fill="#fef2f2" stroke="#dc2626"/>
+                            <text x="360" y="259" fill="#b91c1c">廣播 Copy</text>
+                            <rect x="457" y="245" width="76" height="20" rx="10" fill="#fef2f2" stroke="#dc2626"/>
+                            <text x="495" y="259" fill="#b91c1c">廣播 Copy</text>
+                        </g>
+
+                        <!-- 電腦 B / C / D -->
+                        <g filter="url(#hub1-shadow)">
+                            <rect x="60" y="300" width="160" height="60" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+                            <rect x="280" y="300" width="160" height="60" rx="10" fill="#fef2f2" stroke="#ef4444" stroke-width="2" stroke-dasharray="5 5"/>
+                            <rect x="500" y="300" width="160" height="60" rx="10" fill="#fef2f2" stroke="#ef4444" stroke-width="2" stroke-dasharray="5 5"/>
+                        </g>
+                        <rect x="72" y="313" width="24" height="17" rx="2" fill="#dcfce7" stroke="#16a34a" stroke-width="1.2"/>
+                        <g stroke="#16a34a" stroke-width="1.5" stroke-linecap="round"><line x1="84" y1="330" x2="84" y2="336"/><line x1="78" y1="337" x2="90" y2="337"/></g>
+                        <g fill="#fee2e2" stroke="#ef4444" stroke-width="1.2">
+                            <rect x="292" y="313" width="24" height="17" rx="2"/>
+                            <rect x="512" y="313" width="24" height="17" rx="2"/>
+                        </g>
+                        <g stroke="#ef4444" stroke-width="1.5" stroke-linecap="round">
+                            <line x1="304" y1="330" x2="304" y2="336"/><line x1="298" y1="337" x2="310" y2="337"/>
+                            <line x1="524" y1="330" x2="524" y2="336"/><line x1="518" y1="337" x2="530" y2="337"/>
+                        </g>
+                        <text x="154" y="325" text-anchor="middle" font-size="14" font-weight="700" fill="#1e2235">電腦 B</text>
+                        <text x="154" y="343" text-anchor="middle" font-size="12" fill="#15803d">(目標)</text>
+                        <text x="374" y="325" text-anchor="middle" font-size="14" font-weight="700" fill="#1e2235">電腦 C</text>
+                        <text x="374" y="343" text-anchor="middle" font-size="12" fill="#b91c1c">(被強迫接收)</text>
+                        <text x="594" y="325" text-anchor="middle" font-size="14" font-weight="700" fill="#1e2235">電腦 D</text>
+                        <text x="594" y="343" text-anchor="middle" font-size="12" fill="#b91c1c">(被強迫接收)</text>
+
+                        <!-- 圖例 -->
+                        <g font-size="12" fill="#5b6278">
+                            <line x1="90" y1="392" x2="118" y2="392" stroke="#0891b2" stroke-width="4" stroke-linecap="round" marker-end="url(#hub1-arr-c)"/>
+                            <text x="128" y="396">原始資料封包</text>
+                            <line x1="260" y1="392" x2="288" y2="392" stroke="#16a34a" stroke-width="4" stroke-dasharray="6 5" marker-end="url(#hub1-arr-g)"/>
+                            <text x="298" y="396">廣播複本 (送到目標)</text>
+                            <line x1="450" y1="392" x2="478" y2="392" stroke="#dc2626" stroke-width="4" stroke-dasharray="6 5" marker-end="url(#hub1-arr-r)"/>
+                            <text x="488" y="396">廣播複本 (被強迫接收)</text>
+                        </g>
+                    </svg>
                     </div>
                 </div>
 
@@ -162,23 +243,99 @@
                 <div class="bg-white p-6 rounded-lg shadow-sm">
                     <h3 class="text-2xl font-bold text-blue-800 mb-4 border-b pb-2">三、架構視覺化 (Visuals)</h3>
                     <p class="text-sm text-gray-500 mb-2">圖解：Bridge 將網路切分為兩個網段。Segment 1 內部的通訊不會干擾到 Segment 2。</p>
-                    <div class="mermaid">
-                        graph LR
-                            subgraph Segment_1 ["網段 1"]
-                                PC1(("PC 1")) --- Hub1["Hub"]
-                                PC2(("PC 2")) --- Hub1
-                            end
-                            
-                            subgraph Segment_2 ["網段 2"]
-                                Hub2["Hub"] --- PC3(("PC 3"))
-                                Hub2 --- PC4(("PC 4"))
-                            end
+                    <!-- 拓撲圖 (手繪 SVG):網段 1 在左、BRIDGE 居中、網段 2 在右 -->
+                    <div style="width:100%;overflow-x:auto">
+                    <svg viewBox="0 0 760 320" role="img" aria-labelledby="brg1-title brg1-desc"
+                         style="width:100%;min-width:560px;max-width:760px;height:auto;display:block;margin:0 auto"
+                         font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+                        <title id="brg1-title">Bridge 分割網段示意</title>
+                        <desc id="brg1-desc">網段 1 內 PC 1、PC 2 接在一台 Hub 上;網段 2 內 PC 3、PC 4 接在另一台 Hub 上。兩台 Hub 之間由 BRIDGE (檢查哨) 雙向連接,把網路切成兩個網段。</desc>
+                        <defs>
+                            <linearGradient id="brg1-bridge" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0" stop-color="#f59e0b"/>
+                                <stop offset="1" stop-color="#b45309"/>
+                            </linearGradient>
+                            <linearGradient id="brg1-hub" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0" stop-color="#94a3b8"/>
+                                <stop offset="1" stop-color="#475569"/>
+                            </linearGradient>
+                            <filter id="brg1-shadow" x="-20%" y="-20%" width="140%" height="160%">
+                                <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#311b92" flood-opacity="0.18"/>
+                            </filter>
+                            <marker id="brg1-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+                                <path d="M0 0 L10 5 L0 10 z" fill="#673ab7"/>
+                            </marker>
+                        </defs>
 
-                            Hub1 <==> Bridge["BRIDGE <br/> 檢查哨"] <==> Hub2
+                        <!-- 網段群組 -->
+                        <rect x="20" y="30" width="270" height="240" rx="16" fill="#f6f2fe" stroke="#b39ddb" stroke-width="1.5" stroke-dasharray="6 5"/>
+                        <text x="36" y="54" font-family="'JetBrains Mono', Consolas, monospace" font-size="13" font-weight="700" fill="#673ab7">網段 1</text>
+                        <rect x="470" y="30" width="270" height="240" rx="16" fill="#f6f2fe" stroke="#b39ddb" stroke-width="1.5" stroke-dasharray="6 5"/>
+                        <text x="724" y="54" text-anchor="end" font-family="'JetBrains Mono', Consolas, monospace" font-size="13" font-weight="700" fill="#673ab7">網段 2</text>
 
-                            style Bridge fill:#f59e0b,stroke:#333,stroke-width:2px,color:white
-                            style Segment_1 fill:#f3f4f6,stroke:#cbd5e1
-                            style Segment_2 fill:#f3f4f6,stroke:#cbd5e1
+                        <!-- PC ↔ Hub 連線 -->
+                        <g fill="none" stroke="#0891b2" stroke-width="4" stroke-linecap="round">
+                            <path d="M140 95 C165 95, 160 140, 190 140"/>
+                            <path d="M140 205 C165 205, 160 160, 190 160"/>
+                            <path d="M620 95 C595 95, 600 140, 570 140"/>
+                            <path d="M620 205 C595 205, 600 160, 570 160"/>
+                        </g>
+                        <!-- Hub ⇄ BRIDGE ⇄ Hub (雙向粗線) -->
+                        <g stroke="#673ab7" stroke-width="5" stroke-linecap="round">
+                            <line x1="276" y1="150" x2="324" y2="150" marker-start="url(#brg1-arr)" marker-end="url(#brg1-arr)"/>
+                            <line x1="436" y1="150" x2="484" y2="150" marker-start="url(#brg1-arr)" marker-end="url(#brg1-arr)"/>
+                        </g>
+
+                        <!-- PCs -->
+                        <g filter="url(#brg1-shadow)">
+                            <rect x="40" y="70" width="100" height="50" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/>
+                            <rect x="40" y="180" width="100" height="50" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/>
+                            <rect x="620" y="70" width="100" height="50" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/>
+                            <rect x="620" y="180" width="100" height="50" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/>
+                        </g>
+                        <g fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2">
+                            <rect x="50" y="83" width="20" height="14" rx="2"/>
+                            <rect x="50" y="193" width="20" height="14" rx="2"/>
+                            <rect x="630" y="83" width="20" height="14" rx="2"/>
+                            <rect x="630" y="193" width="20" height="14" rx="2"/>
+                        </g>
+                        <g stroke="#0891b2" stroke-width="1.5" stroke-linecap="round">
+                            <line x1="60" y1="97" x2="60" y2="102"/><line x1="55" y1="103" x2="65" y2="103"/>
+                            <line x1="60" y1="207" x2="60" y2="212"/><line x1="55" y1="213" x2="65" y2="213"/>
+                            <line x1="640" y1="97" x2="640" y2="102"/><line x1="635" y1="103" x2="645" y2="103"/>
+                            <line x1="640" y1="207" x2="640" y2="212"/><line x1="635" y1="213" x2="645" y2="213"/>
+                        </g>
+                        <g font-size="14" font-weight="700" fill="#1e2235" text-anchor="middle">
+                            <text x="104" y="100">PC 1</text>
+                            <text x="104" y="210">PC 2</text>
+                            <text x="684" y="100">PC 3</text>
+                            <text x="684" y="210">PC 4</text>
+                        </g>
+
+                        <!-- Hubs -->
+                        <g filter="url(#brg1-shadow)">
+                            <rect x="190" y="122" width="86" height="56" rx="10" fill="url(#brg1-hub)"/>
+                            <rect x="484" y="122" width="86" height="56" rx="10" fill="url(#brg1-hub)"/>
+                        </g>
+                        <text x="233" y="154" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">Hub</text>
+                        <text x="527" y="154" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">Hub</text>
+                        <g fill="#e2e8f0"><rect x="211" y="164" width="8" height="5" rx="1"/><rect x="223" y="164" width="8" height="5" rx="1"/><rect x="235" y="164" width="8" height="5" rx="1"/><rect x="247" y="164" width="8" height="5" rx="1"/><rect x="505" y="164" width="8" height="5" rx="1"/><rect x="517" y="164" width="8" height="5" rx="1"/><rect x="529" y="164" width="8" height="5" rx="1"/><rect x="541" y="164" width="8" height="5" rx="1"/></g>
+
+                        <!-- BRIDGE -->
+                        <g filter="url(#brg1-shadow)">
+                            <rect x="324" y="114" width="112" height="72" rx="10" fill="url(#brg1-bridge)"/>
+                        </g>
+                        <text x="380" y="145" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">BRIDGE</text>
+                        <text x="380" y="165" text-anchor="middle" font-size="13" font-weight="700" fill="#fef3c7">檢查哨</text>
+
+                        <!-- 圖例 -->
+                        <g font-size="12" fill="#5b6278">
+                            <line x1="170" y1="300" x2="196" y2="300" stroke="#0891b2" stroke-width="4" stroke-linecap="round"/>
+                            <text x="204" y="304">網段內連線 (PC ↔ Hub)</text>
+                            <line x1="420" y1="300" x2="450" y2="300" stroke="#673ab7" stroke-width="4" stroke-linecap="round" marker-start="url(#brg1-arr)" marker-end="url(#brg1-arr)"/>
+                            <text x="462" y="304">經 Bridge 雙向連接</text>
+                        </g>
+                    </svg>
                     </div>
                 </div>
 
@@ -268,23 +425,92 @@
                 <div class="bg-white p-6 rounded-lg shadow-sm">
                     <h3 class="text-2xl font-bold text-blue-800 mb-4 border-b pb-2">三、架構視覺化 (Visuals)</h3>
                     <p class="text-sm text-gray-500 mb-2">圖解：Switch 查閱 MAC 表後，建立 A 到 B 的專屬通道 (綠色)，C 和 D 完全不受影響。</p>
-                    <div class="mermaid">
-                        graph TD
-                            Switch["SWITCH 交換器 <br/> ASIC 晶片處理"]
-                            
-                            PC_A["電腦 A"] ==>|"Unicast 單播"| Switch
-                            Switch ==>|"精準轉送"| PC_B["電腦 B"]
-                            
-                            Switch -.->|"X 阻擋"| PC_C["電腦 C"]
-                            Switch -.->|"X 阻擋"| PC_D["電腦 D"]
-                            
-                            style Switch fill:#3b82f6,stroke:#333,stroke-width:2px,color:white
-                            style PC_A fill:#dbeafe,stroke:#333
-                            style PC_B fill:#dcfce7,stroke:#333
-                            style PC_C fill:#e5e7eb,stroke:#9ca3af,color:#9ca3af
-                            style PC_D fill:#e5e7eb,stroke:#9ca3af,color:#9ca3af
-                            linkStyle 0,1 stroke:#22c55e,stroke-width:4px;
-                            linkStyle 2,3 stroke:#9ca3af,stroke-width:1px,stroke-dasharray: 5 5;
+                    <!-- 拓撲圖 (手繪 SVG):電腦 A 在上,Switch 居中,B/C/D 在下並排 -->
+                    <div style="width:100%;overflow-x:auto">
+                    <svg viewBox="0 0 720 410" role="img" aria-labelledby="swt1-title swt1-desc"
+                         style="width:100%;min-width:560px;max-width:720px;height:auto;display:block;margin:0 auto"
+                         font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+                        <title id="swt1-title">Switch 單播轉送示意</title>
+                        <desc id="swt1-desc">電腦 A 以 Unicast 單播送出封包到 SWITCH 交換器 (ASIC 晶片處理),Switch 查 MAC 表後只精準轉送給電腦 B (綠色粗線);通往電腦 C 與電腦 D 的方向被阻擋 (灰色虛線),不受影響。</desc>
+                        <defs>
+                            <linearGradient id="swt1-sw" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0" stop-color="#7e57c2"/>
+                                <stop offset="1" stop-color="#311b92"/>
+                            </linearGradient>
+                            <filter id="swt1-shadow" x="-20%" y="-20%" width="140%" height="160%">
+                                <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#311b92" flood-opacity="0.18"/>
+                            </filter>
+                            <marker id="swt1-arr-g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto">
+                                <path d="M0 0 L10 5 L0 10 z" fill="#16a34a"/>
+                            </marker>
+                            <marker id="swt1-arr-x" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto">
+                                <path d="M0 0 L10 5 L0 10 z" fill="#9ca3af"/>
+                            </marker>
+                        </defs>
+
+                        <!-- 連線 -->
+                        <g fill="none" stroke-linecap="round">
+                            <line x1="360" y1="80" x2="360" y2="148" stroke="#16a34a" stroke-width="5" marker-end="url(#swt1-arr-g)"/>
+                            <path d="M310 216 C310 258, 140 252, 140 298" stroke="#16a34a" stroke-width="5" marker-end="url(#swt1-arr-g)"/>
+                            <line x1="360" y1="216" x2="360" y2="298" stroke="#9ca3af" stroke-width="1.5" stroke-dasharray="5 5" marker-end="url(#swt1-arr-x)"/>
+                            <path d="M410 216 C410 258, 580 252, 580 298" stroke="#9ca3af" stroke-width="1.5" stroke-dasharray="5 5" marker-end="url(#swt1-arr-x)"/>
+                        </g>
+                        <text x="374" y="120" font-size="13" font-weight="700" fill="#15803d">Unicast 單播</text>
+
+                        <!-- 電腦 A -->
+                        <g filter="url(#swt1-shadow)">
+                            <rect x="280" y="20" width="160" height="60" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+                        </g>
+                        <rect x="292" y="33" width="24" height="17" rx="2" fill="#dbeafe" stroke="#2563eb" stroke-width="1.2"/>
+                        <g stroke="#2563eb" stroke-width="1.5" stroke-linecap="round"><line x1="304" y1="50" x2="304" y2="56"/><line x1="298" y1="57" x2="310" y2="57"/></g>
+                        <text x="374" y="55" text-anchor="middle" font-size="14" font-weight="700" fill="#1e2235">電腦 A</text>
+
+                        <!-- SWITCH -->
+                        <g filter="url(#swt1-shadow)">
+                            <rect x="260" y="150" width="200" height="66" rx="10" fill="url(#swt1-sw)"/>
+                        </g>
+                        <text x="360" y="176" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">SWITCH 交換器</text>
+                        <text x="360" y="194" text-anchor="middle" font-size="12" fill="#d1c4e9">ASIC 晶片處理</text>
+                        <g fill="#b2ebf2"><rect x="324" y="202" width="8" height="5" rx="1"/><rect x="336" y="202" width="8" height="5" rx="1"/><rect x="348" y="202" width="8" height="5" rx="1"/><rect x="360" y="202" width="8" height="5" rx="1"/><rect x="372" y="202" width="8" height="5" rx="1"/><rect x="384" y="202" width="8" height="5" rx="1"/></g>
+
+                        <!-- 連線標籤 -->
+                        <g font-size="12" text-anchor="middle">
+                            <rect x="187" y="245" width="76" height="20" rx="10" fill="#f0fdf4" stroke="#16a34a"/>
+                            <text x="225" y="259" font-weight="700" fill="#15803d">精準轉送</text>
+                            <rect x="326" y="245" width="68" height="20" rx="10" fill="#fff" stroke="#9ca3af"/>
+                            <text x="360" y="259" fill="#6b7280"><tspan fill="#dc2626" font-weight="700">✕</tspan> 阻擋</text>
+                            <rect x="461" y="245" width="68" height="20" rx="10" fill="#fff" stroke="#9ca3af"/>
+                            <text x="495" y="259" fill="#6b7280"><tspan fill="#dc2626" font-weight="700">✕</tspan> 阻擋</text>
+                        </g>
+
+                        <!-- 電腦 B / C / D -->
+                        <g filter="url(#swt1-shadow)">
+                            <rect x="60" y="300" width="160" height="60" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+                            <rect x="280" y="300" width="160" height="60" rx="10" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/>
+                            <rect x="500" y="300" width="160" height="60" rx="10" fill="#f3f4f6" stroke="#9ca3af" stroke-width="2"/>
+                        </g>
+                        <rect x="72" y="313" width="24" height="17" rx="2" fill="#dcfce7" stroke="#16a34a" stroke-width="1.2"/>
+                        <g stroke="#16a34a" stroke-width="1.5" stroke-linecap="round"><line x1="84" y1="330" x2="84" y2="336"/><line x1="78" y1="337" x2="90" y2="337"/></g>
+                        <g fill="#e5e7eb" stroke="#9ca3af" stroke-width="1.2">
+                            <rect x="292" y="313" width="24" height="17" rx="2"/>
+                            <rect x="512" y="313" width="24" height="17" rx="2"/>
+                        </g>
+                        <g stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round">
+                            <line x1="304" y1="330" x2="304" y2="336"/><line x1="298" y1="337" x2="310" y2="337"/>
+                            <line x1="524" y1="330" x2="524" y2="336"/><line x1="518" y1="337" x2="530" y2="337"/>
+                        </g>
+                        <text x="154" y="335" text-anchor="middle" font-size="14" font-weight="700" fill="#1e2235">電腦 B</text>
+                        <text x="374" y="335" text-anchor="middle" font-size="14" font-weight="700" fill="#9ca3af">電腦 C</text>
+                        <text x="594" y="335" text-anchor="middle" font-size="14" font-weight="700" fill="#9ca3af">電腦 D</text>
+
+                        <!-- 圖例 -->
+                        <g font-size="12" fill="#5b6278">
+                            <line x1="150" y1="392" x2="178" y2="392" stroke="#16a34a" stroke-width="5" stroke-linecap="round" marker-end="url(#swt1-arr-g)"/>
+                            <text x="188" y="396">A → B 專屬通道 (單播轉送)</text>
+                            <line x1="420" y1="392" x2="448" y2="392" stroke="#9ca3af" stroke-width="1.5" stroke-dasharray="5 5" marker-end="url(#swt1-arr-x)"/>
+                            <text x="458" y="396">不轉送 (C、D 不受影響)</text>
+                        </g>
+                    </svg>
                     </div>
                 </div>
 
@@ -443,7 +669,7 @@
     <footer class="bg-slate-900 text-gray-400 py-6 text-center border-t border-slate-700">
         <div class="container mx-auto px-4">
             <p class="font-mono text-sm">
-                Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0
+                Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0
             </p>
         </div>
     </footer>

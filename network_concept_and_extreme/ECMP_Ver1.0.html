@@ -161,23 +161,106 @@ Ori  Destination        Gateway         Mtr  Flags        VLAN       Duration
                 <!-- 1. 拓撲圖 -->
                 <div class="w-full">
                     <h3 class="text-center font-bold text-gray-700 mb-2 border-b pb-2">圖表 A: ECMP 拓撲示意圖</h3>
-                    <div class="mermaid">
-                        graph TD
-                            Client[使用者電腦] -->|發送封包| CoreA[核心交換機 A]
-                            
-                            subgraph ECMPGroup [ECMP 路徑群組]
-                                direction LR
-                                CoreA -->|Path 1 Hash A| FW1[防火牆/路徑 1]
-                                CoreA -->|Path 2 Hash B| FW2[防火牆/路徑 2]
-                                CoreA -->|Path 3 Hash C| FW3[防火牆/路徑 3]
-                            end
-                            
-                            FW1 --> Server[應用伺服器]
-                            FW2 --> Server
-                            FW3 --> Server
-                            
-                            style CoreA fill:#f9f,stroke:#333,stroke-width:2px
-                            style ECMPGroup fill:#e1f5fe,stroke:#0288d1,stroke-dasharray: 5 5
+                    <!-- 拓撲圖 (手繪 SVG):使用者 -> 核心交換機 A -> 三條 ECMP 路徑 -> 應用伺服器 -->
+                    <div style="width:100%;overflow-x:auto">
+                    <svg viewBox="0 0 760 550" role="img" aria-labelledby="ecmp1-title ecmp1-desc"
+                         style="width:100%;min-width:560px;max-width:760px;height:auto;display:block;margin:0 auto"
+                         font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+                        <title id="ecmp1-title">ECMP 拓撲示意圖</title>
+                        <desc id="ecmp1-desc">使用者電腦發送封包到核心交換機 A；核心交換機 A 以 Hash 將流量分散到 ECMP 路徑群組中的三條路徑 (Path 1 Hash A、Path 2 Hash B、Path 3 Hash C)，分別經過防火牆/路徑 1、2、3，最後都抵達應用伺服器。</desc>
+                        <defs>
+                            <linearGradient id="ecmp1-sw" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0" stop-color="#7e57c2"/>
+                                <stop offset="1" stop-color="#311b92"/>
+                            </linearGradient>
+                            <filter id="ecmp1-shadow" x="-20%" y="-20%" width="140%" height="160%">
+                                <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#311b92" flood-opacity="0.18"/>
+                            </filter>
+                        </defs>
+
+                        <!-- ECMP 路徑群組 -->
+                        <rect x="40" y="220" width="680" height="170" rx="16" fill="#effafc" stroke="#67c5d6" stroke-width="1.5" stroke-dasharray="6 5"/>
+                        <text x="56" y="378" font-family="'JetBrains Mono', Consolas, monospace" font-size="13" font-weight="700" fill="#0891b2">ECMP 路徑群組</text>
+
+                        <!-- 連線 -->
+                        <g fill="none" stroke="#0891b2" stroke-width="4" stroke-linecap="round">
+                            <line x1="380" y1="76" x2="380" y2="120"/>
+                            <line x1="330" y1="192" x2="160" y2="300"/>
+                            <line x1="380" y1="192" x2="380" y2="300"/>
+                            <line x1="430" y1="192" x2="600" y2="300"/>
+                            <line x1="160" y1="356" x2="340" y2="440"/>
+                            <line x1="380" y1="356" x2="380" y2="440"/>
+                            <line x1="600" y1="356" x2="420" y2="440"/>
+                        </g>
+                        <text x="392" y="103" font-size="12" font-weight="700" fill="#0e7490">發送封包</text>
+                        <text x="212" y="236" text-anchor="end" font-size="13" font-weight="700" fill="#0e7490">Path 1</text>
+                        <text x="212" y="251" text-anchor="end" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#5b6278">Hash A</text>
+                        <text x="392" y="248" font-size="13" font-weight="700" fill="#0e7490">Path 2</text>
+                        <text x="392" y="263" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#5b6278">Hash B</text>
+                        <text x="548" y="236" font-size="13" font-weight="700" fill="#0e7490">Path 3</text>
+                        <text x="548" y="251" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#5b6278">Hash C</text>
+
+                        <!-- 使用者電腦 -->
+                        <g filter="url(#ecmp1-shadow)">
+                            <rect x="300" y="20" width="160" height="56" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/>
+                        </g>
+                        <rect x="314" y="32" width="26" height="18" rx="2" fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2"/>
+                        <rect x="323" y="52" width="8" height="4" fill="#0891b2"/>
+                        <rect x="318" y="56" width="18" height="2" fill="#0891b2"/>
+                        <text x="398" y="53" text-anchor="middle" font-size="14" font-weight="700" fill="#1e2235">使用者電腦</text>
+
+                        <!-- 核心交換機 A -->
+                        <g filter="url(#ecmp1-shadow)">
+                            <rect x="290" y="120" width="180" height="72" rx="10" fill="url(#ecmp1-sw)"/>
+                        </g>
+                        <text x="380" y="148" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">核心交換機 A</text>
+                        <text x="380" y="166" text-anchor="middle" font-size="12" fill="#d1c4e9">Hash 分流</text>
+                        <g fill="#b2ebf2"><rect x="346" y="176" width="8" height="5" rx="1"/><rect x="358" y="176" width="8" height="5" rx="1"/><rect x="370" y="176" width="8" height="5" rx="1"/><rect x="382" y="176" width="8" height="5" rx="1"/><rect x="394" y="176" width="8" height="5" rx="1"/><rect x="406" y="176" width="8" height="5" rx="1"/></g>
+
+                        <!-- 防火牆 / 路徑 1~3 -->
+                        <g filter="url(#ecmp1-shadow)">
+                            <rect x="80" y="300" width="160" height="56" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/>
+                            <rect x="300" y="300" width="160" height="56" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/>
+                            <rect x="520" y="300" width="160" height="56" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/>
+                        </g>
+                        <g fill="#ede7f6" stroke="#673ab7" stroke-width="1.2">
+                            <rect x="94" y="316" width="26" height="24" rx="2"/>
+                            <rect x="314" y="316" width="26" height="24" rx="2"/>
+                            <rect x="534" y="316" width="26" height="24" rx="2"/>
+                        </g>
+                        <g stroke="#673ab7" stroke-width="1.2">
+                            <path d="M94 324 h26 M94 332 h26 M107 316 v8 M100 324 v8 M113 324 v8 M107 332 v8"/>
+                            <path d="M314 324 h26 M314 332 h26 M327 316 v8 M320 324 v8 M333 324 v8 M327 332 v8"/>
+                            <path d="M534 324 h26 M534 332 h26 M547 316 v8 M540 324 v8 M553 324 v8 M547 332 v8"/>
+                        </g>
+                        <g text-anchor="middle">
+                            <text x="176" y="326" font-size="14" font-weight="700" fill="#1e2235">防火牆</text>
+                            <text x="176" y="344" font-size="12" fill="#5b6278">路徑 1</text>
+                            <text x="396" y="326" font-size="14" font-weight="700" fill="#1e2235">防火牆</text>
+                            <text x="396" y="344" font-size="12" fill="#5b6278">路徑 2</text>
+                            <text x="616" y="326" font-size="14" font-weight="700" fill="#1e2235">防火牆</text>
+                            <text x="616" y="344" font-size="12" fill="#5b6278">路徑 3</text>
+                        </g>
+
+                        <!-- 應用伺服器 -->
+                        <g filter="url(#ecmp1-shadow)">
+                            <rect x="300" y="440" width="160" height="56" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/>
+                        </g>
+                        <g fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2">
+                            <rect x="314" y="450" width="24" height="10" rx="2"/>
+                            <rect x="314" y="463" width="24" height="10" rx="2"/>
+                            <rect x="314" y="476" width="24" height="10" rx="2"/>
+                        </g>
+                        <text x="398" y="473" text-anchor="middle" font-size="14" font-weight="700" fill="#1e2235">應用伺服器</text>
+
+                        <!-- 圖例 -->
+                        <g font-size="12" fill="#5b6278">
+                            <line x1="210" y1="528" x2="236" y2="528" stroke="#0891b2" stroke-width="4" stroke-linecap="round"/>
+                            <text x="244" y="532">資料轉送路徑</text>
+                            <rect x="390" y="521" width="24" height="14" rx="3" fill="#effafc" stroke="#67c5d6" stroke-width="1.5" stroke-dasharray="4 3"/>
+                            <text x="422" y="532">ECMP 路徑群組 (Hash 分流)</text>
+                        </g>
+                    </svg>
                     </div>
                     <p class="text-xs text-center text-gray-500 mt-2">圖說：核心交換機透過 Hashing 將流量分散至三條實體路徑</p>
                 </div>
@@ -260,7 +343,7 @@ Ori  Destination        Gateway         Mtr  Flags        VLAN       Duration
         <div class="container mx-auto">
             <p class="mb-2">Planning & Design by Timmy (timmyc@hauman.com.tw)</p>
             <p class="font-bold text-gray-300">豪勉科技 Hauman Technologies Corporation</p>
-            <p class="mt-2 text-xs">Ver 1.0</p>
+            <p class="mt-2 text-xs">Ver 2.0</p>
         </div>
     </footer>
 

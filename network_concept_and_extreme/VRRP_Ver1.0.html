@@ -193,48 +193,95 @@
             
             <div class="mb-8">
                 <h3 class="text-lg font-semibold mb-3 text-center">VRRP 拓撲架構圖</h3>
-                <div class="mermaid flex justify-center bg-gray-50 p-4 rounded border">
-                    flowchart TD
-                        %% 1. Internet Layer (Top)
-                        Internet((Internet))
+                <div class="bg-gray-50 p-4 rounded border">
+                <div style="width:100%;overflow-x:auto">
+                <svg viewBox="0 0 760 545" role="img" aria-labelledby="vrrp1-title vrrp1-desc"
+                     style="width:100%;min-width:560px;max-width:760px;height:auto;display:block;margin:0 auto"
+                     font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+                    <title id="vrrp1-title">VRRP 拓撲架構</title>
+                    <desc id="vrrp1-desc">Internet 以實際流量連到 Extreme Switch A (Master, Priority 200),以待命路徑連到 Extreme Switch B (Backup, Priority 100);A 以 VRRP Hello 通告 B。兩台交換器共同組成邏輯上的 Virtual Router (VIP 192.168.1.1, VMAC ...01:0A),User PC 的閘道指向 192.168.1.1。</desc>
+                    <defs>
+                        <linearGradient id="vrrp1-sw" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0" stop-color="#7e57c2"/>
+                            <stop offset="1" stop-color="#311b92"/>
+                        </linearGradient>
+                        <filter id="vrrp1-sh" x="-20%" y="-20%" width="140%" height="160%">
+                            <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#311b92" flood-opacity="0.18"/>
+                        </filter>
+                        <marker id="vrrp1-arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+                            <path d="M0 0 L10 5 L0 10 z" fill="#673ab7"/>
+                        </marker>
+                    </defs>
 
-                        %% 2. Switch Layer (Middle - Horizontal)
-                        subgraph Switching_Layer [Core Switching Layer]
-                            direction LR
-                            Core_A[("Extreme Switch A<br/>(Master)<br/>Priority: 200")]
-                            Core_B[("Extreme Switch B<br/>(Backup)<br/>Priority: 100")]
-                            
-                            %% Horizontal link
-                            Core_A -.->|VRRP Hello| Core_B
-                        end
+                    <!-- Core Switching Layer 群組 -->
+                    <rect x="70" y="118" width="620" height="150" rx="16" fill="#f6f2fe" stroke="#b39ddb" stroke-width="1.5" stroke-dasharray="6 5"/>
+                    <text x="380" y="261" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#673ab7">Core Switching Layer</text>
 
-                        %% 3. Virtual Layer (Bottom)
-                        VIP(("Virtual Router (VIP)<br/>192.168.1.1<br/>VMAC: ...01:0A"))
+                    <!-- Internet -->
+                    <path d="M328 96 C306 96 300 74 318 68 C316 50 340 42 354 52 C362 36 394 34 404 52 C420 44 442 54 438 70 C456 74 452 96 432 96 Z" fill="#eef2ff" stroke="#9fa8da" stroke-width="2"/>
+                    <text x="380" y="80" text-anchor="middle" font-size="14" font-weight="700" fill="#1e2235">Internet</text>
+                    <line x1="355" y1="96" x2="250" y2="168" stroke="#0891b2" stroke-width="5" stroke-linecap="round"/>
+                    <line x1="405" y1="96" x2="510" y2="168" stroke="#dc2626" stroke-width="4" stroke-linecap="round" stroke-dasharray="6 5"/>
 
-                        %% 4. User Layer (Bottom)
-                        PC1["User PC<br/>GW: 192.168.1.1"]
+                    <!-- VRRP Hello (控制訊號) -->
+                    <line x1="290" y1="209" x2="466" y2="209" stroke="#673ab7" stroke-width="3" stroke-linecap="round" stroke-dasharray="6 5" marker-end="url(#vrrp1-arr)"/>
+                    <text x="380" y="199" text-anchor="middle" font-size="12" font-weight="700" fill="#4527a0">VRRP Hello</text>
 
-                        %% Vertical Connections
-                        Internet ==> Core_A
-                        Internet -.-> Core_B
-                        
-                        Core_A --- VIP
-                        Core_B --- VIP
-                        
-                        VIP === PC1
+                    <!-- Switch A (Master) -->
+                    <rect x="110" y="134" width="80" height="24" rx="12" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+                    <text x="150" y="150" text-anchor="middle" font-size="12" font-weight="700" fill="#15803d">Master</text>
+                    <g filter="url(#vrrp1-sh)">
+                        <rect x="100" y="168" width="190" height="82" rx="10" fill="url(#vrrp1-sw)"/>
+                    </g>
+                    <text x="195" y="196" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">Extreme Switch A</text>
+                    <text x="195" y="215" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" fill="#d1c4e9">Priority: 200</text>
+                    <g fill="#b2ebf2"><rect x="159" y="230" width="8" height="5" rx="1"/><rect x="171" y="230" width="8" height="5" rx="1"/><rect x="183" y="230" width="8" height="5" rx="1"/><rect x="195" y="230" width="8" height="5" rx="1"/><rect x="207" y="230" width="8" height="5" rx="1"/><rect x="219" y="230" width="8" height="5" rx="1"/></g>
 
-                        %% Style Definitions
-                        classDef master fill:#d1fae5,stroke:#059669,stroke-width:2px;
-                        classDef backup fill:#fee2e2,stroke:#dc2626,stroke-width:2px;
-                        classDef virtual fill:#e0f2fe,stroke:#0288d1,stroke-width:2px,stroke-dasharray: 5 5;
-                        classDef internet fill:#f3f4f6,stroke:#374151,stroke-width:2px;
-                        
-                        class Core_A master;
-                        class Core_B backup;
-                        class VIP virtual;
-                        class Internet internet;
+                    <!-- Switch B (Backup) -->
+                    <rect x="570" y="134" width="80" height="24" rx="12" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+                    <text x="610" y="150" text-anchor="middle" font-size="12" font-weight="700" fill="#b45309">Backup</text>
+                    <g filter="url(#vrrp1-sh)">
+                        <rect x="470" y="168" width="190" height="82" rx="10" fill="url(#vrrp1-sw)"/>
+                    </g>
+                    <text x="565" y="196" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">Extreme Switch B</text>
+                    <text x="565" y="215" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" fill="#d1c4e9">Priority: 100</text>
+                    <g fill="#b2ebf2"><rect x="529" y="230" width="8" height="5" rx="1"/><rect x="541" y="230" width="8" height="5" rx="1"/><rect x="553" y="230" width="8" height="5" rx="1"/><rect x="565" y="230" width="8" height="5" rx="1"/><rect x="577" y="230" width="8" height="5" rx="1"/><rect x="589" y="230" width="8" height="5" rx="1"/></g>
+
+                    <!-- 兩台 Switch 與 VIP 的邏輯關係 -->
+                    <line x1="240" y1="250" x2="300" y2="310" stroke="#673ab7" stroke-width="3" stroke-linecap="round" stroke-dasharray="6 5"/>
+                    <line x1="520" y1="250" x2="460" y2="310" stroke="#673ab7" stroke-width="3" stroke-linecap="round" stroke-dasharray="6 5"/>
+
+                    <!-- Virtual Router (VIP):邏輯元件,以虛線表示 -->
+                    <ellipse cx="380" cy="345" rx="125" ry="46" fill="#f6f2fe" stroke="#673ab7" stroke-width="2" stroke-dasharray="6 5"/>
+                    <text x="380" y="332" text-anchor="middle" font-size="14" font-weight="700" fill="#311b92">Virtual Router (VIP)</text>
+                    <text x="380" y="351" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="13" font-weight="700" fill="#4527a0">192.168.1.1</text>
+                    <text x="380" y="368" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#5b6278">VMAC: ...01:0A</text>
+
+                    <!-- User PC -->
+                    <line x1="380" y1="391" x2="380" y2="440" stroke="#0891b2" stroke-width="5" stroke-linecap="round"/>
+                    <g filter="url(#vrrp1-sh)">
+                        <rect x="290" y="440" width="180" height="58" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/>
+                    </g>
+                    <rect x="304" y="454" width="28" height="19" rx="2" fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2"/>
+                    <path d="M318 473 L318 480 M310 482 L326 482" fill="none" stroke="#0891b2" stroke-width="1.6" stroke-linecap="round"/>
+                    <text x="394" y="464" text-anchor="middle" font-size="14" font-weight="700" fill="#1e2235">User PC</text>
+                    <text x="394" y="483" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#5b6278">GW: 192.168.1.1</text>
+
+                    <!-- 圖例 -->
+                    <g font-size="12" fill="#5b6278">
+                        <line x1="120" y1="528" x2="146" y2="528" stroke="#0891b2" stroke-width="4" stroke-linecap="round"/>
+                        <text x="154" y="532">實際流量</text>
+                        <line x1="250" y1="528" x2="276" y2="528" stroke="#dc2626" stroke-width="4" stroke-linecap="round" stroke-dasharray="6 5"/>
+                        <text x="284" y="532">待命路徑</text>
+                        <line x1="380" y1="528" x2="406" y2="528" stroke="#673ab7" stroke-width="3" stroke-linecap="round" stroke-dasharray="6 5"/>
+                        <text x="414" y="532">控制訊號 / 邏輯關係</text>
+                        <ellipse cx="560" cy="528" rx="16" ry="7" fill="#f6f2fe" stroke="#673ab7" stroke-width="1.5" stroke-dasharray="4 3"/>
+                        <text x="582" y="532">虛擬 (VIP)</text>
+                    </g>
+                </svg>
                 </div>
-                <p class="text-center text-xs text-gray-500 mt-2">實線代表實際流量，虛線代表待命路徑或控制訊號</p>
+                </div>
+                <p class="text-center text-xs text-gray-500 mt-2">實線代表實際流量，虛線代表待命路徑、控制訊號或虛擬 (VIP) 的邏輯關係</p>
             </div>
 
             <div>
@@ -387,7 +434,7 @@
         <div class="max-w-5xl mx-auto px-6">
             <p class="mb-2">ExtremeXOS 網路架構大師系列課程</p>
             <div class="border-t border-gray-700 w-1/2 mx-auto my-4"></div>
-            <p>Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0</p>
+            <p>Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0</p>
         </div>
     </footer>
 

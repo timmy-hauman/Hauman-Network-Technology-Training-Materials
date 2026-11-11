@@ -230,34 +230,108 @@
                 <div class="card p-6">
                     <h3 class="text-lg font-semibold text-gray-800 mb-2">SNMP 監控拓撲圖</h3>
                     <p class="text-gray-600 mb-4 text-sm">此圖展示了 NMS 如何透過 UDP 161/162 與不同區域的設備進行互動。</p>
-                    <div class="mermaid">
-                        graph TD
-                            subgraph Mgmt ["管理中心 (Management VLAN)"]
-                                NMS["NMS Server<br/>(Manager)"]
-                                DB[("Log Database")]
-                                NMS -->|"儲存歷史數據"| DB
-                            end
+                    <!-- 拓撲圖 (手繪 SVG):管理中心在上、核心居中、邊緣在下;實線 = Polling (161),虛線 = Trap (162) -->
+                    <div style="width:100%;overflow-x:auto">
+                    <svg viewBox="0 0 780 595" role="img" aria-labelledby="snmp1-title snmp1-desc"
+                         style="width:100%;min-width:560px;max-width:780px;height:auto;display:block;margin:0 auto"
+                         font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+                        <title id="snmp1-title">SNMP 監控拓撲圖</title>
+                        <desc id="snmp1-desc">管理中心 (Management VLAN) 內的 NMS Server (Manager) 把歷史數據儲存到 Log Database。NMS 以 UDP 161 (Get/Set) 輪詢核心網路的 Core Switch (ExtremeXOS)，並以 UDP 161 輪詢邊緣網路的 Access Switch 1；Core Switch 與 Access Switch 2 以 UDP 162 (Trap Alert!) 主動回報 NMS。Core Switch 與 Access Switch 1、Access Switch 2 實體相連。</desc>
+                        <defs>
+                            <linearGradient id="snmp1-sw" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0" stop-color="#7e57c2"/>
+                                <stop offset="1" stop-color="#311b92"/>
+                            </linearGradient>
+                            <filter id="snmp1-shadow" x="-20%" y="-20%" width="140%" height="160%">
+                                <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#311b92" flood-opacity="0.18"/>
+                            </filter>
+                            <marker id="snmp1-arrow-c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#0891b2"/></marker>
+                            <marker id="snmp1-arrow-o" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#ea580c"/></marker>
+                            <marker id="snmp1-arrow-g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#5b6278"/></marker>
+                        </defs>
 
-                            subgraph Core ["核心網路 (Core)"]
-                                CoreSW["Core Switch<br/>(ExtremeXOS)"]
-                            end
+                        <!-- 群組 -->
+                        <rect x="120" y="16" width="540" height="130" rx="16" fill="#effafc" stroke="#67c5d6" stroke-width="1.5" stroke-dasharray="6 5"/>
+                        <text x="136" y="38" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#0891b2">管理中心 (Management VLAN)</text>
+                        <rect x="340" y="222" width="300" height="114" rx="16" fill="#f6f2fe" stroke="#b39ddb" stroke-width="1.5" stroke-dasharray="6 5"/>
+                        <text x="354" y="240" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#673ab7">核心網路 (Core)</text>
+                        <rect x="60" y="420" width="640" height="120" rx="16" fill="#f6f2fe" stroke="#b39ddb" stroke-width="1.5" stroke-dasharray="6 5"/>
+                        <text x="76" y="532" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#673ab7">邊緣網路 (Edge)</text>
 
-                            subgraph Edge ["邊緣網路 (Edge)"]
-                                AccessSW1["Access Switch 1"]
-                                AccessSW2["Access Switch 2"]
-                            end
+                        <!-- 交換器互連 -->
+                        <g stroke="#673ab7" stroke-width="4" stroke-linecap="round">
+                            <line x1="440" y1="326" x2="260" y2="448"/>
+                            <line x1="540" y1="326" x2="540" y2="448"/>
+                        </g>
 
-                            NMS -- "UDP 161 (Get/Set)" --> CoreSW
-                            NMS -- "UDP 161" --> AccessSW1
-                            
-                            CoreSW -.-> |"UDP 162 (Trap Alert!)"| NMS
-                            AccessSW2 -.-> |"UDP 162 (Trap Alert!)"| NMS
+                        <!-- NMS -> DB:儲存歷史數據 -->
+                        <line x1="400" y1="86" x2="272" y2="86" stroke="#5b6278" stroke-width="2.5" marker-end="url(#snmp1-arrow-g)"/>
+                        <text x="335" y="76" text-anchor="middle" font-size="12" fill="#5b6278">儲存歷史數據</text>
 
-                            CoreSW --- AccessSW1
-                            CoreSW --- AccessSW2
+                        <!-- Polling:UDP 161 -->
+                        <line x1="460" y1="118" x2="460" y2="252" stroke="#0891b2" stroke-width="4" marker-end="url(#snmp1-arrow-c)"/>
+                        <text x="448" y="178" text-anchor="end" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">UDP 161</text>
+                        <text x="448" y="192" text-anchor="end" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#0e7490">(Get/Set)</text>
+                        <path d="M410 118 C410 180, 180 180, 180 260 L180 446" fill="none" stroke="#0891b2" stroke-width="4" marker-end="url(#snmp1-arrow-c)"/>
+                        <text x="192" y="330" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">UDP 161</text>
 
-                            style NMS fill:#f9f,stroke:#333,stroke-width:2px
-                            style CoreSW fill:#bbf,stroke:#333,stroke-width:2px
+                        <!-- Trap:UDP 162 -->
+                        <line x1="520" y1="254" x2="520" y2="120" stroke="#ea580c" stroke-width="3" stroke-dasharray="7 5" marker-end="url(#snmp1-arrow-o)"/>
+                        <text x="532" y="178" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#c2410c">UDP 162</text>
+                        <text x="532" y="192" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#c2410c">(Trap Alert!)</text>
+                        <path d="M660 480 C740 480, 740 420, 740 300 C740 160, 700 86, 582 86" fill="none" stroke="#ea580c" stroke-width="3" stroke-dasharray="7 5" marker-end="url(#snmp1-arrow-o)"/>
+                        <text x="728" y="380" text-anchor="end" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#c2410c">UDP 162</text>
+                        <text x="728" y="394" text-anchor="end" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#c2410c">(Trap Alert!)</text>
+
+                        <!-- Log Database -->
+                        <path d="M170 66 v44 a50 10 0 0 0 100 0 v-44" fill="#e0f7fa" stroke="#0891b2" stroke-width="2"/>
+                        <ellipse cx="220" cy="66" rx="50" ry="10" fill="#b2ebf2" stroke="#0891b2" stroke-width="2"/>
+                        <text x="220" y="98" text-anchor="middle" font-size="12" font-weight="700" fill="#1e2235">Log Database</text>
+
+                        <!-- NMS Server -->
+                        <g filter="url(#snmp1-shadow)">
+                            <rect x="400" y="54" width="180" height="64" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/>
+                        </g>
+                        <g fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2">
+                            <rect x="414" y="66" width="24" height="10" rx="2"/>
+                            <rect x="414" y="79" width="24" height="10" rx="2"/>
+                            <rect x="414" y="92" width="24" height="10" rx="2"/>
+                        </g>
+                        <text x="506" y="82" text-anchor="middle" font-size="14" font-weight="700" fill="#1e2235">NMS Server</text>
+                        <text x="506" y="100" text-anchor="middle" font-size="12" fill="#5b6278">(Manager)</text>
+
+                        <!-- Core Switch -->
+                        <g filter="url(#snmp1-shadow)">
+                            <rect x="400" y="254" width="180" height="72" rx="10" fill="url(#snmp1-sw)"/>
+                        </g>
+                        <text x="490" y="280" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">Core Switch</text>
+                        <text x="490" y="298" text-anchor="middle" font-size="12" fill="#d1c4e9">(ExtremeXOS)</text>
+                        <g fill="#b2ebf2"><rect x="456" y="308" width="8" height="5" rx="1"/><rect x="468" y="308" width="8" height="5" rx="1"/><rect x="480" y="308" width="8" height="5" rx="1"/><rect x="492" y="308" width="8" height="5" rx="1"/><rect x="504" y="308" width="8" height="5" rx="1"/><rect x="516" y="308" width="8" height="5" rx="1"/></g>
+
+                        <!-- Access Switch 1 / 2 -->
+                        <g filter="url(#snmp1-shadow)">
+                            <rect x="120" y="448" width="180" height="64" rx="10" fill="url(#snmp1-sw)"/>
+                            <rect x="480" y="448" width="180" height="64" rx="10" fill="url(#snmp1-sw)"/>
+                        </g>
+                        <text x="210" y="478" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">Access Switch 1</text>
+                        <text x="570" y="478" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">Access Switch 2</text>
+                        <g fill="#b2ebf2">
+                            <rect x="176" y="494" width="8" height="5" rx="1"/><rect x="188" y="494" width="8" height="5" rx="1"/><rect x="200" y="494" width="8" height="5" rx="1"/><rect x="212" y="494" width="8" height="5" rx="1"/><rect x="224" y="494" width="8" height="5" rx="1"/><rect x="236" y="494" width="8" height="5" rx="1"/>
+                            <rect x="536" y="494" width="8" height="5" rx="1"/><rect x="548" y="494" width="8" height="5" rx="1"/><rect x="560" y="494" width="8" height="5" rx="1"/><rect x="572" y="494" width="8" height="5" rx="1"/><rect x="584" y="494" width="8" height="5" rx="1"/><rect x="596" y="494" width="8" height="5" rx="1"/>
+                        </g>
+
+                        <!-- 圖例 -->
+                        <g font-size="12" fill="#5b6278">
+                            <line x1="70" y1="572" x2="96" y2="572" stroke="#0891b2" stroke-width="4" stroke-linecap="round"/>
+                            <text x="104" y="576">Polling · UDP 161 (Get/Set)</text>
+                            <line x1="290" y1="572" x2="316" y2="572" stroke="#ea580c" stroke-width="3" stroke-dasharray="7 5"/>
+                            <text x="324" y="576">Trap · UDP 162</text>
+                            <line x1="460" y1="572" x2="486" y2="572" stroke="#673ab7" stroke-width="4" stroke-linecap="round"/>
+                            <text x="494" y="576">交換器互連</text>
+                            <line x1="600" y1="572" x2="626" y2="572" stroke="#5b6278" stroke-width="2.5"/>
+                            <text x="634" y="576">儲存歷史數據</text>
+                        </g>
+                    </svg>
                     </div>
                 </div>
 
@@ -474,7 +548,7 @@
     <!-- Footer -->
     <footer class="bg-gray-800 text-gray-400 py-8 mt-12 border-t border-gray-700">
         <div class="max-w-5xl mx-auto px-6 text-center">
-            <p class="text-sm">Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0</p>
+            <p class="text-sm">Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0</p>
         </div>
     </footer>
 

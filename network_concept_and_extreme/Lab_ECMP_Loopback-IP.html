@@ -137,38 +137,101 @@
                 <!-- Diagram 1: Topology -->
                 <div class="border-b-2 border-gray-100 pb-6 mb-6">
                     <h4 class="text-center font-bold text-gray-700 mb-2">1. 實體與邏輯拓撲圖 (Topology)</h4>
-                    <div class="mermaid">
-                        graph TD
-                            subgraph "Switch A (Source)"
-                                A[Core-A]
-                                LoopA[Loopback: 1.1.1.1/32]
-                                A --- LoopA
-                            end
+                    <!-- 拓撲圖 (手繪 SVG):A - B - C 水平串接,每段兩條實體線 (ECMP),各自帶 Loopback -->
+                    <div style="width:100%;overflow-x:auto">
+                    <svg viewBox="0 0 840 305" role="img" aria-labelledby="lab1-title lab1-desc"
+                         style="width:100%;min-width:560px;max-width:840px;height:auto;display:block;margin:0 auto"
+                         font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+                        <title id="lab1-title">A - B - C 實體與邏輯拓撲</title>
+                        <desc id="lab1-desc">Switch A (Source, Core-A, Loopback 1.1.1.1/32) 以 Link 1 (VLAN 10, 10.1.1.0/30) 與 Link 2 (VLAN 20, 10.1.2.0/30) 連到 Switch B (Transit, Core-B, Loopback 2.2.2.2/32)；Switch B 再以 Link 3 (VLAN 30, 10.2.1.0/30) 與 Link 4 (VLAN 40, 10.2.2.0/30) 連到 Switch C (Destination, Core-C, Loopback 3.3.3.3/32)。</desc>
+                        <defs>
+                            <linearGradient id="lab1-sw" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0" stop-color="#7e57c2"/>
+                                <stop offset="1" stop-color="#311b92"/>
+                            </linearGradient>
+                            <filter id="lab1-shadow" x="-20%" y="-20%" width="140%" height="160%">
+                                <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#311b92" flood-opacity="0.18"/>
+                            </filter>
+                        </defs>
 
-                            subgraph "Switch B (Transit)"
-                                B[Core-B]
-                                LoopB[Loopback: 2.2.2.2/32]
-                                B --- LoopB
-                            end
+                        <!-- 交換器群組 -->
+                        <g fill="#f6f2fe" stroke="#b39ddb" stroke-width="1.5" stroke-dasharray="6 5">
+                            <rect x="20" y="20" width="150" height="240" rx="16"/>
+                            <rect x="345" y="20" width="150" height="240" rx="16"/>
+                            <rect x="670" y="20" width="150" height="240" rx="16"/>
+                        </g>
+                        <g font-family="'JetBrains Mono', Consolas, monospace">
+                            <text x="32" y="44" font-size="12" font-weight="700" fill="#673ab7">Switch A</text>
+                            <text x="32" y="60" font-size="11" fill="#5b6278">(Source)</text>
+                            <text x="357" y="44" font-size="12" font-weight="700" fill="#673ab7">Switch B</text>
+                            <text x="357" y="60" font-size="11" fill="#5b6278">(Transit)</text>
+                            <text x="682" y="44" font-size="12" font-weight="700" fill="#673ab7">Switch C</text>
+                            <text x="682" y="60" font-size="11" fill="#5b6278">(Destination)</text>
+                        </g>
 
-                            subgraph "Switch C (Destination)"
-                                C[Core-C]
-                                LoopC[Loopback: 3.3.3.3/32]
-                                C --- LoopC
-                            end
+                        <!-- Loopback 與交換器的邏輯關聯 -->
+                        <g stroke="#673ab7" stroke-width="2" stroke-dasharray="4 4">
+                            <line x1="95" y1="114" x2="95" y2="156"/>
+                            <line x1="420" y1="114" x2="420" y2="156"/>
+                            <line x1="745" y1="114" x2="745" y2="156"/>
+                        </g>
+                        <g fill="#fff" stroke="#673ab7" stroke-width="1.5" stroke-dasharray="5 4">
+                            <rect x="35" y="74" width="120" height="40" rx="20"/>
+                            <rect x="360" y="74" width="120" height="40" rx="20"/>
+                            <rect x="685" y="74" width="120" height="40" rx="20"/>
+                        </g>
+                        <g text-anchor="middle">
+                            <text x="95" y="89" font-size="11" fill="#5b6278">Loopback</text>
+                            <text x="95" y="106" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#311b92">1.1.1.1/32</text>
+                            <text x="420" y="89" font-size="11" fill="#5b6278">Loopback</text>
+                            <text x="420" y="106" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#311b92">2.2.2.2/32</text>
+                            <text x="745" y="89" font-size="11" fill="#5b6278">Loopback</text>
+                            <text x="745" y="106" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#311b92">3.3.3.3/32</text>
+                        </g>
 
-                            %% Links between A and B
-                            A == "Link 1 (VLAN 10)<br>10.1.1.0/30" ==> B
-                            A == "Link 2 (VLAN 20)<br>10.1.2.0/30" ==> B
+                        <!-- 實體鏈路:每段兩條 (ECMP) -->
+                        <g stroke="#0891b2" stroke-width="4" stroke-linecap="round">
+                            <line x1="160" y1="178" x2="355" y2="178"/>
+                            <line x1="160" y1="206" x2="355" y2="206"/>
+                            <line x1="485" y1="178" x2="680" y2="178"/>
+                            <line x1="485" y1="206" x2="680" y2="206"/>
+                        </g>
+                        <g text-anchor="middle">
+                            <text x="257" y="150" font-size="12" font-weight="700" fill="#0e7490">Link 1 (VLAN 10)</text>
+                            <text x="257" y="165" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#5b6278">10.1.1.0/30</text>
+                            <text x="257" y="228" font-size="12" font-weight="700" fill="#0e7490">Link 2 (VLAN 20)</text>
+                            <text x="257" y="243" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#5b6278">10.1.2.0/30</text>
+                            <text x="582" y="150" font-size="12" font-weight="700" fill="#0e7490">Link 3 (VLAN 30)</text>
+                            <text x="582" y="165" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#5b6278">10.2.1.0/30</text>
+                            <text x="582" y="228" font-size="12" font-weight="700" fill="#0e7490">Link 4 (VLAN 40)</text>
+                            <text x="582" y="243" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#5b6278">10.2.2.0/30</text>
+                        </g>
 
-                            %% Links between B and C
-                            B == "Link 3 (VLAN 30)<br>10.2.1.0/30" ==> C
-                            B == "Link 4 (VLAN 40)<br>10.2.2.0/30" ==> C
+                        <!-- Core-A / Core-B / Core-C -->
+                        <g filter="url(#lab1-shadow)">
+                            <rect x="30" y="156" width="130" height="72" rx="10" fill="url(#lab1-sw)"/>
+                            <rect x="355" y="156" width="130" height="72" rx="10" fill="url(#lab1-sw)"/>
+                            <rect x="680" y="156" width="130" height="72" rx="10" fill="url(#lab1-sw)"/>
+                        </g>
+                        <g text-anchor="middle" font-size="16" font-weight="700" fill="#fff">
+                            <text x="95" y="190">Core-A</text>
+                            <text x="420" y="190">Core-B</text>
+                            <text x="745" y="190">Core-C</text>
+                        </g>
+                        <g fill="#b2ebf2">
+                            <rect x="61" y="206" width="8" height="5" rx="1"/><rect x="73" y="206" width="8" height="5" rx="1"/><rect x="85" y="206" width="8" height="5" rx="1"/><rect x="97" y="206" width="8" height="5" rx="1"/><rect x="109" y="206" width="8" height="5" rx="1"/><rect x="121" y="206" width="8" height="5" rx="1"/>
+                            <rect x="386" y="206" width="8" height="5" rx="1"/><rect x="398" y="206" width="8" height="5" rx="1"/><rect x="410" y="206" width="8" height="5" rx="1"/><rect x="422" y="206" width="8" height="5" rx="1"/><rect x="434" y="206" width="8" height="5" rx="1"/><rect x="446" y="206" width="8" height="5" rx="1"/>
+                            <rect x="711" y="206" width="8" height="5" rx="1"/><rect x="723" y="206" width="8" height="5" rx="1"/><rect x="735" y="206" width="8" height="5" rx="1"/><rect x="747" y="206" width="8" height="5" rx="1"/><rect x="759" y="206" width="8" height="5" rx="1"/><rect x="771" y="206" width="8" height="5" rx="1"/>
+                        </g>
 
-                            classDef sw fill:#4c2a86,stroke:#333,stroke-width:2px,color:white;
-                            classDef loop fill:#fff,stroke:#4c2a86,stroke-dasharray: 5 5;
-                            class A,B,C sw;
-                            class LoopA,LoopB,LoopC loop;
+                        <!-- 圖例 -->
+                        <g font-size="12" fill="#5b6278">
+                            <line x1="200" y1="286" x2="226" y2="286" stroke="#0891b2" stroke-width="4" stroke-linecap="round"/>
+                            <text x="234" y="290">實體鏈路 (ECMP, /30 互連)</text>
+                            <line x1="440" y1="286" x2="466" y2="286" stroke="#673ab7" stroke-width="2" stroke-dasharray="4 4"/>
+                            <text x="474" y="290">Loopback 邏輯介面 (/32)</text>
+                        </g>
+                    </svg>
                     </div>
                 </div>
 
@@ -392,7 +455,7 @@
 
     <!-- Footer -->
     <footer>
-        <p>Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0</p>
+        <p>Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0</p>
     </footer>
 
     <script>

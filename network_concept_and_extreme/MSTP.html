@@ -165,21 +165,57 @@
             <!-- Diagram 1: Physical Topology -->
             <div class="mb-8 border border-gray-200 rounded p-4">
                 <h4 class="font-bold text-center text-gray-700 mb-2">圖一：物理連接拓撲 (Physical Topology)</h4>
-                <div class="mermaid">
-                    graph TD
-                    %% 物理層連接
-                    CoreA[("Core Switch A<br>(Root for MSTI 1)")] 
-                    CoreB[("Core Switch B<br>(Root for MSTI 2)")]
-                    Access1["Access Switch"]
-                    
-                    %% 連接線
-                    CoreA ---|Link 1| CoreB
-                    CoreA ---|Link 2| Access1
-                    CoreB ---|Link 3| Access1
-                    
-                    style CoreA fill:#e0e7ff,stroke:#4338ca,stroke-width:2px
-                    style CoreB fill:#e0e7ff,stroke:#4338ca,stroke-width:2px
-                    style Access1 fill:#f3e8ff,stroke:#7e22ce,stroke-width:2px
+                <div style="width:100%;overflow-x:auto">
+                <svg viewBox="0 0 760 436" role="img" aria-labelledby="mstp-phy-title mstp-phy-desc"
+                     style="width:100%;min-width:560px;max-width:760px;height:auto;display:block;margin:0 auto"
+                     font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+                    <title id="mstp-phy-title">MSTP 物理連接拓撲</title>
+                    <desc id="mstp-phy-desc">Core Switch A (MSTI 1 Root) 與 Core Switch B (MSTI 2 Root) 以 Link 1 水平相連，兩台再分別以 Link 2、Link 3 連到下方的 Access Switch，三條線形成迴圈。</desc>
+                    <defs>
+                        <linearGradient id="mstp-phy-sw" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0" stop-color="#7e57c2"/>
+                            <stop offset="1" stop-color="#311b92"/>
+                        </linearGradient>
+                        <filter id="mstp-phy-shadow" x="-20%" y="-20%" width="140%" height="160%">
+                            <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#311b92" flood-opacity="0.18"/>
+                        </filter>
+                    </defs>
+
+                    <!-- 連線 -->
+                    <line x1="290" y1="108" x2="470" y2="108" stroke="#64748b" stroke-width="4" stroke-linecap="round"/>
+                    <line x1="210" y1="146" x2="330" y2="300" stroke="#64748b" stroke-width="4" stroke-linecap="round"/>
+                    <line x1="550" y1="146" x2="430" y2="300" stroke="#64748b" stroke-width="4" stroke-linecap="round"/>
+                    <text x="380" y="96" text-anchor="middle" font-size="13" font-weight="700" fill="#311b92">Link 1</text>
+                    <text x="250" y="212" text-anchor="end" font-size="13" font-weight="700" fill="#311b92">Link 2</text>
+                    <text x="510" y="212" font-size="13" font-weight="700" fill="#311b92">Link 3</text>
+
+                    <!-- 交換器 -->
+                    <g filter="url(#mstp-phy-shadow)"><rect x="90" y="70" width="200" height="76" rx="10" fill="url(#mstp-phy-sw)"/></g>
+                    <text x="190" y="104" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">Core Switch A</text>
+                    <text x="190" y="122" text-anchor="middle" font-size="12" fill="#d1c4e9">Root for MSTI 1</text>
+                    <g fill="#b2ebf2"><rect x="154" y="133" width="8" height="5" rx="1"/><rect x="166" y="133" width="8" height="5" rx="1"/><rect x="178" y="133" width="8" height="5" rx="1"/><rect x="190" y="133" width="8" height="5" rx="1"/><rect x="202" y="133" width="8" height="5" rx="1"/><rect x="214" y="133" width="8" height="5" rx="1"/></g>
+                    <g filter="url(#mstp-phy-shadow)"><rect x="470" y="70" width="200" height="76" rx="10" fill="url(#mstp-phy-sw)"/></g>
+                    <text x="570" y="104" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">Core Switch B</text>
+                    <text x="570" y="122" text-anchor="middle" font-size="12" fill="#d1c4e9">Root for MSTI 2</text>
+                    <g fill="#b2ebf2"><rect x="534" y="133" width="8" height="5" rx="1"/><rect x="546" y="133" width="8" height="5" rx="1"/><rect x="558" y="133" width="8" height="5" rx="1"/><rect x="570" y="133" width="8" height="5" rx="1"/><rect x="582" y="133" width="8" height="5" rx="1"/><rect x="594" y="133" width="8" height="5" rx="1"/></g>
+                    <rect x="136.7" y="40" width="106.6" height="22" rx="11" fill="#fff8e1" stroke="#f59e0b" stroke-width="1.5"/>
+                    <path d="M143.7 57 L143.7 48 L147.7 52 L151.7 45 L155.7 52 L159.7 48 L159.7 57 Z" fill="#f59e0b"/>
+                    <text x="163.7" y="55" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#b45309">MSTI 1 Root</text>
+                    <rect x="516.7" y="40" width="106.6" height="22" rx="11" fill="#fff8e1" stroke="#f59e0b" stroke-width="1.5"/>
+                    <path d="M523.7 57 L523.7 48 L527.7 52 L531.7 45 L535.7 52 L539.7 48 L539.7 57 Z" fill="#f59e0b"/>
+                    <text x="543.7" y="55" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#b45309">MSTI 2 Root</text>
+                    <g filter="url(#mstp-phy-shadow)"><rect x="280" y="300" width="200" height="72" rx="10" fill="url(#mstp-phy-sw)"/></g>
+                    <text x="380" y="338" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">Access Switch</text>
+                    <g fill="#b2ebf2"><rect x="344" y="359" width="8" height="5" rx="1"/><rect x="356" y="359" width="8" height="5" rx="1"/><rect x="368" y="359" width="8" height="5" rx="1"/><rect x="380" y="359" width="8" height="5" rx="1"/><rect x="392" y="359" width="8" height="5" rx="1"/><rect x="404" y="359" width="8" height="5" rx="1"/></g>
+
+                    <!-- 圖例 -->
+                    <g>
+                        <line x1="172.2" y1="418" x2="198.2" y2="418" stroke="#64748b" stroke-width="4" stroke-linecap="round"/>
+                        <text x="206.2" y="422" font-size="12" fill="#5b6278">實體線路 (尚未經 STP 計算)</text>
+                        <path d="M390.96 424 L390.96 415 L394.96 419 L398.96 412 L402.96 419 L406.96 415 L406.96 424 Z" fill="#f59e0b"/>
+                        <text x="415.96" y="422" font-size="12" fill="#5b6278">該 Instance 的 Root Bridge</text>
+                    </g>
+                </svg>
                 </div>
                 <p class="text-center text-sm text-gray-500 mt-2">實體線路全部接通，若無 STP 會產生迴圈。</p>
             </div>
@@ -187,25 +223,84 @@
             <!-- Diagram 2: MSTI 1 Logic -->
             <div class="mb-8 border border-gray-200 rounded p-4">
                 <h4 class="font-bold text-center text-purple-700 mb-2">圖二：MSTI 1 邏輯路徑 (VLAN 10, 20)</h4>
-                <div class="mermaid">
-                    graph TD
-                    %% MSTI 1 視角
-                    subgraph MSTI_1 [Instance 1: VLAN 10, 20]
-                        Root1[("Core A<br>(ROOT BRIDGE)")] 
-                        NonRoot1[("Core B")]
-                        Acc1["Access Switch"]
-                        
-                        Root1 == "Forwarding" ==> NonRoot1
-                        Root1 == "Forwarding" ==> Acc1
-                        NonRoot1 -. "BLOCKING (x)" .- Acc1
-                    end
+                <div style="width:100%;overflow-x:auto">
+                <svg viewBox="0 0 760 436" role="img" aria-labelledby="mstp-i1-title mstp-i1-desc"
+                     style="width:100%;min-width:560px;max-width:760px;height:auto;display:block;margin:0 auto"
+                     font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+                    <title id="mstp-i1-title">MSTI 1 邏輯路徑 (VLAN 10, 20)</title>
+                    <desc id="mstp-i1-desc">Instance 1 (VLAN 10, 20)：Core A 為 Root Bridge，Link 1 與 Link 2 為 Forwarding，Core B 到 Access Switch 的 Link 3 被 Blocking。</desc>
+                    <defs>
+                        <linearGradient id="mstp-i1-sw" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0" stop-color="#7e57c2"/>
+                            <stop offset="1" stop-color="#311b92"/>
+                        </linearGradient>
+                        <filter id="mstp-i1-shadow" x="-20%" y="-20%" width="140%" height="160%">
+                            <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#311b92" flood-opacity="0.18"/>
+                        </filter>
+                    </defs>
 
-                    style Root1 fill:#dcfce7,stroke:#16a34a,stroke-width:3px
-                    style NonRoot1 fill:#fee2e2,stroke:#dc2626,stroke-width:1px
-                    
-                    linkStyle 0 stroke:#16a34a,stroke-width:2px;
-                    linkStyle 1 stroke:#16a34a,stroke-width:2px;
-                    linkStyle 2 stroke:#dc2626,stroke-width:2px,stroke-dasharray: 5 5;
+                    <!-- Instance 1 群組 -->
+                    <rect x="30" y="24" width="700" height="368" rx="16" fill="#f6f2fe" stroke="#b39ddb" stroke-width="1.5" stroke-dasharray="6 5"/>
+                    <text x="48" y="380" font-family="'JetBrains Mono', Consolas, monospace" font-size="13" font-weight="700" fill="#673ab7">Instance 1: VLAN 10, 20</text>
+
+                    <!-- 連線 -->
+                    <line x1="290" y1="108" x2="470" y2="108" stroke="#673ab7" stroke-width="4" stroke-linecap="round"/>
+                    <line x1="210" y1="146" x2="330" y2="300" stroke="#673ab7" stroke-width="4" stroke-linecap="round"/>
+                    <line x1="550" y1="146" x2="430" y2="300" stroke="#dc2626" stroke-width="4" stroke-linecap="round" stroke-dasharray="6 5"/>
+                    <text x="380" y="96" text-anchor="middle" font-size="13" font-weight="700" fill="#311b92">Link 1</text>
+                    <text x="250" y="212" text-anchor="end" font-size="13" font-weight="700" fill="#311b92">Link 2</text>
+                    <text x="510" y="212" font-size="13" font-weight="700" fill="#311b92">Link 3</text>
+                    <text x="380" y="146" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#4527a0">Forwarding</text>
+                    <text x="250" y="228" text-anchor="end" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#4527a0">Forwarding</text>
+                    <text x="510" y="228" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#b91c1c">BLOCKING</text>
+                    <circle cx="490" cy="223" r="9" fill="#fff" stroke="#dc2626" stroke-width="2"/>
+                    <path d="M486 219 L494 227 M494 219 L486 227" stroke="#dc2626" stroke-width="2" stroke-linecap="round"/>
+
+                    <!-- 交換器 -->
+                    <g filter="url(#mstp-i1-shadow)"><rect x="90" y="70" width="200" height="76" rx="10" fill="url(#mstp-i1-sw)"/></g>
+                    <text x="190" y="110" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">Core A</text>
+                    <g fill="#b2ebf2"><rect x="154" y="133" width="8" height="5" rx="1"/><rect x="166" y="133" width="8" height="5" rx="1"/><rect x="178" y="133" width="8" height="5" rx="1"/><rect x="190" y="133" width="8" height="5" rx="1"/><rect x="202" y="133" width="8" height="5" rx="1"/><rect x="214" y="133" width="8" height="5" rx="1"/></g>
+                    <g filter="url(#mstp-i1-shadow)"><rect x="470" y="70" width="200" height="76" rx="10" fill="url(#mstp-i1-sw)"/></g>
+                    <text x="570" y="110" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">Core B</text>
+                    <g fill="#b2ebf2"><rect x="534" y="133" width="8" height="5" rx="1"/><rect x="546" y="133" width="8" height="5" rx="1"/><rect x="558" y="133" width="8" height="5" rx="1"/><rect x="570" y="133" width="8" height="5" rx="1"/><rect x="582" y="133" width="8" height="5" rx="1"/><rect x="594" y="133" width="8" height="5" rx="1"/></g>
+                    <rect x="136.7" y="40" width="106.6" height="22" rx="11" fill="#fff8e1" stroke="#f59e0b" stroke-width="1.5"/>
+                    <path d="M143.7 57 L143.7 48 L147.7 52 L151.7 45 L155.7 52 L159.7 48 L159.7 57 Z" fill="#f59e0b"/>
+                    <text x="163.7" y="55" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#b45309">ROOT BRIDGE</text>
+                    <g filter="url(#mstp-i1-shadow)"><rect x="280" y="300" width="200" height="72" rx="10" fill="url(#mstp-i1-sw)"/></g>
+                    <text x="380" y="338" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">Access Switch</text>
+                    <g fill="#b2ebf2"><rect x="344" y="359" width="8" height="5" rx="1"/><rect x="356" y="359" width="8" height="5" rx="1"/><rect x="368" y="359" width="8" height="5" rx="1"/><rect x="380" y="359" width="8" height="5" rx="1"/><rect x="392" y="359" width="8" height="5" rx="1"/><rect x="404" y="359" width="8" height="5" rx="1"/></g>
+
+                    <!-- Port 角色 (Core A 為 Root) -->
+                    <rect x="298" y="114" width="34" height="18" rx="4" fill="#ede7f6" stroke="#673ab7" stroke-width="1.2"/>
+                    <text x="315" y="127" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#4527a0">DP</text>
+                    <rect x="428" y="114" width="34" height="18" rx="4" fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2"/>
+                    <text x="445" y="127" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">RP</text>
+                    <rect x="180" y="158" width="34" height="18" rx="4" fill="#ede7f6" stroke="#673ab7" stroke-width="1.2"/>
+                    <text x="197" y="171" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#4527a0">DP</text>
+                    <rect x="262" y="268" width="34" height="18" rx="4" fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2"/>
+                    <text x="279" y="281" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">RP</text>
+                    <rect x="548" y="158" width="34" height="18" rx="4" fill="#ede7f6" stroke="#673ab7" stroke-width="1.2"/>
+                    <text x="565" y="171" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#4527a0">DP</text>
+                    <rect x="462" y="268" width="36" height="18" rx="4" fill="#fee2e2" stroke="#dc2626" stroke-width="1.2"/>
+                    <text x="480" y="281" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#b91c1c">BLK</text>
+
+                    <!-- 圖例 -->
+                    <g>
+                        <line x1="97.28" y1="418" x2="123.28" y2="418" stroke="#673ab7" stroke-width="4" stroke-linecap="round"/>
+                        <text x="131.28" y="422" font-size="12" fill="#5b6278">Forwarding (MSTI 1)</text>
+                        <line x1="280.96" y1="418" x2="306.96" y2="418" stroke="#dc2626" stroke-width="4" stroke-linecap="round" stroke-dasharray="6 5"/>
+                        <text x="314.96" y="422" font-size="12" fill="#5b6278">Blocking</text>
+                        <rect x="390.72" y="409" width="36" height="18" rx="4" fill="#ede7f6" stroke="#673ab7" stroke-width="1.2"/>
+                        <text x="408.72" y="422" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#4527a0">DP</text>
+                        <text x="434.72" y="422" font-size="12" fill="#5b6278">指定埠</text>
+                        <rect x="492.72" y="409" width="36" height="18" rx="4" fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2"/>
+                        <text x="510.72" y="422" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">RP</text>
+                        <text x="536.72" y="422" font-size="12" fill="#5b6278">根埠</text>
+                        <rect x="582.72" y="409" width="36" height="18" rx="4" fill="#fee2e2" stroke="#dc2626" stroke-width="1.2"/>
+                        <text x="600.72" y="422" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#b91c1c">BLK</text>
+                        <text x="626.72" y="422" font-size="12" fill="#5b6278">阻斷埠</text>
+                    </g>
+                </svg>
                 </div>
                 <p class="text-center text-sm text-gray-500 mt-2">在 Instance 1 中，流量主要走左側 (Core A)。右側 Link 3 被阻斷。</p>
             </div>
@@ -213,25 +308,84 @@
             <!-- Diagram 3: MSTI 2 Logic -->
             <div class="border border-gray-200 rounded p-4">
                 <h4 class="font-bold text-center text-blue-700 mb-2">圖三：MSTI 2 邏輯路徑 (VLAN 30, 40)</h4>
-                <div class="mermaid">
-                    graph TD
-                    %% MSTI 2 視角
-                    subgraph MSTI_2 [Instance 2: VLAN 30, 40]
-                        NonRoot2[("Core A")] 
-                        Root2[("Core B<br>(ROOT BRIDGE)")]
-                        Acc2["Access Switch"]
-                        
-                        NonRoot2 == "Forwarding" ==> Root2
-                        NonRoot2 -. "BLOCKING (x)" .- Acc2
-                        Root2 == "Forwarding" ==> Acc2
-                    end
+                <div style="width:100%;overflow-x:auto">
+                <svg viewBox="0 0 760 436" role="img" aria-labelledby="mstp-i2-title mstp-i2-desc"
+                     style="width:100%;min-width:560px;max-width:760px;height:auto;display:block;margin:0 auto"
+                     font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+                    <title id="mstp-i2-title">MSTI 2 邏輯路徑 (VLAN 30, 40)</title>
+                    <desc id="mstp-i2-desc">Instance 2 (VLAN 30, 40)：Core B 為 Root Bridge，Link 1 與 Link 3 為 Forwarding，Core A 到 Access Switch 的 Link 2 被 Blocking。</desc>
+                    <defs>
+                        <linearGradient id="mstp-i2-sw" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0" stop-color="#7e57c2"/>
+                            <stop offset="1" stop-color="#311b92"/>
+                        </linearGradient>
+                        <filter id="mstp-i2-shadow" x="-20%" y="-20%" width="140%" height="160%">
+                            <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#311b92" flood-opacity="0.18"/>
+                        </filter>
+                    </defs>
 
-                    style Root2 fill:#dcfce7,stroke:#16a34a,stroke-width:3px
-                    style NonRoot2 fill:#fee2e2,stroke:#dc2626,stroke-width:1px
-                    
-                    linkStyle 0 stroke:#16a34a,stroke-width:2px;
-                    linkStyle 1 stroke:#dc2626,stroke-width:2px,stroke-dasharray: 5 5;
-                    linkStyle 2 stroke:#16a34a,stroke-width:2px;
+                    <!-- Instance 2 群組 -->
+                    <rect x="30" y="24" width="700" height="368" rx="16" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5" stroke-dasharray="6 5"/>
+                    <text x="48" y="380" font-family="'JetBrains Mono', Consolas, monospace" font-size="13" font-weight="700" fill="#1d4ed8">Instance 2: VLAN 30, 40</text>
+
+                    <!-- 連線 -->
+                    <line x1="290" y1="108" x2="470" y2="108" stroke="#2563eb" stroke-width="4" stroke-linecap="round"/>
+                    <line x1="210" y1="146" x2="330" y2="300" stroke="#dc2626" stroke-width="4" stroke-linecap="round" stroke-dasharray="6 5"/>
+                    <line x1="550" y1="146" x2="430" y2="300" stroke="#2563eb" stroke-width="4" stroke-linecap="round"/>
+                    <text x="380" y="96" text-anchor="middle" font-size="13" font-weight="700" fill="#311b92">Link 1</text>
+                    <text x="250" y="212" text-anchor="end" font-size="13" font-weight="700" fill="#311b92">Link 2</text>
+                    <text x="510" y="212" font-size="13" font-weight="700" fill="#311b92">Link 3</text>
+                    <text x="380" y="146" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#1d4ed8">Forwarding</text>
+                    <text x="250" y="228" text-anchor="end" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#b91c1c">BLOCKING</text>
+                    <text x="510" y="228" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#1d4ed8">Forwarding</text>
+                    <circle cx="270" cy="223" r="9" fill="#fff" stroke="#dc2626" stroke-width="2"/>
+                    <path d="M266 219 L274 227 M274 219 L266 227" stroke="#dc2626" stroke-width="2" stroke-linecap="round"/>
+
+                    <!-- 交換器 -->
+                    <g filter="url(#mstp-i2-shadow)"><rect x="90" y="70" width="200" height="76" rx="10" fill="url(#mstp-i2-sw)"/></g>
+                    <text x="190" y="110" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">Core A</text>
+                    <g fill="#b2ebf2"><rect x="154" y="133" width="8" height="5" rx="1"/><rect x="166" y="133" width="8" height="5" rx="1"/><rect x="178" y="133" width="8" height="5" rx="1"/><rect x="190" y="133" width="8" height="5" rx="1"/><rect x="202" y="133" width="8" height="5" rx="1"/><rect x="214" y="133" width="8" height="5" rx="1"/></g>
+                    <g filter="url(#mstp-i2-shadow)"><rect x="470" y="70" width="200" height="76" rx="10" fill="url(#mstp-i2-sw)"/></g>
+                    <text x="570" y="110" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">Core B</text>
+                    <g fill="#b2ebf2"><rect x="534" y="133" width="8" height="5" rx="1"/><rect x="546" y="133" width="8" height="5" rx="1"/><rect x="558" y="133" width="8" height="5" rx="1"/><rect x="570" y="133" width="8" height="5" rx="1"/><rect x="582" y="133" width="8" height="5" rx="1"/><rect x="594" y="133" width="8" height="5" rx="1"/></g>
+                    <rect x="516.7" y="40" width="106.6" height="22" rx="11" fill="#fff8e1" stroke="#f59e0b" stroke-width="1.5"/>
+                    <path d="M523.7 57 L523.7 48 L527.7 52 L531.7 45 L535.7 52 L539.7 48 L539.7 57 Z" fill="#f59e0b"/>
+                    <text x="543.7" y="55" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#b45309">ROOT BRIDGE</text>
+                    <g filter="url(#mstp-i2-shadow)"><rect x="280" y="300" width="200" height="72" rx="10" fill="url(#mstp-i2-sw)"/></g>
+                    <text x="380" y="338" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">Access Switch</text>
+                    <g fill="#b2ebf2"><rect x="344" y="359" width="8" height="5" rx="1"/><rect x="356" y="359" width="8" height="5" rx="1"/><rect x="368" y="359" width="8" height="5" rx="1"/><rect x="380" y="359" width="8" height="5" rx="1"/><rect x="392" y="359" width="8" height="5" rx="1"/><rect x="404" y="359" width="8" height="5" rx="1"/></g>
+
+                    <!-- Port 角色 (Core B 為 Root) -->
+                    <rect x="298" y="114" width="34" height="18" rx="4" fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2"/>
+                    <text x="315" y="127" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">RP</text>
+                    <rect x="428" y="114" width="34" height="18" rx="4" fill="#ede7f6" stroke="#673ab7" stroke-width="1.2"/>
+                    <text x="445" y="127" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#4527a0">DP</text>
+                    <rect x="180" y="158" width="34" height="18" rx="4" fill="#ede7f6" stroke="#673ab7" stroke-width="1.2"/>
+                    <text x="197" y="171" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#4527a0">DP</text>
+                    <rect x="260" y="268" width="36" height="18" rx="4" fill="#fee2e2" stroke="#dc2626" stroke-width="1.2"/>
+                    <text x="278" y="281" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#b91c1c">BLK</text>
+                    <rect x="548" y="158" width="34" height="18" rx="4" fill="#ede7f6" stroke="#673ab7" stroke-width="1.2"/>
+                    <text x="565" y="171" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#4527a0">DP</text>
+                    <rect x="462" y="268" width="34" height="18" rx="4" fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2"/>
+                    <text x="479" y="281" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">RP</text>
+
+                    <!-- 圖例 -->
+                    <g>
+                        <line x1="97.28" y1="418" x2="123.28" y2="418" stroke="#2563eb" stroke-width="4" stroke-linecap="round"/>
+                        <text x="131.28" y="422" font-size="12" fill="#5b6278">Forwarding (MSTI 2)</text>
+                        <line x1="280.96" y1="418" x2="306.96" y2="418" stroke="#dc2626" stroke-width="4" stroke-linecap="round" stroke-dasharray="6 5"/>
+                        <text x="314.96" y="422" font-size="12" fill="#5b6278">Blocking</text>
+                        <rect x="390.72" y="409" width="36" height="18" rx="4" fill="#ede7f6" stroke="#673ab7" stroke-width="1.2"/>
+                        <text x="408.72" y="422" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#4527a0">DP</text>
+                        <text x="434.72" y="422" font-size="12" fill="#5b6278">指定埠</text>
+                        <rect x="492.72" y="409" width="36" height="18" rx="4" fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2"/>
+                        <text x="510.72" y="422" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">RP</text>
+                        <text x="536.72" y="422" font-size="12" fill="#5b6278">根埠</text>
+                        <rect x="582.72" y="409" width="36" height="18" rx="4" fill="#fee2e2" stroke="#dc2626" stroke-width="1.2"/>
+                        <text x="600.72" y="422" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#b91c1c">BLK</text>
+                        <text x="626.72" y="422" font-size="12" fill="#5b6278">阻斷埠</text>
+                    </g>
+                </svg>
                 </div>
                 <p class="text-center text-sm text-gray-500 mt-2">在 Instance 2 中，流量主要走右側 (Core B)。左側 Link 2 被阻斷。</p>
             </div>
@@ -297,8 +451,8 @@
                 </p>
                 <div class="mt-3 bg-red-50 p-3 rounded text-sm text-gray-700 italic">
                     <strong>生活化比喻：</strong> 
-                    想像 VLAN 10 (紅線) 和 VLAN 20 (藍線) 被捆成一束 (Instance 1) 搭乘火車。火車駕駛 (MSTP) 因為前方鐵軌維修，決定封閉右邊軌道，全車改走左邊。
-                    <br>但不幸的是，<strong>紅線乘客的票 (Tag) 只能走右邊</strong>。結果就是：車子走了左邊，但紅線乘客因為沒票上不了車；右邊軌道雖然有票但被封閉了。紅線乘客因此哪裡都去不了。
+                    想像 VLAN 10 (藍線) 和 VLAN 20 (橘線) 被捆成一束 (Instance 1) 搭乘火車。火車駕駛 (MSTP) 因為前方鐵軌維修，決定封閉右邊軌道，全車改走左邊。
+                    <br>但不幸的是，<strong>橘線乘客 (VLAN 20) 的票 (Tag) 只能走右邊</strong>。結果就是：車子走了左邊，但橘線乘客因為沒票上不了車；右邊軌道雖然有票但被封閉了。橘線乘客因此哪裡都去不了。
                 </div>
             </div>
 
@@ -319,18 +473,50 @@
                 <!-- Step 1: Physical Config Mismatch -->
                 <div class="mb-4 border border-gray-200 rounded p-3">
                     <h4 class="font-bold text-center text-gray-600 text-sm mb-1">圖A：物理配置與 VLAN 錯置 (設定失誤)</h4>
-                    <div class="mermaid">
-                        graph TD
-                        Core[Core Switch]
-                        Edge[Edge Switch]
-                        
-                        Core -- "Link 1<br>(VLAN 10 Only)<br>Cost 10" --- Edge
-                        Core -- "Link 2<br>(VLAN 20 Only)<br>Cost 20" --- Edge
+                    <div style="width:100%;overflow-x:auto">
+                    <svg viewBox="0 0 760 372" role="img" aria-labelledby="mstp-pa-title mstp-pa-desc"
+                         style="width:100%;min-width:560px;max-width:760px;height:auto;display:block;margin:0 auto"
+                         font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+                        <title id="mstp-pa-title">物理配置與 VLAN 錯置</title>
+                        <desc id="mstp-pa-desc">Core Switch 與 Edge Switch 之間有兩條線：左側 Link 1 只允許 VLAN 10，Cost 10；右側 Link 2 只允許 VLAN 20，Cost 20。</desc>
+                        <defs>
+                            <linearGradient id="mstp-pa-sw" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0" stop-color="#7e57c2"/>
+                                <stop offset="1" stop-color="#311b92"/>
+                            </linearGradient>
+                            <filter id="mstp-pa-shadow" x="-20%" y="-20%" width="140%" height="160%">
+                                <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#311b92" flood-opacity="0.18"/>
+                            </filter>
+                        </defs>
 
-                        style Core fill:#e2e8f0
-                        style Edge fill:#e2e8f0
-                        linkStyle 0 stroke:#3b82f6,stroke-width:2px;
-                        linkStyle 1 stroke:#ef4444,stroke-width:2px;
+                        <!-- 連線 -->
+                        <path d="M320 112 C240 150, 240 212, 320 250" fill="none" stroke="#2563eb" stroke-width="4" stroke-linecap="round"/>
+                        <path d="M440 112 C520 150, 520 212, 440 250" fill="none" stroke="#d97706" stroke-width="4" stroke-linecap="round"/>
+                        <text x="242" y="165" text-anchor="end" font-size="13" font-weight="700" fill="#311b92">Link 1</text>
+                        <text x="242" y="181" text-anchor="end" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#1d4ed8">VLAN 10 Only</text>
+                        <text x="242" y="197" text-anchor="end" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#5b6278">Cost 10</text>
+                        <text x="518" y="165" font-size="13" font-weight="700" fill="#311b92">Link 2</text>
+                        <text x="518" y="181" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#b45309">VLAN 20 Only</text>
+                        <text x="518" y="197" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#5b6278">Cost 20</text>
+
+                        <!-- 交換器 -->
+                        <g filter="url(#mstp-pa-shadow)"><rect x="280" y="40" width="200" height="72" rx="10" fill="url(#mstp-pa-sw)"/></g>
+                        <text x="380" y="78" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">Core Switch</text>
+                        <g fill="#b2ebf2"><rect x="344" y="99" width="8" height="5" rx="1"/><rect x="356" y="99" width="8" height="5" rx="1"/><rect x="368" y="99" width="8" height="5" rx="1"/><rect x="380" y="99" width="8" height="5" rx="1"/><rect x="392" y="99" width="8" height="5" rx="1"/><rect x="404" y="99" width="8" height="5" rx="1"/></g>
+                        <g filter="url(#mstp-pa-shadow)"><rect x="280" y="250" width="200" height="72" rx="10" fill="url(#mstp-pa-sw)"/></g>
+                        <text x="380" y="288" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">Edge Switch</text>
+                        <g fill="#b2ebf2"><rect x="344" y="309" width="8" height="5" rx="1"/><rect x="356" y="309" width="8" height="5" rx="1"/><rect x="368" y="309" width="8" height="5" rx="1"/><rect x="380" y="309" width="8" height="5" rx="1"/><rect x="392" y="309" width="8" height="5" rx="1"/><rect x="404" y="309" width="8" height="5" rx="1"/></g>
+
+                        <!-- 圖例 -->
+                        <g>
+                            <line x1="83.64" y1="352" x2="109.64" y2="352" stroke="#2563eb" stroke-width="4" stroke-linecap="round"/>
+                            <text x="117.64" y="356" font-size="12" fill="#5b6278">VLAN 10 (只走 Link 1)</text>
+                            <line x1="277.88" y1="352" x2="303.88" y2="352" stroke="#d97706" stroke-width="4" stroke-linecap="round"/>
+                            <text x="311.88" y="356" font-size="12" fill="#5b6278">VLAN 20 (只走 Link 2)</text>
+                            <rect x="472.12" y="344" width="22" height="16" rx="3" fill="#f6f2fe" stroke="#b39ddb" stroke-width="1.2"/>
+                            <text x="502.12" y="356" font-size="12" fill="#5b6278">兩個 VLAN 都屬於 Instance 1</text>
+                        </g>
+                    </svg>
                     </div>
                     <p class="text-center text-xs text-gray-500">注意：VLAN 10 只在左邊，VLAN 20 只在右邊。但兩者都在 Instance 1。</p>
                 </div>
@@ -338,18 +524,70 @@
                 <!-- Step 2: MSTP Calculation -->
                 <div class="mb-4 border border-gray-200 rounded p-3">
                     <h4 class="font-bold text-center text-purple-700 text-sm mb-1">圖B：MSTP Instance 1 計算結果</h4>
-                    <div class="mermaid">
-                        graph TD
-                        Core[Core Switch]
-                        Edge[Edge Switch]
-                        
-                        Core == "Link 1<br>FORWARDING<br>(Root Port)" ==> Edge
-                        Core -. "Link 2<br>BLOCKING<br>(Alternate)" .- Edge
+                    <div style="width:100%;overflow-x:auto">
+                    <svg viewBox="0 0 760 372" role="img" aria-labelledby="mstp-pb-title mstp-pb-desc"
+                         style="width:100%;min-width:560px;max-width:760px;height:auto;display:block;margin:0 auto"
+                         font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+                        <title id="mstp-pb-title">MSTP Instance 1 計算結果</title>
+                        <desc id="mstp-pb-desc">MSTP Instance 1 計算後，Link 1 (Cost 較低) 為 Forwarding，Edge 端為 Root Port；Link 2 為 Blocking，Edge 端為 Alternate。</desc>
+                        <defs>
+                            <linearGradient id="mstp-pb-sw" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0" stop-color="#7e57c2"/>
+                                <stop offset="1" stop-color="#311b92"/>
+                            </linearGradient>
+                            <filter id="mstp-pb-shadow" x="-20%" y="-20%" width="140%" height="160%">
+                                <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#311b92" flood-opacity="0.18"/>
+                            </filter>
+                        </defs>
+                        <text x="24" y="28" font-family="'JetBrains Mono', Consolas, monospace" font-size="13" font-weight="700" fill="#673ab7">MSTP Instance 1</text>
 
-                        style Core fill:#e2e8f0
-                        style Edge fill:#e2e8f0
-                        linkStyle 0 stroke:#16a34a,stroke-width:3px;
-                        linkStyle 1 stroke:#dc2626,stroke-width:3px,stroke-dasharray: 5 5;
+                        <!-- 連線 -->
+                        <path d="M320 112 C240 150, 240 212, 320 250" fill="none" stroke="#0891b2" stroke-width="4" stroke-linecap="round"/>
+                        <path d="M440 112 C520 150, 520 212, 440 250" fill="none" stroke="#dc2626" stroke-width="4" stroke-linecap="round" stroke-dasharray="6 5"/>
+                        <circle cx="500" cy="181" r="9" fill="#fff" stroke="#dc2626" stroke-width="2"/>
+                        <path d="M496 177 L504 185 M504 177 L496 185" stroke="#dc2626" stroke-width="2" stroke-linecap="round"/>
+                        <text x="242" y="165" text-anchor="end" font-size="13" font-weight="700" fill="#311b92">Link 1</text>
+                        <text x="242" y="181" text-anchor="end" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">FORWARDING</text>
+                        <text x="242" y="197" text-anchor="end" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#5b6278">(Root Port)</text>
+                        <text x="518" y="165" font-size="13" font-weight="700" fill="#311b92">Link 2</text>
+                        <text x="518" y="181" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#b91c1c">BLOCKING</text>
+                        <text x="518" y="197" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#5b6278">(Alternate)</text>
+
+                        <!-- 交換器 -->
+                        <g filter="url(#mstp-pb-shadow)"><rect x="280" y="40" width="200" height="72" rx="10" fill="url(#mstp-pb-sw)"/></g>
+                        <text x="380" y="78" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">Core Switch</text>
+                        <g fill="#b2ebf2"><rect x="344" y="99" width="8" height="5" rx="1"/><rect x="356" y="99" width="8" height="5" rx="1"/><rect x="368" y="99" width="8" height="5" rx="1"/><rect x="380" y="99" width="8" height="5" rx="1"/><rect x="392" y="99" width="8" height="5" rx="1"/><rect x="404" y="99" width="8" height="5" rx="1"/></g>
+                        <g filter="url(#mstp-pb-shadow)"><rect x="280" y="250" width="200" height="72" rx="10" fill="url(#mstp-pb-sw)"/></g>
+                        <text x="380" y="288" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">Edge Switch</text>
+                        <g fill="#b2ebf2"><rect x="344" y="309" width="8" height="5" rx="1"/><rect x="356" y="309" width="8" height="5" rx="1"/><rect x="368" y="309" width="8" height="5" rx="1"/><rect x="380" y="309" width="8" height="5" rx="1"/><rect x="392" y="309" width="8" height="5" rx="1"/><rect x="404" y="309" width="8" height="5" rx="1"/></g>
+
+                        <!-- Port 角色 -->
+                        <rect x="252" y="118" width="34" height="18" rx="4" fill="#ede7f6" stroke="#673ab7" stroke-width="1.2"/>
+                        <text x="269" y="131" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#4527a0">DP</text>
+                        <rect x="252" y="226" width="34" height="18" rx="4" fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2"/>
+                        <text x="269" y="239" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">RP</text>
+                        <rect x="474" y="118" width="34" height="18" rx="4" fill="#ede7f6" stroke="#673ab7" stroke-width="1.2"/>
+                        <text x="491" y="131" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#4527a0">DP</text>
+                        <rect x="474" y="226" width="36" height="18" rx="4" fill="#fee2e2" stroke="#dc2626" stroke-width="1.2"/>
+                        <text x="492" y="239" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#b91c1c">ALT</text>
+
+                        <!-- 圖例 -->
+                        <g>
+                            <line x1="127.52" y1="352" x2="153.52" y2="352" stroke="#0891b2" stroke-width="4" stroke-linecap="round"/>
+                            <text x="161.52" y="356" font-size="12" fill="#5b6278">Forwarding</text>
+                            <line x1="250.72" y1="352" x2="276.72" y2="352" stroke="#dc2626" stroke-width="4" stroke-linecap="round" stroke-dasharray="6 5"/>
+                            <text x="284.72" y="356" font-size="12" fill="#5b6278">Blocking</text>
+                            <rect x="360.48" y="343" width="36" height="18" rx="4" fill="#ede7f6" stroke="#673ab7" stroke-width="1.2"/>
+                            <text x="378.48" y="356" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#4527a0">DP</text>
+                            <text x="404.48" y="356" font-size="12" fill="#5b6278">指定埠</text>
+                            <rect x="462.48" y="343" width="36" height="18" rx="4" fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2"/>
+                            <text x="480.48" y="356" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">RP</text>
+                            <text x="506.48" y="356" font-size="12" fill="#5b6278">根埠</text>
+                            <rect x="552.48" y="343" width="36" height="18" rx="4" fill="#fee2e2" stroke="#dc2626" stroke-width="1.2"/>
+                            <text x="570.48" y="356" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#b91c1c">ALT</text>
+                            <text x="596.48" y="356" font-size="12" fill="#5b6278">替代埠</text>
+                        </g>
+                    </svg>
                     </div>
                     <p class="text-center text-xs text-gray-500">MSTP 發現 Link 1 Cost 較低，選為 Forwarding。Link 2 為了防圈被 Block。</p>
                 </div>
@@ -357,24 +595,72 @@
                 <!-- Step 3: Result -->
                 <div class="border border-red-200 bg-red-50 rounded p-3">
                     <h4 class="font-bold text-center text-red-700 text-sm mb-1">圖C：最終流量結果 (VLAN 20 斷線)</h4>
-                    <div class="mermaid">
-                        graph TD
-                        subgraph Result [Instance 1 Traffic Flow]
-                            L1["Link 1 (FWD)"]
-                            L2["Link 2 (BLK)"]
-                            
-                            V10(VLAN 10 Traffic) -->|VLAN Allowed| L1
-                            V10 -->|Success| OK[通訊正常]
+                    <div style="width:100%;overflow-x:auto">
+                    <svg viewBox="0 0 760 372" role="img" aria-labelledby="mstp-pc-title mstp-pc-desc"
+                         style="width:100%;min-width:560px;max-width:760px;height:auto;display:block;margin:0 auto"
+                         font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+                        <title id="mstp-pc-title">最終流量結果 (VLAN 20 斷線)</title>
+                        <desc id="mstp-pc-desc">VLAN 10 經 Link 1 通訊正常；VLAN 20 在 Link 1 未被允許而被丟棄，在 Link 2 又被 STP 阻擋，兩邊都斷線。</desc>
+                        <defs>
+                            <linearGradient id="mstp-pc-sw" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0" stop-color="#7e57c2"/>
+                                <stop offset="1" stop-color="#311b92"/>
+                            </linearGradient>
+                            <filter id="mstp-pc-shadow" x="-20%" y="-20%" width="140%" height="160%">
+                                <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#311b92" flood-opacity="0.18"/>
+                            </filter>
+                        </defs>
+                        <text x="24" y="28" font-family="'JetBrains Mono', Consolas, monospace" font-size="13" font-weight="700" fill="#b91c1c">Instance 1 Traffic Flow</text>
 
-                            V20(VLAN 20 Traffic) -->|VLAN NOT Allowed| L1
-                            V20 -->|Drop| Fail1[斷線: Link 1 無 Tag]
+                        <!-- 連線 -->
+                        <path d="M320 112 C240 150, 240 212, 320 250" fill="none" stroke="#0891b2" stroke-width="4" stroke-linecap="round"/>
+                        <path d="M440 112 C520 150, 520 212, 440 250" fill="none" stroke="#dc2626" stroke-width="4" stroke-linecap="round" stroke-dasharray="6 5"/>
+                        <circle cx="500" cy="181" r="9" fill="#fff" stroke="#dc2626" stroke-width="2"/>
+                        <path d="M496 177 L504 185 M504 177 L496 185" stroke="#dc2626" stroke-width="2" stroke-linecap="round"/>
+                        <text x="246" y="165" text-anchor="end" font-size="13" font-weight="700" fill="#311b92">Link 1</text>
+                        <text x="246" y="181" text-anchor="end" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">FWD</text>
+                        <text x="246" y="197" text-anchor="end" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#5b6278">VLAN 10 Only</text>
+                        <text x="518" y="165" font-size="13" font-weight="700" fill="#311b92">Link 2</text>
+                        <text x="518" y="181" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#b91c1c">BLK</text>
+                        <text x="518" y="197" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#5b6278">VLAN 20 Only</text>
 
-                            V20_2(VLAN 20 Traffic) -->|STP Blocked| L2
-                            V20_2 -->|Drop| Fail2[斷線: Link 2 被 STP 阻擋]
-                        end
-                        style Fail1 fill:#fee2e2,stroke:#ef4444
-                        style Fail2 fill:#fee2e2,stroke:#ef4444
-                        style OK fill:#dcfce7,stroke:#16a34a
+                        <!-- 交換器 -->
+                        <g filter="url(#mstp-pc-shadow)"><rect x="280" y="40" width="200" height="72" rx="10" fill="url(#mstp-pc-sw)"/></g>
+                        <text x="380" y="78" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">Core Switch</text>
+                        <g fill="#b2ebf2"><rect x="344" y="99" width="8" height="5" rx="1"/><rect x="356" y="99" width="8" height="5" rx="1"/><rect x="368" y="99" width="8" height="5" rx="1"/><rect x="380" y="99" width="8" height="5" rx="1"/><rect x="392" y="99" width="8" height="5" rx="1"/><rect x="404" y="99" width="8" height="5" rx="1"/></g>
+                        <g filter="url(#mstp-pc-shadow)"><rect x="280" y="250" width="200" height="72" rx="10" fill="url(#mstp-pc-sw)"/></g>
+                        <text x="380" y="288" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">Edge Switch</text>
+                        <g fill="#b2ebf2"><rect x="344" y="309" width="8" height="5" rx="1"/><rect x="356" y="309" width="8" height="5" rx="1"/><rect x="368" y="309" width="8" height="5" rx="1"/><rect x="380" y="309" width="8" height="5" rx="1"/><rect x="392" y="309" width="8" height="5" rx="1"/><rect x="404" y="309" width="8" height="5" rx="1"/></g>
+
+                        <!-- 流量結果卡片 -->
+                        <line x1="210" y1="128" x2="290" y2="128" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="2 4"/>
+                        <rect x="20" y="100" width="190" height="56" rx="8" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+                        <text x="32" y="118" font-size="12" font-weight="700" fill="#1e2235">VLAN 10 Traffic</text>
+                        <text x="32" y="134" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#5b6278">VLAN Allowed → Link 1</text>
+                        <text x="32" y="150" font-size="12" font-weight="700" fill="#15803d">✓ 通訊正常</text>
+                        <line x1="210" y1="234" x2="290" y2="234" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="2 4"/>
+                        <rect x="20" y="206" width="190" height="56" rx="8" fill="#fee2e2" stroke="#ef4444" stroke-width="1.5"/>
+                        <text x="32" y="224" font-size="12" font-weight="700" fill="#1e2235">VLAN 20 Traffic</text>
+                        <text x="32" y="240" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#5b6278">VLAN NOT Allowed → Link 1</text>
+                        <text x="32" y="256" font-size="12" font-weight="700" fill="#b91c1c">✕ 斷線: Link 1 無 Tag</text>
+                        <line x1="550" y1="234" x2="470" y2="234" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="2 4"/>
+                        <rect x="550" y="206" width="190" height="56" rx="8" fill="#fee2e2" stroke="#ef4444" stroke-width="1.5"/>
+                        <text x="562" y="224" font-size="12" font-weight="700" fill="#1e2235">VLAN 20 Traffic</text>
+                        <text x="562" y="240" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#5b6278">STP Blocked → Link 2</text>
+                        <text x="562" y="256" font-size="12" font-weight="700" fill="#b91c1c">✕ 斷線: Link 2 被 STP 阻擋</text>
+
+                        <!-- 圖例 -->
+                        <g>
+                            <line x1="226.84" y1="352" x2="252.84" y2="352" stroke="#0891b2" stroke-width="4" stroke-linecap="round"/>
+                            <text x="260.84" y="356" font-size="12" fill="#5b6278">FWD</text>
+                            <line x1="303" y1="352" x2="329" y2="352" stroke="#dc2626" stroke-width="4" stroke-linecap="round" stroke-dasharray="6 5"/>
+                            <text x="337" y="356" font-size="12" fill="#5b6278">BLK</text>
+                            <rect x="379.16" y="344" width="22" height="16" rx="3" fill="#dcfce7" stroke="#16a34a" stroke-width="1.2"/>
+                            <text x="409.16" y="356" font-size="12" fill="#5b6278">通訊正常</text>
+                            <rect x="479.16" y="344" width="22" height="16" rx="3" fill="#fee2e2" stroke="#ef4444" stroke-width="1.2"/>
+                            <text x="509.16" y="356" font-size="12" fill="#5b6278">斷線</text>
+                        </g>
+                    </svg>
                     </div>
                     <p class="text-center text-xs text-red-600 mt-2 font-bold">VLAN 20 兩邊都不通！這就是拓撲不一致造成的黑洞。</p>
                 </div>
@@ -410,7 +696,7 @@
     <!-- Footer -->
     <footer class="bg-slate-900 text-gray-400 py-4 text-xs">
         <div class="container mx-auto px-4 text-center">
-            <p>Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0</p>
+            <p>Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0</p>
         </div>
     </footer>
 

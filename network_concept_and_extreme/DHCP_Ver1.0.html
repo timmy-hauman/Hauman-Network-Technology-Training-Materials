@@ -253,37 +253,101 @@ Note: Default Remote-ID : System MAC Address</pre>
             </p>
 
             <div class="mermaid-wrapper">
-                <div class="mermaid">
-                    graph TD
-                        %% 定義樣式類別
-                        classDef largeText font-size:18px,font-weight:bold,stroke-width:2px;
-                        classDef serverNode fill:#bbf,stroke:#333,color:#000;
-                        classDef switchNode fill:#f9f,stroke:#333,color:#000;
-                        classDef clientNode fill:#bfb,stroke:#333,color:#000;
+                <!-- 拓撲圖 (手繪 SVG):用戶端在上、Core Switch (L3) 居中、DHCP 伺服器在下 -->
+                <div style="width:100%;overflow-x:auto">
+                <svg viewBox="0 0 800 570" role="img" aria-labelledby="dhcp1-title dhcp1-desc"
+                     style="width:100%;min-width:560px;max-width:800px;height:auto;display:block;margin:0 auto"
+                     font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+                    <title id="dhcp1-title">BootP Relay 跨網段轉發架構</title>
+                    <desc id="dhcp1-desc">VLAN 10 的用戶端 PC 送出 1. DHCP Discover (Broadcast) 到 Core Switch (L3) 的 VLAN 10 介面 (IP 192.168.10.1),交給 BootP Relay Agent 攔截廣播並轉成單播;Relay 以 2. Unicast Forward (UDP 67) 送到 VLAN 100 Server Farm 的 DHCP 伺服器 (IP 10.0.0.1),伺服器以 3. Reply (Unicast) 回給 Relay,Relay 再 4. Forward to Client 轉回用戶端。</desc>
+                    <defs>
+                        <linearGradient id="dhcp1-sw" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0" stop-color="#7e57c2"/>
+                            <stop offset="1" stop-color="#311b92"/>
+                        </linearGradient>
+                        <filter id="dhcp1-shadow" x="-20%" y="-20%" width="140%" height="160%">
+                            <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#311b92" flood-opacity="0.18"/>
+                        </filter>
+                        <marker id="dhcp1-arr-c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto">
+                            <path d="M0 0 L10 5 L0 10 z" fill="#0891b2"/>
+                        </marker>
+                        <marker id="dhcp1-arr-p" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="14" markerHeight="14" markerUnits="userSpaceOnUse" orient="auto">
+                            <path d="M0 0 L10 5 L0 10 z" fill="#673ab7"/>
+                        </marker>
+                    </defs>
 
-                        subgraph VLAN10 ["<span style='font-size:20px'>VLAN 10 - User Net</span>"]
-                            PC["<span style='font-size:18px'>用戶端 PC</span>"]
-                        end
-                        
-                        subgraph CoreSwitch ["<span style='font-size:20px'>Core Switch (L3)</span>"]
-                            L3_IF["<span style='font-size:18px'>VLAN 10 介面</span><br/><span style='font-size:16px'>IP: 192.168.10.1</span>"]
-                            Relay["<span style='font-size:18px'>BootP Relay Agent</span><br/><span style='font-size:16px'>(攔截廣播 -> 轉單播)</span>"]
-                        end
-                        
-                        subgraph VLAN100 ["<span style='font-size:20px'>VLAN 100 - Server Farm</span>"]
-                            DHCPServer["<span style='font-size:18px'>DHCP 伺服器</span><br/><span style='font-size:16px'>IP: 10.0.0.1</span>"]
-                        end
+                    <!-- 群組 -->
+                    <rect x="120" y="24" width="560" height="106" rx="16" fill="#effafc" stroke="#67c5d6" stroke-width="1.5" stroke-dasharray="6 5"/>
+                    <text x="136" y="48" font-family="'JetBrains Mono', Consolas, monospace" font-size="13" font-weight="700" fill="#0891b2">VLAN 10 - User Net</text>
+                    <rect x="120" y="190" width="560" height="140" rx="16" fill="#f6f2fe" stroke="#b39ddb" stroke-width="1.5" stroke-dasharray="6 5"/>
+                    <text x="136" y="214" font-family="'JetBrains Mono', Consolas, monospace" font-size="13" font-weight="700" fill="#673ab7">Core Switch (L3)</text>
+                    <rect x="120" y="420" width="560" height="110" rx="16" fill="#effafc" stroke="#67c5d6" stroke-width="1.5" stroke-dasharray="6 5"/>
+                    <text x="136" y="444" font-family="'JetBrains Mono', Consolas, monospace" font-size="13" font-weight="700" fill="#0891b2">VLAN 100 - Server Farm</text>
 
-                        PC -- "1. DHCP Discover (Broadcast)" --> L3_IF
-                        L3_IF -.-> Relay
-                        Relay == "2. Unicast Forward (UDP 67)" ==> DHCPServer
-                        DHCPServer == "3. Reply (Unicast)" ==> Relay
-                        Relay -- "4. Forward to Client" --> PC
+                    <!-- 連線 -->
+                    <g fill="none" stroke-linecap="round">
+                        <!-- 1. PC → VLAN 10 介面 -->
+                        <path d="M370 110 C370 170, 260 160, 260 224" stroke="#0891b2" stroke-width="4" marker-end="url(#dhcp1-arr-c)"/>
+                        <!-- 4. Relay → PC -->
+                        <path d="M540 228 C540 164, 430 176, 430 114" stroke="#0891b2" stroke-width="4" marker-end="url(#dhcp1-arr-c)"/>
+                        <!-- VLAN 10 介面 → Relay (內部) -->
+                        <line x1="360" y1="268" x2="436" y2="268" stroke="#673ab7" stroke-width="2.5" stroke-dasharray="6 5" marker-end="url(#dhcp1-arr-p)"/>
+                        <!-- 2. Relay → DHCP 伺服器 -->
+                        <path d="M500 308 C500 380, 430 370, 430 442" stroke="#673ab7" stroke-width="6" marker-end="url(#dhcp1-arr-p)"/>
+                        <!-- 3. DHCP 伺服器 → Relay -->
+                        <path d="M470 446 C470 380, 560 390, 560 312" stroke="#673ab7" stroke-width="6" marker-end="url(#dhcp1-arr-p)"/>
+                    </g>
 
-                        %% 套用樣式
-                        class PC clientNode,largeText;
-                        class L3_IF,Relay switchNode,largeText;
-                        class DHCPServer serverNode,largeText;
+                    <!-- 連線標籤 -->
+                    <text x="280" y="158" text-anchor="end" font-size="13" font-weight="700" fill="#0e7490">1. DHCP Discover</text>
+                    <text x="280" y="175" text-anchor="end" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#5b6278">(Broadcast)</text>
+                    <text x="522" y="170" font-size="13" font-weight="700" fill="#0e7490">4. Forward to Client</text>
+                    <text x="432" y="370" text-anchor="end" font-size="13" font-weight="700" fill="#4527a0">2. Unicast Forward</text>
+                    <text x="432" y="387" text-anchor="end" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#5b6278">(UDP 67)</text>
+                    <text x="556" y="376" font-size="13" font-weight="700" fill="#4527a0">3. Reply (Unicast)</text>
+
+                    <!-- 用戶端 PC -->
+                    <g filter="url(#dhcp1-shadow)">
+                        <rect x="320" y="50" width="160" height="60" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/>
+                    </g>
+                    <rect x="332" y="63" width="24" height="17" rx="2" fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2"/>
+                    <g stroke="#0891b2" stroke-width="1.5" stroke-linecap="round"><line x1="344" y1="80" x2="344" y2="86"/><line x1="338" y1="87" x2="350" y2="87"/></g>
+                    <text x="414" y="85" text-anchor="middle" font-size="15" font-weight="700" fill="#1e2235">用戶端 PC</text>
+
+                    <!-- Core Switch 內部:VLAN 10 介面 / BootP Relay Agent -->
+                    <g filter="url(#dhcp1-shadow)">
+                        <rect x="160" y="228" width="200" height="80" rx="10" fill="url(#dhcp1-sw)"/>
+                        <rect x="440" y="228" width="200" height="80" rx="10" fill="url(#dhcp1-sw)"/>
+                    </g>
+                    <text x="260" y="257" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">VLAN 10 介面</text>
+                    <text x="260" y="277" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" fill="#d1c4e9">IP: 192.168.10.1</text>
+                    <g fill="#b2ebf2"><rect x="230" y="290" width="8" height="5" rx="1"/><rect x="242" y="290" width="8" height="5" rx="1"/><rect x="254" y="290" width="8" height="5" rx="1"/><rect x="266" y="290" width="8" height="5" rx="1"/><rect x="278" y="290" width="8" height="5" rx="1"/></g>
+                    <text x="540" y="257" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">BootP Relay Agent</text>
+                    <text x="540" y="277" text-anchor="middle" font-size="12" fill="#d1c4e9">(攔截廣播 -&gt; 轉單播)</text>
+                    <g fill="#b2ebf2"><rect x="510" y="290" width="8" height="5" rx="1"/><rect x="522" y="290" width="8" height="5" rx="1"/><rect x="534" y="290" width="8" height="5" rx="1"/><rect x="546" y="290" width="8" height="5" rx="1"/><rect x="558" y="290" width="8" height="5" rx="1"/></g>
+
+                    <!-- DHCP 伺服器 -->
+                    <g filter="url(#dhcp1-shadow)">
+                        <rect x="320" y="446" width="160" height="62" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/>
+                    </g>
+                    <g fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2">
+                        <rect x="332" y="456" width="24" height="10" rx="2"/>
+                        <rect x="332" y="470" width="24" height="10" rx="2"/>
+                        <rect x="332" y="484" width="24" height="10" rx="2"/>
+                    </g>
+                    <text x="414" y="472" text-anchor="middle" font-size="15" font-weight="700" fill="#1e2235">DHCP 伺服器</text>
+                    <text x="414" y="491" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" fill="#5b6278">IP: 10.0.0.1</text>
+
+                    <!-- 圖例 -->
+                    <g font-size="12" fill="#5b6278">
+                        <line x1="150" y1="556" x2="178" y2="556" stroke="#0891b2" stroke-width="4" stroke-linecap="round" marker-end="url(#dhcp1-arr-c)"/>
+                        <text x="188" y="560">同網段 (VLAN 10)</text>
+                        <line x1="320" y1="556" x2="348" y2="556" stroke="#673ab7" stroke-width="6" stroke-linecap="round" marker-end="url(#dhcp1-arr-p)"/>
+                        <text x="358" y="560">Relay 單播 (跨網段)</text>
+                        <line x1="510" y1="556" x2="538" y2="556" stroke="#673ab7" stroke-width="2.5" stroke-dasharray="6 5" marker-end="url(#dhcp1-arr-p)"/>
+                        <text x="548" y="560">交換器內部轉交</text>
+                    </g>
+                </svg>
                 </div>
             </div>
             <p class="text-sm text-gray-500 text-center mt-2">圖解：BootP Relay 跨網段轉發機制 (可左右滑動檢視完整圖表)</p>
@@ -404,7 +468,7 @@ Note: Default Remote-ID : System MAC Address</pre>
     <footer class="bg-gray-800 text-gray-400 py-6 mt-12 border-t border-gray-700">
         <div class="container mx-auto px-4 text-center text-sm font-medium">
             <p>
-                Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0
+                Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0
             </p>
         </div>
     </footer>

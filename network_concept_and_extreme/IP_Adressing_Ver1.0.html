@@ -292,37 +292,121 @@ Decimal : 10      .10      .10      .<span class="text-white font-bold text-lg">
             <h2 class="text-2xl font-bold text-slate-800 mb-4">三、架構視覺化 (Visuals)</h2>
             <p class="mb-4 text-gray-600">下圖展示了 Public IP 與 Private IP 如何在企業環境中共存。請注意路由器 (Router) 扮演的邊界角色。</p>
             
-            <div class="mermaid">
-            graph TD
-                Internet((網際網路<br>The Internet)) 
-                
-                subgraph "Public Network (公網)"
-                    ISP[ISP 業者]
-                    PublicIP[企業路由器 WAN<br>Public IP: 203.0.113.5]
-                end
+            <!-- 拓撲圖 (手繪 SVG):網際網路 -> ISP -> 企業路由器 (跨在公網/私網邊界,WAN 在公網側、LAN 在私網側) -> L2 交換器 -> 內網設備 -->
+            <div style="width:100%;overflow-x:auto">
+            <svg viewBox="0 0 760 700" role="img" aria-labelledby="ip1-title ip1-desc"
+                 style="width:100%;min-width:560px;max-width:760px;height:auto;display:block;margin:0 auto"
+                 font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+                <title id="ip1-title">Public IP 與 Private IP 架構拓撲</title>
+                <desc id="ip1-desc">網際網路連到 ISP 業者，再連到企業路由器。企業路由器只有一台，跨在 Public Network (公網) 與 Private Network (私網 - LAN) 的邊界上：WAN 介面位於公網側 (Public IP: 203.0.113.5)，LAN 介面位於私網側，擔任內網的預設閘道並在邊界執行 NAT。路由器往下接 L2 交換器，交換器下接財務部電腦 192.168.1.10/24、人資部電腦 192.168.1.20/24 與內部伺服器 192.168.1.100/24。</desc>
+                <defs>
+                    <linearGradient id="ip1-sw" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0" stop-color="#7e57c2"/>
+                        <stop offset="1" stop-color="#311b92"/>
+                    </linearGradient>
+                    <filter id="ip1-shadow" x="-20%" y="-20%" width="140%" height="160%">
+                        <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#311b92" flood-opacity="0.18"/>
+                    </filter>
+                </defs>
 
-                subgraph "Private Network (私網 - LAN)"
-                    Router[企業路由器 NAT/Gateway]
-                    Switch[L2 交換器]
-                    PC1[財務部電腦<br>192.168.1.10/24]
-                    PC2[人資部電腦<br>192.168.1.20/24]
-                    Server[內部伺服器<br>192.168.1.100/24]
-                end
+                <!-- 群組:公網 / 私網 (上下相接,交界處就是路由器所在的邊界) -->
+                <rect x="30" y="116" width="700" height="140" rx="16" fill="#effafc" stroke="#67c5d6" stroke-width="1.5" stroke-dasharray="6 5"/>
+                <text x="714" y="138" text-anchor="end" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#0891b2">Public Network (公網)</text>
+                <rect x="30" y="256" width="700" height="396" rx="16" fill="#f6f2fe" stroke="#b39ddb" stroke-width="1.5" stroke-dasharray="6 5"/>
+                <text x="714" y="644" text-anchor="end" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#673ab7">Private Network (私網 - LAN)</text>
+                <text x="46" y="250" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#0891b2">▲ 公網</text>
+                <text x="46" y="274" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#673ab7">▼ 私網</text>
 
-                Internet --- ISP
-                ISP --- PublicIP
-                PublicIP --- Router
-                Router --- Switch
-                Switch --> PC1
-                Switch --> PC2
-                Switch --> Server
+                <!-- 連線 -->
+                <g stroke="#0891b2" stroke-width="4" stroke-linecap="round">
+                    <line x1="150" y1="98" x2="150" y2="176"/>
+                    <line x1="230" y1="204" x2="280" y2="204"/>
+                    <line x1="400" y1="344" x2="400" y2="420"/>
+                    <line x1="360" y1="484" x2="170" y2="560"/>
+                    <line x1="400" y1="484" x2="400" y2="560"/>
+                    <line x1="440" y1="484" x2="630" y2="560"/>
+                </g>
 
-                style PublicIP fill:#f96,stroke:#333,stroke-width:2px
-                style PC1 fill:#bbf,stroke:#333
-                style PC2 fill:#bbf,stroke:#333
-                style Server fill:#bfb,stroke:#333
+                <!-- 網際網路 -->
+                <path d="M104 98 H196 A24 24 0 0 0 200 51 A32 32 0 0 0 140 38 A24 24 0 0 0 100 56 A21 21 0 0 0 104 98 Z" fill="#eef2ff" stroke="#9fa8da" stroke-width="2"/>
+                <text x="150" y="74" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">網際網路</text>
+                <text x="150" y="90" text-anchor="middle" font-size="11" fill="#5b6278">The Internet</text>
+
+                <!-- ISP 業者 -->
+                <g filter="url(#ip1-shadow)">
+                    <rect x="70" y="176" width="160" height="56" rx="10" fill="#fff" stroke="#9fa8da" stroke-width="2"/>
+                </g>
+                <text x="150" y="209" text-anchor="middle" font-size="14" font-weight="700" fill="#1e2235">ISP 業者</text>
+
+                <!-- 企業路由器:同一台設備跨在邊界上,上半部是 WAN (公網側)、下半部是 LAN (私網側) -->
+                <g filter="url(#ip1-shadow)">
+                    <rect x="280" y="170" width="240" height="174" rx="12" fill="url(#ip1-sw)"/>
+                </g>
+                <line x1="292" y1="257" x2="508" y2="257" stroke="#fff" stroke-opacity="0.45" stroke-width="1.5" stroke-dasharray="5 4"/>
+                <g fill="none" stroke="#b2ebf2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M296 186 h22 m-5 -4 l5 4 l-5 4"/>
+                    <path d="M318 198 h-22 m5 -4 l-5 4 l5 4"/>
+                </g>
+                <text x="410" y="194" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">企業路由器</text>
+                <text x="400" y="218" text-anchor="middle" font-size="11" fill="#d1c4e9">WAN 介面 (公網側)</text>
+                <text x="400" y="236" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#ffcc80">Public IP: 203.0.113.5</text>
+                <rect x="358" y="247" width="84" height="20" rx="10" fill="#fff"/>
+                <text x="400" y="261" text-anchor="middle" font-size="11" font-weight="700" fill="#4527a0">NAT 轉換</text>
+                <text x="400" y="290" text-anchor="middle" font-size="11" fill="#d1c4e9">LAN 介面 (私網側)</text>
+                <text x="400" y="310" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">預設閘道 (Gateway)</text>
+                <text x="400" y="328" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#b2ebf2">192.168.1.0/24 網段</text>
+
+                <!-- L2 交換器 -->
+                <g filter="url(#ip1-shadow)">
+                    <rect x="310" y="420" width="180" height="64" rx="10" fill="url(#ip1-sw)"/>
+                </g>
+                <text x="400" y="450" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">L2 交換器</text>
+                <g fill="#b2ebf2"><rect x="366" y="464" width="8" height="5" rx="1"/><rect x="378" y="464" width="8" height="5" rx="1"/><rect x="390" y="464" width="8" height="5" rx="1"/><rect x="402" y="464" width="8" height="5" rx="1"/><rect x="414" y="464" width="8" height="5" rx="1"/><rect x="426" y="464" width="8" height="5" rx="1"/></g>
+
+                <!-- 財務部電腦 / 人資部電腦 -->
+                <g filter="url(#ip1-shadow)">
+                    <rect x="80" y="560" width="180" height="60" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/>
+                    <rect x="310" y="560" width="180" height="60" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/>
+                    <rect x="540" y="560" width="180" height="60" rx="10" fill="#fff" stroke="#059669" stroke-width="2"/>
+                </g>
+                <g fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2">
+                    <rect x="94" y="574" width="26" height="18" rx="2"/>
+                    <rect x="324" y="574" width="26" height="18" rx="2"/>
+                </g>
+                <g fill="#0891b2">
+                    <rect x="103" y="594" width="8" height="4"/><rect x="98" y="598" width="18" height="2"/>
+                    <rect x="333" y="594" width="8" height="4"/><rect x="328" y="598" width="18" height="2"/>
+                </g>
+                <!-- 內部伺服器 -->
+                <g fill="#d1fae5" stroke="#059669" stroke-width="1.2">
+                    <rect x="554" y="571" width="24" height="10" rx="2"/>
+                    <rect x="554" y="584" width="24" height="10" rx="2"/>
+                    <rect x="554" y="597" width="24" height="10" rx="2"/>
+                </g>
+                <g text-anchor="middle">
+                    <text x="184" y="585" font-size="14" font-weight="700" fill="#1e2235">財務部電腦</text>
+                    <text x="184" y="604" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#0e7490">192.168.1.10/24</text>
+                    <text x="414" y="585" font-size="14" font-weight="700" fill="#1e2235">人資部電腦</text>
+                    <text x="414" y="604" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#0e7490">192.168.1.20/24</text>
+                    <text x="644" y="585" font-size="14" font-weight="700" fill="#1e2235">內部伺服器</text>
+                    <text x="644" y="604" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#047857">192.168.1.100/24</text>
+                </g>
+
+                <!-- 圖例 -->
+                <g font-size="12" fill="#5b6278">
+                    <line x1="96" y1="680" x2="122" y2="680" stroke="#0891b2" stroke-width="4" stroke-linecap="round"/>
+                    <text x="130" y="684">網路連線</text>
+                    <rect x="230" y="673" width="24" height="14" rx="3" fill="#fff" stroke="#0891b2" stroke-width="2"/>
+                    <text x="262" y="684">用戶端電腦 (Private IP)</text>
+                    <rect x="440" y="673" width="24" height="14" rx="3" fill="#fff" stroke="#059669" stroke-width="2"/>
+                    <text x="472" y="684">內部伺服器</text>
+                    <rect x="570" y="673" width="24" height="14" rx="3" fill="#311b92"/>
+                    <text x="582" y="684" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#ffcc80">IP</text>
+                    <text x="602" y="684">Public IP</text>
+                </g>
+            </svg>
             </div>
-            <div class="text-sm text-gray-500 mt-2 text-center">圖示：Mermaid 繪製的 IP 架構拓撲</div>
+            <div class="text-sm text-gray-500 mt-2 text-center">圖示：IP 架構拓撲 (公網與私網)</div>
         </section>
 
         <!-- Section 4: Use Case -->
@@ -378,7 +462,7 @@ Decimal : 10      .10      .10      .<span class="text-white font-bold text-lg">
     <footer class="bg-slate-900 text-gray-400 py-8 text-center text-sm">
         <div class="container mx-auto">
             <p>Planning & Design by Timmy(timmyc@hauman.com.tw)</p>
-            <p class="mt-1">豪勉科技 Hauman Technologies Corporation | Ver 1.0</p>
+            <p class="mt-1">豪勉科技 Hauman Technologies Corporation | Ver 2.0</p>
         </div>
     </footer>
 
