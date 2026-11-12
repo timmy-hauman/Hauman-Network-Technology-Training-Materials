@@ -4,263 +4,88 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>A10 Networks Thunder 實戰課程 - 故障排除與自動化</title>
-    <!-- Google Fonts: Rubik -->
-    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Tailwind CSS (Utility classes) -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Mermaid JS for Diagrams -->
-    <!-- 圖表已改為內嵌 SVG,不再載入 Mermaid;保留空殼讓原本的初始化程式不出錯 -->
-    <script>window.mermaid = { initialize: function () {}, init: function () {}, run: function () { return Promise.resolve(); } };</script>
-    
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#101820', /* Midnight Blue-ish / Rich Black */
-                        secondary: '#0047BB', /* Congress Blue */
-                        accent: '#E6007E', /* Magenta */
-                        highlight: '#FF8200', /* Orange */
-                        light: '#F5F5F7', /* Light Grey */
-                        paper: '#FFFFFF',
-                    },
-                    fontFamily: {
-                        sans: ['Rubik', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
-
-    <style>
-        body {
-            font-family: 'Rubik', sans-serif;
-            background-color: #F5F5F7;
-            color: #333;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        /* Custom Header Gradient */
-        .header-bg {
-            background: linear-gradient(135deg, #020024 0%, #090979 35%, #00d4ff 100%);
-            background: linear-gradient(to right, #101820, #0047BB);
-        }
-
-        /* Mermaid Diagram Styling */
-        .mermaid {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            margin-bottom: 2rem;
-            display: flex;
-            justify-content: center;
-        }
-
-        /* Quiz Styles */
-        .quiz-option {
-            transition: all 0.3s ease;
-        }
-        .quiz-option:hover {
-            background-color: #f0f9ff;
-            border-color: #0047BB;
-        }
-        .quiz-feedback {
-            display: none;
-            animation: fadeIn 0.5s;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Tech Element Styling */
-        code {
-            font-family: 'Courier New', Courier, monospace;
-            background-color: #f4f4f4;
-            padding: 2px 5px;
-            border-radius: 4px;
-            color: #E6007E; /* Magenta for code snippets */
-        }
-        
-        .cmd-block {
-            background-color: #1e1e1e;
-            color: #d4d4d4;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            font-family: 'Courier New', monospace;
-            overflow-x: auto;
-            border-left: 4px solid #FF8200; /* Orange Accent */
-        }
-
-        .section-title {
-            position: relative;
-            padding-left: 1rem;
-        }
-        .section-title::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 4px;
-            background-color: #E6007E; /* Magenta Bar */
-            border-radius: 2px;
-        }
-    </style>
-    <!-- 教學網站共用外觀 -->
-    <link rel="stylesheet" href="../assets/site-theme.css?v=20261112">
-    <script src="../assets/site-chrome.js?v=20261112" defer></script>
+    <link rel="stylesheet" href="a10.css?v=1">
+    <link rel="stylesheet" href="../assets/site-theme.css?v=20261112b">
+    <script src="../assets/site-chrome.js?v=20261112b" defer></script>
 </head>
 <body>
-
-    <!-- Header -->
-    <header class="header-bg text-white shadow-lg sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <i class="fa-solid fa-network-wired text-highlight text-2xl"></i>
-                <h1 class="text-xl md:text-2xl font-bold tracking-wide">A10 Networks Thunder 實戰課程</h1>
-            </div>
-            <div class="hidden md:block text-sm text-gray-300">
-                <span class="bg-white/10 px-3 py-1 rounded-full border border-white/20">Level 3 - Architect</span>
-            </div>
+    <header class="a10-hero">
+        <div class="a10-hero-inner">
+            <p class="a10-kicker">A10 Networks Thunder 實戰課程 · 單元 3-4</p>
+            <h1>故障排除</h1>
+            <p class="a10-subtitle">Troubleshooting</p>
         </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="flex-grow container mx-auto px-4 py-8 max-w-5xl">
-        
-        <!-- Intro Hero -->
-        <div class="bg-white rounded-xl shadow-sm p-8 mb-8 border-t-4 border-secondary">
-            <!-- Title removed as requested -->
-            <h3 class="text-2xl text-secondary font-bold mb-4">故障排除 (Troubleshooting)</h3>
-            <p class="text-gray-600 leading-relaxed">
-                本章節將深入探討 A10 ACOS 系統中的進階故障排除工具。我們將重點放在 <code>axdebug</code> 封包側錄分析，以及如何有效解讀 <code>show tech-support</code> 與系統日誌，讓您能像外科醫生一樣精準診斷網路疑難雜症。
-            </p>
-        </div>
+    <main class="a10-main">
+        <section class="a10-section">
+            <h2 class="a10-section-title"><span class="a10-num">00</span>單元概述 <span class="a10-en">Overview</span></h2>
+            <div class="a10-card plain">
+                <p>本章節將深入探討 A10 ACOS 系統中的進階故障排除工具。我們將重點放在 <code>axdebug</code> 封包側錄分析，以及如何有效解讀 <code>show tech-support</code> 與系統日誌，讓您能像外科醫生一樣精準診斷網路疑難雜症。</p>
+            </div>
+        </section>
 
-        <!-- Section 1: Concept -->
-        <div class="bg-white rounded-xl shadow-sm p-8 mb-8">
-            <h2 class="section-title text-2xl font-bold text-primary mb-6">一、核心概念 (Concept)</h2>
-            
-            <div class="grid md:grid-cols-2 gap-8">
-                <div class="bg-light p-6 rounded-lg">
-                    <div class="flex items-center mb-3">
-                        <i class="fa-solid fa-lightbulb text-highlight text-xl mr-3"></i>
-                        <h3 class="font-bold text-lg text-primary">一句話定義</h3>
-                    </div>
-                    <p class="text-gray-700">
-                        <b>axdebug</b> 是 A10 專用的「硬體感知」封包擷取工具，能捕捉經過 FPGA/ASIC 加速的流量；而 <b>Tech-Support</b> 則是設備的「全身健康檢查報告」。
-                    </p>
+        <section class="a10-section">
+            <h2 class="a10-section-title"><span class="a10-num">01</span>核心概念 <span class="a10-en">Concept</span></h2>
+            <div class="a10-grid a10-grid-2">
+                <div class="a10-card">
+                    <h3>一句話定義</h3>
+                    <p><strong>axdebug</strong> 是 A10 專用的「硬體感知」封包擷取工具，能捕捉經過 FPGA/ASIC 加速的流量；而 <strong>Tech-Support</strong> 則是設備的「全身健康檢查報告」。</p>
                 </div>
-
-                <div class="bg-light p-6 rounded-lg">
-                    <div class="flex items-center mb-3">
-                        <i class="fa-solid fa-mug-hot text-accent text-xl mr-3"></i>
-                        <h3 class="font-bold text-lg text-primary">生活化比喻</h3>
-                    </div>
-                    <p class="text-gray-700">
-                        想像高速公路 (網路流量) 上有裝設 ETC (ASIC 加速)。
-                        <br><br>
-                        一般的 Linux <code>tcpdump</code> 就像是「路邊的警察」，他只能看到走慢車道 (CPU) 的車，對於走 ETC 快速通道 (ASIC) 呼嘯而過的賽車完全看不到。
-                        <br><br>
-                        <b>axdebug</b> 就像是「高速攝影機」，不管車速多快、是否走 ETC 通道，都能精準拍下每一台車的照片。
-                    </p>
+                <div class="a10-card">
+                    <h3>生活化比喻</h3>
+                    <p>想像高速公路 (網路流量) 上有裝設 ETC (ASIC 加速)。</p>
+                    <p>一般的 Linux <code>tcpdump</code> 就像是「路邊的警察」，他只能看到走慢車道 (CPU) 的車，對於走 ETC 快速通道 (ASIC) 呼嘯而過的賽車完全看不到。</p>
+                    <p><strong>axdebug</strong> 就像是「高速攝影機」，不管車速多快、是否走 ETC 通道，都能精準拍下每一台車的照片。</p>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Section 2: Mechanism -->
-        <div class="bg-white rounded-xl shadow-sm p-8 mb-8">
-            <h2 class="section-title text-2xl font-bold text-primary mb-6">二、運作原理 (Mechanism)</h2>
+        <section class="a10-section">
+            <h2 class="a10-section-title"><span class="a10-num">02</span>運作原理 <span class="a10-en">Mechanism</span></h2>
+            <div class="a10-card">
+                <h3>1. axdebug 的技術細節</h3>
+                <ul class="a10-list">
+                    <li><strong>控制層面 vs. 數據層面：</strong> 標準的 <code>tcpdump</code> 只能抓取 Control Plane (CPU) 的封包。ACOS 架構中，大部分流量由 Data Plane (FPGA/ASIC) 處理。<code>axdebug</code> 指令會下達過濾規則給硬體晶片，將符合條件的封包「鏡像 (Mirror)」一份給 CPU 紀錄，因此能看到完整的流量。</li>
+                    <li><strong>過濾器 (Filter) 的重要性：</strong> 因為硬體流量巨大，必須設定精確的 Filter (如 IP, Port)，否則大量的 Debug 封包瞬間湧入 CPU 會導致設備效能下降 (High CPU Usage)。</li>
+                    <li><strong>輸出格式：</strong> 支援將結果輸出為 <code>.pcap</code> 檔案，可直接下載並透過 Wireshark 分析。</li>
+                </ul>
+            </div>
+            <div class="a10-card">
+                <h3>2. 關鍵指令與參數</h3>
+                <pre class="a10-code"><span class="dim"># 設定過濾條件 (抓取來自 192.168.1.50 的所有流量)</span>
+A10(config)# axdebug filter config 1 ip 192.168.1.50 /32
 
-            <div class="space-y-6">
-                <div>
-                    <h3 class="text-xl font-bold text-secondary mb-3">1. axdebug 的技術細節</h3>
-                    <ul class="list-disc list-inside space-y-2 text-gray-700 ml-2">
-                        <li>
-                            <strong class="text-primary">控制層面 vs. 數據層面：</strong> 
-                            標準的 <code>tcpdump</code> 只能抓取 Control Plane (CPU) 的封包。ACOS 架構中，大部分流量由 Data Plane (FPGA/ASIC) 處理。<code>axdebug</code> 指令會下達過濾規則給硬體晶片，將符合條件的封包「鏡像 (Mirror)」一份給 CPU 紀錄，因此能看到完整的流量。
-                        </li>
-                        <li>
-                            <strong class="text-primary">過濾器 (Filter) 的重要性：</strong> 
-                            因為硬體流量巨大，必須設定精確的 Filter (如 IP, Port)，否則大量的 Debug 封包瞬間湧入 CPU 會導致設備效能下降 (High CPU Usage)。
-                        </li>
-                        <li>
-                            <strong class="text-primary">輸出格式：</strong> 
-                            支援將結果輸出為 <code>.pcap</code> 檔案，可直接下載並透過 Wireshark 分析。
-                        </li>
-                    </ul>
-                </div>
+<span class="dim"># 設定輸出到檔案 (儲存 3000 個封包)</span>
+A10(config)# axdebug capture save-config file my-capture.pcap count 3000
 
-                <div>
-                    <h3 class="text-xl font-bold text-secondary mb-3">2. 關鍵指令與參數</h3>
-                    <div class="cmd-block text-sm">
-                        # 設定過濾條件 (抓取來自 192.168.1.50 的所有流量)<br>
-                        A10(config)# axdebug filter config 1 ip 192.168.1.50 /32<br>
-                        <br>
-                        # 設定輸出到檔案 (儲存 3000 個封包)<br>
-                        A10(config)# axdebug capture save-config file my-capture.pcap count 3000<br>
-                        <br>
-                        # 啟用 Debug<br>
-                        A10(config)# axdebug enable<br>
-                        <br>
-                        # 停止並匯出<br>
-                        A10(config)# no axdebug enable<br>
-                        A10# export axdebug my-capture.pcap tftp://10.0.0.1/
-                    </div>
-                </div>
+<span class="dim"># 啟用 Debug</span>
+A10(config)# axdebug enable
 
-                <div>
-                    <h3 class="text-xl font-bold text-secondary mb-3">3. 廠商對照 (Competitor View)</h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-gray-100 border-b border-gray-200">
-                                    <th class="p-3 font-semibold text-primary">Feature</th>
-                                    <th class="p-3 font-semibold text-secondary">A10 Networks</th>
-                                    <th class="p-3 font-semibold text-gray-600">F5 Networks</th>
-                                    <th class="p-3 font-semibold text-gray-600">Cisco (IOS)</th>
-                                </tr>
-                            </thead>
-                            <tbody class="text-gray-700 text-sm">
-                                <tr class="border-b border-gray-100">
-                                    <td class="p-3 font-medium">封包側錄指令</td>
-                                    <td class="p-3 text-accent font-bold">axdebug</td>
-                                    <td class="p-3">tcpdump (需加 -nnni 0.0:nnnp)</td>
-                                    <td class="p-3">monitor capture</td>
-                                </tr>
-                                <tr class="border-b border-gray-100">
-                                    <td class="p-3 font-medium">硬體加速流量</td>
-                                    <td class="p-3">可直接抓取</td>
-                                    <td class="p-3">需停用 PVA 或使用特定參數</td>
-                                    <td class="p-3">需使用 Embedded Packet Capture</td>
-                                </tr>
-                                <tr class="border-b border-gray-100">
-                                    <td class="p-3 font-medium">全系統檢測</td>
-                                    <td class="p-3">show tech-support</td>
-                                    <td class="p-3">qkview</td>
-                                    <td class="p-3">show tech-support</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+<span class="dim"># 停止並匯出</span>
+A10(config)# no axdebug enable
+A10# export axdebug my-capture.pcap tftp://10.0.0.1/</pre>
+            </div>
+            <div class="a10-card">
+                <h3>3. 廠商對照 (Competitor View)</h3>
+                <div class="a10-table-wrap">
+                    <table class="a10-table">
+                        <thead><tr><th>Feature</th><th>A10 Networks</th><th>F5 Networks</th><th>Cisco (IOS)</th></tr></thead>
+                        <tbody>
+                            <tr><td>封包側錄指令</td><td><span class="a10-hl">axdebug</span></td><td>tcpdump (需加 -nnni 0.0:nnnp)</td><td>monitor capture</td></tr>
+                            <tr><td>硬體加速流量</td><td>可直接抓取</td><td>需停用 PVA 或使用特定參數</td><td>需使用 Embedded Packet Capture</td></tr>
+                            <tr><td>全系統檢測</td><td>show tech-support</td><td>qkview</td><td>show tech-support</td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Section 3: Visuals -->
-        <div class="bg-white rounded-xl shadow-sm p-8 mb-8">
-            <h2 class="section-title text-2xl font-bold text-primary mb-6">三、架構視覺化 (Visuals)</h2>
-            <p class="text-gray-600 mb-4">以下展示 ACOS 系統中封包處理與 Debug 流程的垂直架構。</p>
-
-            <!-- Diagram 1: Packet Flow & Debug Hook -->
-            <div class="mb-8">
-                <h4 class="text-lg font-bold text-center text-secondary mb-2">圖表 1: ACOS 封包處理與 axdebug 介入點</h4>
+        <section class="a10-section">
+            <h2 class="a10-section-title"><span class="a10-num">03</span>架構視覺化 <span class="a10-en">Visuals</span></h2>
+            <p class="a10-lead">以下展示 ACOS 系統中封包處理與 Debug 流程的垂直架構。</p>
+            <figure class="a10-figure">
+                <figcaption>圖表 1: ACOS 封包處理與 axdebug 介入點</figcaption>
                 <!-- 流程圖 (手繪 SVG):直式,Data Plane / ASIC 與 Control Plane / CPU 以不同底色區分 -->
                 <div style="width:100%;overflow-x:auto">
                 <svg viewBox="0 0 820 888" role="img" aria-labelledby="a10-34a-title a10-34a-desc" style="width:100%;min-width:560px;max-width:820px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
@@ -314,11 +139,9 @@
                 <text x="260" y="839" text-anchor="middle" font-size="13" font-weight="700" fill="#15803d">後端伺服器</text>
                 </svg>
                 </div>
-            </div>
-
-            <!-- Diagram 2: Troubleshooting Workflow -->
-            <div>
-                <h4 class="text-lg font-bold text-center text-secondary mb-2">圖表 2: 標準故障排除流程 (Sequence Diagram)</h4>
+            </figure>
+            <figure class="a10-figure">
+                <figcaption>圖表 2: 標準故障排除流程 (Sequence Diagram)</figcaption>
                 <!-- 時序圖 (由 Mermaid 10.9.1 預先轉成靜態 SVG,套用網站配色)。原始 Mermaid 碼:
                     sequenceDiagram
                         participant Admin as 管理員
@@ -345,219 +168,108 @@
                 
                 -->
                 <div style="width:100%;overflow-x:auto"><svg xmlns="http://www.w3.org/2000/svg" aria-roledescription="sequence" role="img" viewBox="-92.5 -10 1119.5 921" style="width:100%;min-width:560px;max-width:1120px;height:auto;display:block;margin:0 auto" id="seq-a10-3-4-axdebug-2" aria-labelledby="seq-a10-3-4-axdebug-2-title"><title id="seq-a10-3-4-axdebug-2-title">圖表 2: 標準故障排除流程 (Sequence Diagram)</title><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="902" y1="5" x1="902"/><g><rect class="actor actor-top" ry="3" rx="3" name="Debug" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="827"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="902"><tspan dy="0" x="902">axdebug</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="662" y1="5" x1="662"/><g><rect class="actor actor-top" ry="3" rx="3" name="Log" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="587"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="662"><tspan dy="0" x="662">System Log</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="422" y1="5" x1="422"/><g><rect class="actor actor-top" ry="3" rx="3" name="ACOS" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="347"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="422"><tspan dy="0" x="422">A10 Thunder</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="75" y1="5" x1="75"/><g><rect class="actor actor-top" ry="3" rx="3" name="Admin" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="0"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="75"><tspan dy="0" x="75">管理員</tspan></text></g></g><style>#seq-a10-3-4-axdebug-2{font-family:'Noto Sans TC',Roboto,'Microsoft JhengHei',sans-serif;font-size:15px;fill:#1e2235;}#seq-a10-3-4-axdebug-2 .marker{fill:#5b6278;stroke:#5b6278;}#seq-a10-3-4-axdebug-2 .marker.cross{stroke:#5b6278;}#seq-a10-3-4-axdebug-2 .actor{stroke:#673ab7;fill:#f3effc;}#seq-a10-3-4-axdebug-2 text.actor&gt;tspan{fill:#311b92;stroke:none;}#seq-a10-3-4-axdebug-2 .actor-line{stroke:#b39ddb;}#seq-a10-3-4-axdebug-2 .messageLine0{stroke-width:1.5;stroke-dasharray:none;stroke:#5b6278;}#seq-a10-3-4-axdebug-2 .messageLine1{stroke-width:1.5;stroke-dasharray:2,2;stroke:#5b6278;}#seq-a10-3-4-axdebug-2 #seq-a10-3-4-axdebug-2-arrowhead path{fill:#5b6278;stroke:#5b6278;}#seq-a10-3-4-axdebug-2 #sequencenumber{fill:#5b6278;}#seq-a10-3-4-axdebug-2 #crosshead path{fill:#5b6278;stroke:#5b6278;}#seq-a10-3-4-axdebug-2 .messageText{fill:#1e2235;stroke:none;}#seq-a10-3-4-axdebug-2 .labelBox{stroke:#673ab7;fill:#f3effc;}#seq-a10-3-4-axdebug-2 .labelText,#seq-a10-3-4-axdebug-2 .labelText&gt;tspan{fill:#311b92;stroke:none;}#seq-a10-3-4-axdebug-2 .loopText,#seq-a10-3-4-axdebug-2 .loopText&gt;tspan{fill:#311b92;stroke:none;}#seq-a10-3-4-axdebug-2 .loopLine{stroke-width:2px;stroke-dasharray:2,2;stroke:#673ab7;fill:#673ab7;}#seq-a10-3-4-axdebug-2 .note{stroke:#f5b041;fill:#fff8e1;}#seq-a10-3-4-axdebug-2 .noteText,#seq-a10-3-4-axdebug-2 .noteText&gt;tspan{fill:#5d4037;stroke:none;}</style><g/><defs><marker orient="auto" markerHeight="12" markerWidth="12" markerUnits="userSpaceOnUse" refY="5" refX="7.9" id="seq-a10-3-4-axdebug-2-arrowhead"><path d="M 0 0 L 10 5 L 0 10 z"/></marker></defs><g><rect class="note" ry="0" rx="0" height="48" width="165" stroke="#666" fill="#EDF2AE" y="414" x="339.5"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="420" x="422"><tspan x="422">等待異常流量發生...</tspan></text></g><g><line class="loopLine" y2="249" x2="514.5" y1="249" x1="64"/><line class="loopLine" y2="695" x2="514.5" y1="249" x1="514.5"/><line class="loopLine" y2="695" x2="514.5" y1="695" x1="64"/><line class="loopLine" y2="695" x2="64" y1="249" x1="64"/><line style="stroke-dasharray: 3, 3;" class="loopLine" y2="593" x2="514.5" y1="593" x1="64"/><polygon class="labelBox" points="64,249 114,249 114,262 105.6,269 64,269"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" class="labelText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="262" x="89">alt</text><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" class="loopText" text-anchor="middle" y="267" x="314.25"><tspan x="314.25">[Log 資訊不足]</tspan></text><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" class="loopText" text-anchor="middle" y="611" x="289.25">[Log 已有明確錯誤 (如 Pool Down)]</text></g><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="80" x="247">1. 接獲報修 (連線異常)</text><line style="fill: none;" marker-end="url(#seq-a10-3-4-axdebug-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="123" x2="418" y1="123" x1="76"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="138" x="247">show log (檢查歷史紀錄)</text><line style="fill: none;" marker-end="url(#seq-a10-3-4-axdebug-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="181" x2="418" y1="181" x1="76"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="196" x="250">回傳 Warning/Error Logs</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-a10-3-4-axdebug-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="239" x2="79" y1="239" x1="421"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="303" x="247">2. 設定 axdebug filter (IP/Port)</text><line style="fill: none;" marker-end="url(#seq-a10-3-4-axdebug-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="346" x2="418" y1="346" x1="76"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="361" x="247">3. axdebug enable (開始側錄)</text><line style="fill: none;" marker-end="url(#seq-a10-3-4-axdebug-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="404" x2="418" y1="404" x1="76"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="477" x="247">4. no axdebug enable (停止側錄)</text><line style="fill: none;" marker-end="url(#seq-a10-3-4-axdebug-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="520" x2="418" y1="520" x1="76"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="535" x="247">export axdebug (匯出 pcap)</text><line style="fill: none;" marker-end="url(#seq-a10-3-4-axdebug-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="578" x2="418" y1="578" x1="76"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="642" x="247">直接修復配置</text><line style="fill: none;" marker-end="url(#seq-a10-3-4-axdebug-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="685" x2="418" y1="685" x1="76"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="710" x="76">5. 使用 Wireshark 分析 pcap</text><path style="fill: none;" marker-end="url(#seq-a10-3-4-axdebug-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" d="M 76,753 C 136,743 136,783 76,773"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="798" x="76">6. 確認 3-Way Handshake 斷在哪</text><path style="fill: none;" marker-end="url(#seq-a10-3-4-axdebug-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" d="M 76,841 C 136,831 136,871 76,861"/></svg></div>
-            </div>
-        </div>
+            </figure>
+        </section>
 
-        <!-- Section 4: Use Case -->
-        <div class="bg-white rounded-xl shadow-sm p-8 mb-8">
-            <h2 class="section-title text-2xl font-bold text-primary mb-6">四、實務應用場景 (Use Case)</h2>
-            
-            <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-6 border border-gray-200">
-                <h3 class="text-xl font-bold text-primary mb-4">案例：電商平台偶發性結帳失敗</h3>
-                
-                <div class="grid md:grid-cols-3 gap-6">
-                    <div class="col-span-2">
-                        <p class="text-gray-700 mb-4">
-                            <strong>情境描述：</strong><br>
-                            某電商平台在促銷期間，部分使用者反應點擊「結帳」後畫面轉圈圈，最後顯示連線逾時。但監控系統顯示伺服器綠燈，CPU 使用率正常。
-                        </p>
-                        <p class="text-gray-700 mb-4">
-                            <strong>處理步驟：</strong>
-                        </p>
-                        <ol class="list-decimal list-inside text-gray-700 space-y-2">
-                            <li>詢問受影響客戶的 Public IP (例如 203.66.x.x)。</li>
-                            <li>登入 A10，設定 Filter：<code>axdebug filter config 1 ip 203.66.x.x</code>。</li>
-                            <li>設定抓取後端伺服器回應：同時監控 VIP 與 Real Server 的通訊。</li>
-                            <li>啟用 <code>axdebug</code> 並請客戶重試結帳。</li>
-                            <li>分析 pcap 發現：Client 送出 HTTP POST，A10 轉送給 Server，但 Server 回應了 <code>RST</code> (Reset) 封包，而非 <code>ACK</code>。</li>
-                            <li><strong>結論：</strong> 問題出在後端應用程式崩潰主動斷線，而非網路不通。</li>
-                        </ol>
-                    </div>
-                    
-                    <div class="bg-white p-4 rounded shadow-sm h-fit">
-                        <h4 class="font-bold text-secondary mb-3 text-sm uppercase tracking-wider">優點與缺點分析</h4>
-                        <div class="space-y-4">
-                            <div>
-                                <div class="flex items-center text-green-600 font-bold mb-1">
-                                    <i class="fa-solid fa-thumbs-up mr-2"></i> 優點
-                                </div>
-                                <p class="text-xs text-gray-600">證據確鑿，責任歸屬明確 (證明是 Server 端 Reset 連線，A10 網路層正常)。</p>
-                            </div>
-                            <div>
-                                <div class="flex items-center text-red-500 font-bold mb-1">
-                                    <i class="fa-solid fa-thumbs-down mr-2"></i> 缺點
-                                </div>
-                                <p class="text-xs text-gray-600">需精確設定 Filter，若設定錯誤 (如抓取 any)，可能導致 log 檔案過大或短暫影響效能。</p>
-                            </div>
-                        </div>
-                    </div>
+        <section class="a10-section">
+            <h2 class="a10-section-title"><span class="a10-num">04</span>實務應用場景 <span class="a10-en">Use Case</span></h2>
+            <div class="a10-card">
+                <h3>案例：電商平台偶發性結帳失敗</h3>
+                <h4>情境描述：</h4>
+                <p>某電商平台在促銷期間，部分使用者反應點擊「結帳」後畫面轉圈圈，最後顯示連線逾時。但監控系統顯示伺服器綠燈，CPU 使用率正常。</p>
+                <h4>處理步驟：</h4>
+                <ol class="a10-steps">
+                    <li>詢問受影響客戶的 Public IP (例如 203.66.x.x)。</li>
+                    <li>登入 A10，設定 Filter：<code>axdebug filter config 1 ip 203.66.x.x</code>。</li>
+                    <li>設定抓取後端伺服器回應：同時監控 VIP 與 Real Server 的通訊。</li>
+                    <li>啟用 <code>axdebug</code> 並請客戶重試結帳。</li>
+                    <li>分析 pcap 發現：Client 送出 HTTP POST，A10 轉送給 Server，但 Server 回應了 <code>RST</code> (Reset) 封包，而非 <code>ACK</code>。</li>
+                    <li><strong>結論：</strong> 問題出在後端應用程式崩潰主動斷線，而非網路不通。</li>
+                </ol>
+            </div>
+            <div class="a10-card">
+                <h3>優點與缺點分析</h3>
+                <div class="a10-callout tip">
+                    <span class="a10-callout-title">優點</span>
+                    <p>證據確鑿，責任歸屬明確 (證明是 Server 端 Reset 連線，A10 網路層正常)。</p>
+                </div>
+                <div class="a10-callout warn">
+                    <span class="a10-callout-title">缺點</span>
+                    <p>需精確設定 Filter，若設定錯誤 (如抓取 any)，可能導致 log 檔案過大或短暫影響效能。</p>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Section 5: Quiz -->
-        <div class="bg-white rounded-xl shadow-sm p-8 mb-8">
-            <h2 class="section-title text-2xl font-bold text-primary mb-6">五、隨堂測驗 (Quiz)</h2>
-            <p class="text-gray-600 mb-6">請回答下列問題以檢視學習成果。</p>
-
-            <div id="quiz-container" class="space-y-6">
-                <!-- Quiz questions will be inserted here by JS -->
-            </div>
-        </div>
-
+        <section class="a10-section">
+            <h2 class="a10-section-title"><span class="a10-num">05</span>隨堂測驗 <span class="a10-en">Quiz</span></h2>
+            <p class="a10-lead">請回答下列問題以檢視學習成果。</p>
+            <div id="a10-quiz"></div>
+        </section>
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-primary text-white py-6 mt-auto border-t-4 border-highlight">
-        <div class="container mx-auto px-4 text-center text-sm font-light tracking-wide">
-            <p>Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0</p>
-        </div>
+    <footer>
+        Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0
     </footer>
 
-    <!-- JavaScript for Quiz -->
     <script>
-        // Initialize Mermaid
-        mermaid.initialize({ 
-            startOnLoad: true,
-            theme: 'default',
-            themeVariables: {
-                primaryColor: '#0047BB',
-                edgeLabelBackground: '#ffffff',
-                tertiaryColor: '#f4f4f4'
-            }
-        });
-
-        // Quiz Data
-        const quizData = [
+        window.A10_QUIZ = [
             {
-                question: "1. 為什麼在 A10 Thunder 上建議使用 axdebug 而不是標準的 tcpdump？",
+                question: "為什麼在 A10 Thunder 上建議使用 axdebug 而不是標準的 tcpdump？",
                 options: [
                     "A. 因為 axdebug 介面比較漂亮",
                     "B. 因為 tcpdump 無法捕捉經過 ASIC/FPGA 硬體加速的流量",
                     "C. 因為 tcpdump 只能在 Windows 上執行",
                     "D. 因為 axdebug 不需要管理員權限"
                 ],
-                answer: 1, // Index of correct answer
+                correct: 1,
                 explanation: "標準的 tcpdump 運作於 Linux Kernel (Control Plane)，無法看見被硬體晶片 (Data Plane) 快速轉發的封包。axdebug 能與硬體溝通，將封包鏡像出來。"
             },
             {
-                question: "2. 在執行 axdebug 之前，最關鍵的步驟是什麼？",
+                question: "在執行 axdebug 之前，最關鍵的步驟是什麼？",
                 options: [
                     "A. 重開機",
                     "B. 設定 Filter (過濾器) 指定特定 IP 或 Port",
                     "C. 拔除所有網路線",
                     "D. 升級韌體"
                 ],
-                answer: 1,
+                correct: 1,
                 explanation: "A10 處理流量極大，若不設定 Filter 直接抓取所有封包，會導致 CPU 瞬間滿載甚至當機。設定 Filter 是保護設備的必要步驟。"
             },
             {
-                question: "3. 若希望將設備的完整配置、日誌、核心傾印(Core Dump)等資訊打包給原廠分析，應使用哪個指令？",
+                question: "若希望將設備的完整配置、日誌、核心傾印(Core Dump)等資訊打包給原廠分析，應使用哪個指令？",
                 options: [
                     "A. show run",
                     "B. show version",
                     "C. show tech-support",
                     "D. write memory"
                 ],
-                answer: 2,
+                correct: 2,
                 explanation: "show tech-support 指令會自動收集 show run, show log, debug info, hardware status 等所有診斷所需的資訊，是報修時的標準文件。"
             },
             {
-                question: "4. A10 的 axdebug 抓取到的檔案，通常建議匯出成什麼格式以便在電腦上分析？",
+                question: "A10 的 axdebug 抓取到的檔案，通常建議匯出成什麼格式以便在電腦上分析？",
                 options: [
                     "A. .txt 文字檔",
                     "B. .jpg 圖片檔",
                     "C. .pcap 封包檔",
                     "D. .mp3 音訊檔"
                 ],
-                answer: 2,
+                correct: 2,
                 explanation: ".pcap 是標準的網路封包儲存格式，可使用 Wireshark 等工具開啟，進行詳細的逐層 (L2-L7) 分析。"
             },
             {
-                question: "5. 在 F5 設備中對應 A10 `show tech-support` 的指令通常是？",
+                question: "在 F5 設備中對應 A10 <code>show tech-support</code> 的指令通常是？",
                 options: [
                     "A. tcpdump",
                     "B. qkview",
                     "C. bigtop",
                     "D. tmsh list"
                 ],
-                answer: 1,
+                correct: 1,
                 explanation: "F5 的 qkview 工具會產生一個壓縮檔，包含所有的設定檔與診斷資訊，可上傳至 F5 iHealth 分析，功能等同於 A10 的 show tech-support。"
             }
         ];
-
-        // Render Quiz
-        const quizContainer = document.getElementById('quiz-container');
-
-        quizData.forEach((item, index) => {
-            const questionDiv = document.createElement('div');
-            questionDiv.className = 'border border-gray-200 rounded-lg p-6 bg-gray-50';
-            
-            let optionsHtml = '';
-            item.options.forEach((opt, optIndex) => {
-                optionsHtml += `
-                    <label class="quiz-option flex items-center p-3 border border-gray-300 rounded cursor-pointer mb-2 bg-white">
-                        <input type="radio" name="q${index}" value="${optIndex}" class="mr-3 h-4 w-4 text-secondary focus:ring-secondary">
-                        <span class="text-gray-700">${opt}</span>
-                    </label>
-                `;
-            });
-
-            questionDiv.innerHTML = `
-                <h4 class="font-bold text-lg text-primary mb-4">${item.question}</h4>
-                <div class="space-y-2 mb-4">
-                    ${optionsHtml}
-                </div>
-                <div id="feedback-${index}" class="quiz-feedback p-4 rounded bg-blue-50 border border-blue-200 text-blue-800 text-sm">
-                    <p class="font-bold mb-1"><i class="fa-solid fa-circle-info mr-1"></i> 解析：</p>
-                    ${item.explanation}
-                </div>
-            `;
-            
-            quizContainer.appendChild(questionDiv);
-
-            // Add Event Listeners
-            const inputs = questionDiv.querySelectorAll(`input[name="q${index}"]`);
-            inputs.forEach(input => {
-                input.addEventListener('change', (e) => {
-                    const selected = parseInt(e.target.value);
-                    const feedback = document.getElementById(`feedback-${index}`);
-                    const allLabels = questionDiv.querySelectorAll('label');
-                    
-                    // Reset styles
-                    allLabels.forEach(l => {
-                        l.classList.remove('bg-green-100', 'border-green-500', 'bg-red-100', 'border-red-500');
-                        l.classList.add('bg-white');
-                    });
-
-                    // Check answer
-                    const selectedLabel = e.target.closest('label');
-                    if (selected === item.answer) {
-                        selectedLabel.classList.remove('bg-white');
-                        selectedLabel.classList.add('bg-green-100', 'border-green-500');
-                        selectedLabel.innerHTML += '<i class="fa-solid fa-check text-green-600 ml-auto"></i>';
-                    } else {
-                        selectedLabel.classList.remove('bg-white');
-                        selectedLabel.classList.add('bg-red-100', 'border-red-500');
-                        selectedLabel.innerHTML += '<i class="fa-solid fa-xmark text-red-600 ml-auto"></i>';
-                        
-                        // Highlight correct answer
-                        const correctLabel = allLabels[item.answer];
-                        correctLabel.classList.remove('bg-white');
-                        correctLabel.classList.add('bg-green-100', 'border-green-500');
-                        if(!correctLabel.querySelector('.fa-check')) {
-                            correctLabel.innerHTML += '<i class="fa-solid fa-check text-green-600 ml-auto"></i>';
-                        }
-                    }
-
-                    // Show feedback
-                    feedback.style.display = 'block';
-                    
-                    // Disable radio buttons after selection
-                    inputs.forEach(i => i.disabled = true);
-                });
-            });
-        });
     </script>
+    <script src="a10.js?v=1"></script>
 </body>
 </html>

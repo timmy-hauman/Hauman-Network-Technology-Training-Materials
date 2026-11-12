@@ -4,234 +4,53 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fortinet FortiGate 實戰課程 - VDOM 架構設計</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Mermaid.js -->
-    <!-- 架構圖已改為靜態 SVG,不再載入 Mermaid;保留空殼讓頁面上既有的呼叫不出錯 --><script>window.mermaid = { initialize: function () {}, init: function () {}, run: function () { return Promise.resolve(); } };</script>
-    
-    <style>
-        /* 強制字體與寬度設定 (CSS 暴力覆寫) */
-        body {
-            font-family: 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
-            background-color: #f3f4f6; /* Gray-100 */
-            min-width: 1024px; /* 強制最小寬度，避免手機版排版擠壓 */
-            overflow-x: auto;
-        }
-
-        .main-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        /* Section Card Design */
-        .section-card {
-            background: white;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            margin-bottom: 2rem;
-            padding: 2rem;
-            border-left: 6px solid #c02428; /* Fortinet Red */
-        }
-
-        /* 標題徽章 */
-        .badge {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-weight: bold;
-            font-size: 0.875rem;
-            margin-bottom: 1rem;
-        }
-        .badge-concept { background-color: #fee2e2; color: #991b1b; } /* Red */
-        .badge-mechanism { background-color: #dbeafe; color: #1e40af; } /* Blue */
-        .badge-visuals { background-color: #d1fae5; color: #065f46; } /* Green */
-        .badge-usecase { background-color: #ffedd5; color: #9a3412; } /* Orange */
-        .badge-quiz { background-color: #f3e8ff; color: #6b21a8; } /* Purple */
-
-        /* 特殊區塊 */
-        .analogy-box {
-            border: 2px solid #10b981; /* Green-500 */
-            background-color: #ecfdf5; /* Green-50 */
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-            margin: 1rem 0;
-            position: relative;
-        }
-        .analogy-box::before {
-            content: '\f0eb'; /* Lightbulb icon */
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
-            position: absolute;
-            top: -15px;
-            left: 20px;
-            background: #10b981;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 50%;
-        }
-
-        .highlight-box {
-            border: 2px solid #ef4444; /* Red-500 */
-            background-color: #fef2f2; /* Red-50 */
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-            margin: 1rem 0;
-        }
-
-        /* Mermaid Container - 更新策略：強制寬度 + 捲軸 */
-        .mermaid-container {
-            background-color: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 0.5rem;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            
-            /* 修改：改為 Block 佈局並允許水平捲動 */
-            display: block; 
-            overflow-x: auto;
-            text-align: center; /* 讓內部 inline-block 元素置中 */
-        }
-
-        .mermaid {
-            /* CSS 暴力覆寫：強制最小寬度，避免縮圖導致字體過小 */
-            min-width: 900px !important; 
-            display: inline-block !important; /* 配合父層 text-align center */
-        }
-        
-        /* CLI Code Block */
-        .cli-block {
-            background-color: #1f2937; /* Gray-900 */
-            color: #4ade80; /* Green-400 */
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-            font-family: 'Courier New', Courier, monospace;
-            overflow-x: auto;
-            white-space: pre;
-            font-size: 0.9rem;
-            line-height: 1.5;
-        }
-        
-        .cli-comment {
-            color: #9ca3af; /* Gray-400 */
-            font-style: italic;
-        }
-
-        /* Quiz Styles */
-        .quiz-option {
-            cursor: pointer;
-            padding: 1rem;
-            border: 1px solid #e5e7eb;
-            border-radius: 0.5rem;
-            margin-bottom: 0.5rem;
-            transition: all 0.2s;
-        }
-        .quiz-option:hover {
-            background-color: #f9fafb;
-        }
-        .quiz-option.correct {
-            background-color: #d1fae5;
-            border-color: #10b981;
-            color: #065f46;
-        }
-        .quiz-option.wrong {
-            background-color: #fee2e2;
-            border-color: #ef4444;
-            color: #991b1b;
-        }
-        .feedback {
-            margin-top: 1rem;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            display: none;
-        }
-
-        /* Footer */
-        footer {
-            background-color: #1f2937;
-            color: #d1d5db;
-            text-align: center;
-            padding: 1.5rem;
-            margin-top: 4rem;
-            font-size: 0.9rem;
-        }
-    </style>
-    <!-- 教學網站共用外觀 -->
-    <link rel="stylesheet" href="../assets/site-theme.css?v=20261112">
-    <script src="../assets/site-chrome.js?v=20261112" defer></script>
+    <link rel="stylesheet" href="fg.css?v=1">
+    <link rel="stylesheet" href="../assets/site-theme.css?v=20261112b">
+    <script src="../assets/site-chrome.js?v=20261112b" defer></script>
 </head>
 <body>
-
-    <!-- Header -->
-    <header class="bg-gradient-to-r from-red-700 to-red-900 text-white p-8 shadow-lg">
-        <div class="max-width-container mx-auto flex items-center gap-4">
-            <i class="fa-solid fa-shield-halved text-5xl"></i>
-            <div>
-                <h1 class="text-3xl font-bold mb-2">FortiGate 架構大師課程</h1>
-                <p class="text-xl opacity-90">Level 3: Architect & Troubleshooting - 13. 虛擬網域 (VDOM)</p>
-            </div>
+    <header class="fg-hero">
+        <div class="fg-hero-inner">
+            <p class="fg-kicker">Fortinet FortiGate 實戰課程 · 第 13 課</p>
+            <h1>虛擬網域 (VDOM) 架構設計</h1>
+            <p class="fg-subtitle">Virtual Domain (VDOM)</p>
         </div>
     </header>
 
-    <div class="main-container">
-
-        <!-- 1. 核心概念 -->
-        <div class="section-card">
-            <span class="badge badge-concept">一、核心概念 (Concept)</span>
-            <h2 class="text-2xl font-bold mb-4 text-gray-800">什麼是 VDOM？</h2>
-            
-            <p class="text-lg mb-4 text-gray-700 leading-relaxed">
-                <strong>一句話定義：</strong> VDOM (Virtual Domain) 是一種虛擬化技術，能將一台實體 FortiGate 防火牆切割成多個獨立運作的「邏輯防火牆」，彼此擁有獨立的路由表、策略與管理員權限。
-            </p>
-
-            <div class="analogy-box">
-                <h3 class="font-bold text-green-800 text-lg mb-2">生活化比喻：商務大樓與辦公室</h3>
-                <p class="text-gray-700">
-                    想像一台實體 FortiGate 是一棟<strong>「商務大樓」</strong> (Hardware)。
-                </p>
-                <ul class="list-disc list-inside mt-2 text-gray-700">
-                    <li><strong>VDOM (虛擬網域)</strong>：就是大樓裡分租給不同公司的<strong>「獨立辦公室」</strong>。</li>
-                    <li><strong>資源共享</strong>：大家共用大樓的水電、警衛與地基 (CPU, RAM, 硬碟)。</li>
-                    <li><strong>獨立管理</strong>：A 公司 (財務部 VDOM) 的門禁卡不能開 B 公司 (訪客 VDOM) 的門；A 公司內部的裝潢與規定 (Policy & Routing) 完全由 A 公司老闆決定，B 公司無權干涉。</li>
-                    <li><strong>Root VDOM</strong>：就像是<strong>「大樓管委會」</strong>，負責管理公共區域與對外的主幹道。</li>
-                </ul>
-            </div>
-        </div>
-
-        <!-- 2. 運作原理 -->
-        <div class="section-card">
-            <span class="badge badge-mechanism">二、運作原理 (Mechanism)</span>
-            <h2 class="text-2xl font-bold mb-4 text-gray-800">技術細節與運作模式</h2>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div>
-                    <h3 class="text-xl font-bold text-blue-800 mb-3"><i class="fa-solid fa-layer-group mr-2"></i>VDOM 的兩大模式</h3>
-                    <ul class="space-y-3 text-gray-700">
-                        <li>
-                            <strong>1. Split-Task VDOM (任務分離模式)</strong>
-                            <p class="text-sm text-gray-600 ml-4 mt-1">
-                                用於簡化管理。通常只分兩個 VDOM：一個專門管管理流量 (Management VDOM)，另一個管數據流量 (Traffic VDOM)。這在電信商或高安全環境常見，確保管理通道不被DDoS影響。
-                            </p>
-                        </li>
-                        <li>
-                            <strong>2. Multi-VDOM (多重虛擬網域模式)</strong>
-                            <p class="text-sm text-gray-600 ml-4 mt-1">
-                                最常用的模式。將防火牆切分成多個獨立單位 (如：Root, Sales, HR, Guest)。每個 VDOM 就像一台獨立設備。
-                            </p>
-                        </li>
+    <main class="fg-main">
+        <section class="fg-section">
+            <h2 class="fg-section-title"><span class="fg-num">01</span>核心概念 <span class="fg-en">Concept</span></h2>
+            <div class="fg-card plain">
+                <h3>什麼是 VDOM？</h3>
+                <p><strong>一句話定義：</strong> VDOM (Virtual Domain) 是一種虛擬化技術，能將一台實體 FortiGate 防火牆切割成多個獨立運作的「邏輯防火牆」，彼此擁有獨立的路由表、策略與管理員權限。</p>
+                <div class="fg-callout"><span class="fg-callout-title">生活化比喻：商務大樓與辦公室</span>
+                    <p>想像一台實體 FortiGate 是一棟<strong>「商務大樓」</strong> (Hardware)。</p>
+                    <ul class="fg-list">
+                        <li><strong>VDOM (虛擬網域)</strong>：就是大樓裡分租給不同公司的<strong>「獨立辦公室」</strong>。</li>
+                        <li><strong>資源共享</strong>：大家共用大樓的水電、警衛與地基 (CPU, RAM, 硬碟)。</li>
+                        <li><strong>獨立管理</strong>：A 公司 (財務部 VDOM) 的門禁卡不能開 B 公司 (訪客 VDOM) 的門；A 公司內部的裝潢與規定 (Policy &amp; Routing) 完全由 A 公司老闆決定，B 公司無權干涉。</li>
+                        <li><strong>Root VDOM</strong>：就像是<strong>「大樓管委會」</strong>，負責管理公共區域與對外的主幹道。</li>
                     </ul>
                 </div>
+            </div>
+        </section>
 
-                <div>
-                    <h3 class="text-xl font-bold text-blue-800 mb-3"><i class="fa-solid fa-microchip mr-2"></i>資源分配 (Global Resources)</h3>
-                    <p class="text-gray-700 mb-2">
-                        由於所有 VDOM 共用硬體，必須設定資源配額 (Resource Quotas) 避免「鄰居吵雜效應 (Noisy Neighbor Effect)」。
-                    </p>
-                    <div class="highlight-box">
-                        <strong class="text-red-700">關鍵設定參數：</strong>
-                        <ul class="list-disc list-inside text-gray-700 mt-1">
+        <section class="fg-section">
+            <h2 class="fg-section-title"><span class="fg-num">02</span>運作原理 <span class="fg-en">Mechanism</span></h2>
+            <p class="fg-lead"><strong>技術細節與運作模式</strong></p>
+            <div class="fg-grid fg-grid-2">
+                <div class="fg-card">
+                    <h3>VDOM 的兩大模式</h3>
+                    <ul class="fg-list">
+                        <li><strong>1. Split-Task VDOM (任務分離模式)</strong><br>用於簡化管理。通常只分兩個 VDOM：一個專門管管理流量 (Management VDOM)，另一個管數據流量 (Traffic VDOM)。這在電信商或高安全環境常見，確保管理通道不被DDoS影響。</li>
+                        <li><strong>2. Multi-VDOM (多重虛擬網域模式)</strong><br>最常用的模式。將防火牆切分成多個獨立單位 (如：Root, Sales, HR, Guest)。每個 VDOM 就像一台獨立設備。</li>
+                    </ul>
+                </div>
+                <div class="fg-card">
+                    <h3>資源分配 (Global Resources)</h3>
+                    <p>由於所有 VDOM 共用硬體，必須設定資源配額 (Resource Quotas) 避免「鄰居吵雜效應 (Noisy Neighbor Effect)」。</p>
+                    <div class="fg-callout warn"><span class="fg-callout-title">關鍵設定參數：</span>
+                        <ul class="fg-list">
                             <li><strong>Session Limit</strong>：最大連線數限制。</li>
                             <li><strong>Policy Limit</strong>：防火牆策略數量限制。</li>
                             <li><strong>CPU/Memory Use</strong>：通常是全域共用，但可透過設定保證特定 VDOM 的優先權。</li>
@@ -239,22 +58,17 @@
                     </div>
                 </div>
             </div>
-
-            <div class="mt-6">
-                <h3 class="text-xl font-bold text-blue-800 mb-3">封包處理流向</h3>
-                <p class="text-gray-700">
-                    當封包進入 FortiGate 介面 (Interface) 時，系統會先檢查該介面屬於哪個 VDOM。封包隨後的路由查表 (Route Lookup)、策略匹配 (Policy Check) 與 UTM 掃描，都<strong>僅限於該 VDOM 範圍內</strong>進行，完全不會看到其他 VDOM 的資訊。
-                </p>
+            <div class="fg-card">
+                <h3>封包處理流向</h3>
+                <p>當封包進入 FortiGate 介面 (Interface) 時，系統會先檢查該介面屬於哪個 VDOM。封包隨後的路由查表 (Route Lookup)、策略匹配 (Policy Check) 與 UTM 掃描，都<strong>僅限於該 VDOM 範圍內</strong>進行，完全不會看到其他 VDOM 的資訊。</p>
             </div>
-        </div>
+        </section>
 
-        <!-- 3. 架構視覺化 -->
-        <div class="section-card">
-            <span class="badge badge-visuals">三、架構視覺化 (Visuals)</span>
-            <h2 class="text-2xl font-bold mb-4 text-gray-800">VDOM 邏輯拓撲與連線</h2>
-
-            <h3 class="text-lg font-bold text-gray-700 mb-2">圖一：實體 vs. 邏輯視角</h3>
-            <div class="mermaid-container">
+        <section class="fg-section">
+            <h2 class="fg-section-title"><span class="fg-num">03</span>架構視覺化 <span class="fg-en">Visuals</span></h2>
+            <p class="fg-lead"><strong>VDOM 邏輯拓撲與連線</strong></p>
+            <figure class="fg-figure">
+                <figcaption>圖一：實體 vs. 邏輯視角</figcaption>
                 <!-- 對照圖 (手繪 SVG):左實體、右邏輯並排,虛線箭頭表示實體埠指派到哪個 VDOM -->
                 <div style="width:100%;overflow-x:auto">
                 <svg viewBox="0 0 860 470" role="img" aria-labelledby="fg13a-title fg13a-desc" style="width:100%;min-width:560px;max-width:860px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
@@ -307,11 +121,9 @@
                 </g>
                 </svg>
                 </div>
-            </div>
-
-            <h3 class="text-lg font-bold text-gray-700 mb-2">圖二：跨 VDOM 通訊 (Inter-VDOM Link)</h3>
-            <p class="text-sm text-gray-600 mb-2">VDOM 之間預設是隔離的，若要通訊 (例如 Guest 借用 Root 的 WAN 上網)，需要建立虛擬連線 (Virtual Link)。</p>
-            <div class="mermaid-container">
+            </figure>
+            <figure class="fg-figure">
+                <figcaption>圖二：跨 VDOM 通訊 (Inter-VDOM Link)<small>VDOM 之間預設是隔離的，若要通訊 (例如 Guest 借用 Root 的 WAN 上網)，需要建立虛擬連線 (Virtual Link)。</small></figcaption>
                 <!-- 時序圖 (由 Mermaid 10.9.1 預先轉成靜態 SVG,套用網站配色)。原始 Mermaid 碼:
                     sequenceDiagram
                         participant User as User (Office)
@@ -334,74 +146,67 @@
                 
                 -->
                 <div style="width:100%;overflow-x:auto"><svg xmlns="http://www.w3.org/2000/svg" aria-roledescription="sequence" role="img" viewBox="-50 -10 1465 723" style="width:100%;min-width:560px;max-width:1465px;height:auto;display:block;margin:0 auto" id="seq-fortigate13-2" aria-labelledby="seq-fortigate13-2-title"><title id="seq-fortigate13-2-title">圖二：跨 VDOM 通訊 (Inter-VDOM Link)</title><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="1290" y1="5" x1="1290"/><g><rect class="actor actor-top" ry="3" rx="3" name="Internet" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="1215"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="1290"><tspan dy="0" x="1290">Internet</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="945" y1="5" x1="945"/><g><rect class="actor actor-top" ry="3" rx="3" name="R_VDOM" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="870"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="945"><tspan dy="0" x="945">Root VDOM</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="649" y1="5" x1="649"/><g><rect class="actor actor-top" ry="3" rx="3" name="V_Link" height="65" width="262" stroke="#666" fill="#eaeaea" y="0" x="518"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="649"><tspan dy="0" x="649">Inter-VDOM Link(Virtual Cable)</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="315" y1="5" x1="315"/><g><rect class="actor actor-top" ry="3" rx="3" name="O_VDOM" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="240"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="315"><tspan dy="0" x="315">Office VDOM</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="75" y1="5" x1="75"/><g><rect class="actor actor-top" ry="3" rx="3" name="User" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="0"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="75"><tspan dy="0" x="75">User (Office)</tspan></text></g></g><style>#seq-fortigate13-2{font-family:'Noto Sans TC',Roboto,'Microsoft JhengHei',sans-serif;font-size:15px;fill:#1e2235;}#seq-fortigate13-2 .marker{fill:#5b6278;stroke:#5b6278;}#seq-fortigate13-2 .marker.cross{stroke:#5b6278;}#seq-fortigate13-2 .actor{stroke:#673ab7;fill:#f3effc;}#seq-fortigate13-2 text.actor&gt;tspan{fill:#311b92;stroke:none;}#seq-fortigate13-2 .actor-line{stroke:#b39ddb;}#seq-fortigate13-2 .messageLine0{stroke-width:1.5;stroke-dasharray:none;stroke:#5b6278;}#seq-fortigate13-2 .messageLine1{stroke-width:1.5;stroke-dasharray:2,2;stroke:#5b6278;}#seq-fortigate13-2 #seq-fortigate13-2-arrowhead path{fill:#5b6278;stroke:#5b6278;}#seq-fortigate13-2 #sequencenumber{fill:#5b6278;}#seq-fortigate13-2 #crosshead path{fill:#5b6278;stroke:#5b6278;}#seq-fortigate13-2 .messageText{fill:#1e2235;stroke:none;}#seq-fortigate13-2 .note{stroke:#f5b041;fill:#fff8e1;}#seq-fortigate13-2 .noteText,#seq-fortigate13-2 .noteText&gt;tspan{fill:#5d4037;stroke:none;}</style><g/><defs><marker orient="auto" markerHeight="12" markerWidth="12" markerUnits="userSpaceOnUse" refY="5" refX="7.9" id="seq-fortigate13-2-arrowhead"><path d="M 0 0 L 10 5 L 0 10 z"/></marker></defs><g><rect class="note" ry="0" rx="0" height="48" width="1305" stroke="#666" fill="#EDF2AE" y="75" x="30"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="81" x="683"><tspan x="683">場景：Office VDOM 的用戶透過 Root VDOM 上網</tspan></text></g><g><rect class="note" ry="0" rx="0" height="48" width="218" stroke="#666" fill="#EDF2AE" y="191" x="360"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="197" x="469"><tspan x="469">查表：預設路由指向 V-Link</tspan></text></g><g><rect class="note" ry="0" rx="0" height="48" width="216" stroke="#666" fill="#EDF2AE" y="365" x="990"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="371" x="1098"><tspan x="1098">查表：預設路由指向 WAN1</tspan></text></g><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="138" x="194">1. 發送上網請求</text><line style="fill: none;" marker-end="url(#seq-fortigate13-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="181" x2="311" y1="181" x1="76"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="254" x="481">2. 轉送封包 (FW Policy 1 Allow)</text><line style="fill: none;" marker-end="url(#seq-fortigate13-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="297" x2="645" y1="297" x1="316"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="312" x="796">3. 封包進入 Root VDOM</text><line style="fill: none;" marker-end="url(#seq-fortigate13-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="355" x2="941" y1="355" x1="650"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="428" x="1116">4. SNAT 出去 (FW Policy 2 Allow)</text><line style="fill: none;" marker-end="url(#seq-fortigate13-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="471" x2="1286" y1="471" x1="946"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="486" x="1119">5. 回應封包</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-fortigate13-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="529" x2="949" y1="529" x1="1289"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="544" x="799">6. 轉回 V-Link</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-fortigate13-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="587" x2="653" y1="587" x1="944"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="602" x="484">7. 回到 Office VDOM</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-fortigate13-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="645" x2="319" y1="645" x1="648"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="660" x="197">8. 回應用戶</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-fortigate13-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="703" x2="79" y1="703" x1="314"/></svg></div>
+            </figure>
+        </section>
+
+        <section class="fg-section">
+            <h2 class="fg-section-title"><span class="fg-num">04</span>實務應用場景 <span class="fg-en">Use Case</span></h2>
+            <p class="fg-lead"><strong>企業內網隔離與 MSSP 應用</strong></p>
+            <div class="fg-card">
+                <h3>案例：大型企業部門與訪客完全隔離</h3>
+                <p>某科技公司希望將「研發部門 (RD)」與「訪客 Wi-Fi」的網路環境完全切開。訪客網路即使中毒，也絕對不能橫向移動到研發網路。同時，網管人員希望研發部門擁有獨立的路由表，避免路由衝突。</p>
             </div>
-        </div>
-
-        <!-- 4. 實務應用場景 -->
-        <div class="section-card">
-            <span class="badge badge-usecase">四、實務應用場景 (Use Case)</span>
-            <h2 class="text-2xl font-bold mb-4 text-gray-800">企業內網隔離與 MSSP 應用</h2>
-
-            <div class="mb-6">
-                <h3 class="text-xl font-bold text-orange-800 mb-2">案例：大型企業部門與訪客完全隔離</h3>
-                <p class="text-gray-700 mb-2">
-                    某科技公司希望將「研發部門 (RD)」與「訪客 Wi-Fi」的網路環境完全切開。訪客網路即使中毒，也絕對不能橫向移動到研發網路。同時，網管人員希望研發部門擁有獨立的路由表，避免路由衝突。
-                </p>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                    <div class="bg-green-50 p-4 rounded border border-green-200">
-                        <h4 class="font-bold text-green-800">優點 (Pros)</h4>
-                        <ul class="list-disc list-inside text-sm text-gray-700">
-                            <li><strong>安全性極高</strong>：邏輯層面完全斷開，ARP/Broadcast 不互通。</li>
-                            <li><strong>管理彈性</strong>：可授權不同管理員分別管理 Guest 與 RD VDOM。</li>
-                            <li><strong>路由獨立</strong>：兩個 VDOM 可以使用相同的 IP 網段 (Overlapping Subnets) 也不會衝突。</li>
-                        </ul>
-                    </div>
-                    <div class="bg-red-50 p-4 rounded border border-red-200">
-                        <h4 class="font-bold text-red-800">缺點 (Cons)</h4>
-                        <ul class="list-disc list-inside text-sm text-gray-700">
-                            <li><strong>配置複雜度</strong>：需要維護多套 Policy 與 Routing。</li>
-                            <li><strong>Troubleshooting 難度</strong>：跨 VDOM 問題需要分段除錯 (Debug)。</li>
-                            <li><strong>效能耗損</strong>：跨 VDOM 通訊需要經過兩次防火牆檢查。</li>
-                        </ul>
-                    </div>
+            <div class="fg-grid fg-grid-2">
+                <div class="fg-card">
+                    <h3>優點 (Pros)</h3>
+                    <ul class="fg-list">
+                        <li><strong>安全性極高</strong>：邏輯層面完全斷開，ARP/Broadcast 不互通。</li>
+                        <li><strong>管理彈性</strong>：可授權不同管理員分別管理 Guest 與 RD VDOM。</li>
+                        <li><strong>路由獨立</strong>：兩個 VDOM 可以使用相同的 IP 網段 (Overlapping Subnets) 也不會衝突。</li>
+                    </ul>
+                </div>
+                <div class="fg-card">
+                    <h3>缺點 (Cons)</h3>
+                    <ul class="fg-list">
+                        <li><strong>配置複雜度</strong>：需要維護多套 Policy 與 Routing。</li>
+                        <li><strong>Troubleshooting 難度</strong>：跨 VDOM 問題需要分段除錯 (Debug)。</li>
+                        <li><strong>效能耗損</strong>：跨 VDOM 通訊需要經過兩次防火牆檢查。</li>
+                    </ul>
                 </div>
             </div>
-
-            <h3 class="text-xl font-bold text-gray-800 mb-3 border-l-4 border-gray-800 pl-3">設定範例 (CLI Configuration)</h3>
-            <p class="text-sm text-gray-600 mb-2">以下示範啟用 VDOM，並建立 "RD-Project" VDOM，分配 Port2 給它。</p>
-
-            <div class="cli-block">
-<span class="cli-comment"># 1. 啟用 Multi-VDOM 模式 (需重新登入)</span>
+            <div class="fg-card">
+                <h3>設定範例 (CLI Configuration)</h3>
+                <p>以下示範啟用 VDOM，並建立 "RD-Project" VDOM，分配 Port2 給它。</p>
+                <pre class="fg-code"><span class="dim"># 1. 啟用 Multi-VDOM 模式 (需重新登入)</span>
 config system global
     set vdom-mode multi-vdom
 end
 
-<span class="cli-comment"># 2. 建立新的 VDOM：RD-Project</span>
+<span class="dim"># 2. 建立新的 VDOM：RD-Project</span>
 config vdom
     edit RD-Project
     next
 end
 
-<span class="cli-comment"># 3. 將實體介面指派給 VDOM (必須在 Global 下設定)</span>
+<span class="dim"># 3. 將實體介面指派給 VDOM (必須在 Global 下設定)</span>
 config global
     config system interface
         edit "port2"
-            set vdom "RD-Project"  <span class="cli-comment"># 將 port2 劃給 RD 部門</span>
+            set vdom "RD-Project"  <span class="dim"># 將 port2 劃給 RD 部門</span>
             set ip 192.168.10.254 255.255.255.0
             set allowaccess ping https ssh
         next
         edit "wan1"
-            set vdom "root"        <span class="cli-comment"># wan1 留在 root 做出口</span>
+            set vdom "root"        <span class="dim"># wan1 留在 root 做出口</span>
         next
     end
 end
 
-<span class="cli-comment"># 4. 進入 RD-Project VDOM 設定防火牆策略</span>
+<span class="dim"># 4. 進入 RD-Project VDOM 設定防火牆策略</span>
 config vdom
     edit RD-Project
-    
-    <span class="cli-comment"># 設定路由 (指向上網的 Gateway 或 Inter-VDOM link)</span>
+
+    <span class="dim"># 設定路由 (指向上網的 Gateway 或 Inter-VDOM link)</span>
     config router static
         edit 1
             set dst 0.0.0.0 0.0.0.0
@@ -410,7 +215,7 @@ config vdom
         next
     end
 
-    <span class="cli-comment"># 設定 Policy (允許內部互通)</span>
+    <span class="dim"># 設定 Policy (允許內部互通)</span>
     config firewall policy
         edit 1
             set name "RD-Local-Access"
@@ -423,117 +228,55 @@ config vdom
             set service "ALL"
         next
     end
-end</div>
-        </div>
-
-        <!-- 5. 隨堂測驗 -->
-        <div class="section-card">
-            <span class="badge badge-quiz">五、隨堂測驗 (Quiz)</span>
-            <h2 class="text-2xl font-bold mb-6 text-gray-800">VDOM 架構師檢定</h2>
-
-            <div id="quiz-container" class="space-y-6">
-                <!-- Question 1 -->
-                <div class="quiz-item">
-                    <p class="font-bold text-lg mb-2">1. 在 FortiGate 的 VDOM 概念中，最適合的「生活化比喻」是什麼？</p>
-                    <div class="options space-y-2">
-                        <div class="quiz-option" onclick="checkAnswer(this, false, '這是 High Availability (HA) 的概念。')">A. 一個備份的發電機</div>
-                        <div class="quiz-option" onclick="checkAnswer(this, true, '正確！共享硬體資源，但擁有獨立的管理權限與空間。')">B. 一棟商務大樓分割成多個獨立辦公室</div>
-                        <div class="quiz-option" onclick="checkAnswer(this, false, '這是 Link Aggregation (LACP) 的概念。')">C. 多條水管合併成一條大水管</div>
-                        <div class="quiz-option" onclick="checkAnswer(this, false, '這是 SD-WAN 的概念。')">D. 一個能夠自動切換路線的導航系統</div>
-                    </div>
-                    <div class="feedback"></div>
-                </div>
-
-                <!-- Question 2 -->
-                <div class="quiz-item">
-                    <p class="font-bold text-lg mb-2">2. 關於 Split-Task VDOM 模式，下列敘述何者正確？</p>
-                    <div class="options space-y-2">
-                        <div class="quiz-option" onclick="checkAnswer(this, false, 'Multi-VDOM 模式才是用來分割多個部門。')">A. 用來將不同部門 (HR, Sales, IT) 分割開來</div>
-                        <div class="quiz-option" onclick="checkAnswer(this, true, '正確！此模式專門用於保護管理流量不受數據流量影響。')">B. 主要將「管理流量 (Management)」與「數據流量 (Traffic)」分開</div>
-                        <div class="quiz-option" onclick="checkAnswer(this, false, '這是 Multi-VDOM 的特性。')">C. 預設會建立 Root 和 10 個 VDOM</div>
-                        <div class="quiz-option" onclick="checkAnswer(this, false, 'VDOM 主要是 Layer 3 的切割，雖然也包含 Layer 2 介面。')">D. 是一種 Layer 2 的 Switch 模式</div>
-                    </div>
-                    <div class="feedback"></div>
-                </div>
-
-                <!-- Question 3 -->
-                <div class="quiz-item">
-                    <p class="font-bold text-lg mb-2">3. 當封包需要在兩個 VDOM 之間傳輸時 (例如從 VDOM-A 到 VDOM-B)，需要配置什麼？</p>
-                    <div class="options space-y-2">
-                        <div class="quiz-option" onclick="checkAnswer(this, false, '物理線路可以，但通常不需要浪費實體 Port。')">A. 必須使用實體網路線將 Port1 連接 Port2</div>
-                        <div class="quiz-option" onclick="checkAnswer(this, false, 'IPsec VPN 用於跨越 Internet 的遠端連線。')">B. 必須建立 IPsec VPN</div>
-                        <div class="quiz-option" onclick="checkAnswer(this, true, '正確！Inter-VDOM Link (V-Link) 是虛擬介面，用於串接 VDOM。')">C. 必須建立 Inter-VDOM Link (虛擬連結) 並設定對應的防火牆策略</div>
-                        <div class="quiz-option" onclick="checkAnswer(this, false, 'VDOM 預設是不互通的。')">D. 不需要設定，預設所有 VDOM 都是互通的</div>
-                    </div>
-                    <div class="feedback"></div>
-                </div>
-
-                <!-- Question 4 -->
-                <div class="quiz-item">
-                    <p class="font-bold text-lg mb-2">4. 下列哪一項設定必須在 "Global" 層級下執行，而不能在特定 VDOM 內執行？</p>
-                    <div class="options space-y-2">
-                        <div class="quiz-option" onclick="checkAnswer(this, false, '這是 VDOM 內部的設定。')">A. 建立 Firewall Policy</div>
-                        <div class="quiz-option" onclick="checkAnswer(this, false, '這是 VDOM 內部的設定。')">B. 設定 Static Route</div>
-                        <div class="quiz-option" onclick="checkAnswer(this, true, '正確！實體介面歸屬於哪個 VDOM 是由 Global 層級分配的。')">C. 將實體 Interface (如 Port2) 指派給特定 VDOM</div>
-                        <div class="quiz-option" onclick="checkAnswer(this, false, '這是 VDOM 內部的設定。')">D. 設定 Address Object</div>
-                    </div>
-                    <div class="feedback"></div>
-                </div>
-
-                <!-- Question 5 -->
-                <div class="quiz-item">
-                    <p class="font-bold text-lg mb-2">5. 使用 VDOM 的主要缺點或限制是什麼？</p>
-                    <div class="options space-y-2">
-                        <div class="quiz-option" onclick="checkAnswer(this, false, 'VDOM 的安全性其實更高，因為邏輯隔離。')">A. 安全性較低，因為大家共用 OS</div>
-                        <div class="quiz-option" onclick="checkAnswer(this, true, '正確！雖然邏輯分開，但 CPU/Memory 是共用的，若無限制可能被單一 VDOM 耗盡。')">B. 硬體資源 (CPU/RAM) 是共享的，若無設定配額，單一 VDOM 可能耗盡資源</div>
-                        <div class="quiz-option" onclick="checkAnswer(this, false, 'VDOM 支援個別的 VPN 設定。')">C. 無法支援 VPN 功能</div>
-                        <div class="quiz-option" onclick="checkAnswer(this, false, 'VDOM 支援個別的 HA 設定。')">D. 不能使用 HA 高可用性架構</div>
-                    </div>
-                    <div class="feedback"></div>
-                </div>
+end</pre>
             </div>
-        </div>
+        </section>
 
-    </div>
+        <section class="fg-section">
+            <h2 class="fg-section-title"><span class="fg-num">05</span>隨堂測驗 <span class="fg-en">Quiz</span></h2>
+            <p class="fg-lead"><strong>VDOM 架構師檢定</strong> — 請選擇最適當的答案,作答後會顯示解析。</p>
+            <div id="fg-quiz"></div>
+        </section>
+    </main>
 
-    <!-- Footer -->
     <footer>
-        <p>Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0</p>
+        Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0
     </footer>
 
     <script>
-        // Initialize Mermaid
-        mermaid.initialize({ startOnLoad: true });
-
-        // Quiz Logic
-        function checkAnswer(element, isCorrect, explanation) {
-            const parent = element.parentElement;
-            const feedback = parent.nextElementSibling;
-            
-            // Reset previous selection styles in this question
-            const options = parent.querySelectorAll('.quiz-option');
-            options.forEach(opt => {
-                opt.classList.remove('correct', 'wrong', 'bg-gray-100');
-                opt.style.pointerEvents = 'none'; // Disable further clicks
-            });
-
-            // Apply style based on correctness
-            if (isCorrect) {
-                element.classList.add('correct');
-                feedback.innerHTML = `<strong class="text-green-700"><i class="fa-solid fa-check-circle"></i> 正確！</strong> ${explanation}`;
-                feedback.className = "feedback block bg-green-50 border border-green-200 text-green-800";
-            } else {
-                element.classList.add('wrong');
-                // Find and highlight the correct answer
-                options.forEach(opt => {
-                    if(opt.getAttribute('onclick').includes('true')) {
-                        opt.classList.add('correct');
-                    }
-                });
-                feedback.innerHTML = `<strong class="text-red-700"><i class="fa-solid fa-times-circle"></i> 錯誤。</strong> ${explanation}`;
-                feedback.className = "feedback block bg-red-50 border border-red-200 text-red-800";
+        window.FG_QUIZ = [
+            {
+                question: "在 FortiGate 的 VDOM 概念中，最適合的「生活化比喻」是什麼？",
+                options: ["A. 一個備份的發電機", "B. 一棟商務大樓分割成多個獨立辦公室", "C. 多條水管合併成一條大水管", "D. 一個能夠自動切換路線的導航系統"],
+                correct: 1,
+                explanation: "B：正確！共享硬體資源，但擁有獨立的管理權限與空間。<br>A：這是 High Availability (HA) 的概念。<br>C：這是 Link Aggregation (LACP) 的概念。<br>D：這是 SD-WAN 的概念。"
+            },
+            {
+                question: "關於 Split-Task VDOM 模式，下列敘述何者正確？",
+                options: ["A. 用來將不同部門 (HR, Sales, IT) 分割開來", "B. 主要將「管理流量 (Management)」與「數據流量 (Traffic)」分開", "C. 預設會建立 Root 和 10 個 VDOM", "D. 是一種 Layer 2 的 Switch 模式"],
+                correct: 1,
+                explanation: "B：正確！此模式專門用於保護管理流量不受數據流量影響。<br>A：Multi-VDOM 模式才是用來分割多個部門。<br>C：這是 Multi-VDOM 的特性。<br>D：VDOM 主要是 Layer 3 的切割，雖然也包含 Layer 2 介面。"
+            },
+            {
+                question: "當封包需要在兩個 VDOM 之間傳輸時 (例如從 VDOM-A 到 VDOM-B)，需要配置什麼？",
+                options: ["A. 必須使用實體網路線將 Port1 連接 Port2", "B. 必須建立 IPsec VPN", "C. 必須建立 Inter-VDOM Link (虛擬連結) 並設定對應的防火牆策略", "D. 不需要設定，預設所有 VDOM 都是互通的"],
+                correct: 2,
+                explanation: "C：正確！Inter-VDOM Link (V-Link) 是虛擬介面，用於串接 VDOM。<br>A：物理線路可以，但通常不需要浪費實體 Port。<br>B：IPsec VPN 用於跨越 Internet 的遠端連線。<br>D：VDOM 預設是不互通的。"
+            },
+            {
+                question: "下列哪一項設定必須在 \"Global\" 層級下執行，而不能在特定 VDOM 內執行？",
+                options: ["A. 建立 Firewall Policy", "B. 設定 Static Route", "C. 將實體 Interface (如 Port2) 指派給特定 VDOM", "D. 設定 Address Object"],
+                correct: 2,
+                explanation: "C：正確！實體介面歸屬於哪個 VDOM 是由 Global 層級分配的。<br>A、B、D：這是 VDOM 內部的設定。"
+            },
+            {
+                question: "使用 VDOM 的主要缺點或限制是什麼？",
+                options: ["A. 安全性較低，因為大家共用 OS", "B. 硬體資源 (CPU/RAM) 是共享的，若無設定配額，單一 VDOM 可能耗盡資源", "C. 無法支援 VPN 功能", "D. 不能使用 HA 高可用性架構"],
+                correct: 1,
+                explanation: "B：正確！雖然邏輯分開，但 CPU/Memory 是共用的，若無限制可能被單一 VDOM 耗盡。<br>A：VDOM 的安全性其實更高，因為邏輯隔離。<br>C：VDOM 支援個別的 VPN 設定。<br>D：VDOM 支援個別的 HA 設定。"
             }
-        }
+        ];
     </script>
+    <script src="fg.js?v=1"></script>
 </body>
 </html>

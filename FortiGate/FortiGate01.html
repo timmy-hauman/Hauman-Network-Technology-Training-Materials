@@ -1,225 +1,75 @@
 <!DOCTYPE html>
-<html lang="zh-Hant-TW">
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fortinet FortiGate 實戰課程 - 核心架構與初始化</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
-        
-        body {
-            font-family: 'Noto Sans TC', sans-serif;
-            background-color: #f3f4f6;
-            color: #1f2937;
-        }
-        
-        /* 卡片主體樣式 */
-        .section-card {
-            background-color: white;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            padding: 2rem;
-            margin-bottom: 2rem;
-            border-left: 5px solid #c53030; /* Fortinet Red */
-        }
-
-        /* 重點提示框 (紅) */
-        .highlight-box {
-            background-color: #fff5f5;
-            border-left: 4px solid #c53030;
-            padding: 1rem;
-            margin: 1rem 0;
-            border-radius: 0.25rem;
-        }
-
-        /* 技術名詞標記 */
-        .tech-term {
-            color: #c53030;
-            font-weight: 700;
-            background-color: #fef2f2;
-            padding: 0.1rem 0.3rem;
-            border-radius: 0.2rem;
-        }
-
-        /* 比喻說明框 (綠) */
-        .analogy-box {
-            background-color: #f0fdf4;
-            border-left: 4px solid #16a34a;
-            padding: 1rem;
-            margin: 1rem 0;
-            border-radius: 0.25rem;
-        }
-
-        /* Mermaid 圖表容器 */
-        .mermaid-container {
-            display: flex;
-            justify-content: center;
-            background-color: #ffffff;
-            padding: 2rem;
-            border-radius: 0.5rem;
-            border: 1px solid #e5e7eb;
-            margin-top: 1rem;
-            overflow-x: auto;
-        }
-
-        .mermaid {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-        }
-
-        /* 測驗選項 */
-        .quiz-option {
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        .quiz-option:hover:not(.disabled) {
-            background-color: #f3f4f6;
-        }
-
-        /* 頁尾 */
-        .footer-signature {
-            background-color: #2d3748;
-            color: #a0aec0;
-            text-align: center;
-            padding: 1rem;
-            font-size: 0.875rem;
-            margin-top: 4rem;
-        }
-    </style>
-    <!-- 教學網站共用外觀 -->
-    <link rel="stylesheet" href="../assets/site-theme.css?v=20261112">
-    <script src="../assets/site-chrome.js?v=20261112" defer></script>
+    <link rel="stylesheet" href="fg.css?v=1">
+    <link rel="stylesheet" href="../assets/site-theme.css?v=20261112b">
+    <script src="../assets/site-chrome.js?v=20261112b" defer></script>
 </head>
-<body class="antialiased">
-
-    <!-- Header -->
-    <header class="bg-gradient-to-r from-red-700 to-red-900 text-white shadow-lg">
-        <div class="container mx-auto px-4 py-8">
-            <div class="flex items-center space-x-4">
-                <i class="fas fa-shield-alt text-4xl"></i>
-                <div>
-                    <h1 class="text-3xl font-bold">Fortinet FortiGate 實戰課程</h1>
-                    <p class="text-red-100 mt-1">階段一：基礎地基 (Level 1) - 單元 1：核心架構與初始化</p>
-                </div>
-            </div>
+<body>
+    <header class="fg-hero">
+        <div class="fg-hero-inner">
+            <p class="fg-kicker">Fortinet FortiGate 實戰課程 · 第 01 課</p>
+            <h1>核心架構與初始化</h1>
+            <p class="fg-subtitle">Core Architecture and Initialization</p>
         </div>
     </header>
 
-    <main class="container mx-auto px-4 py-8 max-w-5xl">
-
-        <!-- Introduction -->
-        <div class="mb-8">
-            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
-                <h2 class="text-xl font-bold text-blue-800 mb-2 flex items-center">
-                    <i class="fas fa-user-tie mr-2"></i>講師導言
-                </h2>
-                <p class="text-blue-900 leading-relaxed">
-                    歡迎來到 FortiGate 的世界！很多人問我：「為什麼 FortiGate 這麼受歡迎？」答案很簡單：因為它不僅是個保安，還是個跑得飛快的保安。這歸功於它的「SPU 加速晶片」。今天這堂課，我們要先搞懂它的心臟 (ASIC) 是如何跳動的，接著實際動手把它「叫醒」(初始化)。
-                </p>
+    <main class="fg-main">
+        <section class="fg-section">
+            <h2 class="fg-section-title"><span class="fg-num">00</span>講師導言 <span class="fg-en">Introduction</span></h2>
+            <p class="fg-lead">階段一：基礎地基 (Level 1) - 單元 1：核心架構與初始化</p>
+            <div class="fg-card plain">
+                <p>歡迎來到 FortiGate 的世界！很多人問我：「為什麼 FortiGate 這麼受歡迎？」答案很簡單：因為它不僅是個保安，還是個跑得飛快的保安。這歸功於它的「SPU 加速晶片」。今天這堂課，我們要先搞懂它的心臟 (ASIC) 是如何跳動的，接著實際動手把它「叫醒」(初始化)。</p>
             </div>
-        </div>
+        </section>
 
-        <!-- Topic 1: ASIC & SPU -->
-        <div class="section-card">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                <span class="bg-red-100 text-red-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Concept</span>
-                一、核心概念：ASIC 硬體加速 (SPU)
-            </h2>
-
-            <div class="mb-6">
-                <p class="mb-4 text-gray-700">
-                    <strong>SPU (Security Processing Unit)</strong> 是 Fortinet 獨家研發的專用處理器，用來分擔通用 CPU 的工作，實現極致的網路吞吐量與低延遲。
-                </p>
-                
-                <div class="analogy-box">
-                    <p class="font-bold mb-2 text-green-800">🍳 生活化比喻：繁忙的米其林餐廳廚房</p>
-                    <ul class="list-none space-y-3 pl-2 text-gray-700">
-                        <li class="flex items-start">
-                            <i class="fas fa-user-tie text-blue-500 mt-1 mr-3"></i>
-                            <span><strong>General CPU (行政主廚)</strong>：負責指揮、處理複雜的特殊訂單 (管理層面)，腦袋很靈活但做重複動作不夠快。</span>
-                        </li>
-                        <li class="flex items-start">
-                            <i class="fas fa-robot text-purple-500 mt-1 mr-3"></i>
-                            <span><strong>NP - Network Processor (切菜機器人)</strong>：專門負責快速處理食材的進出、分類 (封包轉發)，速度極快，能處理海量訂單。</span>
-                        </li>
-                        <li class="flex items-start">
-                            <i class="fas fa-microscope text-green-500 mt-1 mr-3"></i>
-                            <span><strong>CP - Content Processor (食安檢驗官)</strong>：專門負責拿顯微鏡檢查食材有沒有壞掉 (病毒)、有沒有藏毒藥 (加密解密)，做得很細緻。</span>
-                        </li>
+        <section class="fg-section">
+            <h2 class="fg-section-title"><span class="fg-num">01</span>核心概念：ASIC 硬體加速 (SPU) <span class="fg-en">Concept</span></h2>
+            <div class="fg-card">
+                <p><strong>SPU (Security Processing Unit)</strong> 是 Fortinet 獨家研發的專用處理器，用來分擔通用 CPU 的工作，實現極致的網路吞吐量與低延遲。</p>
+                <div class="fg-callout tip">
+                    <span class="fg-callout-title">生活化比喻：繁忙的米其林餐廳廚房</span>
+                    <ul class="fg-list">
+                        <li><strong>General CPU (行政主廚)</strong>：負責指揮、處理複雜的特殊訂單 (管理層面)，腦袋很靈活但做重複動作不夠快。</li>
+                        <li><strong>NP - Network Processor (切菜機器人)</strong>：專門負責快速處理食材的進出、分類 (封包轉發)，速度極快，能處理海量訂單。</li>
+                        <li><strong>CP - Content Processor (食安檢驗官)</strong>：專門負責拿顯微鏡檢查食材有沒有壞掉 (病毒)、有沒有藏毒藥 (加密解密)，做得很細緻。</li>
                     </ul>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Mechanism -->
-        <div class="section-card">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                <span class="bg-blue-100 text-blue-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Mechanism</span>
-                二、運作原理
-            </h2>
-
-            <div class="grid md:grid-cols-2 gap-6">
-                <!-- 技術細節 -->
-                <div>
-                    <h3 class="text-xl font-bold text-gray-800 border-b pb-2 mb-3">封包處理流程</h3>
-                    <p class="text-gray-600 mb-3 text-sm leading-relaxed">
-                        當封包進入 FortiGate 時，會依據是否為已知連線決定路徑。
-                    </p>
-                    <ul class="space-y-3 text-sm text-gray-700">
-                        <li class="flex items-start">
-                            <span class="bg-red-100 text-red-800 text-xs font-bold px-2 py-0.5 rounded mr-2 mt-0.5">Slow Path</span>
-                            <span><strong>首包處理：</strong> TCP 的第一個 SYN 封包必須由 CPU 建立 Session Table。</span>
-                        </li>
-                        <li class="flex items-start">
-                            <span class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-0.5 rounded mr-2 mt-0.5">Fast Path</span>
-                            <span><strong>硬體加速：</strong> 一旦 Session 建立並確認可以 Offload，後續封包直接由 <strong>NP</strong> 轉發，完全繞過 CPU，延遲可低至 2-3 微秒。</span>
-                        </li>
-                        <li class="flex items-start">
-                            <span class="bg-green-100 text-green-800 text-xs font-bold px-2 py-0.5 rounded mr-2 mt-0.5">Content</span>
-                            <span><strong>內容檢測：</strong> 若策略開啟 AV/IPS，流量會被導向 <strong>CP</strong> 進行特徵碼比對與加解密。</span>
-                        </li>
+        <section class="fg-section">
+            <h2 class="fg-section-title"><span class="fg-num">02</span>運作原理 <span class="fg-en">Mechanism</span></h2>
+            <div class="fg-grid fg-grid-2">
+                <div class="fg-card">
+                    <h3>封包處理流程</h3>
+                    <p>當封包進入 FortiGate 時，會依據是否為已知連線決定路徑。</p>
+                    <ul class="fg-list">
+                        <li><span class="fg-tag">Slow Path</span> <strong>首包處理：</strong> TCP 的第一個 SYN 封包必須由 CPU 建立 Session Table。</li>
+                        <li><span class="fg-tag cyan">Fast Path</span> <strong>硬體加速：</strong> 一旦 Session 建立並確認可以 Offload，後續封包直接由 <strong>NP</strong> 轉發，完全繞過 CPU，延遲可低至 2-3 微秒。</li>
+                        <li><span class="fg-tag green">Content</span> <strong>內容檢測：</strong> 若策略開啟 AV/IPS，流量會被導向 <strong>CP</strong> 進行特徵碼比對與加解密。</li>
                     </ul>
                 </div>
-
-                <!-- 關鍵型號 -->
-                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <h3 class="text-xl font-bold text-gray-800 border-b pb-2 mb-3">關鍵型號與參數</h3>
-                    <ul class="space-y-4 text-sm">
-                        <li class="flex flex-col">
-                            <span class="font-bold text-blue-600 text-base">NP7 (Network Processor)</span>
-                            <span class="text-gray-600">負責 L4 Firewall, IPv4/IPv6, Multicast, IPsec VPN 加速。</span>
-                        </li>
-                        <li class="flex flex-col">
-                            <span class="font-bold text-green-600 text-base">CP9/10 (Content Processor)</span>
-                            <span class="text-gray-600">負責 SSL/TLS Offloading, IPS/Antivirus Pattern Matching。</span>
-                        </li>
-                        <li class="flex flex-col">
-                            <span class="font-bold text-purple-600 text-base">SoC (System on a Chip)</span>
-                            <span class="text-gray-600">入門款 (60F/70F) 將 CPU+NP+CP 整合在同一晶片，CP 值高。</span>
-                        </li>
+                <div class="fg-card">
+                    <h3>關鍵型號與參數</h3>
+                    <ul class="fg-list">
+                        <li><strong>NP7 (Network Processor)</strong><br>負責 L4 Firewall, IPv4/IPv6, Multicast, IPsec VPN 加速。</li>
+                        <li><strong>CP9/10 (Content Processor)</strong><br>負責 SSL/TLS Offloading, IPS/Antivirus Pattern Matching。</li>
+                        <li><strong>SoC (System on a Chip)</strong><br>入門款 (60F/70F) 將 CPU+NP+CP 整合在同一晶片，CP 值高。</li>
                     </ul>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Visuals -->
-        <div class="section-card">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                <span class="bg-green-100 text-green-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Visuals</span>
-                三、架構視覺化
-            </h2>
-            <p class="mb-4 text-gray-600">所有的架構圖皆以 SVG 圖示繪製，已調整顯示比例以增加可讀性。</p>
-
-            <div class="space-y-8">
-                <!-- 圖表 1 -->
-                <div>
-                    <h3 class="text-lg font-bold text-gray-700 mb-2">1. FortiGate 內部處理架構 (Parallel Path Processing)</h3>
-                    <div class="mermaid-container">
-                        <!-- 流程圖 (手繪 SVG):封包分類後分流到 NP / CPU / CP 三條路徑 -->
+        <section class="fg-section">
+            <h2 class="fg-section-title"><span class="fg-num">03</span>架構視覺化 <span class="fg-en">Visuals</span></h2>
+            <p class="fg-lead">所有的架構圖皆以 SVG 圖示繪製，已調整顯示比例以增加可讀性。</p>
+            <figure class="fg-figure">
+                <figcaption>1. FortiGate 內部處理架構 (Parallel Path Processing)</figcaption>
+                <!-- 流程圖 (手繪 SVG):封包分類後分流到 NP / CPU / CP 三條路徑 -->
                         <div style="width:100%;overflow-x:auto">
                         <svg viewBox="0 0 760 730" role="img" aria-labelledby="fg01a-title fg01a-desc" style="width:100%;min-width:560px;max-width:760px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
                         <title id="fg01a-title">FortiGate 內部處理架構 (Parallel Path Processing)</title>
@@ -272,14 +122,10 @@
                         </g>
                         </svg>
                         </div>
-                    </div>
-                </div>
-
-                <!-- 圖表 2 -->
-                <div>
-                    <h3 class="text-lg font-bold text-gray-700 mb-2">2. 封包生命週期 (Life of a Packet)</h3>
-                    <div class="mermaid-container">
-                        <!-- 時序圖 (由 Mermaid 10.9.1 預先轉成靜態 SVG,套用網站配色)。原始 Mermaid 碼:
+            </figure>
+            <figure class="fg-figure">
+                <figcaption>2. 封包生命週期 (Life of a Packet)</figcaption>
+                <!-- 時序圖 (由 Mermaid 10.9.1 預先轉成靜態 SVG,套用網站配色)。原始 Mermaid 碼:
                             sequenceDiagram
                             participant User as 使用者
                             participant NP as NP (Network)
@@ -310,110 +156,61 @@
                         
                         -->
                         <div style="width:100%;overflow-x:auto"><svg xmlns="http://www.w3.org/2000/svg" aria-roledescription="sequence" role="img" viewBox="-50 -10 1331.5 1219" style="width:100%;min-width:560px;max-width:1332px;height:auto;display:block;margin:0 auto" id="seq-fortigate01-2" aria-labelledby="seq-fortigate01-2-title"><title id="seq-fortigate01-2-title">2. 封包生命週期 (Life of a Packet)</title><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="1156.5" y1="5" x1="1156.5"/><g><rect class="actor actor-top" ry="3" rx="3" name="Internet" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="1081.5"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="1156.5"><tspan dy="0" x="1156.5">網際網路</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="898" y1="5" x1="898"/><g><rect class="actor actor-top" ry="3" rx="3" name="CP" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="823"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="898"><tspan dy="0" x="898">CP (Content)</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="658" y1="5" x1="658"/><g><rect class="actor actor-top" ry="3" rx="3" name="CPU" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="583"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="658"><tspan dy="0" x="658">CPU (Kernel)</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="350" y1="5" x1="350"/><g><rect class="actor actor-top" ry="3" rx="3" name="NP" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="275"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="350"><tspan dy="0" x="350">NP (Network)</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="75" y1="5" x1="75"/><g><rect class="actor actor-top" ry="3" rx="3" name="User" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="0"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="75"><tspan dy="0" x="75">使用者</tspan></text></g></g><style>#seq-fortigate01-2{font-family:'Noto Sans TC',Roboto,'Microsoft JhengHei',sans-serif;font-size:15px;fill:#1e2235;}#seq-fortigate01-2 .marker{fill:#5b6278;stroke:#5b6278;}#seq-fortigate01-2 .marker.cross{stroke:#5b6278;}#seq-fortigate01-2 .actor{stroke:#673ab7;fill:#f3effc;}#seq-fortigate01-2 text.actor&gt;tspan{fill:#311b92;stroke:none;}#seq-fortigate01-2 .actor-line{stroke:#b39ddb;}#seq-fortigate01-2 .messageLine0{stroke-width:1.5;stroke-dasharray:none;stroke:#5b6278;}#seq-fortigate01-2 .messageLine1{stroke-width:1.5;stroke-dasharray:2,2;stroke:#5b6278;}#seq-fortigate01-2 #seq-fortigate01-2-arrowhead path{fill:#5b6278;stroke:#5b6278;}#seq-fortigate01-2 #sequencenumber{fill:#5b6278;}#seq-fortigate01-2 #crosshead path{fill:#5b6278;stroke:#5b6278;}#seq-fortigate01-2 .messageText{fill:#1e2235;stroke:none;}#seq-fortigate01-2 .note{stroke:#f5b041;fill:#fff8e1;}#seq-fortigate01-2 .noteText,#seq-fortigate01-2 .noteText&gt;tspan{fill:#5d4037;stroke:none;}</style><g/><defs><marker orient="auto" markerHeight="12" markerWidth="12" markerUnits="userSpaceOnUse" refY="5" refX="7.9" id="seq-fortigate01-2-arrowhead"><path d="M 0 0 L 10 5 L 0 10 z"/></marker></defs><g><rect class="note" ry="0" rx="0" height="48" width="1171.5" stroke="#666" fill="#EDF2AE" y="75" x="30"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="81" x="616"><tspan x="616">情境：第一次存取 HTTPS 網站 (First Packet)</tspan></text></g><g><rect class="note" ry="0" rx="0" height="48" width="1171.5" stroke="#666" fill="#EDF2AE" y="569" x="30"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="575" x="616"><tspan x="616">情境：後續資料傳輸 (Fast Path)</tspan></text></g><g><rect class="note" ry="0" rx="0" height="48" width="1171.5" stroke="#666" fill="#EDF2AE" y="831" x="30"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="837" x="616"><tspan x="616">情境：若是需要解密掃描 (UTM)</tspan></text></g><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="138" x="211">TCP SYN</text><line style="fill: none;" marker-end="url(#seq-fortigate01-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="181" x2="346" y1="181" x1="76"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="196" x="503">無 Session，送交 CPU</text><line style="fill: none;" marker-end="url(#seq-fortigate01-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="239" x2="654" y1="239" x1="351"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="254" x="659">路由查詢, Policy 檢查</text><path style="fill: none;" marker-end="url(#seq-fortigate01-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" d="M 659,297 C 719,287 719,327 659,317"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="342" x="906">建立連線 (SYN/ACK)</text><line style="fill: none;" marker-end="url(#seq-fortigate01-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="385" x2="1152.5" y1="385" x1="659"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="400" x="909">回應</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-fortigate01-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="443" x2="662" y1="443" x1="1155.5"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="458" x="506">安裝 Session 規則 (Offload)</text><line style="fill: none;" marker-end="url(#seq-fortigate01-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="501" x2="354" y1="501" x1="657"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="516" x="368">回應</text><line style="fill: none;" marker-end="url(#seq-fortigate01-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="559" x2="79" y1="559" x1="657"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="632" x="211">HTTP GET (Encrypted)</text><line style="fill: none;" marker-end="url(#seq-fortigate01-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="675" x2="346" y1="675" x1="76"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="690" x="351">匹配 Session (Offloaded)</text><path style="fill: none;" marker-end="url(#seq-fortigate01-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" d="M 351,733 C 411,723 411,763 351,753"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="778" x="752">直接轉發 (繞過 CPU)</text><line style="fill: none;" marker-end="url(#seq-fortigate01-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="821" x2="1152.5" y1="821" x1="351"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="894" x="755">Encrypted Data</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-fortigate01-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="937" x2="354" y1="937" x1="1155.5"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="952" x="623">送交解密與掃描</text><line style="fill: none;" marker-end="url(#seq-fortigate01-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="995" x2="894" y1="995" x1="351"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="1010" x="899">IPS/AV 檢查</text><path style="fill: none;" marker-end="url(#seq-fortigate01-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" d="M 899,1053 C 959,1043 959,1083 899,1073"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="1098" x="626">安全，重新加密</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-fortigate01-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="1141" x2="354" y1="1141" x1="897"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="1156" x="214">轉發資料</text><line style="fill: none;" marker-end="url(#seq-fortigate01-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="1199" x2="79" y1="1199" x1="349"/></svg></div>
-                    </div>
+            </figure>
+        </section>
+
+        <section class="fg-section">
+            <h2 class="fg-section-title"><span class="fg-num">04</span>實務應用場景 <span class="fg-en">Use Case</span></h2>
+            <div class="fg-card plain">
+                <h3>案例：跨國企業的高流量 VPN 閘道</h3>
+                <p><strong>情境描述：</strong> 某製造業需要在台灣總部與越南工廠之間建立 Site-to-Site VPN，傳輸大量的 CAD 設計圖檔 (大檔案) 與 VoIP 語音 (即時性)。</p>
+            </div>
+            <div class="fg-grid fg-grid-2">
+                <div class="fg-card">
+                    <h3>SPU 的優勢</h3>
+                    <p>開啟 <strong>NP Offloading</strong> 後，IPsec 加解密由 NP 晶片處理。CPU 使用率維持在 5% 以下，即便傳輸 10Gbps 的大檔，VoIP 電話也不會斷訊或延遲 (Jitter 極低)。</p>
+                </div>
+                <div class="fg-card">
+                    <h3>若無 SPU (純軟體防火牆)</h3>
+                    <p>所有加解密由 CPU 運算。當檔案傳輸開始時，CPU 飆升至 90%，導致 VoIP 封包排隊等待，通話產生機器音或斷線。</p>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Use Case -->
-        <div class="section-card">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                <span class="bg-purple-100 text-purple-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Use Case</span>
-                四、實務應用場景
-            </h2>
-
-            <div class="mb-4">
-                <h3 class="text-xl font-bold mb-3 text-gray-800">案例：跨國企業的高流量 VPN 閘道</h3>
-                <p class="text-gray-700 mb-2"><strong>情境描述：</strong> 某製造業需要在台灣總部與越南工廠之間建立 Site-to-Site VPN，傳輸大量的 CAD 設計圖檔 (大檔案) 與 VoIP 語音 (即時性)。</p>
-            </div>
-
-            <div class="grid md:grid-cols-2 gap-4 mt-4">
-                <div class="border p-4 rounded bg-green-50">
-                    <h4 class="font-bold text-green-800 mb-2">👍 SPU 的優勢</h4>
-                    <p class="text-sm text-gray-700">
-                        開啟 <strong>NP Offloading</strong> 後，IPsec 加解密由 NP 晶片處理。CPU 使用率維持在 5% 以下，即便傳輸 10Gbps 的大檔，VoIP 電話也不會斷訊或延遲 (Jitter 極低)。
-                    </p>
-                </div>
-                <div class="border p-4 rounded bg-red-50">
-                    <h4 class="font-bold text-red-800 mb-2">👎 若無 SPU (純軟體防火牆)</h4>
-                    <p class="text-sm text-gray-700">
-                        所有加解密由 CPU 運算。當檔案傳輸開始時，CPU 飆升至 90%，導致 VoIP 封包排隊等待，通話產生機器音或斷線。
-                    </p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Topic 2: Initialization -->
-        <div class="section-card">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                <span class="bg-red-100 text-red-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Concept</span>
-                五、核心概念：管理介面與初始化
-            </h2>
-
-            <div class="mb-6">
-                <p class="mb-4 text-gray-700">
-                    初始化是將全新出廠的 FortiGate 連接上線，並賦予其管理權限與基礎網路身分的過程。
-                </p>
-                
-                <div class="analogy-box">
-                    <p class="font-bold mb-2 text-green-800">📱 生活化比喻：剛買的新手機</p>
-                    <ul class="list-none space-y-3 pl-2 text-gray-700">
-                        <li class="flex items-start">
-                            <i class="fas fa-terminal text-gray-700 mt-1 mr-3"></i>
-                            <span><strong>Console 連線 (工程模式)</strong>：手機螢幕壞了也能透過這條線下指令修復，最底層的控制。</span>
-                        </li>
-                        <li class="flex items-start">
-                            <i class="fas fa-desktop text-blue-500 mt-1 mr-3"></i>
-                            <span><strong>Mgmt/GUI 介面 (觸控桌面)</strong>：圖形化好操作，大部分設定都在這裡點一點就好。</span>
-                        </li>
-                        <li class="flex items-start">
-                            <i class="fas fa-key text-yellow-500 mt-1 mr-3"></i>
-                            <span><strong>Default IP (原廠預設密碼)</strong>：大家都一樣 (192.168.1.99)，第一件事就是要改掉它。</span>
-                        </li>
+        <section class="fg-section">
+            <h2 class="fg-section-title"><span class="fg-num">05</span>核心概念：管理介面與初始化 <span class="fg-en">Concept</span></h2>
+            <div class="fg-card">
+                <p>初始化是將全新出廠的 FortiGate 連接上線，並賦予其管理權限與基礎網路身分的過程。</p>
+                <div class="fg-callout tip">
+                    <span class="fg-callout-title">生活化比喻：剛買的新手機</span>
+                    <ul class="fg-list">
+                        <li><strong>Console 連線 (工程模式)</strong>：手機螢幕壞了也能透過這條線下指令修復，最底層的控制。</li>
+                        <li><strong>Mgmt/GUI 介面 (觸控桌面)</strong>：圖形化好操作，大部分設定都在這裡點一點就好。</li>
+                        <li><strong>Default IP (原廠預設密碼)</strong>：大家都一樣 (192.168.1.99)，第一件事就是要改掉它。</li>
                     </ul>
                 </div>
             </div>
-
-            <!-- Initialization Mechanism -->
-            <div class="mb-6">
-                <h3 class="text-xl font-bold text-gray-800 border-b pb-2 mb-3">連接方式與預設值</h3>
-                <div class="grid md:grid-cols-2 gap-6">
-                    <!-- GUI -->
-                    <div class="bg-white border rounded p-4">
-                        <div class="flex items-center mb-3">
-                            <i class="fas fa-globe text-2xl text-blue-600 mr-3"></i>
-                            <h4 class="font-bold text-lg">GUI (網頁)</h4>
-                        </div>
-                        <div class="bg-gray-100 p-3 rounded font-mono text-sm mb-2 text-gray-700">
-                            IP: 192.168.1.99<br>
-                            URL: https://192.168.1.99<br>
-                            User: admin<br>
-                            Pwd: (空)
-                        </div>
-                        <p class="text-sm text-gray-600">通常使用 MGMT 埠或 Port 1。需將電腦設為同網段 (如 192.168.1.100) 才能連接。</p>
-                    </div>
-
-                    <!-- CLI -->
-                    <div class="bg-white border rounded p-4">
-                        <div class="flex items-center mb-3">
-                            <i class="fas fa-terminal text-2xl text-gray-700 mr-3"></i>
-                            <h4 class="font-bold text-lg">CLI (Console)</h4>
-                        </div>
-                        <div class="bg-gray-100 p-3 rounded font-mono text-sm mb-2 text-gray-700">
-                            Baud Rate: 9600<br>
-                            Data bits: 8<br>
-                            Parity: None, Stop: 1
-                        </div>
-                        <p class="text-sm text-gray-600">使用 RJ-45 to DB9/USB 線材。這是 <strong>Out-of-Band</strong> 管理，救機專用。</p>
-                    </div>
+            <p class="fg-lead"><strong>連接方式與預設值</strong></p>
+            <div class="fg-grid fg-grid-2">
+                <div class="fg-card">
+                    <h3>GUI (網頁)</h3>
+                    <pre class="fg-code">IP: 192.168.1.99
+URL: https://192.168.1.99
+User: admin
+Pwd: (空)</pre>
+                    <p>通常使用 MGMT 埠或 Port 1。需將電腦設為同網段 (如 192.168.1.100) 才能連接。</p>
+                </div>
+                <div class="fg-card">
+                    <h3>CLI (Console)</h3>
+                    <pre class="fg-code">Baud Rate: 9600
+Data bits: 8
+Parity: None, Stop: 1</pre>
+                    <p>使用 RJ-45 to DB9/USB 線材。這是 <strong>Out-of-Band</strong> 管理，救機專用。</p>
                 </div>
             </div>
-
-            <!-- Initialization Visuals -->
-            <div class="mb-6">
-                <h3 class="text-lg font-bold text-gray-700 mb-2">3. 初始化連接拓樸圖</h3>
-                <div class="mermaid-container">
-                    <!-- 拓撲圖 (手繪 SVG):管理員電腦的 Ethernet 與 Console 兩條連線 -->
+            <figure class="fg-figure">
+                <figcaption>3. 初始化連接拓樸圖</figcaption>
+                <!-- 拓撲圖 (手繪 SVG):管理員電腦的 Ethernet 與 Console 兩條連線 -->
                     <div style="width:100%;overflow-x:auto">
                     <svg viewBox="0 0 760 330" role="img" aria-labelledby="fg01b-title fg01b-desc" style="width:100%;min-width:560px;max-width:760px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
                     <title id="fg01b-title">FortiGate 初始化連接拓樸</title>
@@ -450,235 +247,105 @@
                     </g>
                     </svg>
                     </div>
-                </div>
+            </figure>
+            <div class="fg-callout warn">
+                <span class="fg-callout-title">情境：誤設策略導致「把自己鎖在外面」</span>
+                <p>新手管理員在調整 Trusted Host (信任主機) 設定時，不小心輸入錯誤的 IP 範圍，導致原本的管理電腦無法透過 HTTPS 連線登入。</p>
+                <p><strong>解決方案：Console 救援</strong></p>
+                <p>這時候 GUI 已經無法存取。管理員必須拿起 <strong>Console 線</strong> 直接連接設備背後的 Console Port。因為 Console 存取通常不受 Trusted Host 或防火牆 Policy 限制 (是實體層存取)，管理員可以登入 CLI，下指令 <code>unset trusted-hosts</code> 或修正 IP，成功救回設備控制權。</p>
             </div>
-            
-            <!-- Initialization Use Case -->
-            <div class="highlight-box">
-                <h4 class="font-bold text-red-800 mb-2 flex items-center">
-                    <i class="fas fa-exclamation-triangle mr-2"></i>情境：誤設策略導致「把自己鎖在外面」
-                </h4>
-                <p class="text-gray-700 mb-2 text-sm">
-                    新手管理員在調整 Trusted Host (信任主機) 設定時，不小心輸入錯誤的 IP 範圍，導致原本的管理電腦無法透過 HTTPS 連線登入。
-                </p>
-                <div class="bg-white p-3 rounded border border-gray-200 mt-2">
-                    <h5 class="font-bold text-blue-700 text-sm mb-1">解決方案：Console 救援</h5>
-                    <p class="text-xs text-gray-600">
-                        這時候 GUI 已經無法存取。管理員必須拿起 <strong>Console 線</strong> 直接連接設備背後的 Console Port。因為 Console 存取通常不受 Trusted Host 或防火牆 Policy 限制 (是實體層存取)，管理員可以登入 CLI，下指令 `unset trusted-hosts` 或修正 IP，成功救回設備控制權。
-                    </p>
-                </div>
-            </div>
-        </div>
+        </section>
 
-        <!-- Topic 2: Configuration Examples (New Section) -->
-        <div class="section-card">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                <span class="bg-indigo-100 text-indigo-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Configuration</span>
-                六、實戰設定範例：管理 IP 與存取控制
-            </h2>
-
-            <p class="mb-4 text-gray-600">
-                完成硬體連接後，第一步是將 FortiGate 設定為符合企業網路環境的 IP，並透過 <strong>Trusted Host</strong> 鎖定來源，確保管理介面安全。
-            </p>
-
-            <div class="grid md:grid-cols-2 gap-6">
-                
-                <!-- 1. 修改介面 IP 與存取權限 -->
-                <div>
-                    <h3 class="text-xl font-bold text-gray-800 border-b pb-2 mb-3">1. 修改介面 IP & 開放存取</h3>
-                    <div class="mb-3">
-                        <span class="font-bold text-gray-700">GUI 路徑：</span>
-                        <span class="text-sm bg-gray-100 px-2 py-1 rounded">Network > Interfaces > 編輯介面 (如 port1)</span>
-                    </div>
-                    <ul class="list-disc list-inside text-sm text-gray-700 mb-4 space-y-1">
+        <section class="fg-section">
+            <h2 class="fg-section-title"><span class="fg-num">06</span>實戰設定範例：管理 IP 與存取控制 <span class="fg-en">Configuration</span></h2>
+            <p class="fg-lead">完成硬體連接後，第一步是將 FortiGate 設定為符合企業網路環境的 IP，並透過 <strong>Trusted Host</strong> 鎖定來源，確保管理介面安全。</p>
+            <div class="fg-grid fg-grid-2">
+                <div class="fg-card">
+                    <h3>1. 修改介面 IP &amp; 開放存取</h3>
+                    <p><strong>GUI 路徑：</strong> <code>Network &gt; Interfaces &gt; 編輯介面 (如 port1)</code></p>
+                    <ul class="fg-list">
                         <li><strong>IP/Netmask：</strong> 設定介面 IP (例如 192.168.100.254/24)。</li>
                         <li><strong>Administrative Access：</strong> 勾選允許的管理方式。
-                            <ul class="pl-6 mt-1 text-gray-500 text-xs">
-                                <li><i class="fas fa-check text-green-500 mr-1"></i>HTTPS: 網頁管理 (加密)</li>
-                                <li><i class="fas fa-check text-green-500 mr-1"></i>SSH: 指令管理 (加密)</li>
-                                <li><i class="fas fa-check text-green-500 mr-1"></i>PING: 測試連通性</li>
-                                <li><i class="fas fa-times text-red-500 mr-1"></i>HTTP/TELNET: 不建議開啟 (明文)</li>
+                            <ul class="fg-list">
+                                <li>HTTPS: 網頁管理 (加密)</li>
+                                <li>SSH: 指令管理 (加密)</li>
+                                <li>PING: 測試連通性</li>
+                                <li>HTTP/TELNET: 不建議開啟 (明文)</li>
                             </ul>
                         </li>
                     </ul>
-                    <div class="bg-gray-800 text-gray-200 p-3 rounded text-xs font-mono">
-                        <p class="text-gray-500 mb-1"># CLI 設定範例</p>
-                        <p>config system interface</p>
-                        <p class="pl-4">edit "port1"</p>
-                        <p class="pl-8">set mode static</p>
-                        <p class="pl-8">set ip 192.168.100.254 255.255.255.0</p>
-                        <p class="pl-8">set allowaccess ping https ssh</p>
-                        <p class="pl-4">next</p>
-                        <p>end</p>
-                    </div>
+                    <pre class="fg-code"><span class="dim"># CLI 設定範例</span>
+config system interface
+    edit "port1"
+        set mode static
+        set ip 192.168.100.254 255.255.255.0
+        set allowaccess ping https ssh
+    next
+end</pre>
                 </div>
-
-                <!-- 2. 設定信任主機 (Trusted Hosts) -->
-                <div>
-                    <h3 class="text-xl font-bold text-gray-800 border-b pb-2 mb-3">2. 限制來源 IP (Trusted Host)</h3>
-                    <div class="mb-3">
-                        <span class="font-bold text-gray-700">GUI 路徑：</span>
-                        <span class="text-sm bg-gray-100 px-2 py-1 rounded">System > Administrators > 編輯 admin</span>
+                <div class="fg-card">
+                    <h3>2. 限制來源 IP (Trusted Host)</h3>
+                    <p><strong>GUI 路徑：</strong> <code>System &gt; Administrators &gt; 編輯 admin</code></p>
+                    <p><strong>Trusted Host</strong> 是 FortiGate 最重要的基礎防護。設定後，<strong>只有列表中的 IP</strong> 能看到登入頁面，其他來源會直接連線逾時 (Drop)。</p>
+                    <div class="fg-callout warn">
+                        <p>注意：若設定錯誤，所有人都會被阻擋在外 (包含你自己)！</p>
                     </div>
-                    <p class="text-sm text-gray-700 mb-2">
-                        <strong>Trusted Host</strong> 是 FortiGate 最重要的基礎防護。設定後，<strong>只有列表中的 IP</strong> 能看到登入頁面，其他來源會直接連線逾時 (Drop)。
-                    </p>
-                    <div class="highlight-box my-2">
-                        <p class="text-xs text-red-800 font-bold">
-                            <i class="fas fa-exclamation-circle mr-1"></i>注意：若設定錯誤，所有人都會被阻擋在外 (包含你自己)！
-                        </p>
-                    </div>
-                    <div class="bg-gray-800 text-gray-200 p-3 rounded text-xs font-mono mt-3">
-                        <p class="text-gray-500 mb-1"># CLI 設定範例 (限制 admin 帳號)</p>
-                        <p>config system admin</p>
-                        <p class="pl-4">edit "admin"</p>
-                        <p class="pl-8"># 允許內網網管網段</p>
-                        <p class="pl-8">set trustedhost1 192.168.100.0 255.255.255.0</p>
-                        <p class="pl-8"># 允許特定公網 IP</p>
-                        <p class="pl-8">set trustedhost2 203.0.113.10 255.255.255.255</p>
-                        <p class="pl-4">next</p>
-                        <p>end</p>
-                    </div>
+                    <pre class="fg-code"><span class="dim"># CLI 設定範例 (限制 admin 帳號)</span>
+config system admin
+    edit "admin"
+        <span class="dim"># 允許內網網管網段</span>
+        set trustedhost1 192.168.100.0 255.255.255.0
+        <span class="dim"># 允許特定公網 IP</span>
+        set trustedhost2 203.0.113.10 255.255.255.255
+    next
+end</pre>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Quiz Section -->
-        <div class="section-card">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
-                七、隨堂測驗
-            </h2>
-            <p class="mb-6 text-gray-600">請點擊您認為正確的選項，系統將會顯示解析。</p>
-
-            <div class="space-y-6" id="quiz-container">
-                <!-- Javascript will render quiz here -->
-            </div>
-        </div>
-
+        <section class="fg-section">
+            <h2 class="fg-section-title"><span class="fg-num">07</span>隨堂測驗 <span class="fg-en">Quiz</span></h2>
+            <p class="fg-lead">請點擊您認為正確的選項，系統將會顯示解析。</p>
+            <div id="fg-quiz"></div>
+        </section>
     </main>
 
-    <footer class="footer-signature">
-        Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0
-    </footer>
-
-    <!-- 使用 module type 載入 mermaid，確保圖表設定與範本一致 -->
-    <script type="module">
-        const mermaid = { initialize() {}, init() {}, run: async () => {} }; // 架構圖已改為靜態 SVG,不再載入 Mermaid
-        mermaid.initialize({ 
-            startOnLoad: true,
-            theme: 'neutral',
-            securityLevel: 'loose',
-            themeVariables: {
-                fontSize: '16px',
-                fontFamily: '"Noto Sans TC", sans-serif'
-            },
-            flowchart: {
-                htmlLabels: true,
-                useMaxWidth: false
-            }
-        });
-    </script>
+    <footer>Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0</footer>
 
     <script>
-        // Quiz Data
-        const quizData = [
+        window.FG_QUIZ = [
             {
                 question: "1. 在 FortiGate 架構中，哪一種處理器主要負責 'L4 防火牆轉發、NAT 與 VPN 加解密' 的硬體加速？",
                 options: ["A. General CPU", "B. NP (Network Processor)", "C. CP (Content Processor)", "D. GPU (Graphics Processor)"],
                 correct: 1,
-                desc: "正解：B。NP (Network Processor) 專門負責網路層的快速轉發 (Fast Path)，包含 IPv4/IPv6、NAT 與 IPsec VPN Offload。"
+                explanation: "正解：B。NP (Network Processor) 專門負責網路層的快速轉發 (Fast Path)，包含 IPv4/IPv6、NAT 與 IPsec VPN Offload。"
             },
             {
                 question: "2. 關於 FortiGate 的出廠預設值 (Factory Default)，下列何者正確？",
                 options: ["A. IP: 192.168.1.1, User: admin, Pwd: admin", "B. IP: 192.168.1.99, User: admin, Pwd: (空白)", "C. IP: 10.10.10.1, User: root, Pwd: fortinet", "D. 預設沒有 IP，必須先用 Console 設定"],
                 correct: 1,
-                desc: "正解：B。FortiGate 預設 IP 為 192.168.1.99 (通常在 Mgmt 或 Port1)，帳號 admin，密碼預設為空白。"
+                explanation: "正解：B。FortiGate 預設 IP 為 192.168.1.99 (通常在 Mgmt 或 Port1)，帳號 admin，密碼預設為空白。"
             },
             {
                 question: "3. 若您需要進行 IPS (入侵防禦) 與 Antivirus (防毒) 的特徵碼比對，這個工作主要由哪個元件負責加速？",
                 options: ["A. NP (Network Processor)", "B. RAM Disk", "C. CP (Content Processor)", "D. SSD 硬碟"],
                 correct: 2,
-                desc: "正解：C。CP (Content Processor) 是內容處理器，專門處理耗資源的應用層檢測，如 AV、IPS 與 SSL 加解密。"
+                explanation: "正解：C。CP (Content Processor) 是內容處理器，專門處理耗資源的應用層檢測，如 AV、IPS 與 SSL 加解密。"
             },
             {
                 question: "4. 連接 Console Port 進行 CLI 設定時，終端機軟體 (如 PuTTY) 的 Baud Rate 應設為多少？",
                 options: ["A. 115200", "B. 9600", "C. 19200", "D. 4800"],
                 correct: 1,
-                desc: "正解：B。FortiGate Console Port 的標準 Baud Rate 為 9600。"
+                explanation: "正解：B。FortiGate Console Port 的標準 Baud Rate 為 9600。"
             },
             {
                 question: "5. 關於 'Life of a Packet'，為何第一個封包 (First Packet) 通常無法被 NP Offload？",
                 options: ["A. 因為 NP 晶片還沒熱機", "B. 因為第一個封包通常是加密的", "C. 因為需要 CPU 建立 Session 並檢查 Policy", "D. 因為只有 UDP 封包能被 Offload"],
                 correct: 2,
-                desc: "正解：C。這就是 'Slow Path'。首包必須進入 CPU 檢查路由表與 Firewall Policy，建立 Session Table 後，後續封包才能交由 NP。"
+                explanation: "正解：C。這就是 'Slow Path'。首包必須進入 CPU 檢查路由表與 Firewall Policy，建立 Session Table 後，後續封包才能交由 NP。"
             }
         ];
-
-        // 渲染測驗 (使用與範本一致的邏輯與樣式)
-        const quizContainer = document.getElementById('quiz-container');
-
-        quizData.forEach((item, index) => {
-            const questionBox = document.createElement('div');
-            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
-            
-            let optionsHtml = '';
-            item.options.forEach((opt, optIndex) => {
-                optionsHtml += `
-                    <div class="quiz-option p-3 rounded border mb-2 text-gray-700" onclick="checkAnswer(${index}, ${optIndex}, this)">
-                        ${opt}
-                    </div>
-                `;
-            });
-
-            questionBox.innerHTML = `
-                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
-                <div class="space-y-2 mb-4">
-                    ${optionsHtml}
-                </div>
-                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
-                    <p class="font-bold result-title"></p>
-                    <p class="text-sm text-gray-600 mt-1">${item.desc}</p>
-                </div>
-            `;
-            quizContainer.appendChild(questionBox);
-        });
-
-        function checkAnswer(qIndex, optIndex, element) {
-            const data = quizData[qIndex];
-            const resultBox = document.getElementById(`result-${qIndex}`);
-            const resultTitle = resultBox.querySelector('.result-title');
-            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
-
-            // 鎖定該題不可再選
-            if (element.parentElement.dataset.answered) return;
-            element.parentElement.dataset.answered = "true";
-
-            // 清除並重設樣式
-            allOptions.forEach(opt => {
-                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
-                opt.classList.add('disabled'); // 標記為已鎖定，雖然 CSS 主要是處理 hover
-            });
-
-            if (optIndex === data.correct) {
-                // 答對
-                element.classList.add('bg-green-100', 'border-green-500');
-                resultBox.classList.remove('hidden', 'border-red-500');
-                resultBox.classList.add('border-green-500', 'bg-green-50');
-                resultTitle.textContent = "✅ 答對了！";
-                resultTitle.classList.add('text-green-700');
-            } else {
-                // 答錯
-                element.classList.add('bg-red-100', 'border-red-500');
-                // 標示正確答案
-                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
-                
-                resultBox.classList.remove('hidden', 'border-green-500');
-                resultBox.classList.add('border-red-500', 'bg-red-50');
-                resultTitle.textContent = "❌ 答錯了！";
-                resultTitle.classList.add('text-red-700');
-            }
-        }
     </script>
+    <script src="fg.js?v=1"></script>
 </body>
 </html>

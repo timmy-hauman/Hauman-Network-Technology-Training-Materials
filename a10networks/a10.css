@@ -1,0 +1,176 @@
+/* =========================================================
+   A10 Networks Thunder 實戰課程共用版型
+   12 個單元頁面統一使用這份樣式;頁面本身不再各自定義配色與版型。
+   底色、字型、頂端導覽列、頁首漸層與頁尾由 ../assets/site-theme.css 提供。
+   ========================================================= */
+:root {
+    --a10-accent: #1d4ed8;
+    --a10-accent-dark: #1e40af;
+    --a10-accent-tint: #eff6ff;
+    --a10-accent-line: #bfdbfe;
+    --a10-text: #1e2235;
+    --a10-text-2: #5b6278;
+    --a10-muted: #8a90a6;
+    --a10-border: #e3e6f0;
+    --a10-cyan: #0e7490;
+    --a10-cyan-tint: #ecfeff;
+    --a10-green: #15803d;
+    --a10-green-tint: #f0fdf4;
+    --a10-amber: #b45309;
+    --a10-amber-tint: #fffbeb;
+    --a10-shadow: 0 4px 16px rgba(30, 34, 53, 0.06);
+}
+
+body { color: var(--a10-text); line-height: 1.7; margin: 0; }
+
+/* ---- 頁首 (site-chrome 會換成品牌漸層) ---- */
+.a10-hero { background: #1e2235; color: #fff; padding: 44px 20px 40px; text-align: center; }
+.a10-hero-inner { max-width: 1100px; margin: 0 auto; }
+.a10-hero .a10-kicker {
+    display: inline-block; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em;
+    padding: 4px 14px; border-radius: 999px; background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.35); margin: 0 0 14px;
+}
+.a10-hero h1 { margin: 0; font-size: 2.1rem; font-weight: 700; line-height: 1.3; color: #fff; }
+.a10-hero .a10-subtitle { margin: 10px 0 0; font-size: 1.1rem; color: #ede7f6; }
+
+/* ---- 內容區 ---- */
+.a10-main { max-width: 1100px; margin: 0 auto; padding: 36px 20px 56px; }
+.a10-section { margin: 0 0 48px; }
+.a10-section-title {
+    display: flex; align-items: center; gap: 12px; margin: 0 0 20px;
+    font-size: 1.5rem; font-weight: 700; color: var(--a10-text);
+}
+.a10-section-title .a10-num {
+    flex-shrink: 0; min-width: 40px; height: 40px; padding: 0 8px; border-radius: 10px;
+    background: var(--a10-accent); color: #fff; font-size: 1rem;
+    display: inline-flex; align-items: center; justify-content: center; font-family: var(--hm-mono, monospace);
+}
+.a10-section-title .a10-en { font-size: 0.95rem; font-weight: 500; color: var(--a10-text-2); }
+.a10-lead { color: var(--a10-text-2); margin: -8px 0 20px; }
+
+/* ---- 卡片與格線 ---- */
+.a10-card {
+    background: #fff; border: 1px solid var(--a10-border); border-radius: 12px;
+    box-shadow: var(--a10-shadow); padding: 22px 24px; border-top: 3px solid var(--a10-accent);
+}
+.a10-card.plain { border-top-width: 1px; border-top-color: var(--a10-border); }
+.a10-card h3 { margin: 0 0 10px; font-size: 1.15rem; font-weight: 700; color: var(--a10-accent-dark); }
+.a10-card h4 { margin: 16px 0 6px; font-size: 1rem; font-weight: 700; color: var(--a10-text); }
+.a10-card p { margin: 0 0 10px; color: var(--a10-text-2); }
+.a10-card p:last-child { margin-bottom: 0; }
+.a10-card + .a10-card { margin-top: 20px; }
+.a10-grid { display: grid; gap: 20px; }
+.a10-grid > .a10-card + .a10-card { margin-top: 0; }
+/* 同一章節內,卡片、格線、表格前後相接時保持間距 */
+.a10-section > .a10-grid + *, .a10-section > .a10-table-wrap + *,
+.a10-section > .a10-card + .a10-grid, .a10-section > .a10-card + .a10-table-wrap { margin-top: 20px; }
+.a10-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.a10-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.a10-grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 960px) { .a10-grid-3, .a10-grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 680px) { .a10-grid-2, .a10-grid-3, .a10-grid-4 { grid-template-columns: 1fr; } }
+
+/* ---- 文字元素 ---- */
+.a10-main strong, .a10-main b { color: var(--a10-text); }
+.a10-hl { color: var(--a10-accent-dark); font-weight: 700; }
+.a10-tag {
+    display: inline-block; font-size: 0.75rem; font-weight: 700; padding: 2px 10px; border-radius: 999px;
+    background: var(--a10-accent-tint); color: var(--a10-accent-dark); border: 1px solid var(--a10-accent-line);
+    margin: 0 6px 8px 0; font-family: var(--hm-mono, monospace);
+}
+.a10-tag.cyan { background: var(--a10-cyan-tint); color: var(--a10-cyan); border-color: #a5f3fc; }
+.a10-tag.green { background: var(--a10-green-tint); color: var(--a10-green); border-color: #bbf7d0; }
+.a10-tag.amber { background: var(--a10-amber-tint); color: var(--a10-amber); border-color: #fde68a; }
+.a10-main code {
+    font-family: var(--hm-mono, monospace); font-size: 0.88em; background: var(--a10-accent-tint);
+    color: var(--a10-accent-dark); padding: 1px 6px; border-radius: 4px;
+}
+.a10-list { margin: 8px 0 0; padding: 0; list-style: none; }
+.a10-list li { position: relative; padding-left: 18px; margin: 0 0 8px; color: var(--a10-text-2); }
+.a10-list li::before {
+    content: ''; position: absolute; left: 2px; top: 0.7em; width: 7px; height: 7px;
+    border-radius: 50%; background: var(--a10-accent);
+}
+.a10-steps { margin: 8px 0 0; padding: 0; list-style: none; counter-reset: a10-step; }
+.a10-steps li { position: relative; padding-left: 40px; margin: 0 0 14px; color: var(--a10-text-2); counter-increment: a10-step; }
+.a10-steps li::before {
+    content: counter(a10-step); position: absolute; left: 0; top: 0; width: 28px; height: 28px; border-radius: 50%;
+    background: var(--a10-accent-tint); color: var(--a10-accent-dark); border: 1px solid var(--a10-accent-line);
+    font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; justify-content: center;
+}
+
+/* ---- 提示框 ---- */
+.a10-callout {
+    border-radius: 10px; padding: 16px 20px; margin: 20px 0; border-left: 4px solid var(--a10-accent);
+    background: var(--a10-accent-tint); color: var(--a10-text);
+}
+.a10-callout .a10-callout-title { display: block; font-weight: 700; margin-bottom: 6px; color: var(--a10-accent-dark); }
+.a10-callout p { margin: 0 0 6px; color: var(--a10-text); }
+.a10-callout p:last-child { margin-bottom: 0; }
+.a10-callout.info { background: var(--a10-cyan-tint); border-left-color: #0891b2; }
+.a10-callout.info .a10-callout-title { color: var(--a10-cyan); }
+.a10-callout.tip { background: var(--a10-green-tint); border-left-color: #16a34a; }
+.a10-callout.tip .a10-callout-title { color: var(--a10-green); }
+.a10-callout.warn { background: var(--a10-amber-tint); border-left-color: #f59e0b; }
+.a10-callout.warn .a10-callout-title { color: var(--a10-amber); }
+
+/* ---- 表格 ---- */
+.a10-table-wrap { overflow-x: auto; border: 1px solid var(--a10-border); border-radius: 12px; background: #fff; box-shadow: var(--a10-shadow); }
+.a10-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+.a10-table th { background: var(--a10-accent-tint); color: var(--a10-accent-dark); text-align: left; font-weight: 700; padding: 12px 16px; border-bottom: 1px solid var(--a10-accent-line); white-space: nowrap; }
+.a10-table td { padding: 12px 16px; border-bottom: 1px solid var(--a10-border); color: var(--a10-text-2); vertical-align: top; }
+.a10-table tr:last-child td { border-bottom: none; }
+.a10-table td:first-child { color: var(--a10-text); font-weight: 600; }
+
+/* ---- 指令 / 終端機 ---- */
+.a10-code {
+    background: #1e2235; color: #e2e8f0; border-radius: 10px; padding: 16px 20px; margin: 14px 0;
+    font-family: var(--hm-mono, monospace); font-size: 0.88rem; line-height: 1.6; overflow-x: auto; white-space: pre;
+}
+.a10-code .ok { color: #86efac; }
+.a10-code .alert { color: #fca5a5; }
+.a10-code .dim { color: #94a3b8; }
+
+/* ---- 測驗 (由 a10.js 依 window.A10_QUIZ 產生) ---- */
+.a10-quiz-q { background: #fff; border: 1px solid var(--a10-border); border-radius: 12px; box-shadow: var(--a10-shadow); padding: 22px 24px; margin: 0 0 20px; }
+.a10-quiz-q h3 { margin: 0 0 14px; font-size: 1.05rem; font-weight: 700; color: var(--a10-text); line-height: 1.6; }
+.a10-quiz-q h3 .a10-qno { color: var(--a10-accent-dark); margin-right: 6px; }
+.a10-option {
+    display: block; width: 100%; text-align: left; font: inherit; color: var(--a10-text); cursor: pointer;
+    background: #fff; border: 1px solid var(--a10-border); border-radius: 8px; padding: 11px 16px; margin: 0 0 10px;
+    transition: border-color 0.15s, background 0.15s;
+}
+.a10-option:hover:not(:disabled) { border-color: var(--a10-accent-line); background: var(--a10-accent-tint); }
+.a10-option:disabled { cursor: default; }
+.a10-option.is-correct { border-color: #16a34a; background: var(--a10-green-tint); color: #14532d; font-weight: 600; }
+.a10-option.is-wrong { border-color: #dc2626; background: #fef2f2; color: #7f1d1d; font-weight: 600; }
+.a10-option.is-correct::after { content: ' ✔'; }
+.a10-option.is-wrong::after { content: ' ✘'; }
+.a10-explain { display: none; margin-top: 6px; padding: 14px 18px; border-radius: 8px; background: var(--a10-cyan-tint); border-left: 4px solid #0891b2; color: var(--a10-text); }
+.a10-explain.show { display: block; }
+.a10-explain strong { color: var(--a10-cyan); }
+.a10-score { text-align: center; font-weight: 700; color: var(--a10-text-2); margin-top: 8px; }
+.a10-score span { color: var(--a10-accent-dark); font-size: 1.2rem; }
+
+@media (max-width: 640px) {
+    .a10-hero h1 { font-size: 1.6rem; }
+    .a10-section-title { font-size: 1.25rem; flex-wrap: wrap; row-gap: 2px; }
+    .a10-section-title .a10-en { flex-basis: 100%; padding-left: 52px; font-size: 0.85rem; }
+    .a10-card, .a10-quiz-q { padding: 18px; }
+}
+
+/* ---- 圖解 (手繪 SVG / 時序圖) ---- */
+.a10-figure { background: #fff; border: 1px solid var(--a10-border); border-radius: 12px; box-shadow: var(--a10-shadow); padding: 20px; margin: 0; }
+.a10-figure + .a10-figure { margin-top: 20px; }
+.a10-figure figcaption { margin: 0 0 14px; font-weight: 700; color: var(--a10-text); text-align: center; }
+.a10-figure figcaption small { display: block; font-weight: 400; color: var(--a10-text-2); margin-top: 4px; }
+.a10-section > .a10-figure + *, .a10-section > * + .a10-figure { margin-top: 20px; }
+
+/* ---- 測驗:重新作答按鈕 ---- */
+.a10-quiz-actions { text-align: center; margin-top: 12px; }
+.a10-reset {
+    font: inherit; font-weight: 700; color: #fff; background: var(--a10-accent); border: none; border-radius: 8px;
+    padding: 10px 22px; cursor: pointer;
+}
+.a10-reset:hover { background: var(--a10-accent-dark); }

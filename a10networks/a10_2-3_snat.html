@@ -4,199 +4,91 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>A10 Networks Thunder 實戰課程 | SNAT 與 Client IP 保存</title>
-    <!-- Google Fonts: Rubik -->
-    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Mermaid JS -->
-    <!-- 圖表已改為內嵌 SVG,不再載入 Mermaid;保留空殼讓原本的初始化程式不出錯 -->
-    <script>window.mermaid = { initialize: function () {}, init: function () {}, run: function () { return Promise.resolve(); } };</script>
-    
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Rubik', 'sans-serif'],
-                    },
-                    colors: {
-                        a10blue: '#001f3f', // Midnight Blue
-                        a10light: '#f4f6f8', // Light Grey/Whiteish
-                        a10accent: '#d5006d', // Magenta
-                        a10orange: '#ff851b', // Orange
-                    }
-                }
-            }
-        }
-    </script>
-
-    <style>
-        body {
-            background-color: #f4f6f8;
-            color: #333;
-        }
-        .section-title {
-            border-left: 5px solid #d5006d;
-            padding-left: 1rem;
-            margin-bottom: 1.5rem;
-            color: #001f3f;
-            font-weight: 700;
-        }
-        .highlight-box {
-            background: linear-gradient(135deg, #001f3f 0%, #1e3a8a 100%);
-            color: white;
-        }
-        .mermaid-container {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin-bottom: 2rem;
-            display: block;
-            text-align: center;
-            overflow-x: auto;
-        }
-        /* Ensure the mermaid div itself is centered but allows expansion */
-        .mermaid {
-            display: inline-block;
-            min-width: 100%;
-        }
-        .quiz-option {
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        .quiz-option:hover {
-            background-color: #eef2ff;
-        }
-        .quiz-selected {
-            border-color: #001f3f;
-            background-color: #e0e7ff;
-        }
-        footer {
-            background-color: #001f3f;
-            color: white;
-        }
-    </style>
-    <!-- 教學網站共用外觀 -->
-    <link rel="stylesheet" href="../assets/site-theme.css?v=20261112">
-    <script src="../assets/site-chrome.js?v=20261112" defer></script>
+    <link rel="stylesheet" href="a10.css?v=1">
+    <link rel="stylesheet" href="../assets/site-theme.css?v=20261112b">
+    <script src="../assets/site-chrome.js?v=20261112b" defer></script>
 </head>
-<body class="flex flex-col min-h-screen">
-
-    <!-- Header -->
-    <header class="bg-a10blue text-white shadow-lg">
-        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <i class="fa-solid fa-network-wired text-a10orange text-2xl"></i>
-                <h1 class="text-xl md:text-2xl font-bold tracking-wide">A10 Networks Thunder <span class="text-a10accent">實戰課程</span></h1>
-            </div>
-            <div class="text-sm font-light hidden md:block">Level 2 - Core Skills</div>
+<body>
+    <header class="a10-hero">
+        <div class="a10-hero-inner">
+            <p class="a10-kicker">A10 Networks Thunder 實戰課程 · 單元 2-3</p>
+            <h1>SNAT 與 Client IP 保存</h1>
+            <p class="a10-subtitle">SNAT &amp; Client IP Preservation</p>
         </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="container mx-auto px-4 py-8 flex-grow max-w-5xl">
-
-        <!-- Subject Header -->
-        <div class="mb-10 text-center">
-            <h2 class="text-3xl font-bold text-a10blue mb-2">3. SNAT 與 Client IP 保存</h2>
-            <p class="text-gray-600">深入解析來源位址轉換 (Source NAT) 的架構必要性與 X-Forwarded-For 標頭應用</p>
-        </div>
-
-        <!-- 1. 核心概念 (Concept) -->
-        <section class="mb-12 bg-white p-8 rounded-xl shadow-sm border-t-4 border-a10accent">
-            <h3 class="text-2xl section-title">一、核心概念 (Concept)</h3>
-            
-            <div class="grid md:grid-cols-2 gap-8 items-start">
-                <div>
-                    <h4 class="text-lg font-bold text-a10blue mb-2"><i class="fa-solid fa-lightbulb text-a10orange mr-2"></i>一句話定義</h4>
-                    <p class="text-gray-700 leading-relaxed">
-                        **Source NAT (SNAT)** 是指負載平衡器 (ADC) 在將封包轉發給後端伺服器時，將封包的「來源 IP」修改為 ADC 自己的 IP，以確保伺服器的回程封包能正確回到 ADC，而不是繞過 ADC 直接回給客戶端。
-                    </p>
-                </div>
-                
-                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <h4 class="text-lg font-bold text-a10blue mb-2"><i class="fa-solid fa-mug-hot text-a10accent mr-2"></i>生活化比喻</h4>
-                    <p class="text-gray-700 leading-relaxed italic">
-                        想像你是公司的**總機 (ADC)**，客戶 (Client) 打電話進來找財務部 (Server)。
-                        <br><br>
-                        如果你轉接電話時**不做 SNAT**，財務部看到的是客戶的原始號碼，講完後財務部可能會**直接回撥**給客戶，但客戶會覺得很奇怪：「我明明是打給總機，怎麼是財務部私人手機打回來？」這通話就斷了 (非對稱路由)。
-                        <br><br>
-                        **做了 SNAT**，就像是你轉接時告訴財務部：「這通電話是我轉過來的，有事請回撥給我 (ADC IP)。」這樣所有溝通都經過你，你能掌控全程。
-                        <br><br>
-                        而 **X-Forwarded-For** 就像是你雖然用內線轉接，但在電話上貼了一張便利貼：「這是王先生打來的，他的號碼是 0912...」，讓財務部知道真正的發話者是誰。
-                    </p>
-                </div>
+    <main class="a10-main">
+        <section class="a10-section">
+            <h2 class="a10-section-title"><span class="a10-num">00</span>單元概述 <span class="a10-en">Overview</span></h2>
+            <div class="a10-card plain">
+                <p>深入解析來源位址轉換 (Source NAT) 的架構必要性與 X-Forwarded-For 標頭應用</p>
             </div>
         </section>
 
-        <!-- 2. 運作原理 (Mechanism) -->
-        <section class="mb-12">
-            <h3 class="text-2xl section-title">二、運作原理 (Mechanism)</h3>
-            
-            <div class="bg-white p-8 rounded-xl shadow-sm space-y-6">
-                
-                <div>
-                    <h4 class="text-xl font-bold text-a10blue mb-3">為什麼需要 SNAT？ (非對稱路由問題)</h4>
-                    <p class="text-gray-700 mb-4">
-                        在常見的 **單臂模式 (One-Arm Mode)** 部署中，ADC 與 Server 位於同一個網段。若不開啟 SNAT：
-                    </p>
-                    <ul class="list-disc pl-6 space-y-2 text-gray-700">
-                        <li><strong>Request:</strong> Client (IP: A) → VIP (IP: B) → Server (IP: C)。Server 收到封包，來源 IP 為 A。</li>
-                        <li><strong>Response:</strong> Server 發現 A 不在同一網段，查路由表，直接透過 Gateway (Firewall/Router) 回給 A，<strong>跳過了 ADC</strong>。</li>
-                        <li><strong>Result:</strong> Client 收到來自 IP C 的封包，但他建立連線的對象是 IP B (VIP)。Client 的 OS 會直接丟棄封包 (RST)，連線失敗。</li>
+        <section class="a10-section">
+            <h2 class="a10-section-title"><span class="a10-num">01</span>核心概念 <span class="a10-en">Concept</span></h2>
+            <div class="a10-card">
+                <h3>一句話定義</h3>
+                <p><strong>Source NAT (SNAT)</strong> 是指負載平衡器 (ADC) 在將封包轉發給後端伺服器時，將封包的「來源 IP」修改為 ADC 自己的 IP，以確保伺服器的回程封包能正確回到 ADC，而不是繞過 ADC 直接回給客戶端。</p>
+            </div>
+            <div class="a10-callout">
+                <span class="a10-callout-title">生活化比喻</span>
+                <p>想像你是公司的<strong>總機 (ADC)</strong>，客戶 (Client) 打電話進來找財務部 (Server)。</p>
+                <p>如果你轉接電話時<strong>不做 SNAT</strong>，財務部看到的是客戶的原始號碼，講完後財務部可能會<strong>直接回撥</strong>給客戶，但客戶會覺得很奇怪：「我明明是打給總機，怎麼是財務部私人手機打回來？」這通話就斷了 (非對稱路由)。</p>
+                <p><strong>做了 SNAT</strong>，就像是你轉接時告訴財務部：「這通電話是我轉過來的，有事請回撥給我 (ADC IP)。」這樣所有溝通都經過你，你能掌控全程。</p>
+                <p>而 <strong>X-Forwarded-For</strong> 就像是你雖然用內線轉接，但在電話上貼了一張便利貼：「這是王先生打來的，他的號碼是 0912...」，讓財務部知道真正的發話者是誰。</p>
+            </div>
+        </section>
+
+        <section class="a10-section">
+            <h2 class="a10-section-title"><span class="a10-num">02</span>運作原理 <span class="a10-en">Mechanism</span></h2>
+            <div class="a10-card">
+                <h3>為什麼需要 SNAT？ (非對稱路由問題)</h3>
+                <p>在常見的 <strong>單臂模式 (One-Arm Mode)</strong> 部署中，ADC 與 Server 位於同一個網段。若不開啟 SNAT：</p>
+                <ul class="a10-list">
+                    <li><strong>Request:</strong> Client (IP: A) → VIP (IP: B) → Server (IP: C)。Server 收到封包，來源 IP 為 A。</li>
+                    <li><strong>Response:</strong> Server 發現 A 不在同一網段，查路由表，直接透過 Gateway (Firewall/Router) 回給 A，<strong>跳過了 ADC</strong>。</li>
+                    <li><strong>Result:</strong> Client 收到來自 IP C 的封包，但他建立連線的對象是 IP B (VIP)。Client 的 OS 會直接丟棄封包 (RST)，連線失敗。</li>
+                </ul>
+            </div>
+            <div class="a10-grid a10-grid-2">
+                <div class="a10-card">
+                    <h3>SNAT 配置模式</h3>
+                    <ul class="a10-list">
+                        <li><strong>Auto SNAT:</strong> ADC 自動使用「出站介面」的 IP 作為來源 IP。設定最簡單，適用於小規模。</li>
+                        <li><strong>SNAT Pool:</strong> 定義一群 IP 位址池供轉換使用。適用於高併發量，避免單一 IP 的 Port (65535個) 耗盡問題。</li>
                     </ul>
                 </div>
-
-                <div class="grid md:grid-cols-2 gap-6">
-                    <div class="border p-4 rounded-lg border-l-4 border-a10blue">
-                        <h5 class="font-bold text-a10blue">SNAT 配置模式</h5>
-                        <ul class="mt-2 space-y-2 text-sm text-gray-700">
-                            <li><strong>Auto SNAT:</strong> ADC 自動使用「出站介面」的 IP 作為來源 IP。設定最簡單，適用於小規模。</li>
-                            <li><strong>SNAT Pool:</strong> 定義一群 IP 位址池供轉換使用。適用於高併發量，避免單一 IP 的 Port (65535個) 耗盡問題。</li>
-                        </ul>
-                    </div>
-                    <div class="border p-4 rounded-lg border-l-4 border-a10accent">
-                        <h5 class="font-bold text-a10accent">Client IP 保存 (X-Forwarded-For)</h5>
-                        <ul class="mt-2 space-y-2 text-sm text-gray-700">
-                            <li><strong>技術:</strong> 在 HTTP Header 中插入 <code>X-Forwarded-For: &lt;Client-IP&gt;</code>。</li>
-                            <li><strong>前提:</strong> 必須是 HTTP/HTTPS 流量。若是 HTTPS，ADC 必須進行 SSL Offload (解密) 才能修改 Header。</li>
-                            <li><strong>設定:</strong> 在 A10 的 <code>template http</code> 中啟用 <code>insert-client-ip</code>。</li>
-                        </ul>
-                    </div>
+                <div class="a10-card">
+                    <h3>Client IP 保存 (X-Forwarded-For)</h3>
+                    <ul class="a10-list">
+                        <li><strong>技術:</strong> 在 HTTP Header 中插入 <code>X-Forwarded-For: &lt;Client-IP&gt;</code>。</li>
+                        <li><strong>前提:</strong> 必須是 HTTP/HTTPS 流量。若是 HTTPS，ADC 必須進行 SSL Offload (解密) 才能修改 Header。</li>
+                        <li><strong>設定:</strong> 在 A10 的 <code>template http</code> 中啟用 <code>insert-client-ip</code>。</li>
+                    </ul>
                 </div>
-
             </div>
         </section>
 
-        <!-- 3. 架構視覺化 (Visuals) -->
-        <section class="mb-12">
-            <h3 class="text-2xl section-title">三、架構視覺化 (Visuals)</h3>
-            <p class="mb-4 text-gray-600">以下圖表展示「無 SNAT 的問題」與「有 SNAT 的正確流向」，以及「X-Forwarded-For」的運作層次。</p>
-
-            <!-- 圖表 1: 無 SNAT 的問題 (非對稱路由) -->
-            <div class="mb-2 text-a10blue font-bold text-lg"><i class="fa-solid fa-xmark text-red-500 mr-2"></i>場景 A: 未開啟 SNAT (連線失敗)</div>
-            <div class="mermaid-container">
+        <section class="a10-section">
+            <h2 class="a10-section-title"><span class="a10-num">03</span>架構視覺化 <span class="a10-en">Visuals</span></h2>
+            <p class="a10-lead">以下圖表展示「無 SNAT 的問題」與「有 SNAT 的正確流向」，以及「X-Forwarded-For」的運作層次。</p>
+            <figure class="a10-figure">
+                <figcaption>場景 A: 未開啟 SNAT (連線失敗)</figcaption>
                 <!-- 場景 A 拓撲 (手繪 SVG):未開啟 SNAT 的非對稱路由 -->
                 <div style="width:100%;overflow-x:auto">
                 <svg viewBox="0 0 760 490" role="img" aria-labelledby="a10-23a-title a10-23a-desc" style="width:100%;min-width:560px;max-width:760px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif"><title id="a10-23a-title">場景 A: 未開啟 SNAT (連線失敗)</title><desc id="a10-23a-desc">Client (1.1.1.1) 送出 1. Request (Dst:2.2.2.2) 到 Router/Gateway,再進入 A10 ADC (VIP: 2.2.2.2);ADC 以 2. Forward (Src:1.1.1.1) 轉送給 Web Server (10.0.0.10)。因來源仍是 1.1.1.1,Server 以 3. Direct Reply (Dst:1.1.1.1) 直接回給 Router,Router 再 4. Bypass ADC 直接回給 Client,回程沒有經過 ADC,形成非對稱路由而連線失敗。</desc><defs><linearGradient id="a10-23a-pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7e57c2"/><stop offset="1" stop-color="#311b92"/></linearGradient><marker id="a10-23a-ac" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#0891b2"/></marker><marker id="a10-23a-ap" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#673ab7"/></marker><marker id="a10-23a-ag" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5b6278"/></marker><marker id="a10-23a-ar" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker></defs><rect x="230" y="20" width="200" height="56" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/><rect x="244" y="38.0" width="22" height="15" rx="2" fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2"/><rect x="251" y="55.0" width="8" height="3" fill="#0891b2"/><text x="348.0" y="44" text-anchor="middle" font-size="14" font-weight="700" fill="#1e2235">Client</text><text x="348.0" y="62" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#5b6278">1.1.1.1</text><rect x="230" y="130" width="200" height="50" rx="10" fill="url(#a10-23a-pg)"/><text x="330.0" y="160" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">Router/Gateway</text><rect x="230" y="236" width="200" height="60" rx="10" fill="url(#a10-23a-pg)"/><text x="330.0" y="262" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">A10 ADC</text><text x="330.0" y="282" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#d1c4e9">VIP: 2.2.2.2</text><rect x="230" y="356" width="200" height="56" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/><rect x="244" y="371.0" width="20" height="26" rx="2" fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2"/><line x1="248" y1="378.0" x2="260" y2="378.0" stroke="#0891b2" stroke-width="1.2"/><line x1="248" y1="384.0" x2="260" y2="384.0" stroke="#0891b2" stroke-width="1.2"/><circle cx="254" cy="391.0" r="1.6" fill="#0891b2"/><text x="348.0" y="380" text-anchor="middle" font-size="14" font-weight="700" fill="#1e2235">Web Server</text><text x="348.0" y="398" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#5b6278">10.0.0.10</text><path d="M290 76 V128" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-23a-ac)"/><text x="280" y="107" text-anchor="end" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">1. Request (Dst:2.2.2.2)</text><path d="M290 180 V234" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-23a-ac)"/><path d="M290 296 V354" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-23a-ac)"/><text x="280" y="330" text-anchor="end" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">2. Forward (Src:1.1.1.1)</text><path d="M430 384 H520 V155 H434" fill="none" stroke="#dc2626" stroke-width="3" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#a10-23a-ar)"/><text x="532" y="266" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#b91c1c">3. Direct Reply</text><text x="532" y="282" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#b91c1c">(Dst:1.1.1.1)</text><path d="M370 130 V80" fill="none" stroke="#dc2626" stroke-width="3" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#a10-23a-ar)"/><circle cx="370" cy="104" r="9" fill="#fff" stroke="#dc2626" stroke-width="2"/><text x="370" y="108.5" text-anchor="middle" font-size="12" font-weight="700" fill="#dc2626">✕</text><text x="388" y="108" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#b91c1c">4. Bypass ADC</text><g font-size="12" fill="#5b6278"><line x1="60" y1="460" x2="92" y2="460" stroke="#0891b2" stroke-width="4"/><text x="100" y="464">去程 (經過 ADC)</text><line x1="250" y1="460" x2="282" y2="460" stroke="#dc2626" stroke-width="3" stroke-dasharray="7 5"/><text x="290" y="464">回程繞過 ADC (非對稱路由,連線失敗)</text></g></svg>
                 </div>
-            </div>
-
-            <!-- 圖表 2: 開啟 SNAT (正確流向) -->
-            <div class="mb-2 text-a10blue font-bold text-lg"><i class="fa-solid fa-check text-green-500 mr-2"></i>場景 B: 開啟 SNAT (連線成功)</div>
-            <div class="mermaid-container">
+            </figure>
+            <figure class="a10-figure">
+                <figcaption>場景 B: 開啟 SNAT (連線成功)</figcaption>
                 <!-- 場景 B 拓撲 (手繪 SVG):開啟 SNAT 的正確流向 -->
                 <div style="width:100%;overflow-x:auto">
                 <svg viewBox="0 0 760 490" role="img" aria-labelledby="a10-23b-title a10-23b-desc" style="width:100%;min-width:560px;max-width:760px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif"><title id="a10-23b-title">場景 B: 開啟 SNAT (連線成功)</title><desc id="a10-23b-desc">Client (1.1.1.1) 送出 1. Request 到 Router/Gateway,再進入 A10 ADC (SNAT IP: 10.0.0.254);ADC 以 2. SNAT (Src:10.0.0.254) 轉送給 Web Server (10.0.0.10)。Server 以 3. Reply (Dst:10.0.0.254) 回給 ADC,ADC 再以 4. Reply (Src:2.2.2.2) 交給 Router,Router 回給 Client,去回程都經過 ADC,連線成功。</desc><defs><linearGradient id="a10-23b-pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7e57c2"/><stop offset="1" stop-color="#311b92"/></linearGradient><marker id="a10-23b-ac" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#0891b2"/></marker><marker id="a10-23b-ap" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#673ab7"/></marker><marker id="a10-23b-ag" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5b6278"/></marker><marker id="a10-23b-ar" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker></defs><rect x="230" y="20" width="200" height="56" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/><rect x="244" y="38.0" width="22" height="15" rx="2" fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2"/><rect x="251" y="55.0" width="8" height="3" fill="#0891b2"/><text x="348.0" y="44" text-anchor="middle" font-size="14" font-weight="700" fill="#1e2235">Client</text><text x="348.0" y="62" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#5b6278">1.1.1.1</text><rect x="230" y="130" width="200" height="50" rx="10" fill="url(#a10-23b-pg)"/><text x="330.0" y="160" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">Router/Gateway</text><rect x="230" y="236" width="200" height="60" rx="10" fill="url(#a10-23b-pg)"/><text x="330.0" y="262" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">A10 ADC</text><text x="330.0" y="282" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#d1c4e9">SNAT IP: 10.0.0.254</text><rect x="230" y="356" width="200" height="56" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/><rect x="244" y="371.0" width="20" height="26" rx="2" fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2"/><line x1="248" y1="378.0" x2="260" y2="378.0" stroke="#0891b2" stroke-width="1.2"/><line x1="248" y1="384.0" x2="260" y2="384.0" stroke="#0891b2" stroke-width="1.2"/><circle cx="254" cy="391.0" r="1.6" fill="#0891b2"/><text x="348.0" y="380" text-anchor="middle" font-size="14" font-weight="700" fill="#1e2235">Web Server</text><text x="348.0" y="398" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#5b6278">10.0.0.10</text><path d="M290 76 V128" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-23b-ac)"/><text x="280" y="107" text-anchor="end" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">1. Request</text><path d="M290 180 V234" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-23b-ac)"/><path d="M290 296 V354" fill="none" stroke="#673ab7" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-23b-ap)"/><text x="280" y="330" text-anchor="end" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#4527a0">2. SNAT (Src:10.0.0.254)</text><path d="M370 356 V298" fill="none" stroke="#673ab7" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-23b-ap)"/><text x="382" y="330" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#4527a0">3. Reply (Dst:10.0.0.254)</text><path d="M370 236 V182" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-23b-ac)"/><text x="382" y="213" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">4. Reply (Src:2.2.2.2)</text><path d="M370 130 V78" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-23b-ac)"/><g font-size="12" fill="#5b6278"><line x1="60" y1="460" x2="92" y2="460" stroke="#0891b2" stroke-width="4"/><text x="100" y="464">一般流量</text><line x1="200" y1="460" x2="232" y2="460" stroke="#673ab7" stroke-width="4"/><text x="240" y="464">SNAT 後的流量 (ADC 與 Server 之間,使用 SNAT IP 10.0.0.254)</text></g></svg>
                 </div>
-            </div>
-
-            <!-- 圖表 3: X-Forwarded-For 序列圖 -->
-            <div class="mb-2 text-a10blue font-bold text-lg"><i class="fa-solid fa-file-code text-a10orange mr-2"></i>場景 C: X-Forwarded-For 標頭插入</div>
-            <div class="mermaid-container">
+            </figure>
+            <figure class="a10-figure">
+                <figcaption>場景 C: X-Forwarded-For 標頭插入</figcaption>
                 <!-- 時序圖 (由 Mermaid 10.9.1 預先轉成靜態 SVG,套用網站配色)。原始 Mermaid 碼:
                     sequenceDiagram
                         participant C as Client (1.1.1.1)
@@ -212,330 +104,148 @@
                 
                 -->
                 <div style="width:100%;overflow-x:auto"><svg xmlns="http://www.w3.org/2000/svg" aria-roledescription="sequence" role="img" viewBox="-50 -10 1263.5 433" style="width:100%;min-width:560px;max-width:1264px;height:auto;display:block;margin:0 auto" id="seq-a10-2-3-snat-3" aria-labelledby="seq-a10-2-3-snat-3-title"><title id="seq-a10-2-3-snat-3-title">三、架構視覺化 (Visuals)</title><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="985" y1="5" x1="985"/><g><rect class="actor actor-top" ry="3" rx="3" name="S" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="910"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="985"><tspan dy="0" x="985">Web Server</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="417" y1="5" x1="417"/><g><rect class="actor actor-top" ry="3" rx="3" name="A" height="65" width="288" stroke="#666" fill="#eaeaea" y="0" x="273"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="417"><tspan dy="0" x="417">A10 Thunder (SNAT IP: 10.0.0.254)</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="75" y1="5" x1="75"/><g><rect class="actor actor-top" ry="3" rx="3" name="C" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="0"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="75"><tspan dy="0" x="75">Client (1.1.1.1)</tspan></text></g></g><style>#seq-a10-2-3-snat-3{font-family:'Noto Sans TC',Roboto,'Microsoft JhengHei',sans-serif;font-size:15px;fill:#1e2235;}#seq-a10-2-3-snat-3 .marker{fill:#5b6278;stroke:#5b6278;}#seq-a10-2-3-snat-3 .marker.cross{stroke:#5b6278;}#seq-a10-2-3-snat-3 .actor{stroke:#673ab7;fill:#f3effc;}#seq-a10-2-3-snat-3 text.actor&gt;tspan{fill:#311b92;stroke:none;}#seq-a10-2-3-snat-3 .actor-line{stroke:#b39ddb;}#seq-a10-2-3-snat-3 .messageLine0{stroke-width:1.5;stroke-dasharray:none;stroke:#5b6278;}#seq-a10-2-3-snat-3 .messageLine1{stroke-width:1.5;stroke-dasharray:2,2;stroke:#5b6278;}#seq-a10-2-3-snat-3 #seq-a10-2-3-snat-3-arrowhead path{fill:#5b6278;stroke:#5b6278;}#seq-a10-2-3-snat-3 #sequencenumber{fill:#5b6278;}#seq-a10-2-3-snat-3 #crosshead path{fill:#5b6278;stroke:#5b6278;}#seq-a10-2-3-snat-3 .messageText{fill:#1e2235;stroke:none;}#seq-a10-2-3-snat-3 .note{stroke:#f5b041;fill:#fff8e1;}#seq-a10-2-3-snat-3 .noteText,#seq-a10-2-3-snat-3 .noteText&gt;tspan{fill:#5d4037;stroke:none;}</style><g/><defs><marker orient="auto" markerHeight="12" markerWidth="12" markerUnits="userSpaceOnUse" refY="5" refX="7.9" id="seq-a10-2-3-snat-3-arrowhead"><path d="M 0 0 L 10 5 L 0 10 z"/></marker></defs><g><rect class="note" ry="0" rx="0" height="48" width="508" stroke="#666" fill="#EDF2AE" y="133" x="163"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="139" x="417"><tspan x="417">1. 執行 Source NAT (改 IP)2. 插入 Header: X-Forwarded-For: 1.1.1.1</tspan></text></g><g><rect class="note" ry="0" rx="0" height="48" width="357" stroke="#666" fill="#EDF2AE" y="249" x="806.5"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="255" x="985"><tspan x="985">Server Log 紀錄:來源IP: 10.0.0.254XFF: 1.1.1.1</tspan></text></g><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="80" x="245">HTTP GET / (Src: 1.1.1.1)</text><line style="fill: none;" marker-end="url(#seq-a10-2-3-snat-3-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="123" x2="413" y1="123" x1="76"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="196" x="700">HTTP GET / (Src: 10.0.0.254)Header {X-Forwarded-For: 1.1.1.1}</text><line style="fill: none;" marker-end="url(#seq-a10-2-3-snat-3-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="239" x2="981" y1="239" x1="418"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="312" x="703">HTTP 200 OK</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-a10-2-3-snat-3-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="355" x2="421" y1="355" x1="984"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="370" x="248">HTTP 200 OK</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-a10-2-3-snat-3-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="413" x2="79" y1="413" x1="416"/></svg></div>
-            </div>
+            </figure>
         </section>
 
-        <!-- 4. 實務應用場景 (Use Case) -->
-        <section class="mb-12">
-            <h3 class="text-2xl section-title">四、實務應用場景 (Use Case)</h3>
-            
-            <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-8">
-                <div class="highlight-box p-6">
-                    <h4 class="text-xl font-bold"><i class="fa-solid fa-building-columns mr-2"></i>金融業網銀系統日誌稽核</h4>
-                </div>
-                <div class="p-8">
-                    <h5 class="font-bold text-gray-800 mb-2">背景描述：</h5>
-                    <p class="text-gray-700 mb-4">
-                        某銀行的網銀系統部署在 A10 ADC 後方 (One-Arm 架構)。為了確保路由對稱性，網管人員開啟了 SNAT。然而，資安團隊在審查 Web Server (Apache/Nginx) 的 Access Log 時，發現**所有請求的來源 IP 都是 A10 的內網 IP**，導致無法追蹤駭客攻擊的真實來源，也不符合法規稽核要求。
-                    </p>
-
-                    <h5 class="font-bold text-gray-800 mb-2">解決方案：</h5>
-                    <ol class="list-decimal pl-6 space-y-2 text-gray-700">
-                        <li><strong>A10 端：</strong> 在 SLB 配置中，建立一個 <code>template http</code>，啟用 <code>insert-client-ip</code> 選項，並將此 template 綁定到 Virtual Service (Port 443/80)。</li>
-                        <li><strong>Server 端：</strong> 修改 Web Server 設定檔 (如 Nginx 的 log_format)，使其不再只記錄 `$remote_addr`，而是優先記錄 `$http_x_forwarded_for`。</li>
-                    </ol>
-
-                    <div class="mt-6 grid md:grid-cols-2 gap-4">
-                        <div class="bg-green-50 p-4 rounded text-sm text-green-800 border border-green-200">
-                            <strong><i class="fa-solid fa-thumbs-up mr-1"></i> 優點：</strong>
-                            <ul class="list-disc pl-4 mt-1">
-                                <li>維持路由架構簡單 (One-Arm)。</li>
-                                <li>滿足資安稽核要求，可看見真實客戶 IP。</li>
-                                <li>不需更改網路底層路由 (Default Gateway)。</li>
-                            </ul>
-                        </div>
-                        <div class="bg-red-50 p-4 rounded text-sm text-red-800 border border-red-200">
-                            <strong><i class="fa-solid fa-thumbs-down mr-1"></i> 潛在缺點：</strong>
-                            <ul class="list-disc pl-4 mt-1">
-                                <li>若應用程式不是 HTTP (如 DB 連線)，無法插入 Header，需改用 TCP Option (TOA) 或 Proxy Protocol。</li>
-                                <li>Server 端需要配合修改 Log 設定。</li>
-                            </ul>
-                        </div>
+        <section class="a10-section">
+            <h2 class="a10-section-title"><span class="a10-num">04</span>實務應用場景 <span class="a10-en">Use Case</span></h2>
+            <div class="a10-card">
+                <h3>金融業網銀系統日誌稽核</h3>
+                <h4>背景描述：</h4>
+                <p>某銀行的網銀系統部署在 A10 ADC 後方 (One-Arm 架構)。為了確保路由對稱性，網管人員開啟了 SNAT。然而，資安團隊在審查 Web Server (Apache/Nginx) 的 Access Log 時，發現<strong>所有請求的來源 IP 都是 A10 的內網 IP</strong>，導致無法追蹤駭客攻擊的真實來源，也不符合法規稽核要求。</p>
+                <h4>解決方案：</h4>
+                <ol class="a10-steps">
+                    <li><strong>A10 端：</strong> 在 SLB 配置中，建立一個 <code>template http</code>，啟用 <code>insert-client-ip</code> 選項，並將此 template 綁定到 Virtual Service (Port 443/80)。</li>
+                    <li><strong>Server 端：</strong> 修改 Web Server 設定檔 (如 Nginx 的 log_format)，使其不再只記錄 <code>$remote_addr</code>，而是優先記錄 <code>$http_x_forwarded_for</code>。</li>
+                </ol>
+                <div class="a10-grid a10-grid-2">
+                    <div class="a10-callout tip">
+                        <span class="a10-callout-title">優點：</span>
+                        <ul class="a10-list">
+                            <li>維持路由架構簡單 (One-Arm)。</li>
+                            <li>滿足資安稽核要求，可看見真實客戶 IP。</li>
+                            <li>不需更改網路底層路由 (Default Gateway)。</li>
+                        </ul>
+                    </div>
+                    <div class="a10-callout warn">
+                        <span class="a10-callout-title">潛在缺點：</span>
+                        <ul class="a10-list">
+                            <li>若應用程式不是 HTTP (如 DB 連線)，無法插入 Header，需改用 TCP Option (TOA) 或 Proxy Protocol。</li>
+                            <li>Server 端需要配合修改 Log 設定。</li>
+                        </ul>
                     </div>
                 </div>
             </div>
 
-            <!-- New Case: Server-to-VIP with ACL SNAT -->
-            <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-                <div class="highlight-box p-6 bg-gradient-to-r from-a10orange to-red-700">
-                    <h4 class="text-xl font-bold"><i class="fa-solid fa-server mr-2"></i>進階場景：伺服器間的連線 (Server-to-VIP) 與 ACL SNAT</h4>
+            <div class="a10-card">
+                <h3>進階場景：伺服器間的連線 (Server-to-VIP) 與 ACL SNAT</h3>
+                <h4>場景描述：</h4>
+                <ul class="a10-list">
+                    <li><strong>VIP1 (Frontend):</strong> <code>10.1.1.1</code> → Real Servers: 192.168.1.1, 192.168.1.2</li>
+                    <li><strong>VIP2 (Internal):</strong> <code>10.1.1.2</code> → Real Servers: 192.168.1.3, 192.168.1.4</li>
+                </ul>
+                <div class="a10-callout warn">
+                    <p><strong>挑戰：</strong>Client 連線到 VIP1 後，後端 Server (192.168.1.1) 需要發起連線去呼叫 VIP2。</p>
                 </div>
-                <div class="p-8">
-                    <h5 class="font-bold text-gray-800 mb-2">場景描述：</h5>
-                    <div class="bg-white p-5 rounded-lg border-2 border-gray-200 mb-6 text-base font-mono shadow-sm">
-                        <p class="mb-3 flex items-center">
-                            <span class="w-40 font-bold text-black text-lg border-b-2 border-a10blue">VIP1 (Frontend):</span>
-                            <span class="font-bold text-black text-xl mx-2">10.1.1.1</span>
-                            <i class="fa-solid fa-arrow-right mx-2 text-gray-400"></i>
-                            <span class="text-gray-600">Real Servers: 192.168.1.1, 192.168.1.2</span>
-                        </p>
-                        <p class="mb-4 flex items-center">
-                            <span class="w-40 font-bold text-black text-lg border-b-2 border-a10blue">VIP2 (Internal):</span>
-                            <span class="font-bold text-black text-xl mx-2">10.1.1.2</span>
-                            <i class="fa-solid fa-arrow-right mx-2 text-gray-400"></i>
-                            <span class="text-gray-600">Real Servers: 192.168.1.3, 192.168.1.4</span>
-                        </p>
-                        <div class="mt-4 p-3 bg-red-50 border-l-4 border-red-600 text-red-800 rounded-r">
-                            <i class="fa-solid fa-circle-exclamation mr-1"></i> 
-                            <strong>挑戰：</strong>Client 連線到 VIP1 後，後端 Server (192.168.1.1) 需要發起連線去呼叫 VIP2。
-                        </div>
-                    </div>
-
-                    <h5 class="font-bold text-gray-800 mb-2">問題分析：</h5>
-                    <p class="text-gray-700 mb-4">
-                        當 <strong>192.168.1.1</strong> (RS1) 連線到 <strong>10.1.1.2</strong> (VIP2) 時，若 VIP2 將流量分派給 <strong>192.168.1.3</strong> (RS3)，且沒有做 SNAT：
-                        <br>
-                        1. RS3 收到封包，來源 IP 是 192.168.1.1。<br>
-                        2. RS3 發現來源 IP (192.168.1.1) 與自己在同一網段 (192.168.1.x/24)。<br>
-                        3. RS3 <strong>直接回覆 (Direct Return)</strong> 給 192.168.1.1，跳過 ADC。<br>
-                        4. RS1 收到來自 RS3 IP 的回應，但它原本是呼叫 VIP2 IP，因此 RS1 會丟棄封包，連線失敗。
-                    </p>
-
-                    <h5 class="font-bold text-gray-800 mb-2">最佳解法：ACL-based SNAT</h5>
-                    <p class="text-gray-700 mb-4">
-                        我們不希望對所有連到 VIP2 的外部流量都做 SNAT (可能需要保留外部真實 IP)，我們只希望<strong>「當來源是內部網段 (192.168.1.x) 時」</strong>才強制 SNAT。
-                    </p>
-
-                    <div class="mermaid-container">
-                        <!-- ACL-based SNAT 流程 (手繪 SVG) -->
+                <h4>問題分析：</h4>
+                <p>當 <strong>192.168.1.1</strong> (RS1) 連線到 <strong>10.1.1.2</strong> (VIP2) 時，若 VIP2 將流量分派給 <strong>192.168.1.3</strong> (RS3)，且沒有做 SNAT：</p>
+                <ol class="a10-steps">
+                    <li>RS3 收到封包，來源 IP 是 192.168.1.1。</li>
+                    <li>RS3 發現來源 IP (192.168.1.1) 與自己在同一網段 (192.168.1.x/24)。</li>
+                    <li>RS3 <strong>直接回覆 (Direct Return)</strong> 給 192.168.1.1，跳過 ADC。</li>
+                    <li>RS1 收到來自 RS3 IP 的回應，但它原本是呼叫 VIP2 IP，因此 RS1 會丟棄封包，連線失敗。</li>
+                </ol>
+                <h4>最佳解法：ACL-based SNAT</h4>
+                <p>我們不希望對所有連到 VIP2 的外部流量都做 SNAT (可能需要保留外部真實 IP)，我們只希望<strong>「當來源是內部網段 (192.168.1.x) 時」</strong>才強制 SNAT。</p>
+            </div>
+            <figure class="a10-figure">
+                <!-- ACL-based SNAT 流程 (手繪 SVG) -->
                         <div style="width:100%;overflow-x:auto">
                         <svg viewBox="0 0 820 480" role="img" aria-labelledby="a10-23c-title a10-23c-desc" style="width:100%;min-width:560px;max-width:820px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif"><title id="a10-23c-title">ACL-based SNAT 流程</title><desc id="a10-23c-desc">VIP1 流程:外部使用者 1. 請求 VIP1 (10.1.1.1),VIP1 2. 分派給 RS1 (192.168.1.1)。Server-to-VIP 流程 (需 ACL SNAT):RS1 3. 呼叫 VIP2 (10.1.1.2),VIP2 4. 觸發 ACL SNAT、把來源 (Src) 改為 ADC IP 後送到 RS3 (192.168.1.3);RS3 5. 回應給 ADC (VIP2),VIP2 再 6. 回應給 RS1。</desc><defs><linearGradient id="a10-23c-pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7e57c2"/><stop offset="1" stop-color="#311b92"/></linearGradient><marker id="a10-23c-ac" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#0891b2"/></marker><marker id="a10-23c-ap" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#673ab7"/></marker><marker id="a10-23c-ag" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5b6278"/></marker><marker id="a10-23c-ar" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker></defs><rect x="30" y="20" width="760" height="150" rx="16" fill="#f6f2fe" stroke="#b39ddb" stroke-width="1.5" stroke-dasharray="6 5"/><text x="46" y="158" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#673ab7">VIP1 流程</text><rect x="30" y="210" width="760" height="196" rx="16" fill="#effafc" stroke="#67c5d6" stroke-width="1.5" stroke-dasharray="6 5"/><text x="46" y="394" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#0891b2">Server-to-VIP 流程 (需 ACL SNAT)</text><rect x="60" y="70" width="160" height="60" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/><rect x="74" y="90.0" width="22" height="15" rx="2" fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2"/><rect x="81" y="107.0" width="8" height="3" fill="#0891b2"/><text x="158.0" y="105" text-anchor="middle" font-size="14" font-weight="700" fill="#1e2235">外部使用者</text><rect x="310" y="70" width="160" height="60" rx="30.0" fill="#fff" stroke="#673ab7" stroke-width="2" stroke-dasharray="6 4"/><text x="390.0" y="96" text-anchor="middle" font-size="14" font-weight="700" fill="#4527a0">VIP1</text><text x="390.0" y="115" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#5b6278">10.1.1.1</text><rect x="560" y="70" width="160" height="60" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/><rect x="574" y="87.0" width="20" height="26" rx="2" fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2"/><line x1="578" y1="94.0" x2="590" y2="94.0" stroke="#0891b2" stroke-width="1.2"/><line x1="578" y1="100.0" x2="590" y2="100.0" stroke="#0891b2" stroke-width="1.2"/><circle cx="584" cy="107.0" r="1.6" fill="#0891b2"/><text x="658.0" y="96" text-anchor="middle" font-size="14" font-weight="700" fill="#1e2235">RS1</text><text x="658.0" y="115" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#5b6278">192.168.1.1</text><path d="M220 100 H308" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-23c-ac)"/><text x="264" y="88" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">1. 請求</text><path d="M470 100 H558" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-23c-ac)"/><text x="514" y="88" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">2. 分派</text><rect x="560" y="300" width="160" height="60" rx="30.0" fill="#fff" stroke="#673ab7" stroke-width="2" stroke-dasharray="6 4"/><text x="640.0" y="326" text-anchor="middle" font-size="14" font-weight="700" fill="#4527a0">VIP2</text><text x="640.0" y="345" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#5b6278">10.1.1.2</text><rect x="120" y="300" width="180" height="60" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/><rect x="134" y="317.0" width="20" height="26" rx="2" fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2"/><line x1="138" y1="324.0" x2="150" y2="324.0" stroke="#0891b2" stroke-width="1.2"/><line x1="138" y1="330.0" x2="150" y2="330.0" stroke="#0891b2" stroke-width="1.2"/><circle cx="144" cy="337.0" r="1.6" fill="#0891b2"/><text x="228.0" y="326" text-anchor="middle" font-size="14" font-weight="700" fill="#1e2235">RS3</text><text x="228.0" y="345" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#5b6278">192.168.1.3</text><path d="M610 130 V298" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-23c-ac)"/><text x="598" y="256" text-anchor="end" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">3. 呼叫 VIP2</text><path d="M670 300 V132" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-23c-ac)"/><text x="682" y="256" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">6. 回應給 RS1</text><path d="M560 318 H302" fill="none" stroke="#673ab7" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-23c-ap)"/><text x="430" y="289" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#4527a0">4. 觸發 ACL SNAT</text><text x="430" y="305" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#4527a0">Src改為 ADC IP</text><path d="M300 344 H558" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-23c-ac)"/><text x="430" y="366" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">5. 回應給 ADC</text><g font-size="12" fill="#5b6278"><line x1="40" y1="448" x2="72" y2="448" stroke="#0891b2" stroke-width="4"/><text x="80" y="452">一般流量</text><line x1="170" y1="448" x2="202" y2="448" stroke="#673ab7" stroke-width="4"/><text x="210" y="452">觸發 ACL SNAT 的流量</text><rect x="374" y="439" width="40" height="18" rx="9" fill="#fff" stroke="#673ab7" stroke-width="1.5" stroke-dasharray="5 3"/><text x="422" y="452">VIP (虛擬服務位址)</text></g></svg>
                         </div>
-                    </div>
-
-                    <div class="bg-blue-50 p-4 rounded text-sm text-blue-900 border border-blue-200">
-                        <h6 class="font-bold mb-1"><i class="fa-solid fa-code mr-1"></i> 設定邏輯 (虛擬碼)：</h6>
-                        <pre class="whitespace-pre-wrap font-mono text-xs">
-1. 定義 ACL: 
+            </figure>
+            <div class="a10-card">
+                <h3>設定邏輯 (虛擬碼)：</h3>
+                <pre class="a10-code">1. 定義 ACL:
    access-list 100 permit ip 192.168.1.0 0.0.0.255 any (比對來源是 Server 網段)
 
 2. 在 VIP2 的 Virtual Port 綁定 SNAT:
    slb virtual-server VIP2 10.1.1.2
      port 80 tcp
-       source-nat pool SNAT_POOL acl 100 (只對符合 ACL 100 的流量做 SNAT)
-                        </pre>
-                    </div>
-                </div>
-            </div>
-
-        </section>
-
-        <!-- 5. 隨堂測驗 (Quiz) -->
-        <section class="mb-12">
-            <h3 class="text-2xl section-title">五、隨堂測驗 (Quiz)</h3>
-            <div id="quiz-container" class="space-y-6">
-                <!-- Quiz questions will be injected here by JS -->
-            </div>
-            <div id="quiz-result" class="hidden mt-8 p-6 bg-a10blue text-white rounded-lg text-center">
-                <h4 class="text-2xl font-bold mb-2">測驗完成！</h4>
-                <p class="text-lg">您的得分： <span id="score" class="text-a10orange font-bold text-3xl"></span> / 5</p>
-                <button onclick="resetQuiz()" class="mt-4 bg-a10accent hover:bg-pink-700 text-white font-bold py-2 px-6 rounded transition">
-                    重新測驗
-                </button>
+       source-nat pool SNAT_POOL acl 100 (只對符合 ACL 100 的流量做 SNAT)</pre>
             </div>
         </section>
 
+        <section class="a10-section">
+            <h2 class="a10-section-title"><span class="a10-num">05</span>隨堂測驗 <span class="a10-en">Quiz</span></h2>
+            <p class="a10-lead">請選擇最適當的答案,作答後會顯示解析。</p>
+            <div id="a10-quiz"></div>
+        </section>
     </main>
 
-    <!-- Footer -->
-    <footer class="py-4 text-center text-sm font-light tracking-wider border-t border-gray-700">
-        <p>A10 Networks Thunder 實戰課程 | Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0</p>
+    <footer>
+        Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0
     </footer>
 
-    <!-- Scripts -->
     <script>
-        // Initialize Mermaid with enhanced font sizes and High Contrast Theme
-        mermaid.initialize({ 
-            startOnLoad: true,
-            theme: 'base',
-            themeVariables: {
-                // Global Colors - FIXED TO BLACK TEXT FOR CLARITY
-                primaryColor: '#001f3f', // A10 Blue
-                primaryTextColor: '#000000', // *** CHANGED TO BLACK *** for maximum readability on light backgrounds
-                primaryBorderColor: '#000000', // Black borders
-                lineColor: '#000000', // Black lines
-                secondaryColor: '#f4f6f8',
-                tertiaryColor: '#ffffff',
-                fontFamily: 'Rubik, sans-serif',
-                fontSize: '20px',
-
-                // Sequence Diagram Specific High Contrast Settings
-                actorBkg: '#001f3f',        // Dark Blue Background for Actors
-                actorBorder: '#000000',     // Black Border
-                actorTextColor: '#ffffff',  // White Text for Actors (contrast against Blue bg)
-                actorLineColor: '#000000',  // Black vertical lines
-
-                signalColor: '#000000',     // Black Arrows
-                signalTextColor: '#000000', // Black Text for signals
-
-                noteBkgColor: '#fff7ed',    // Light Orange for notes
-                noteBorderColor: '#ff851b', // Orange Border
-                noteTextColor: '#000000',   // Black Text for notes
-                
-                // Activation/Loop colors
-                activationBkgColor: '#e0e7ff',
-                activationBorderColor: '#001f3f'
-            },
-            sequence: {
-                actorFontSize: 20, 
-                noteFontSize: 18,
-                messageFontSize: 18,
-                useMaxWidth: false,
-                mirrorActor: false,
-                bottomMarginAdj: 10,
-                boxMargin: 10,
-                noteMargin: 10,
-                messageMargin: 5
-            },
-            flowchart: {
-                useMaxWidth: false,
-                htmlLabels: true,
-                curve: 'basis'
-            }
-        });
-
-        // Quiz Data
-        const quizData = [
+        window.A10_QUIZ = [
             {
-                question: "1. 在單臂模式 (One-Arm Mode) 下，若沒有開啟 SNAT，通常會導致什麼問題？",
+                question: "在單臂模式 (One-Arm Mode) 下，若沒有開啟 SNAT，通常會導致什麼問題？",
                 options: [
                     "ADC CPU 負載過高",
                     "非對稱路由 (Asymmetric Routing) 導致連線中斷",
                     "Server 硬碟空間耗盡",
                     "Client 端會收到兩份回應封包"
                 ],
-                answer: 1, // Index of correct answer
+                correct: 1,
                 explanation: "若無 SNAT，Server 會直接回包給 Client (不經過 ADC)，導致 TCP 連線狀態不一致而被 Client 丟棄。"
             },
             {
-                question: "2. 若要在 HTTP Header 中插入客戶端真實 IP，A10 Thunder 應該使用哪個功能？",
+                question: "若要在 HTTP Header 中插入客戶端真實 IP，A10 Thunder 應該使用哪個功能？",
                 options: [
                     "Source NAT Pool",
                     "DDoS Protection",
                     "Template HTTP 中的 insert-client-ip",
                     "VRRP-A"
                 ],
-                answer: 2,
+                correct: 2,
                 explanation: "透過配置 Template HTTP 並啟用 insert-client-ip，ADC 會在標頭加入 X-Forwarded-For。"
             },
             {
-                question: "3. 什麼情況下適合使用 SNAT Pool 而非 Auto SNAT？",
+                question: "什麼情況下適合使用 SNAT Pool 而非 Auto SNAT？",
                 options: [
                     "當流量極小的時候",
                     "當不需要高可用性時",
                     "當連線並發量極大，單一 IP 的 Port 可能耗盡時",
                     "當 Server 只有一台時"
                 ],
-                answer: 2,
+                correct: 2,
                 explanation: "單一 IP 只有約 65,535 個 Port 可用。在大流量場景下，使用 Pool (多個 IP) 可以擴充可用的 Session 數量。"
             },
             {
-                question: "4. X-Forwarded-For 標頭主要是為了解決什麼問題？",
+                question: "X-Forwarded-For 標頭主要是為了解決什麼問題？",
                 options: [
                     "解決頻寬不足",
                     "解決 SNAT 導致後端 Server 看不到真實 Client IP 的問題",
                     "加密 HTTP 流量",
                     "加速 DNS 解析"
                 ],
-                answer: 1,
+                correct: 1,
                 explanation: "SNAT 會將來源 IP 改為 ADC 的 IP，XFF 則是用來攜帶原始 Client IP 的標準欄位。"
             },
             {
-                question: "5. 對於 HTTPS 加密流量，若要插入 X-Forwarded-For，ADC 必須先做什麼？",
+                question: "對於 HTTPS 加密流量，若要插入 X-Forwarded-For，ADC 必須先做什麼？",
                 options: [
                     "必須執行 SSL Offload (解密)",
                     "必須關閉防火牆",
                     "必須使用 UDP 協定",
                     "不需要做任何事，直接插入即可"
                 ],
-                answer: 0,
+                correct: 0,
                 explanation: "HTTPS 內容是加密的，ADC 必須先解密 (SSL Offload) 才能讀取並修改 Layer 7 的 HTTP Header。"
             }
         ];
-
-        function renderQuiz() {
-            const container = document.getElementById('quiz-container');
-            container.innerHTML = '';
-
-            quizData.forEach((q, index) => {
-                const qDiv = document.createElement('div');
-                qDiv.className = 'bg-white p-6 rounded-lg shadow-sm border border-gray-200';
-                
-                let optionsHtml = '';
-                q.options.forEach((opt, optIndex) => {
-                    optionsHtml += `
-                        <div class="quiz-option p-3 mb-2 rounded border border-gray-200 flex items-center" 
-                             onclick="checkAnswer(${index}, ${optIndex}, this)">
-                            <div class="w-6 h-6 rounded-full border-2 border-gray-300 mr-3 flex items-center justify-center">
-                                <span class="text-xs font-bold text-transparent select-none">✓</span>
-                            </div>
-                            <span>${opt}</span>
-                        </div>
-                    `;
-                });
-
-                qDiv.innerHTML = `
-                    <h5 class="font-bold text-lg mb-4 text-a10blue">Q${index + 1}: ${q.question}</h5>
-                    <div class="space-y-2">
-                        ${optionsHtml}
-                    </div>
-                    <div id="feedback-${index}" class="hidden mt-4 p-3 rounded text-sm"></div>
-                `;
-                container.appendChild(qDiv);
-            });
-        }
-
-        let userScore = 0;
-        let answeredCount = 0;
-
-        function checkAnswer(qIndex, optIndex, element) {
-            // Prevent re-answering
-            if (element.parentElement.querySelector('.quiz-selected')) return;
-
-            const q = quizData[qIndex];
-            const feedbackEl = document.getElementById(`feedback-${qIndex}`);
-            
-            // Highlight selection
-            element.classList.add('quiz-selected');
-            const radio = element.querySelector('div');
-            
-            answeredCount++;
-
-            if (optIndex === q.answer) {
-                userScore++;
-                element.classList.add('bg-green-100', 'border-green-500');
-                radio.classList.add('border-green-500', 'bg-green-500');
-                radio.querySelector('span').classList.remove('text-transparent');
-                radio.querySelector('span').classList.add('text-white');
-                
-                feedbackEl.classList.remove('hidden');
-                feedbackEl.classList.add('bg-green-100', 'text-green-800');
-                feedbackEl.innerHTML = `<strong><i class="fa-solid fa-check-circle"></i> 正確！</strong> ${q.explanation}`;
-            } else {
-                element.classList.add('bg-red-100', 'border-red-500');
-                radio.classList.add('border-red-500');
-                
-                feedbackEl.classList.remove('hidden');
-                feedbackEl.classList.add('bg-red-100', 'text-red-800');
-                feedbackEl.innerHTML = `<strong><i class="fa-solid fa-times-circle"></i> 錯誤。</strong> ${q.explanation}`;
-            }
-
-            if (answeredCount === quizData.length) {
-                document.getElementById('quiz-result').classList.remove('hidden');
-                document.getElementById('score').innerText = userScore;
-            }
-        }
-
-        function resetQuiz() {
-            userScore = 0;
-            answeredCount = 0;
-            document.getElementById('quiz-result').classList.add('hidden');
-            renderQuiz();
-        }
-
-        // Init
-        document.addEventListener('DOMContentLoaded', renderQuiz);
-
     </script>
+    <script src="a10.js?v=1"></script>
 </body>
 </html>

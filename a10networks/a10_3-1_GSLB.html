@@ -4,205 +4,84 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>A10 Networks Thunder 實戰課程 - GSLB</title>
-    <!-- Google Fonts: Rubik -->
-    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Mermaid JS -->
-    <!-- 圖表已改為內嵌 SVG,不再載入 Mermaid;保留空殼讓原本的初始化程式不出錯 -->
-    <script>window.mermaid = { initialize: function () {}, init: function () {}, run: function () { return Promise.resolve(); } };</script>
-    <!-- FontAwesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'a10-blue': '#002F6C',       /* Midnight Blue */
-                        'a10-light-blue': '#1e40af', /* Lighter Blue for gradients */
-                        'a10-magenta': '#C50084',    /* Magenta Accent */
-                        'a10-orange': '#FF6600',     /* Orange Accent */
-                        'a10-gray': '#F3F4F6',       /* Light Grey Background */
-                    },
-                    fontFamily: {
-                        'sans': ['Rubik', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        body {
-            font-family: 'Rubik', sans-serif;
-            background-color: #F3F4F6;
-            color: #333;
-        }
-        .gradient-header {
-            background: linear-gradient(135deg, #002F6C 0%, #1e40af 100%);
-        }
-        .section-card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            margin-bottom: 2rem;
-            padding: 2rem;
-            border-top: 4px solid #002F6C;
-        }
-        .term-highlight {
-            color: #C50084;
-            font-weight: 600;
-        }
-        .quiz-option:hover {
-            background-color: #f0f9ff;
-            border-color: #002F6C;
-        }
-        .selected-correct {
-            background-color: #d1fae5 !important;
-            border-color: #10b981 !important;
-        }
-        .selected-wrong {
-            background-color: #fee2e2 !important;
-            border-color: #ef4444 !important;
-        }
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1; 
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #888; 
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #555; 
-        }
-        .tech-diagram-container {
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-            align-items: center;
-        }
-    </style>
-    <!-- 教學網站共用外觀 -->
-    <link rel="stylesheet" href="../assets/site-theme.css?v=20261112">
-    <script src="../assets/site-chrome.js?v=20261112" defer></script>
+    <link rel="stylesheet" href="a10.css?v=1">
+    <link rel="stylesheet" href="../assets/site-theme.css?v=20261112b">
+    <script src="../assets/site-chrome.js?v=20261112b" defer></script>
 </head>
 <body>
-
-    <!-- Header -->
-    <header class="gradient-header text-white py-8 shadow-lg">
-        <div class="container mx-auto px-6">
-            <div class="flex flex-col md:flex-row justify-between items-center">
-                <div>
-                    <h1 class="text-3xl md:text-4xl font-bold mb-2"><i class="fas fa-globe-asia mr-3"></i>A10 Networks Thunder 實戰課程</h1>
-                    <p class="text-lg opacity-90">第三階段：大規模部署與自動化 (Level 3 - Architect)</p>
-                </div>
-                <div class="mt-4 md:mt-0 bg-white/10 px-4 py-2 rounded-lg backdrop-blur-sm border border-white/20">
-                    <span class="font-semibold text-a10-orange"><i class="fas fa-book-open mr-2"></i>主題：GSLB 全球伺服器負載平衡</span>
-                </div>
-            </div>
+    <header class="a10-hero">
+        <div class="a10-hero-inner">
+            <p class="a10-kicker">A10 Networks Thunder 實戰課程 · 單元 3-1</p>
+            <h1>GSLB 全球伺服器負載平衡</h1>
+            <p class="a10-subtitle">Global Server Load Balancing</p>
         </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="container mx-auto px-4 py-8 max-w-5xl">
-
-        <!-- Introduction -->
-        <div class="bg-white p-6 rounded-lg shadow-sm mb-8 border-l-4 border-a10-orange">
-            <h2 class="text-xl font-bold text-a10-blue mb-2">👋 歡迎來到架構師殿堂</h2>
-            <p class="text-gray-700 leading-relaxed">
-                今天我們要來談談如何讓你的服務跨越地理限制，實現真正的「全球化」與「不死之身」。GSLB 是大型企業與雲端架構中不可或缺的一環，它超越了單一資料中心的限制，是實現異地備援 (Disaster Recovery) 的核心技術。
-            </p>
-        </div>
-
-        <!-- Section 1: Concept -->
-        <div class="section-card" id="concept">
-            <h2 class="text-2xl font-bold text-a10-blue mb-6 flex items-center">
-                <span class="bg-a10-blue text-white rounded-full w-8 h-8 flex items-center justify-center text-sm mr-3">1</span>
-                核心概念 (Concept)
-            </h2>
-            
-            <div class="grid md:grid-cols-2 gap-8">
-                <div class="bg-gray-50 p-6 rounded-xl border border-gray-100">
-                    <h3 class="text-lg font-bold text-a10-magenta mb-3"><i class="fas fa-quote-left mr-2"></i>一句話定義</h3>
-                    <p class="text-gray-800 font-medium text-lg">
-                        GSLB (Global Server Load Balancing) 是一種基於 DNS 的智慧型流量調度技術，能根據使用者的位置與伺服器健康狀態，將流量導向「最適合」的資料中心。
-                    </p>
-                </div>
-                
-                <div class="bg-blue-50 p-6 rounded-xl border border-blue-100">
-                    <h3 class="text-lg font-bold text-a10-blue mb-3"><i class="fas fa-lightbulb mr-2"></i>生活化比喻</h3>
-                    <p class="text-gray-700">
-                        想像 GSLB 是全球連鎖飯店的<span class="font-bold text-a10-orange">「總機管家」</span>。
-                        <br><br>
-                        當你要訂房 (發出請求) 時，你不需要知道哪間分店有空房。你只需要打給總機，管家會根據：
-                        <ul class="list-disc list-inside mt-2 ml-2 text-sm text-gray-600">
-                            <li><strong>你的位置</strong> (Geo-location)：你人在台北，就優先幫你訂台北分店。</li>
-                            <li><strong>忙碌程度</strong> (Load)：台北客滿了，建議你去桃園分店。</li>
-                            <li><strong>營業狀態</strong> (Health Check)：高雄分店整修中 (Down)，絕不會幫你轉接過去。</li>
-                        </ul>
-                    </p>
-                </div>
+    <main class="a10-main">
+        <section class="a10-section">
+            <h2 class="a10-section-title"><span class="a10-num">00</span>歡迎來到架構師殿堂 <span class="a10-en">Introduction</span></h2>
+            <div class="a10-card plain">
+                <p>今天我們要來談談如何讓你的服務跨越地理限制，實現真正的「全球化」與「不死之身」。GSLB 是大型企業與雲端架構中不可或缺的一環，它超越了單一資料中心的限制，是實現異地備援 (Disaster Recovery) 的核心技術。</p>
             </div>
-        </div>
+        </section>
 
-        <!-- Section 2: Mechanism -->
-        <div class="section-card" id="mechanism">
-            <h2 class="text-2xl font-bold text-a10-blue mb-6 flex items-center">
-                <span class="bg-a10-blue text-white rounded-full w-8 h-8 flex items-center justify-center text-sm mr-3">2</span>
-                運作原理 (Mechanism)
-            </h2>
-
-            <div class="space-y-6">
-                <!-- DNS Proxy -->
-                <div>
-                    <h3 class="text-xl font-semibold text-gray-800 mb-3 border-b pb-2">1. DNS Proxy 角色</h3>
-                    <p class="text-gray-700 leading-relaxed mb-4">
-                        GSLB 的核心在於它介入了 DNS 解析過程。A10 Thunder 可以配置為 <span class="term-highlight">DNS Proxy</span> 或 <span class="term-highlight">Authoritative DNS</span> (授權 DNS)。
-                    </p>
-                    <ul class="list-disc list-inside space-y-2 text-gray-700 bg-gray-50 p-4 rounded-lg">
-                        <li><strong>攔截查詢：</strong> 當 Client 查詢 <code>www.bank.com</code> 時，A10 GSLB 會收到這個 DNS Query。</li>
-                        <li><strong>智慧決策：</strong> 不同於傳統 DNS 只會輪詢 (Round-robin) 回傳固定 IP，GSLB 會即時檢查後端 VIP 狀態。</li>
-                        <li><strong>修改回應：</strong> GSLB 將「最佳」的 Service IP 包裝在 DNS Response 中回傳給 Client。</li>
+        <section class="a10-section">
+            <h2 class="a10-section-title"><span class="a10-num">01</span>核心概念 <span class="a10-en">Concept</span></h2>
+            <div class="a10-grid a10-grid-2">
+                <div class="a10-card">
+                    <h3>一句話定義</h3>
+                    <p>GSLB (Global Server Load Balancing) 是一種基於 DNS 的智慧型流量調度技術，能根據使用者的位置與伺服器健康狀態，將流量導向「最適合」的資料中心。</p>
+                </div>
+                <div class="a10-card">
+                    <h3>生活化比喻</h3>
+                    <p>想像 GSLB 是全球連鎖飯店的<span class="a10-hl">「總機管家」</span>。</p>
+                    <p>當你要訂房 (發出請求) 時，你不需要知道哪間分店有空房。你只需要打給總機，管家會根據：</p>
+                    <ul class="a10-list">
+                        <li><strong>你的位置</strong> (Geo-location)：你人在台北，就優先幫你訂台北分店。</li>
+                        <li><strong>忙碌程度</strong> (Load)：台北客滿了，建議你去桃園分店。</li>
+                        <li><strong>營業狀態</strong> (Health Check)：高雄分店整修中 (Down)，絕不會幫你轉接過去。</li>
                     </ul>
                 </div>
+            </div>
+        </section>
 
-                <!-- Technical Components -->
-                <div class="grid md:grid-cols-3 gap-6 mt-6">
-                    <div class="bg-white border-l-4 border-a10-magenta p-4 shadow-sm">
-                        <h4 class="font-bold text-a10-blue mb-2">Zone (區域)</h4>
-                        <p class="text-sm text-gray-600">這就是 Domain Name (例如 <code>example.com</code>)。GSLB 需要知道它負責管理哪個網域的解析。</p>
-                    </div>
-                    <div class="bg-white border-l-4 border-a10-orange p-4 shadow-sm">
-                        <h4 class="font-bold text-a10-blue mb-2">Service IP (服務 IP)</h4>
-                        <p class="text-sm text-gray-600">對應到各個資料中心內部的 SLB VIP。這是 GSLB 最終要回傳給使用者的 IP 地址。</p>
-                    </div>
-                    <div class="bg-white border-l-4 border-a10-light-blue p-4 shadow-sm">
-                        <h4 class="font-bold text-a10-blue mb-2">Policy Metric (策略指標)</h4>
-                        <p class="text-sm text-gray-600">決策依據：<br>
-                        1. <strong>Geo-location</strong>: 根據 Client IP 地理位置。<br>
-                        2. <strong>RTT</strong>: 測量封包往返時間，選最快的。<br>
-                        3. <strong>Weighted</strong>: 權重分配。</p>
-                    </div>
+        <section class="a10-section">
+            <h2 class="a10-section-title"><span class="a10-num">02</span>運作原理 <span class="a10-en">Mechanism</span></h2>
+            <div class="a10-card">
+                <h3>1. DNS Proxy 角色</h3>
+                <p>GSLB 的核心在於它介入了 DNS 解析過程。A10 Thunder 可以配置為 <span class="a10-hl">DNS Proxy</span> 或 <span class="a10-hl">Authoritative DNS</span> (授權 DNS)。</p>
+                <ul class="a10-list">
+                    <li><strong>攔截查詢：</strong> 當 Client 查詢 <code>www.bank.com</code> 時，A10 GSLB 會收到這個 DNS Query。</li>
+                    <li><strong>智慧決策：</strong> 不同於傳統 DNS 只會輪詢 (Round-robin) 回傳固定 IP，GSLB 會即時檢查後端 VIP 狀態。</li>
+                    <li><strong>修改回應：</strong> GSLB 將「最佳」的 Service IP 包裝在 DNS Response 中回傳給 Client。</li>
+                </ul>
+            </div>
+            <div class="a10-grid a10-grid-3">
+                <div class="a10-card">
+                    <h3>Zone (區域)</h3>
+                    <p>這就是 Domain Name (例如 <code>example.com</code>)。GSLB 需要知道它負責管理哪個網域的解析。</p>
+                </div>
+                <div class="a10-card">
+                    <h3>Service IP (服務 IP)</h3>
+                    <p>對應到各個資料中心內部的 SLB VIP。這是 GSLB 最終要回傳給使用者的 IP 地址。</p>
+                </div>
+                <div class="a10-card">
+                    <h3>Policy Metric (策略指標)</h3>
+                    <p>決策依據：</p>
+                    <ol class="a10-steps">
+                        <li><strong>Geo-location</strong>: 根據 Client IP 地理位置。</li>
+                        <li><strong>RTT</strong>: 測量封包往返時間，選最快的。</li>
+                        <li><strong>Weighted</strong>: 權重分配。</li>
+                    </ol>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Section 3: Visuals -->
-        <div class="section-card" id="visuals">
-            <h2 class="text-2xl font-bold text-a10-blue mb-6 flex items-center">
-                <span class="bg-a10-blue text-white rounded-full w-8 h-8 flex items-center justify-center text-sm mr-3">3</span>
-                架構視覺化 (Visuals)
-            </h2>
-
-            <div class="tech-diagram-container">
-                <!-- Diagram 1: GSLB Physical Topology -->
-                <div class="w-full bg-white p-4 rounded-lg border border-gray-200 overflow-x-auto">
-                    <h4 class="text-center font-bold text-gray-700 mb-4">圖一：多資料中心 GSLB 部署拓撲</h4>
-                    <!-- 拓撲圖 (手繪 SVG):兩座資料中心左右並排,DNS 流程 1-4 走細灰線,HTTP 實際流量走青色粗線 -->
+        <section class="a10-section">
+            <h2 class="a10-section-title"><span class="a10-num">03</span>架構視覺化 <span class="a10-en">Visuals</span></h2>
+            <figure class="a10-figure">
+                <figcaption>圖一：多資料中心 GSLB 部署拓撲</figcaption>
+                <!-- 拓撲圖 (手繪 SVG):兩座資料中心左右並排,DNS 流程 1-4 走細灰線,HTTP 實際流量走青色粗線 -->
                     <div style="width:100%;overflow-x:auto">
                     <svg viewBox="0 0 900 656" role="img" aria-labelledby="a10-31a-title a10-31a-desc" style="width:100%;min-width:560px;max-width:900px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
                     <title id="a10-31a-title">多資料中心 GSLB 部署拓撲</title>
@@ -268,12 +147,10 @@
                     <text x="552" y="124" font-size="12" fill="#1e2235">健康檢查 (Health Check)</text>
                     </svg>
                     </div>
-                </div>
-
-                <!-- Diagram 2: Sequence Logic -->
-                <div class="w-full bg-white p-4 rounded-lg border border-gray-200 mt-8">
-                    <h4 class="text-center font-bold text-gray-700 mb-4">圖二：GSLB 決策流程 (Sequence Diagram)</h4>
-                    <!-- 時序圖 (由 Mermaid 10.9.1 預先轉成靜態 SVG,套用網站配色)。原始 Mermaid 碼:
+            </figure>
+            <figure class="a10-figure">
+                <figcaption>圖二：GSLB 決策流程 (Sequence Diagram)</figcaption>
+                <!-- 時序圖 (由 Mermaid 10.9.1 預先轉成靜態 SVG,套用網站配色)。原始 Mermaid 碼:
                         sequenceDiagram
                             participant User as User
                             participant LDNS as Local DNS
@@ -300,177 +177,109 @@
                     
                     -->
                     <div style="width:100%;overflow-x:auto"><svg xmlns="http://www.w3.org/2000/svg" aria-roledescription="sequence" role="img" viewBox="-50 -10 1419 899" style="width:100%;min-width:560px;max-width:1419px;height:auto;display:block;margin:0 auto" id="seq-a10-3-1-gslb-2" aria-labelledby="seq-a10-3-1-gslb-2-title"><title id="seq-a10-3-1-gslb-2-title">圖二：GSLB 決策流程 (Sequence Diagram)</title><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="1243.5" y1="5" x1="1243.5"/><g><rect class="actor actor-top" ry="3" rx="3" name="DC2" height="65" width="151" stroke="#666" fill="#eaeaea" y="0" x="1168"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="1243.5"><tspan dy="0" x="1243.5">DC2 (Kaohsiung)</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="1003" y1="5" x1="1003"/><g><rect class="actor actor-top" ry="3" rx="3" name="DC1" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="928"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="1003"><tspan dy="0" x="1003">DC1 (Taipei)</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="742" y1="5" x1="742"/><g><rect class="actor actor-top" ry="3" rx="3" name="GSLB" height="65" width="192" stroke="#666" fill="#eaeaea" y="0" x="646"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="742"><tspan dy="0" x="742">A10 GSLB (Controller)</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="411" y1="5" x1="411"/><g><rect class="actor actor-top" ry="3" rx="3" name="LDNS" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="336"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="411"><tspan dy="0" x="411">Local DNS</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="75" y1="5" x1="75"/><g><rect class="actor actor-top" ry="3" rx="3" name="User" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="0"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="75"><tspan dy="0" x="75">User</tspan></text></g></g><style>#seq-a10-3-1-gslb-2{font-family:'Noto Sans TC',Roboto,'Microsoft JhengHei',sans-serif;font-size:15px;fill:#1e2235;}#seq-a10-3-1-gslb-2 .marker{fill:#5b6278;stroke:#5b6278;}#seq-a10-3-1-gslb-2 .marker.cross{stroke:#5b6278;}#seq-a10-3-1-gslb-2 .actor{stroke:#673ab7;fill:#f3effc;}#seq-a10-3-1-gslb-2 text.actor&gt;tspan{fill:#311b92;stroke:none;}#seq-a10-3-1-gslb-2 .actor-line{stroke:#b39ddb;}#seq-a10-3-1-gslb-2 .messageLine0{stroke-width:1.5;stroke-dasharray:none;stroke:#5b6278;}#seq-a10-3-1-gslb-2 .messageLine1{stroke-width:1.5;stroke-dasharray:2,2;stroke:#5b6278;}#seq-a10-3-1-gslb-2 #seq-a10-3-1-gslb-2-arrowhead path{fill:#5b6278;stroke:#5b6278;}#seq-a10-3-1-gslb-2 #sequencenumber{fill:#5b6278;}#seq-a10-3-1-gslb-2 #crosshead path{fill:#5b6278;stroke:#5b6278;}#seq-a10-3-1-gslb-2 .messageText{fill:#1e2235;stroke:none;}#seq-a10-3-1-gslb-2 .note{stroke:#f5b041;fill:#fff8e1;}#seq-a10-3-1-gslb-2 .noteText,#seq-a10-3-1-gslb-2 .noteText&gt;tspan{fill:#5d4037;stroke:none;}</style><g/><defs><marker orient="auto" markerHeight="12" markerWidth="12" markerUnits="userSpaceOnUse" refY="5" refX="7.9" id="seq-a10-3-1-gslb-2-arrowhead"><path d="M 0 0 L 10 5 L 0 10 z"/></marker></defs><g><rect class="note" ry="0" rx="0" height="48" width="192" stroke="#666" fill="#EDF2AE" y="191" x="646"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="197" x="742"><tspan x="742">Step 1: Check Health</tspan></text></g><g><rect class="note" ry="0" rx="0" height="48" width="252" stroke="#666" fill="#EDF2AE" y="481" x="616"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="487" x="742"><tspan x="742">Step 2: Check Policy (Geo/RTT)</tspan></text></g><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="80" x="242">DNS Query (www.myapp.com)</text><line style="fill: none;" marker-end="url(#seq-a10-3-1-gslb-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="123" x2="407" y1="123" x1="76"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="138" x="575">Forward Query</text><line style="fill: none;" marker-end="url(#seq-a10-3-1-gslb-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="181" x2="738" y1="181" x1="412"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="254" x="871">Health Check?</text><line style="fill: none;" marker-end="url(#seq-a10-3-1-gslb-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="297" x2="999" y1="297" x1="743"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="312" x="874">Status: Alive</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-a10-3-1-gslb-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="355" x2="746" y1="355" x1="1002"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="370" x="991">Health Check?</text><line style="fill: none;" marker-end="url(#seq-a10-3-1-gslb-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="413" x2="1239.5" y1="413" x1="743"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="428" x="994">Status: Alive</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-a10-3-1-gslb-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="471" x2="746" y1="471" x1="1242.5"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="544" x="743">Evaluate: User IP is in Taipei</text><path style="fill: none;" marker-end="url(#seq-a10-3-1-gslb-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" d="M 743,587 C 803,577 803,617 743,607"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="632" x="743">Decision: Select DC1 VIP</text><path style="fill: none;" marker-end="url(#seq-a10-3-1-gslb-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" d="M 743,675 C 803,665 803,705 743,695"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="720" x="578">DNS Response (VIP: 100.1.1.1)</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-a10-3-1-gslb-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="763" x2="415" y1="763" x1="741"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="778" x="245">DNS Response (VIP: 100.1.1.1)</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-a10-3-1-gslb-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="821" x2="79" y1="821" x1="410"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="836" x="538">Application Traffic Flow</text><line style="fill: none;" marker-end="url(#seq-a10-3-1-gslb-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="879" x2="999" y1="879" x1="76"/></svg></div>
-                </div>
-            </div>
-        </div>
+            </figure>
+        </section>
 
-        <!-- Section 4: Use Case -->
-        <div class="section-card" id="use-case">
-            <h2 class="text-2xl font-bold text-a10-blue mb-6 flex items-center">
-                <span class="bg-a10-blue text-white rounded-full w-8 h-8 flex items-center justify-center text-sm mr-3">4</span>
-                實務應用場景 (Use Case)
-            </h2>
-
-            <h3 class="text-xl font-bold text-gray-800 mb-4">案例：銀行跨中心災難復原 (Multi-DC DR)</h3>
-            
-            <div class="bg-gray-50 p-6 rounded-lg mb-6">
-                <p class="mb-4"><strong>情境：</strong> 某大型銀行擁有「台北主中心」與「高雄備援中心」。</p>
-                <p class="mb-4"><strong>需求：</strong></p>
-                <ul class="list-disc list-inside text-gray-700 mb-4 pl-4">
+        <section class="a10-section">
+            <h2 class="a10-section-title"><span class="a10-num">04</span>實務應用場景 <span class="a10-en">Use Case</span></h2>
+            <div class="a10-card">
+                <h3>案例：銀行跨中心災難復原 (Multi-DC DR)</h3>
+                <p><strong>情境：</strong> 某大型銀行擁有「台北主中心」與「高雄備援中心」。</p>
+                <p><strong>需求：</strong></p>
+                <ul class="a10-list">
                     <li>平時：北部用戶連台北，南部用戶連高雄 (Active-Active, 就近服務)。</li>
                     <li>災難時：若台北中心斷線，所有北部用戶自動導向高雄，無需人工切換 DNS。</li>
                 </ul>
             </div>
-
-            <div class="grid md:grid-cols-2 gap-6">
-                <div class="p-5 border border-green-200 rounded-lg bg-green-50">
-                    <h4 class="font-bold text-green-700 mb-2"><i class="fas fa-thumbs-up mr-2"></i>優點</h4>
-                    <ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
+            <div class="a10-grid a10-grid-2">
+                <div class="a10-card">
+                    <h3>優點</h3>
+                    <ul class="a10-list">
                         <li><strong>無縫切換 (Zero Downtime)</strong>：使用者無感知，不需要等待 DNS TTL 漫長的過期時間。</li>
                         <li><strong>資源利用率最大化</strong>：備援中心平時也能分擔流量，而非閒置浪費。</li>
                         <li><strong>體驗優化</strong>：Geo-location 確保連線速度最快。</li>
                     </ul>
                 </div>
-                <div class="p-5 border border-red-200 rounded-lg bg-red-50">
-                    <h4 class="font-bold text-red-700 mb-2"><i class="fas fa-exclamation-triangle mr-2"></i>挑戰/注意事項</h4>
-                    <ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
+                <div class="a10-card">
+                    <h3>挑戰/注意事項</h3>
+                    <ul class="a10-list">
                         <li><strong>資料同步 (Data Sync)</strong>：GSLB 只管導流，應用層資料庫必須即時同步，否則用戶會看到舊資料。</li>
                         <li><strong>複雜度</strong>：需要維護 DNS 設定與 GSLB Controller 之間的通訊 (Port 4149 等)。</li>
                     </ul>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Section 5: Quiz -->
-        <div class="section-card" id="quiz">
-            <h2 class="text-2xl font-bold text-a10-blue mb-6 flex items-center">
-                <span class="bg-a10-blue text-white rounded-full w-8 h-8 flex items-center justify-center text-sm mr-3">5</span>
-                隨堂測驗 (Quiz)
-            </h2>
-            <div id="quiz-container" class="space-y-6">
-                <!-- Questions will be injected here by JS -->
-            </div>
-        </div>
-
+        <section class="a10-section">
+            <h2 class="a10-section-title"><span class="a10-num">05</span>隨堂測驗 <span class="a10-en">Quiz</span></h2>
+            <p class="a10-lead">請選擇最適當的答案,作答後會顯示解析。</p>
+            <div id="a10-quiz"></div>
+        </section>
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-a10-blue text-white py-6 mt-12">
-        <div class="container mx-auto px-6 text-center text-sm opacity-80">
-            <p>Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0</p>
-        </div>
+    <footer>
+        Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0
     </footer>
 
     <script>
-        // Mermaid Initialization
-        mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
-
-        // Quiz Logic
-        const questions = [
+        window.A10_QUIZ = [
             {
-                id: 1,
                 question: "GSLB 在網路架構中主要扮演什麼角色？",
                 options: [
-                    "防火牆，負責阻擋攻擊",
-                    "智慧型 DNS 解析器，負責跨資料中心的流量調度",
-                    "交換器，負責 L2 封包轉發",
-                    "資料庫同步工具"
+                    "A. 防火牆，負責阻擋攻擊",
+                    "B. 智慧型 DNS 解析器，負責跨資料中心的流量調度",
+                    "C. 交換器，負責 L2 封包轉發",
+                    "D. 資料庫同步工具"
                 ],
                 correct: 1,
                 explanation: "GSLB (Global Server Load Balancing) 的核心機制是透過介入 DNS 解析，根據策略回傳最佳的伺服器 IP。"
             },
             {
-                id: 2,
                 question: "在 GSLB 術語中，'Service IP' 通常指的是什麼？",
                 options: [
-                    "Client 端的真實 IP",
-                    "ISP 的 DNS Server IP",
-                    "GSLB Controller 的管理 IP",
-                    "位於 SLB 上，提供實際服務的 Virtual IP (VIP)"
+                    "A. Client 端的真實 IP",
+                    "B. ISP 的 DNS Server IP",
+                    "C. GSLB Controller 的管理 IP",
+                    "D. 位於 SLB 上，提供實際服務的 Virtual IP (VIP)"
                 ],
                 correct: 3,
                 explanation: "Service IP 是 GSLB 管理的對象，通常對應到各個資料中心內 SLB 所設定的 Virtual IP (VIP)。"
             },
             {
-                id: 3,
                 question: "若希望讓「台北用戶連台北 DC，高雄用戶連高雄 DC」，應使用哪種 Policy Metric？",
                 options: [
-                    "Round Robin (輪詢)",
-                    "Least Connection (最少連線數)",
-                    "Geo-location (地理位置)",
-                    "Weighted (權重)"
+                    "A. Round Robin (輪詢)",
+                    "B. Least Connection (最少連線數)",
+                    "C. Geo-location (地理位置)",
+                    "D. Weighted (權重)"
                 ],
                 correct: 2,
                 explanation: "Geo-location Metric 會比對 Client IP (透過 Geo-IP 資料庫)，將請求導向距離最近的資料中心。"
             },
             {
-                id: 4,
                 question: "關於 GSLB 實現災難復原 (DR) 的敘述，何者正確？",
                 options: [
-                    "只能做到手動切換",
-                    "當主中心故障，GSLB 會偵測到 Health Check 失敗，自動將 DNS 解析改為備援中心的 IP",
-                    "GSLB 會負責幫忙備份 SQL 資料庫",
-                    "使用者必須重新開機才能連上備援中心"
+                    "A. 只能做到手動切換",
+                    "B. 當主中心故障，GSLB 會偵測到 Health Check 失敗，自動將 DNS 解析改為備援中心的 IP",
+                    "C. GSLB 會負責幫忙備份 SQL 資料庫",
+                    "D. 使用者必須重新開機才能連上備援中心"
                 ],
                 correct: 1,
                 explanation: "GSLB 會持續監控後端 Service IP 狀態。當主中心死掉，GSLB 在下一次 DNS 查詢時就會直接給出備援中心的 IP，實現自動切換。"
             },
             {
-                id: 5,
                 question: "A10 GSLB 的 'RTT (Round Trip Time)' Metric 是如何運作的？",
                 options: [
-                    "根據使用者輸入的郵遞區號判斷",
-                    "主動測量 Client (或 Local DNS) 到各個資料中心的延遲時間，選擇最快的路徑",
-                    "隨機選擇路徑",
-                    "根據伺服器的 CPU 使用率判斷"
+                    "A. 根據使用者輸入的郵遞區號判斷",
+                    "B. 主動測量 Client (或 Local DNS) 到各個資料中心的延遲時間，選擇最快的路徑",
+                    "C. 隨機選擇路徑",
+                    "D. 根據伺服器的 CPU 使用率判斷"
                 ],
                 correct: 1,
                 explanation: "RTT Metric 會透過發送封包 (如 ICMP 或 TCP Query) 測量網路延遲，確保將使用者導向網路回應最快的資料中心。"
             }
         ];
-
-        const quizContainer = document.getElementById('quiz-container');
-
-        questions.forEach((q, index) => {
-            const questionEl = document.createElement('div');
-            questionEl.className = 'bg-white p-6 rounded-lg border border-gray-200 shadow-sm';
-            
-            let optionsHtml = '';
-            q.options.forEach((opt, i) => {
-                optionsHtml += `<button class="quiz-option w-full text-left p-3 rounded border border-gray-200 mb-2 transition-colors duration-200" onclick="checkAnswer(this, ${q.id}, ${i})">${String.fromCharCode(65+i)}. ${opt}</button>`;
-            });
-
-            questionEl.innerHTML = `
-                <h3 class="font-bold text-lg mb-4 text-gray-800">${index + 1}. ${q.question}</h3>
-                <div class="mb-4">${optionsHtml}</div>
-                <div id="result-${q.id}" class="hidden mt-4 p-4 rounded bg-gray-100 text-sm"></div>
-            `;
-            quizContainer.appendChild(questionEl);
-        });
-
-        function checkAnswer(btn, qId, selectedIndex) {
-            const question = questions.find(q => q.id === qId);
-            const parent = btn.parentElement;
-            const resultDiv = document.getElementById(`result-${qId}`);
-            const allBtns = parent.querySelectorAll('button');
-
-            // Disable all buttons
-            allBtns.forEach(b => b.disabled = true);
-
-            if (selectedIndex === question.correct) {
-                btn.classList.add('selected-correct');
-                resultDiv.innerHTML = `<span class="text-green-700 font-bold"><i class="fas fa-check-circle"></i> 正確！</span><br>${question.explanation}`;
-                resultDiv.classList.remove('bg-red-50');
-                resultDiv.classList.add('bg-green-50');
-            } else {
-                btn.classList.add('selected-wrong');
-                allBtns[question.correct].classList.add('selected-correct'); // Show correct answer
-                resultDiv.innerHTML = `<span class="text-red-700 font-bold"><i class="fas fa-times-circle"></i> 錯誤。</span><br>正確答案是：${question.options[question.correct]}<br><br><span class="text-gray-600">${question.explanation}</span>`;
-                resultDiv.classList.remove('bg-green-50');
-                resultDiv.classList.add('bg-red-50');
-            }
-            resultDiv.classList.remove('hidden');
-        }
     </script>
+    <script src="a10.js?v=1"></script>
 </body>
 </html>

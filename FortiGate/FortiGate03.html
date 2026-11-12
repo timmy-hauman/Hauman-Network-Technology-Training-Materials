@@ -1,285 +1,115 @@
 <!DOCTYPE html>
-<html lang="zh-Hant-TW">
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fortinet FortiGate 實戰課程 - 防火牆策略與物件</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap');
-        
-        body {
-            font-family: 'Noto Sans TC', sans-serif;
-            background-color: #f3f4f6;
-            color: #1f2937;
-        }
-        
-        .section-card {
-            background-color: white;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            padding: 2rem;
-            margin-bottom: 2rem;
-            border-left: 5px solid #c53030; /* Fortinet Red-ish */
-        }
-
-        .highlight-box {
-            background-color: #fff5f5;
-            border-left: 4px solid #c53030;
-            padding: 1rem;
-            margin: 1rem 0;
-            border-radius: 0.25rem;
-        }
-
-        .tech-term {
-            color: #c53030;
-            font-weight: 700;
-            background-color: #fef2f2;
-            padding: 0.1rem 0.3rem;
-            border-radius: 0.2rem;
-        }
-
-        .analogy-box {
-            background-color: #f0fdf4;
-            border-left: 4px solid #16a34a;
-            padding: 1rem;
-            margin: 1rem 0;
-            border-radius: 0.25rem;
-        }
-
-        /* 優化後的 CLI 區塊樣式 */
-        .config-box {
-            background-color: #1e293b; /* 深色背景 */
-            color: #a5b4fc; /* 淺藍紫色文字，閱讀舒適 */
-            padding: 1.5rem;
-            padding-top: 2.5rem; /* 預留頂部空間給標籤 */
-            border-radius: 0.5rem;
-            font-family: 'Fira Code', 'Consolas', 'Monaco', monospace; /* 等寬字體 */
-            margin-top: 1rem;
-            border-left: 4px solid #3b82f6;
-            font-size: 0.875rem;
-            line-height: 1.5;
-            overflow-x: auto; /* 內容過長可捲動 */
-            white-space: pre; /* 關鍵：保留原始換行與縮排 */
-            position: relative;
-            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.3);
-        }
-
-        .config-box::before {
-            content: "FortiGate CLI";
-            position: absolute;
-            top: 0;
-            left: 0;
-            background: #3b82f6;
-            color: white;
-            font-size: 0.75rem;
-            font-weight: bold;
-            padding: 0.25rem 0.75rem;
-            border-bottom-right-radius: 0.5rem;
-            font-family: 'Noto Sans TC', sans-serif;
-            letter-spacing: 0.05em;
-        }
-
-        .gui-box {
-            background-color: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 0.5rem;
-            padding: 1rem;
-            margin-top: 0.5rem;
-        }
-        
-        .gui-label {
-            color: #64748b;
-            font-size: 0.875rem;
-            font-weight: 600;
-            display: inline-block;
-            width: 140px;
-        }
-        
-        .gui-value {
-            color: #0f172a;
-            font-weight: 500;
-        }
-
-        .mermaid-container {
-            display: flex;
-            justify-content: center;
-            background-color: #ffffff;
-            padding: 2rem;
-            border-radius: 0.5rem;
-            border: 1px solid #e5e7eb;
-            margin-top: 1rem;
-            overflow-x: auto;
-        }
-
-        .mermaid {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-        }
-
-        .quiz-option {
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        .quiz-option:hover {
-            background-color: #f3f4f6;
-        }
-
-        .footer-signature {
-            background-color: #2d3748;
-            color: #a0aec0;
-            text-align: center;
-            padding: 1rem;
-            font-size: 0.875rem;
-            margin-top: 4rem;
-        }
-    </style>
-    <!-- 教學網站共用外觀 -->
-    <link rel="stylesheet" href="../assets/site-theme.css?v=20261112">
-    <script src="../assets/site-chrome.js?v=20261112" defer></script>
+    <link rel="stylesheet" href="fg.css?v=1">
+    <link rel="stylesheet" href="../assets/site-theme.css?v=20261112b">
+    <script src="../assets/site-chrome.js?v=20261112b" defer></script>
 </head>
-<body class="antialiased">
-
-    <!-- Header -->
-    <header class="bg-gradient-to-r from-red-700 to-red-900 text-white shadow-lg">
-        <div class="container mx-auto px-4 py-8">
-            <div class="flex items-center space-x-4">
-                <i class="fas fa-shield-alt text-4xl"></i>
-                <div>
-                    <h1 class="text-3xl font-bold">Fortinet FortiGate 實戰課程</h1>
-                    <p class="text-red-100 mt-1">階段一：基礎地基 (Level 1) - 單元 3：防火牆策略與物件 (Policy & Objects)</p>
-                </div>
-            </div>
+<body>
+    <header class="fg-hero">
+        <div class="fg-hero-inner">
+            <p class="fg-kicker">Fortinet FortiGate 實戰課程 · 第 03 課</p>
+            <h1>防火牆策略與物件</h1>
+            <p class="fg-subtitle">Policy &amp; Objects</p>
         </div>
     </header>
 
-    <main class="container mx-auto px-4 py-8 max-w-5xl">
+    <main class="fg-main">
+        <section class="fg-section">
+            <h2 class="fg-section-title"><span class="fg-num">00</span>課程導言 <span class="fg-en">Introduction</span></h2>
+            <p class="fg-lead">階段一：基礎地基 (Level 1) - 單元 3：防火牆策略與物件 (Policy &amp; Objects)</p>
+            <div class="fg-card plain">
+                <p>這是防火牆運作的核心靈魂。在 FortiGate 中，<span class="fg-hl">物件 (Objects)</span> 是可重複使用的積木，而 <span class="fg-hl">策略 (Policy)</span> 則是決定誰能通過大門的規則書。本單元將帶您掌握如何構建高效、易管理的防火牆規則。</p>
+            </div>
+        </section>
 
-        <!-- Introduction -->
-        <div class="mb-8">
-            <p class="text-lg text-gray-700 leading-relaxed">
-                這是防火牆運作的核心靈魂。在 FortiGate 中，<span class="font-bold text-red-700">物件 (Objects)</span> 是可重複使用的積木，而 <span class="font-bold text-red-700">策略 (Policy)</span> 則是決定誰能通過大門的規則書。本單元將帶您掌握如何構建高效、易管理的防火牆規則。
-            </p>
-        </div>
-
-        <!-- 一、核心概念 -->
-        <div class="section-card">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                <span class="bg-red-100 text-red-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Concept</span>
-                一、核心概念
-            </h2>
-            
-            <div class="grid md:grid-cols-1 gap-6">
-                <!-- 定義與比喻 -->
-                <div>
-                    <h3 class="text-xl font-semibold mb-2">1. 策略與物件 (Policy & Objects)</h3>
-                    <p class="mb-2"><strong>定義：</strong> 防火牆策略是控制流量通過的「規則清單」；而物件則是將重複使用的資訊（如 IP、服務埠號）打包成的「群組標籤」。</p>
-                    
-                    <div class="analogy-box">
-                        <p class="font-bold text-green-800 mb-2">🏢 生活化比喻：大樓保全與訪客名單</p>
-                        <p class="mb-2">想像 FortiGate 是一棟高級商業大樓的<strong>大廳保全 (Firewall)</strong>。</p>
-                        <ul class="list-disc list-inside space-y-1 ml-2">
-                            <li><strong>物件 (Objects)：</strong>就像是我們給人貼的標籤。不用記住每個人的身分證字號 (IP)，只要給他們一個代號叫「會計部人員」(Address Object)。</li>
-                            <li><strong>策略 (Policy)：</strong>就是保全手上的那一張「放行清單」。規則寫著：「如果是『會計部人員』要去『財務金庫』，則『允許進入』」。</li>
-                            <li><strong>順序 (Priority)：</strong>清單從第一行開始讀。如果第一行寫「今日閉館」，就算你是老闆也會被擋在門口，因為保全看到第一行就執行了 (Top-Down)。</li>
-                        </ul>
-                    </div>
+        <section class="fg-section">
+            <h2 class="fg-section-title"><span class="fg-num">01</span>核心概念 <span class="fg-en">Concept</span></h2>
+            <div class="fg-card">
+                <h3>1. 策略與物件 (Policy &amp; Objects)</h3>
+                <p><strong>定義：</strong> 防火牆策略是控制流量通過的「規則清單」；而物件則是將重複使用的資訊（如 IP、服務埠號）打包成的「群組標籤」。</p>
+                <div class="fg-callout tip">
+                    <span class="fg-callout-title">生活化比喻：大樓保全與訪客名單</span>
+                    <p>想像 FortiGate 是一棟高級商業大樓的<strong>大廳保全 (Firewall)</strong>。</p>
+                    <ul class="fg-list">
+                        <li><strong>物件 (Objects)：</strong>就像是我們給人貼的標籤。不用記住每個人的身分證字號 (IP)，只要給他們一個代號叫「會計部人員」(Address Object)。</li>
+                        <li><strong>策略 (Policy)：</strong>就是保全手上的那一張「放行清單」。規則寫著：「如果是『會計部人員』要去『財務金庫』，則『允許進入』」。</li>
+                        <li><strong>順序 (Priority)：</strong>清單從第一行開始讀。如果第一行寫「今日閉館」，就算你是老闆也會被擋在門口，因為保全看到第一行就執行了 (Top-Down)。</li>
+                    </ul>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- 二、運作原理 -->
-        <div class="section-card">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                <span class="bg-blue-100 text-blue-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Mechanism</span>
-                二、運作原理
-            </h2>
-
-            <div class="grid md:grid-cols-2 gap-6">
-                <!-- 物件化管理 -->
-                <div>
-                    <h3 class="text-xl font-bold text-gray-800 border-b pb-2 mb-3">1. 物件化管理 (Object-Based)</h3>
-                    <p class="text-gray-700 mb-2">FortiGate 強烈建議使用物件，而非直接在規則中輸入 IP。</p>
-                    <ul class="list-disc list-inside space-y-2 text-gray-700 ml-4">
+        <section class="fg-section">
+            <h2 class="fg-section-title"><span class="fg-num">02</span>運作原理 <span class="fg-en">Mechanism</span></h2>
+            <div class="fg-grid fg-grid-2">
+                <div class="fg-card">
+                    <h3>1. 物件化管理 (Object-Based)</h3>
+                    <p>FortiGate 強烈建議使用物件，而非直接在規則中輸入 IP。</p>
+                    <ul class="fg-list">
                         <li><strong>Address Object：</strong>定義 IP、子網段 (Subnet)、FQDN (如 www.google.com) 或地理位置 (GeoIP)。</li>
                         <li><strong>Service Object：</strong>定義通訊協定與埠號 (如 TCP/443, UDP/53)。</li>
                         <li><strong>優勢：</strong>當伺服器 IP 變更時，只需修改 Object 內容，所有引用該 Object 的 50 條 Policy 會自動更新。</li>
                     </ul>
                 </div>
-
-                <!-- 匹配邏輯 -->
-                <div>
-                    <h3 class="text-xl font-bold text-gray-800 border-b pb-2 mb-3">2. 策略匹配邏輯 (Matching Logic)</h3>
-                    <p class="text-gray-700 mb-2">核心行為模式：<span class="tech-term">Top-Down First Match</span></p>
-                    <ul class="list-disc list-inside space-y-2 text-gray-700 ml-4">
+                <div class="fg-card">
+                    <h3>2. 策略匹配邏輯 (Matching Logic)</h3>
+                    <p>核心行為模式：<span class="fg-hl">Top-Down First Match</span></p>
+                    <ul class="fg-list">
                         <li><strong>由上而下掃描：</strong> 封包進入後，依序比對 ID 1, ID 2, ID 3...</li>
-                        <li><strong>擇一匹配 (First Match)：</strong> 一旦符合某一條規則的「所有條件」(來源、目的、服務、時間)，立即執行動作 (Allow/Deny)，並<span class="font-bold text-red-600">停止</span>往下搜尋。</li>
+                        <li><strong>擇一匹配 (First Match)：</strong> 一旦符合某一條規則的「所有條件」(來源、目的、服務、時間)，立即執行動作 (Allow/Deny)，並<strong>停止</strong>往下搜尋。</li>
                         <li><strong>隱式拒絕 (Implicit Deny)：</strong> 若完全沒配對到任何規則，則觸發最底層的 Default Deny，預設丟棄封包。</li>
                     </ul>
                 </div>
             </div>
-
-            <div class="highlight-box mt-6">
-                <h4 class="font-bold text-red-800 mb-1">🔑 關鍵五要素 (5-Tuple Match)</h4>
-                <p class="text-sm">要讓一條策略生效，封包必須同時符合：<strong>Source Interface/Address</strong> + <strong>Destination Interface/Address</strong> + <strong>Service</strong> + <strong>Schedule</strong>。若動作為 ACCEPT，則封包通過。</p>
+            <div class="fg-callout warn">
+                <span class="fg-callout-title">關鍵五要素 (5-Tuple Match)</span>
+                <p>要讓一條策略生效，封包必須同時符合：<strong>Source Interface/Address</strong> + <strong>Destination Interface/Address</strong> + <strong>Service</strong> + <strong>Schedule</strong>。若動作為 ACCEPT，則封包通過。</p>
             </div>
-        </div>
+        </section>
 
-        <!-- 三、實戰設定範例 (CLI排版修復) -->
-        <div class="section-card">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                <span class="bg-gray-100 text-gray-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Configuration</span>
-                三、實戰設定範例 (CLI & GUI)
-            </h2>
-            <p class="mb-4 text-gray-600">本節示範如何建立常用的位址與服務物件，並提供 GUI 與 CLI 對照。</p>
+        <section class="fg-section">
+            <h2 class="fg-section-title"><span class="fg-num">03</span>實戰設定範例 (CLI &amp; GUI) <span class="fg-en">Configuration</span></h2>
+            <p class="fg-lead">本節示範如何建立常用的位址與服務物件，並提供 GUI 與 CLI 對照。</p>
 
-            <!-- Step 1: 單一 IP -->
-            <div class="mb-8">
-                <h3 class="text-lg font-bold text-gray-700 mb-2 border-l-4 border-red-500 pl-2">Step 1: 建立單一 IP 物件 (Single Host)</h3>
-                <p class="text-sm text-gray-500 mb-2">路徑：<span class="font-mono bg-gray-200 px-1">Policy & Objects > Addresses > Create New</span></p>
-                
-                <div class="gui-box">
-                    <div class="mb-1"><span class="gui-label">Name:</span> <span class="gui-value">Web_Server_Local</span></div>
-                    <div class="mb-1"><span class="gui-label">Type:</span> <span class="gui-value">Subnet</span></div>
-                    <div class="mb-1"><span class="gui-label">IP/Netmask:</span> <span class="gui-value text-blue-600 font-mono">192.168.100.10/32</span> <span class="text-xs text-gray-400">(/32 代表單一 IP)</span></div>
-                    <div><span class="gui-label">Interface:</span> <span class="gui-value">any</span></div>
+            <div class="fg-card">
+                <h3>Step 1: 建立單一 IP 物件 (Single Host)</h3>
+                <p>路徑：<code>Policy &amp; Objects &gt; Addresses &gt; Create New</code></p>
+                <div class="fg-table-wrap">
+                    <table class="fg-table">
+                        <thead><tr><th>GUI 欄位</th><th>設定值</th></tr></thead>
+                        <tbody>
+                            <tr><td>Name:</td><td>Web_Server_Local</td></tr>
+                            <tr><td>Type:</td><td>Subnet</td></tr>
+                            <tr><td>IP/Netmask:</td><td><code>192.168.100.10/32</code> (/32 代表單一 IP)</td></tr>
+                            <tr><td>Interface:</td><td>any</td></tr>
+                        </tbody>
+                    </table>
                 </div>
-
-                <div class="config-box">
-config firewall address
+                <pre class="fg-code">config firewall address
     edit "Web_Server_Local"
         set subnet 192.168.100.10 255.255.255.255
     next
-end
-</div>
+end</pre>
             </div>
 
-            <!-- Step 2: FQDN -->
-            <div class="mb-8">
-                <h3 class="text-lg font-bold text-gray-700 mb-2 border-l-4 border-red-500 pl-2">Step 2: 建立 FQDN 物件 (Domain)</h3>
-                <p class="text-sm text-gray-500 mb-2">適用於 IP 浮動的雲端服務。FQDN 支援萬用字元 (*)。</p>
-                
-                <div class="grid md:grid-cols-2 gap-4">
-                    <div class="gui-box">
-                        <div class="text-xs font-bold text-gray-400 mb-2 uppercase">Google 物件</div>
-                        <div class="mb-1"><span class="gui-label">Name:</span> <span class="gui-value">FQDN_Google</span></div>
-                        <div class="mb-1"><span class="gui-label">Type:</span> <span class="gui-value">FQDN</span></div>
-                        <div class="mb-1"><span class="gui-label">FQDN:</span> <span class="gui-value text-blue-600 font-mono">*.google.com</span></div>
-                    </div>
-                    <div class="gui-box">
-                        <div class="text-xs font-bold text-gray-400 mb-2 uppercase">Facebook 物件</div>
-                        <div class="mb-1"><span class="gui-label">Name:</span> <span class="gui-value">FQDN_Facebook</span></div>
-                        <div class="mb-1"><span class="gui-label">Type:</span> <span class="gui-value">FQDN</span></div>
-                        <div class="mb-1"><span class="gui-label">FQDN:</span> <span class="gui-value text-blue-600 font-mono">*.facebook.com</span></div>
-                    </div>
+            <div class="fg-card">
+                <h3>Step 2: 建立 FQDN 物件 (Domain)</h3>
+                <p>適用於 IP 浮動的雲端服務。FQDN 支援萬用字元 (*)。</p>
+                <div class="fg-table-wrap">
+                    <table class="fg-table">
+                        <thead><tr><th>GUI 欄位</th><th>Google 物件</th><th>Facebook 物件</th></tr></thead>
+                        <tbody>
+                            <tr><td>Name:</td><td>FQDN_Google</td><td>FQDN_Facebook</td></tr>
+                            <tr><td>Type:</td><td>FQDN</td><td>FQDN</td></tr>
+                            <tr><td>FQDN:</td><td><code>*.google.com</code></td><td><code>*.facebook.com</code></td></tr>
+                        </tbody>
+                    </table>
                 </div>
-
-                <div class="config-box">
-config firewall address
+                <pre class="fg-code">config firewall address
     edit "FQDN_Google"
         set type fqdn
         set fqdn "*.google.com"
@@ -288,88 +118,71 @@ config firewall address
         set type fqdn
         set fqdn "*.facebook.com"
     next
-end
-</div>
+end</pre>
             </div>
 
-            <!-- Step 3: Grouping -->
-            <div class="mb-8">
-                <h3 class="text-lg font-bold text-gray-700 mb-2 border-l-4 border-red-500 pl-2">Step 3: 建立物件群組 (Address Group)</h3>
-                <p class="text-sm text-gray-500 mb-2">路徑：<span class="font-mono bg-gray-200 px-1">Policy & Objects > Address Groups</span></p>
-                <div class="gui-box">
-                    <div class="mb-1"><span class="gui-label">Group Name:</span> <span class="gui-value">Grp_Social_Media</span></div>
-                    <div class="mb-1"><span class="gui-label">Members:</span> 
-                        <span class="bg-gray-200 px-2 py-0.5 rounded text-sm text-gray-700 mr-1">FQDN_Google</span>
-                        <span class="bg-gray-200 px-2 py-0.5 rounded text-sm text-gray-700">FQDN_Facebook</span>
-                    </div>
+            <div class="fg-card">
+                <h3>Step 3: 建立物件群組 (Address Group)</h3>
+                <p>路徑：<code>Policy &amp; Objects &gt; Address Groups</code></p>
+                <div class="fg-table-wrap">
+                    <table class="fg-table">
+                        <thead><tr><th>GUI 欄位</th><th>設定值</th></tr></thead>
+                        <tbody>
+                            <tr><td>Group Name:</td><td>Grp_Social_Media</td></tr>
+                            <tr><td>Members:</td><td><code>FQDN_Google</code> <code>FQDN_Facebook</code></td></tr>
+                        </tbody>
+                    </table>
                 </div>
-
-                <div class="config-box">
-config firewall addrgrp
+                <pre class="fg-code">config firewall addrgrp
     edit "Grp_Social_Media"
         set member "FQDN_Google" "FQDN_Facebook"
     next
-end
-</div>
+end</pre>
             </div>
 
-            <!-- Step 4: Custom Service -->
-            <div class="mb-8">
-                <h3 class="text-lg font-bold text-gray-700 mb-2 border-l-4 border-red-500 pl-2">Step 4: 建立自訂服務 (Custom Service)</h3>
-                <p class="text-sm text-gray-500 mb-2">
-                    若應用程式使用非標準 Port (例如 10443)，需建立 Custom Service。<br>
-                    路徑：<span class="font-mono bg-gray-200 px-1">Policy & Objects > Services > Create New</span>
-                </p>
-                <div class="gui-box">
-                    <div class="mb-1"><span class="gui-label">Name:</span> <span class="gui-value">TCP_10443_App</span></div>
-                    <div class="mb-1"><span class="gui-label">Category:</span> <span class="gui-value">Network Services</span></div>
-                    <div class="mb-1"><span class="gui-label">Protocol Type:</span> <span class="gui-value">TCP/UDP/SCTP</span></div>
-                    <div class="mb-1"><span class="gui-label">Destination Port:</span> <span class="gui-value font-mono text-blue-600">TCP 10443</span></div>
-                    <div class="mb-1"><span class="gui-label">Comment:</span> <span class="gui-value text-gray-500">Internal Web App</span></div>
+            <div class="fg-card">
+                <h3>Step 4: 建立自訂服務 (Custom Service)</h3>
+                <p>若應用程式使用非標準 Port (例如 10443)，需建立 Custom Service。<br>路徑：<code>Policy &amp; Objects &gt; Services &gt; Create New</code></p>
+                <div class="fg-table-wrap">
+                    <table class="fg-table">
+                        <thead><tr><th>GUI 欄位</th><th>設定值</th></tr></thead>
+                        <tbody>
+                            <tr><td>Name:</td><td>TCP_10443_App</td></tr>
+                            <tr><td>Category:</td><td>Network Services</td></tr>
+                            <tr><td>Protocol Type:</td><td>TCP/UDP/SCTP</td></tr>
+                            <tr><td>Destination Port:</td><td><code>TCP 10443</code></td></tr>
+                            <tr><td>Comment:</td><td>Internal Web App</td></tr>
+                        </tbody>
+                    </table>
                 </div>
-
-                <div class="config-box">
-config firewall service custom
+                <pre class="fg-code">config firewall service custom
     edit "TCP_10443_App"
         set tcp-portrange 10443
         set comment "Internal Web App"
     next
-end
-</div>
+end</pre>
             </div>
 
-            <!-- Step 5: Policy -->
-            <div class="mb-8">
-                <h3 class="text-lg font-bold text-gray-700 mb-2 border-l-4 border-red-500 pl-2">Step 5: 套用至防火牆策略 (Firewall Policy)</h3>
-                <p class="text-sm text-gray-500 mb-2">將上述 Group 與 Custom Service 結合。路徑：<span class="font-mono bg-gray-200 px-1">Policy & Objects > Firewall Policy</span></p>
-                <div class="gui-box border-l-4 border-l-green-500">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-y-2">
-                        <div><span class="gui-label">Name:</span> <span class="gui-value">Allow_App_Access</span></div>
-                        <div><span class="gui-label">Incoming Iface:</span> <span class="gui-value">LAN (Port2)</span></div>
-                        
-                        <div><span class="gui-label">Outgoing Iface:</span> <span class="gui-value">WAN (Port1)</span></div>
-                        <div><span class="gui-label">Source:</span> <span class="gui-value">all</span></div>
-                        
-                        <div class="bg-yellow-50 p-1 rounded -ml-1 border border-yellow-200">
-                            <span class="gui-label">Destination:</span> 
-                            <span class="gui-value font-bold text-red-600">Grp_Social_Media</span>
-                        </div>
-                        <div><span class="gui-label">Schedule:</span> <span class="gui-value">always</span></div>
-                        
-                        <div class="bg-blue-50 p-1 rounded -ml-1 border border-blue-200">
-                            <span class="gui-label">Service:</span> 
-                            <span class="gui-value">HTTPS, HTTP, <span class="font-bold text-blue-700">TCP_10443_App</span></span>
-                        </div>
-                        <div><span class="gui-label">Action:</span> <span class="gui-value bg-green-100 text-green-700 px-2 py-0.5 rounded text-sm font-bold">ACCEPT</span></div>
-                        
-                        <div class="md:col-span-2 mt-2 pt-2 border-t border-gray-200 text-xs text-gray-500">
-                            * NAT 已啟用 (預設)
-                        </div>
-                    </div>
+            <div class="fg-card">
+                <h3>Step 5: 套用至防火牆策略 (Firewall Policy)</h3>
+                <p>將上述 Group 與 Custom Service 結合。路徑：<code>Policy &amp; Objects &gt; Firewall Policy</code></p>
+                <div class="fg-table-wrap">
+                    <table class="fg-table">
+                        <thead><tr><th>GUI 欄位</th><th>設定值</th></tr></thead>
+                        <tbody>
+                            <tr><td>Name:</td><td>Allow_App_Access</td></tr>
+                            <tr><td>Incoming Iface:</td><td>LAN (Port2)</td></tr>
+                            <tr><td>Outgoing Iface:</td><td>WAN (Port1)</td></tr>
+                            <tr><td>Source:</td><td>all</td></tr>
+                            <tr><td>Destination:</td><td><span class="fg-hl">Grp_Social_Media</span></td></tr>
+                            <tr><td>Schedule:</td><td>always</td></tr>
+                            <tr><td>Service:</td><td>HTTPS, HTTP, <strong>TCP_10443_App</strong></td></tr>
+                            <tr><td>Action:</td><td><span class="fg-tag green">ACCEPT</span></td></tr>
+                        </tbody>
+                    </table>
                 </div>
-
-                <div class="config-box">
-config firewall policy
+                <p>* NAT 已啟用 (預設)</p>
+                <pre class="fg-code">config firewall policy
     edit 1
         set name "Allow_App_Access"
         set srcintf "port2"
@@ -381,26 +194,16 @@ config firewall policy
         set action accept
         set nat enable
     next
-end
-</div>
+end</pre>
             </div>
-        </div>
+        </section>
 
-        <!-- 四、架構視覺化 -->
-        <div class="section-card">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                <span class="bg-green-100 text-green-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Visuals</span>
-                四、架構視覺化
-            </h2>
-            <p class="mb-4 text-gray-600">以圖示展示物件組成與封包決策流程。</p>
-
-            <div class="space-y-8">
-                <!-- 圖表 1: 物件與策略關係 -->
-                <div>
-                    <h3 class="text-lg font-bold text-gray-700 mb-2">1. 物件與策略的關係 (Object Composition)</h3>
-                    <p class="text-sm text-gray-500 mb-2">展示 Address/Service 物件如何被 Policy 引用。</p>
-                    <div class="mermaid-container">
-                        <!-- 關係圖 (手繪 SVG):位址 / 服務物件被 Policy 引用 -->
+        <section class="fg-section">
+            <h2 class="fg-section-title"><span class="fg-num">04</span>架構視覺化 <span class="fg-en">Visuals</span></h2>
+            <p class="fg-lead">以圖示展示物件組成與封包決策流程。</p>
+            <figure class="fg-figure">
+                <figcaption>1. 物件與策略的關係 (Object Composition)<small>展示 Address/Service 物件如何被 Policy 引用。</small></figcaption>
+                <!-- 關係圖 (手繪 SVG):位址 / 服務物件被 Policy 引用 -->
                         <div style="width:100%;overflow-x:auto">
                         <svg viewBox="0 0 800 384" role="img" aria-labelledby="fg03a-title fg03a-desc" style="width:100%;min-width:560px;max-width:800px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
                         <title id="fg03a-title">物件與策略的關係 (Object Composition)</title>
@@ -450,15 +253,10 @@ end
                         </g>
                         </svg>
                         </div>
-                    </div>
-                </div>
-
-                <!-- 圖表 2: 匹配流程 -->
-                <div>
-                    <h3 class="text-lg font-bold text-gray-700 mb-2">2. 封包匹配流程 (Matching Logic)</h3>
-                    <p class="text-sm text-gray-500 mb-2">由上而下的決策過程。</p>
-                    <div class="mermaid-container">
-                        <!-- 時序圖 (由 Mermaid 10.9.1 預先轉成靜態 SVG,套用網站配色)。原始 Mermaid 碼:
+            </figure>
+            <figure class="fg-figure">
+                <figcaption>2. 封包匹配流程 (Matching Logic)<small>由上而下的決策過程。</small></figcaption>
+                <!-- 時序圖 (由 Mermaid 10.9.1 預先轉成靜態 SVG,套用網站配色)。原始 Mermaid 碼:
 sequenceDiagram
     participant Packet as 封包 (Packet)
     participant Policy1 as Policy 1 (Specific)
@@ -481,95 +279,54 @@ sequenceDiagram
                         
                         -->
                         <div style="width:100%;overflow-x:auto"><svg xmlns="http://www.w3.org/2000/svg" aria-roledescription="sequence" role="img" viewBox="-50 -10 1056.5 707" style="width:100%;min-width:560px;max-width:1057px;height:auto;display:block;margin:0 auto" id="seq-fortigate03-2" aria-labelledby="seq-fortigate03-2-title"><title id="seq-fortigate03-2-title">2. 封包匹配流程 (Matching Logic)</title><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="881.5" y1="5" x1="881.5"/><g><rect class="actor actor-top" ry="3" rx="3" name="Implicit" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="806.5"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="881.5"><tspan dy="0" x="881.5">Implicit Deny</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="637.5" y1="5" x1="637.5"/><g><rect class="actor actor-top" ry="3" rx="3" name="Policy2" height="65" width="158" stroke="#666" fill="#eaeaea" y="0" x="558.5"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="637.5"><tspan dy="0" x="637.5">Policy 2 (General)</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="389" y1="5" x1="389"/><g><rect class="actor actor-top" ry="3" rx="3" name="Policy1" height="65" width="159" stroke="#666" fill="#eaeaea" y="0" x="309.5"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="389"><tspan dy="0" x="389">Policy 1 (Specific)</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="75" y1="5" x1="75"/><g><rect class="actor actor-top" ry="3" rx="3" name="Packet" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="0"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="75"><tspan dy="0" x="75">封包 (Packet)</tspan></text></g></g><style>#seq-fortigate03-2{font-family:'Noto Sans TC',Roboto,'Microsoft JhengHei',sans-serif;font-size:15px;fill:#1e2235;}#seq-fortigate03-2 .marker{fill:#5b6278;stroke:#5b6278;}#seq-fortigate03-2 .marker.cross{stroke:#5b6278;}#seq-fortigate03-2 .actor{stroke:#673ab7;fill:#f3effc;}#seq-fortigate03-2 text.actor&gt;tspan{fill:#311b92;stroke:none;}#seq-fortigate03-2 .actor-line{stroke:#b39ddb;}#seq-fortigate03-2 .messageLine0{stroke-width:1.5;stroke-dasharray:none;stroke:#5b6278;}#seq-fortigate03-2 .messageLine1{stroke-width:1.5;stroke-dasharray:2,2;stroke:#5b6278;}#seq-fortigate03-2 #seq-fortigate03-2-arrowhead path{fill:#5b6278;stroke:#5b6278;}#seq-fortigate03-2 #sequencenumber{fill:#5b6278;}#seq-fortigate03-2 #crosshead path{fill:#5b6278;stroke:#5b6278;}#seq-fortigate03-2 .messageText{fill:#1e2235;stroke:none;}#seq-fortigate03-2 .labelBox{stroke:#673ab7;fill:#f3effc;}#seq-fortigate03-2 .labelText,#seq-fortigate03-2 .labelText&gt;tspan{fill:#311b92;stroke:none;}#seq-fortigate03-2 .loopText,#seq-fortigate03-2 .loopText&gt;tspan{fill:#311b92;stroke:none;}#seq-fortigate03-2 .loopLine{stroke-width:2px;stroke-dasharray:2,2;stroke:#673ab7;fill:#673ab7;}#seq-fortigate03-2 .note{stroke:#f5b041;fill:#fff8e1;}#seq-fortigate03-2 .noteText,#seq-fortigate03-2 .noteText&gt;tspan{fill:#5d4037;stroke:none;}</style><g/><defs><marker orient="auto" markerHeight="12" markerWidth="12" markerUnits="userSpaceOnUse" refY="5" refX="7.9" id="seq-fortigate03-2-arrowhead"><path d="M 0 0 L 10 5 L 0 10 z"/></marker></defs><g><rect class="note" ry="0" rx="0" height="48" width="159" stroke="#666" fill="#EDF2AE" y="240" x="434"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="246" x="514"><tspan x="514">停止搜尋 (Stop)</tspan></text></g><g><line class="loopLine" y2="405" x2="892.5" y1="405" x1="64"/><line class="loopLine" y2="677" x2="892.5" y1="405" x1="892.5"/><line class="loopLine" y2="677" x2="892.5" y1="677" x1="64"/><line class="loopLine" y2="677" x2="64" y1="405" x1="64"/><line style="stroke-dasharray: 3, 3;" class="loopLine" y2="517" x2="892.5" y1="517" x1="64"/><polygon class="labelBox" points="64,405 114,405 114,418 105.6,425 64,425"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" class="labelText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="418" x="89">alt</text><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" class="loopText" text-anchor="middle" y="423" x="503.25"><tspan x="503.25">[符合 Policy 2 ?]</tspan></text><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" class="loopText" text-anchor="middle" y="535" x="478.25">[不符合]</text></g><g><line class="loopLine" y2="133" x2="902.5" y1="133" x1="54"/><line class="loopLine" y2="687" x2="902.5" y1="133" x1="902.5"/><line class="loopLine" y2="687" x2="902.5" y1="687" x1="54"/><line class="loopLine" y2="687" x2="54" y1="133" x1="54"/><line style="stroke-dasharray: 3, 3;" class="loopLine" y2="303" x2="902.5" y1="303" x1="54"/><polygon class="labelBox" points="54,133 104,133 104,146 95.6,153 54,153"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" class="labelText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="146" x="79">alt</text><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" class="loopText" text-anchor="middle" y="151" x="503.25"><tspan x="503.25">[符合 Policy 1 ?]</tspan></text><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" class="loopText" text-anchor="middle" y="321" x="478.25">[不符合]</text></g><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="80" x="231">檢查條件 (Src, Dst, Svc)</text><line style="fill: none;" marker-end="url(#seq-fortigate03-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="123" x2="385" y1="123" x1="76"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="187" x="234">符合! 執行動作 (Allow/Deny)</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-fortigate03-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="230" x2="79" y1="230" x1="388"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="352" x="355">繼續檢查下一條</text><line style="fill: none;" marker-end="url(#seq-fortigate03-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="395" x2="633.5" y1="395" x1="76"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="459" x="358">符合! 執行動作</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-fortigate03-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="502" x2="79" y1="502" x1="636.5"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="566" x="477">落入最後一條</text><line style="fill: none;" marker-end="url(#seq-fortigate03-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="609" x2="877.5" y1="609" x1="76"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="624" x="480">DROP (丟棄)</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-fortigate03-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="667" x2="79" y1="667" x1="880.5"/></svg></div>
-                    </div>
+            </figure>
+        </section>
+
+        <section class="fg-section">
+            <h2 class="fg-section-title"><span class="fg-num">05</span>實務應用場景 <span class="fg-en">Use Case</span></h2>
+            <div class="fg-card plain">
+                <h3>場景：企業分層上網權限管理</h3>
+                <p><strong>情境描述：</strong> 行銷部需開放 Facebook/YouTube 進行推廣，但一般員工僅能瀏覽普通網頁，並嚴格禁止高風險網站。</p>
+                <p><strong>解決方案 (注意順序)：</strong></p>
+                <div class="fg-table-wrap">
+                    <table class="fg-table">
+                        <thead><tr><th>規則</th><th>條件與動作</th></tr></thead>
+                        <tbody>
+                            <tr><td>Rule 1 (特權)</td><td><strong>來源：</strong>行銷部 | <strong>服務：</strong>HTTP/S | <strong>動作：</strong><span class="fg-tag green">ALLOW</span> (Web Filter: 放行 Social)</td></tr>
+                            <tr><td>Rule 2 (一般)</td><td><strong>來源：</strong>全體員工 | <strong>服務：</strong>HTTP/S | <strong>動作：</strong><span class="fg-tag green">ALLOW</span> (Web Filter: 阻擋 Social)</td></tr>
+                            <tr><td colspan="2">Implicit Deny (Drop All Others)</td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
-        </div>
-
-        <!-- 五、實務應用場景 -->
-        <div class="section-card">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                <span class="bg-purple-100 text-purple-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Use Case</span>
-                五、實務應用場景
-            </h2>
-
-            <h3 class="text-xl font-bold mb-3">場景：企業分層上網權限管理</h3>
-            
-            <div class="mb-4">
-                <p class="text-gray-700 mb-2"><strong>情境描述：</strong> 行銷部需開放 Facebook/YouTube 進行推廣，但一般員工僅能瀏覽普通網頁，並嚴格禁止高風險網站。</p>
-                <p class="text-gray-700"><strong>解決方案 (注意順序)：</strong></p>
-                <div class="space-y-2 mt-2">
-                    <div class="border-l-4 border-yellow-400 pl-4 py-2 bg-yellow-50 rounded-r">
-                        <span class="text-xs font-bold text-gray-500 uppercase block">Rule 1 (特權)</span>
-                        <p class="text-gray-800 text-sm"><strong>來源：</strong>行銷部 | <strong>服務：</strong>HTTP/S | <strong>動作：</strong><span class="text-green-600 font-bold">ALLOW</span> (Web Filter: 放行 Social)</p>
-                    </div>
-                    <div class="border-l-4 border-gray-400 pl-4 py-2 bg-gray-50 rounded-r">
-                        <span class="text-xs font-bold text-gray-500 uppercase block">Rule 2 (一般)</span>
-                        <p class="text-gray-800 text-sm"><strong>來源：</strong>全體員工 | <strong>服務：</strong>HTTP/S | <strong>動作：</strong><span class="text-green-600 font-bold">ALLOW</span> (Web Filter: 阻擋 Social)</p>
-                    </div>
-                    <div class="border-t border-dashed border-gray-300 pt-2 text-center text-xs text-red-500 font-bold uppercase">
-                        Implicit Deny (Drop All Others)
-                    </div>
-                </div>
-            </div>
-
-            <div class="grid md:grid-cols-2 gap-4 mt-4">
-                <div class="border p-4 rounded bg-green-50">
-                    <h4 class="font-bold text-green-800 mb-2">👍 優點 (Pros)</h4>
-                    <ul class="list-disc list-inside text-sm text-gray-700">
+            <div class="fg-grid fg-grid-2">
+                <div class="fg-card">
+                    <h3>優點 (Pros)</h3>
+                    <ul class="fg-list">
                         <li><strong>精確控制：</strong> 滿足業務需求同時保障頻寬，避免非相關人員濫用。</li>
                         <li><strong>安全性：</strong> 預設阻擋 (Default Deny) 原則確保未被允許的流量無法通過。</li>
                     </ul>
                 </div>
-                <div class="border p-4 rounded bg-red-50">
-                    <h4 class="font-bold text-red-800 mb-2">👎 常見錯誤 (Risk)</h4>
-                    <ul class="list-disc list-inside text-sm text-gray-700">
+                <div class="fg-card">
+                    <h3>常見錯誤 (Risk)</h3>
+                    <ul class="fg-list">
                         <li><strong>順序錯誤：</strong> 若將「一般規則」放在「特權規則」上面，行銷部會先匹配到一般規則，導致無法使用社群媒體 (因為一般規則擋掉了)。</li>
                     </ul>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- 六、隨堂測驗 -->
-        <div class="section-card">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                <span class="bg-yellow-100 text-yellow-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Quiz</span>
-                六、隨堂測驗
-            </h2>
-            <p class="mb-6 text-gray-600">請點擊您認為正確的選項，系統將會顯示解析。</p>
-
-            <div class="space-y-6" id="quiz-container">
-                <!-- 題目將由 JS 生成 -->
-            </div>
-        </div>
-
+        <section class="fg-section">
+            <h2 class="fg-section-title"><span class="fg-num">06</span>隨堂測驗 <span class="fg-en">Quiz</span></h2>
+            <p class="fg-lead">請點擊您認為正確的選項，系統將會顯示解析。</p>
+            <div id="fg-quiz"></div>
+        </section>
     </main>
 
-    <footer class="footer-signature">
-        Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0
-    </footer>
-
-    <!-- 使用 module type 載入 mermaid -->
-    <script type="module">
-        const mermaid = { initialize() {}, init() {}, run: async () => {} }; // 架構圖已改為靜態 SVG,不再載入 Mermaid
-        mermaid.initialize({ 
-            startOnLoad: true,
-            theme: 'neutral', 
-            securityLevel: 'loose',
-            themeVariables: {
-                fontSize: '16px',
-                fontFamily: '"Noto Sans TC", sans-serif'
-            },
-            flowchart: {
-                htmlLabels: true,
-                useMaxWidth: false
-            }
-        });
-    </script>
+    <footer>Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0</footer>
 
     <script>
-        // 測驗資料
-        const quizData = [
+        window.FG_QUIZ = [
             {
                 question: "1. 關於 FortiGate 防火牆策略的匹配邏輯 (Matching Logic)，下列何者正確？",
                 options: [
@@ -626,68 +383,7 @@ sequenceDiagram
                 explanation: "正確答案是 C。基於 'Default Deny' 原則，跨介面/跨區域的流量若無 Policy 明確放行，預設皆為阻擋。"
             }
         ];
-
-        // 渲染測驗
-        const quizContainer = document.getElementById('quiz-container');
-
-        quizData.forEach((item, index) => {
-            const questionBox = document.createElement('div');
-            questionBox.className = 'bg-white border rounded-lg p-6 shadow-sm';
-            
-            let optionsHtml = '';
-            item.options.forEach((opt, optIndex) => {
-                optionsHtml += `
-                    <div class="quiz-option p-3 rounded border mb-2" onclick="checkAnswer(${index}, ${optIndex}, this)">
-                        ${opt}
-                    </div>
-                `;
-            });
-
-            questionBox.innerHTML = `
-                <h3 class="font-bold text-lg mb-4 text-gray-800">${item.question}</h3>
-                <div class="space-y-2 mb-4">
-                    ${optionsHtml}
-                </div>
-                <div id="result-${index}" class="hidden mt-4 p-4 rounded bg-gray-50 border-l-4">
-                    <p class="font-bold result-title"></p>
-                    <p class="text-sm text-gray-600 mt-1">${item.explanation}</p>
-                </div>
-            `;
-            quizContainer.appendChild(questionBox);
-        });
-
-        function checkAnswer(qIndex, optIndex, element) {
-            const data = quizData[qIndex];
-            const resultBox = document.getElementById(`result-${qIndex}`);
-            const resultTitle = resultBox.querySelector('.result-title');
-            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
-
-            // 鎖定該題不可再選
-            if (element.parentElement.dataset.answered) return;
-            element.parentElement.dataset.answered = "true";
-
-            // 清除並重設樣式
-            allOptions.forEach(opt => opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500'));
-
-            if (optIndex === data.correct) {
-                // 答對
-                element.classList.add('bg-green-100', 'border-green-500');
-                resultBox.classList.remove('hidden', 'border-red-500');
-                resultBox.classList.add('border-green-500', 'bg-green-50');
-                resultTitle.textContent = "✅ 答對了！";
-                resultTitle.classList.add('text-green-700');
-            } else {
-                // 答錯
-                element.classList.add('bg-red-100', 'border-red-500');
-                // 標示正確答案
-                allOptions[data.correct].classList.add('bg-green-100', 'border-green-500');
-                
-                resultBox.classList.remove('hidden', 'border-green-500');
-                resultBox.classList.add('border-red-500', 'bg-red-50');
-                resultTitle.textContent = "❌ 答錯了，請看解析：";
-                resultTitle.classList.add('text-red-700');
-            }
-        }
     </script>
+    <script src="fg.js?v=1"></script>
 </body>
 </html>

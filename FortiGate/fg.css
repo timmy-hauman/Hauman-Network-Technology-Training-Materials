@@ -1,0 +1,176 @@
+/* =========================================================
+   Fortinet FortiGate 實戰課程共用版型
+   16 個單元頁面統一使用這份樣式;頁面本身不再各自定義配色與版型。
+   底色、字型、頂端導覽列、頁首漸層與頁尾由 ../assets/site-theme.css 提供。
+   ========================================================= */
+:root {
+    --fg-accent: #dc2626;
+    --fg-accent-dark: #b91c1c;
+    --fg-accent-tint: #fef2f2;
+    --fg-accent-line: #fecaca;
+    --fg-text: #1e2235;
+    --fg-text-2: #5b6278;
+    --fg-muted: #8a90a6;
+    --fg-border: #e3e6f0;
+    --fg-cyan: #0e7490;
+    --fg-cyan-tint: #ecfeff;
+    --fg-green: #15803d;
+    --fg-green-tint: #f0fdf4;
+    --fg-amber: #b45309;
+    --fg-amber-tint: #fffbeb;
+    --fg-shadow: 0 4px 16px rgba(30, 34, 53, 0.06);
+}
+
+body { color: var(--fg-text); line-height: 1.7; margin: 0; }
+
+/* ---- 頁首 (site-chrome 會換成品牌漸層) ---- */
+.fg-hero { background: #1e2235; color: #fff; padding: 44px 20px 40px; text-align: center; }
+.fg-hero-inner { max-width: 1100px; margin: 0 auto; }
+.fg-hero .fg-kicker {
+    display: inline-block; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em;
+    padding: 4px 14px; border-radius: 999px; background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.35); margin: 0 0 14px;
+}
+.fg-hero h1 { margin: 0; font-size: 2.1rem; font-weight: 700; line-height: 1.3; color: #fff; }
+.fg-hero .fg-subtitle { margin: 10px 0 0; font-size: 1.1rem; color: #ede7f6; }
+
+/* ---- 內容區 ---- */
+.fg-main { max-width: 1100px; margin: 0 auto; padding: 36px 20px 56px; }
+.fg-section { margin: 0 0 48px; }
+.fg-section-title {
+    display: flex; align-items: center; gap: 12px; margin: 0 0 20px;
+    font-size: 1.5rem; font-weight: 700; color: var(--fg-text);
+}
+.fg-section-title .fg-num {
+    flex-shrink: 0; min-width: 40px; height: 40px; padding: 0 8px; border-radius: 10px;
+    background: var(--fg-accent); color: #fff; font-size: 1rem;
+    display: inline-flex; align-items: center; justify-content: center; font-family: var(--hm-mono, monospace);
+}
+.fg-section-title .fg-en { font-size: 0.95rem; font-weight: 500; color: var(--fg-text-2); }
+.fg-lead { color: var(--fg-text-2); margin: -8px 0 20px; }
+
+/* ---- 卡片與格線 ---- */
+.fg-card {
+    background: #fff; border: 1px solid var(--fg-border); border-radius: 12px;
+    box-shadow: var(--fg-shadow); padding: 22px 24px; border-top: 3px solid var(--fg-accent);
+}
+.fg-card.plain { border-top-width: 1px; border-top-color: var(--fg-border); }
+.fg-card h3 { margin: 0 0 10px; font-size: 1.15rem; font-weight: 700; color: var(--fg-accent-dark); }
+.fg-card h4 { margin: 16px 0 6px; font-size: 1rem; font-weight: 700; color: var(--fg-text); }
+.fg-card p { margin: 0 0 10px; color: var(--fg-text-2); }
+.fg-card p:last-child { margin-bottom: 0; }
+.fg-card + .fg-card { margin-top: 20px; }
+.fg-grid { display: grid; gap: 20px; }
+.fg-grid > .fg-card + .fg-card { margin-top: 0; }
+/* 同一章節內,卡片、格線、表格前後相接時保持間距 */
+.fg-section > .fg-grid + *, .fg-section > .fg-table-wrap + *,
+.fg-section > .fg-card + .fg-grid, .fg-section > .fg-card + .fg-table-wrap { margin-top: 20px; }
+.fg-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.fg-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.fg-grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 960px) { .fg-grid-3, .fg-grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 680px) { .fg-grid-2, .fg-grid-3, .fg-grid-4 { grid-template-columns: 1fr; } }
+
+/* ---- 文字元素 ---- */
+.fg-main strong, .fg-main b { color: var(--fg-text); }
+.fg-hl { color: var(--fg-accent-dark); font-weight: 700; }
+.fg-tag {
+    display: inline-block; font-size: 0.75rem; font-weight: 700; padding: 2px 10px; border-radius: 999px;
+    background: var(--fg-accent-tint); color: var(--fg-accent-dark); border: 1px solid var(--fg-accent-line);
+    margin: 0 6px 8px 0; font-family: var(--hm-mono, monospace);
+}
+.fg-tag.cyan { background: var(--fg-cyan-tint); color: var(--fg-cyan); border-color: #a5f3fc; }
+.fg-tag.green { background: var(--fg-green-tint); color: var(--fg-green); border-color: #bbf7d0; }
+.fg-tag.amber { background: var(--fg-amber-tint); color: var(--fg-amber); border-color: #fde68a; }
+.fg-main code {
+    font-family: var(--hm-mono, monospace); font-size: 0.88em; background: var(--fg-accent-tint);
+    color: var(--fg-accent-dark); padding: 1px 6px; border-radius: 4px;
+}
+.fg-list { margin: 8px 0 0; padding: 0; list-style: none; }
+.fg-list li { position: relative; padding-left: 18px; margin: 0 0 8px; color: var(--fg-text-2); }
+.fg-list li::before {
+    content: ''; position: absolute; left: 2px; top: 0.7em; width: 7px; height: 7px;
+    border-radius: 50%; background: var(--fg-accent);
+}
+.fg-steps { margin: 8px 0 0; padding: 0; list-style: none; counter-reset: fg-step; }
+.fg-steps li { position: relative; padding-left: 40px; margin: 0 0 14px; color: var(--fg-text-2); counter-increment: fg-step; }
+.fg-steps li::before {
+    content: counter(fg-step); position: absolute; left: 0; top: 0; width: 28px; height: 28px; border-radius: 50%;
+    background: var(--fg-accent-tint); color: var(--fg-accent-dark); border: 1px solid var(--fg-accent-line);
+    font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; justify-content: center;
+}
+
+/* ---- 提示框 ---- */
+.fg-callout {
+    border-radius: 10px; padding: 16px 20px; margin: 20px 0; border-left: 4px solid var(--fg-accent);
+    background: var(--fg-accent-tint); color: var(--fg-text);
+}
+.fg-callout .fg-callout-title { display: block; font-weight: 700; margin-bottom: 6px; color: var(--fg-accent-dark); }
+.fg-callout p { margin: 0 0 6px; color: var(--fg-text); }
+.fg-callout p:last-child { margin-bottom: 0; }
+.fg-callout.info { background: var(--fg-cyan-tint); border-left-color: #0891b2; }
+.fg-callout.info .fg-callout-title { color: var(--fg-cyan); }
+.fg-callout.tip { background: var(--fg-green-tint); border-left-color: #16a34a; }
+.fg-callout.tip .fg-callout-title { color: var(--fg-green); }
+.fg-callout.warn { background: var(--fg-amber-tint); border-left-color: #f59e0b; }
+.fg-callout.warn .fg-callout-title { color: var(--fg-amber); }
+
+/* ---- 表格 ---- */
+.fg-table-wrap { overflow-x: auto; border: 1px solid var(--fg-border); border-radius: 12px; background: #fff; box-shadow: var(--fg-shadow); }
+.fg-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+.fg-table th { background: var(--fg-accent-tint); color: var(--fg-accent-dark); text-align: left; font-weight: 700; padding: 12px 16px; border-bottom: 1px solid var(--fg-accent-line); white-space: nowrap; }
+.fg-table td { padding: 12px 16px; border-bottom: 1px solid var(--fg-border); color: var(--fg-text-2); vertical-align: top; }
+.fg-table tr:last-child td { border-bottom: none; }
+.fg-table td:first-child { color: var(--fg-text); font-weight: 600; }
+
+/* ---- 指令 / 終端機 ---- */
+.fg-code {
+    background: #1e2235; color: #e2e8f0; border-radius: 10px; padding: 16px 20px; margin: 14px 0;
+    font-family: var(--hm-mono, monospace); font-size: 0.88rem; line-height: 1.6; overflow-x: auto; white-space: pre;
+}
+.fg-code .ok { color: #86efac; }
+.fg-code .alert { color: #fca5a5; }
+.fg-code .dim { color: #94a3b8; }
+
+/* ---- 測驗 (由 fg.js 依 window.FG_QUIZ 產生) ---- */
+.fg-quiz-q { background: #fff; border: 1px solid var(--fg-border); border-radius: 12px; box-shadow: var(--fg-shadow); padding: 22px 24px; margin: 0 0 20px; }
+.fg-quiz-q h3 { margin: 0 0 14px; font-size: 1.05rem; font-weight: 700; color: var(--fg-text); line-height: 1.6; }
+.fg-quiz-q h3 .fg-qno { color: var(--fg-accent-dark); margin-right: 6px; }
+.fg-option {
+    display: block; width: 100%; text-align: left; font: inherit; color: var(--fg-text); cursor: pointer;
+    background: #fff; border: 1px solid var(--fg-border); border-radius: 8px; padding: 11px 16px; margin: 0 0 10px;
+    transition: border-color 0.15s, background 0.15s;
+}
+.fg-option:hover:not(:disabled) { border-color: var(--fg-accent-line); background: var(--fg-accent-tint); }
+.fg-option:disabled { cursor: default; }
+.fg-option.is-correct { border-color: #16a34a; background: var(--fg-green-tint); color: #14532d; font-weight: 600; }
+.fg-option.is-wrong { border-color: #dc2626; background: #fef2f2; color: #7f1d1d; font-weight: 600; }
+.fg-option.is-correct::after { content: ' ✔'; }
+.fg-option.is-wrong::after { content: ' ✘'; }
+.fg-explain { display: none; margin-top: 6px; padding: 14px 18px; border-radius: 8px; background: var(--fg-cyan-tint); border-left: 4px solid #0891b2; color: var(--fg-text); }
+.fg-explain.show { display: block; }
+.fg-explain strong { color: var(--fg-cyan); }
+.fg-score { text-align: center; font-weight: 700; color: var(--fg-text-2); margin-top: 8px; }
+.fg-score span { color: var(--fg-accent-dark); font-size: 1.2rem; }
+
+@media (max-width: 640px) {
+    .fg-hero h1 { font-size: 1.6rem; }
+    .fg-section-title { font-size: 1.25rem; flex-wrap: wrap; row-gap: 2px; }
+    .fg-section-title .fg-en { flex-basis: 100%; padding-left: 52px; font-size: 0.85rem; }
+    .fg-card, .fg-quiz-q { padding: 18px; }
+}
+
+/* ---- 圖解 (手繪 SVG / 時序圖) ---- */
+.fg-figure { background: #fff; border: 1px solid var(--fg-border); border-radius: 12px; box-shadow: var(--fg-shadow); padding: 20px; margin: 0; }
+.fg-figure + .fg-figure { margin-top: 20px; }
+.fg-figure figcaption { margin: 0 0 14px; font-weight: 700; color: var(--fg-text); text-align: center; }
+.fg-figure figcaption small { display: block; font-weight: 400; color: var(--fg-text-2); margin-top: 4px; }
+.fg-section > .fg-figure + *, .fg-section > * + .fg-figure { margin-top: 20px; }
+
+/* ---- 測驗:重新作答按鈕 ---- */
+.fg-quiz-actions { text-align: center; margin-top: 12px; }
+.fg-reset {
+    font: inherit; font-weight: 700; color: #fff; background: var(--fg-accent); border: none; border-radius: 8px;
+    padding: 10px 22px; cursor: pointer;
+}
+.fg-reset:hover { background: var(--fg-accent-dark); }

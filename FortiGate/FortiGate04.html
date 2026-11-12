@@ -1,329 +1,91 @@
 <!DOCTYPE html>
-<html lang="zh-Hant-TW">
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fortinet FortiGate 實戰課程 - 網路位址轉換 (NAT)</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script type="module">
-        const mermaid = { initialize() {}, init() {}, run: async () => {} }; // 架構圖已改為靜態 SVG,不再載入 Mermaid
-        mermaid.initialize({ 
-            startOnLoad: true, 
-            theme: 'neutral', 
-            fontFamily: 'Noto Sans TC',
-            // 增加安全邊距，避免大字體被切到
-            flowchart: { useMaxWidth: false, htmlLabels: true },
-            sequence: { useMaxWidth: false }
-        });
-    </script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap'); /* For CLI Code */
-        
-        body {
-            font-family: 'Noto Sans TC', sans-serif;
-            background-color: #f3f4f6;
-            color: #1f2937;
-        }
-        
-        /* 統一的卡片樣式 */
-        .section-card {
-            background-color: white;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            padding: 2rem;
-            margin-bottom: 2rem;
-            border-left: 5px solid #c53030; /* Fortinet Red */
-        }
-
-        .section-title {
-            color: #1f2937;
-            font-weight: 700;
-            font-size: 1.5rem;
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            padding-bottom: 0.75rem;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        /* 彩色標題 Badge */
-        .title-badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.875rem;
-            font-weight: 600;
-            margin-right: 1rem;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-        }
-        .badge-red { background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
-        .badge-blue { background-color: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
-        .badge-green { background-color: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
-        .badge-purple { background-color: #f3e8ff; color: #6b21a8; border: 1px solid #e9d5ff; }
-        .badge-orange { background-color: #ffedd5; color: #9a3412; border: 1px solid #fed7aa; }
-
-        /* 特殊強調區塊 */
-        .highlight-box {
-            border-left: 4px solid #ef4444;
-            background-color: #fef2f2;
-            padding: 1.25rem;
-            border-radius: 0.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .analogy-box {
-            border-left: 4px solid #10b981;
-            background-color: #ecfdf5;
-            padding: 1.25rem;
-            border-radius: 0.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        /* Mermaid 容器優化 */
-        .mermaid-container {
-            background: #ffffff;
-            padding: 1.5rem;
-            border-radius: 0.75rem;
-            border: 1px solid #e5e7eb;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            width: 100%;
-            overflow-x: auto; /* 允許水平捲動 */
-            margin-bottom: 1.5rem;
-            display: flex;
-            justify-content: center;
-        }
-        
-        .mermaid {
-            min-width: 100%;
-            display: flex;
-            justify-content: center;
-        }
-
-        /* CLI 程式碼區塊樣式 */
-        .cli-block {
-            background-color: #1e293b; /* Slate 800 */
-            color: #e2e8f0; /* Slate 200 */
-            font-family: 'Fira Code', monospace;
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-            overflow-x: auto;
-            font-size: 0.875rem;
-            line-height: 1.5;
-            border: 1px solid #334155;
-            position: relative;
-        }
-        
-        .cli-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.75rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid #334155;
-            color: #94a3b8;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .cli-comment { color: #64748b; font-style: italic; }
-        .cli-keyword { color: #f472b6; font-weight: bold; } /* Pink for keywords like config, edit, set */
-        .cli-value { color: #38bdf8; } /* Light blue for values */
-        .cli-string { color: #facc15; } /* Yellow for strings */
-
-        /* 測驗選項樣式 */
-        .quiz-option {
-            cursor: pointer;
-            transition: all 0.2s;
-            border: 2px solid #e5e7eb;
-        }
-        .quiz-option:hover {
-            background-color: #fff1f2;
-            border-color: #fda4af;
-        }
-    </style>
-    <!-- 教學網站共用外觀 -->
-    <link rel="stylesheet" href="../assets/site-theme.css?v=20261112">
-    <script src="../assets/site-chrome.js?v=20261112" defer></script>
+    <link rel="stylesheet" href="fg.css?v=1">
+    <link rel="stylesheet" href="../assets/site-theme.css?v=20261112b">
+    <script src="../assets/site-chrome.js?v=20261112b" defer></script>
 </head>
 <body>
-
-    <!-- Header Navigation -->
-    <nav class="bg-gradient-to-r from-red-700 to-red-900 shadow-lg sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-20">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0 flex items-center">
-                        <!-- Shield Icon -->
-                        <div class="bg-white/10 p-2 rounded-lg mr-3 backdrop-blur-sm">
-                            <i class="fas fa-shield-alt text-2xl text-white"></i>
-                        </div>
-                    </div>
-                    <div>
-                        <h1 class="text-2xl font-bold text-white tracking-wide">Fortinet FortiGate 實戰課程</h1>
-                        <div class="flex items-center text-sm text-red-100 mt-1 space-x-2">
-                            <span class="bg-red-800/50 px-2 py-0.5 rounded border border-red-600/50">階段一：基礎地基</span>
-                            <span class="text-red-300">|</span>
-                            <span><i class="fas fa-random mr-1"></i> 單元 4：網路位址轉換 (NAT)</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="flex items-center">
-                    <div class="hidden md:block text-right">
-                        <div class="text-xs text-red-200">Designed by Timmy</div>
-                        <span class="bg-red-600 text-white text-xs font-semibold px-3 py-1 rounded-full border border-red-500 mt-1 inline-block shadow-sm">
-                            Ver 2.0
-                        </span>
-                    </div>
-                </div>
-            </div>
+    <header class="fg-hero">
+        <div class="fg-hero-inner">
+            <p class="fg-kicker">Fortinet FortiGate 實戰課程 · 第 04 課</p>
+            <h1>網路位址轉換 (NAT)</h1>
+            <p class="fg-subtitle">Network Address Translation (NAT)</p>
         </div>
-    </nav>
+    </header>
 
-    <!-- Main Content -->
-    <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
-        <!-- 1. 核心概念 -->
-        <section class="section-card">
-            <h2 class="section-title">
-                <span class="title-badge badge-red"><i class="fas fa-lightbulb mr-2"></i>Concept</span>
-                核心概念
-            </h2>
-            
-            <div class="highlight-box">
-                <h3 class="font-bold text-red-800 mb-2 flex items-center"><i class="fas fa-quote-left mr-2"></i>定義</h3>
-                <p class="text-lg text-gray-800 leading-relaxed">
-                    <b>NAT (Network Address Translation)</b> 是一種將封包標頭中的「來源 IP」或「目的 IP」進行替換的技術，主要用來解決 IPv4 位址不足及隱藏內部網路結構的問題。
-                </p>
+    <main class="fg-main">
+        <section class="fg-section">
+            <h2 class="fg-section-title"><span class="fg-num">01</span>核心概念 <span class="fg-en">Concept</span></h2>
+            <p class="fg-lead">階段一：基礎地基 | 單元 4：網路位址轉換 (NAT)</p>
+            <div class="fg-card">
+                <h3>定義</h3>
+                <p><strong>NAT (Network Address Translation)</strong> 是一種將封包標頭中的「來源 IP」或「目的 IP」進行替換的技術，主要用來解決 IPv4 位址不足及隱藏內部網路結構的問題。</p>
+                <div class="fg-callout tip">
+                    <span class="fg-callout-title">生活化比喻：公司總機與收發室</span>
+                    <p>想像 FortiGate 就是一間大公司的<strong>「總機兼收發室」</strong>：</p>
+                </div>
             </div>
-
-            <div class="analogy-box">
-                <h3 class="font-bold text-lg text-green-800 mb-3 flex items-center">
-                    <i class="fas fa-building mr-2"></i> 生活化比喻：公司總機與收發室
-                </h3>
-                <p class="text-gray-700 mb-4">
-                    想像 FortiGate 就是一間大公司的<strong>「總機兼收發室」</strong>：
-                </p>
-                <div class="grid md:grid-cols-2 gap-4">
-                    <div class="bg-white p-4 rounded-lg border border-green-100 shadow-sm">
-                        <div class="font-bold text-gray-800 mb-2 border-b border-green-100 pb-2 flex justify-between items-center">
-                            <span>SNAT (寄信出去)</span>
-                            <i class="fas fa-paper-plane text-green-500"></i>
-                        </div>
-                        <p class="text-sm text-gray-600 leading-relaxed">
-                            就像員工（內網 IP）要寄信給客戶。信件經過收發室時，管理員會把寄件人改成「公司總部地址」（公網 IP），而不是寫員工家裡的私人地址。
-                        </p>
-                    </div>
-                    <div class="bg-white p-4 rounded-lg border border-green-100 shadow-sm">
-                        <div class="font-bold text-gray-800 mb-2 border-b border-green-100 pb-2 flex justify-between items-center">
-                            <span>DNAT / VIP (電話進來)</span>
-                            <i class="fas fa-phone-volume text-green-500"></i>
-                        </div>
-                        <p class="text-sm text-gray-600 leading-relaxed">
-                            就像客戶要打電話找特定部門。客戶撥打的是公司的「代表號」（公網 IP），總機小姐根據分機表，將電話轉接給內部的「業務部經理」（伺服器私有 IP）。
-                        </p>
-                    </div>
+            <div class="fg-grid fg-grid-2">
+                <div class="fg-card">
+                    <h3>SNAT (寄信出去)</h3>
+                    <p>就像員工（內網 IP）要寄信給客戶。信件經過收發室時，管理員會把寄件人改成「公司總部地址」（公網 IP），而不是寫員工家裡的私人地址。</p>
+                </div>
+                <div class="fg-card">
+                    <h3>DNAT / VIP (電話進來)</h3>
+                    <p>就像客戶要打電話找特定部門。客戶撥打的是公司的「代表號」（公網 IP），總機小姐根據分機表，將電話轉接給內部的「業務部經理」（伺服器私有 IP）。</p>
                 </div>
             </div>
         </section>
 
-        <!-- 2. 運作原理 -->
-        <section class="section-card">
-            <h2 class="section-title">
-                <span class="title-badge badge-blue"><i class="fas fa-cogs mr-2"></i>Mechanism</span>
-                運作原理
-            </h2>
-
-            <div class="space-y-8">
-                <!-- SNAT vs DNAT Table -->
-                <div>
-                    <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center border-l-4 border-blue-500 pl-3">
-                        1. SNAT 與 DNAT (Virtual IP) 的區別
-                    </h3>
-                    <div class="overflow-hidden rounded-lg border border-gray-200 shadow-sm">
-                        <table class="min-w-full bg-white">
-                            <thead class="bg-gray-50 text-gray-700">
-                                <tr>
-                                    <th class="py-3 px-4 text-left font-semibold w-1/4">功能</th>
-                                    <th class="py-3 px-4 text-left font-semibold text-blue-700">SNAT (Source NAT)</th>
-                                    <th class="py-3 px-4 text-left font-semibold text-green-700">DNAT (Destination NAT / VIP)</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200 text-sm">
-                                <tr>
-                                    <td class="py-3 px-4 font-bold text-gray-800 bg-gray-50/50">流量方向</td>
-                                    <td class="py-3 px-4 text-blue-600 font-medium">LAN <i class="fas fa-arrow-right mx-1"></i> WAN (內網上網)</td>
-                                    <td class="py-3 px-4 text-green-600 font-medium">WAN <i class="fas fa-arrow-right mx-1"></i> DMZ/LAN (外部存取內部)</td>
-                                </tr>
-                                <tr>
-                                    <td class="py-3 px-4 font-bold text-gray-800 bg-gray-50/50">行為</td>
-                                    <td class="py-3 px-4">修改封包的 <b>來源 IP</b></td>
-                                    <td class="py-3 px-4">修改封包的 <b>目的 IP</b></td>
-                                </tr>
-                                <tr>
-                                    <td class="py-3 px-4 font-bold text-gray-800 bg-gray-50/50">關鍵技術</td>
-                                    <td class="py-3 px-4">PAT (Port Address Translation)</td>
-                                    <td class="py-3 px-4">Port Forwarding / Virtual IP Mapping</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+        <section class="fg-section">
+            <h2 class="fg-section-title"><span class="fg-num">02</span>運作原理 <span class="fg-en">Mechanism</span></h2>
+            <div class="fg-card">
+                <h3>1. SNAT 與 DNAT (Virtual IP) 的區別</h3>
+                <div class="fg-table-wrap">
+                    <table class="fg-table">
+                        <thead>
+                            <tr><th>功能</th><th>SNAT (Source NAT)</th><th>DNAT (Destination NAT / VIP)</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>流量方向</td><td>LAN → WAN (內網上網)</td><td>WAN → DMZ/LAN (外部存取內部)</td></tr>
+                            <tr><td>行為</td><td>修改封包的 <strong>來源 IP</strong></td><td>修改封包的 <strong>目的 IP</strong></td></tr>
+                            <tr><td>關鍵技術</td><td>PAT (Port Address Translation)</td><td>Port Forwarding / Virtual IP Mapping</td></tr>
+                        </tbody>
+                    </table>
                 </div>
-
-                <!-- Policy NAT vs Central NAT -->
-                <div>
-                    <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center border-l-4 border-blue-500 pl-3">
-                        2. NAT 模式比較
-                    </h3>
-                    <div class="grid md:grid-cols-2 gap-6">
-                        <div class="bg-blue-50 p-5 rounded-lg border border-blue-100 hover:shadow-md transition-shadow relative overflow-hidden">
-                            <div class="absolute top-0 right-0 -mt-2 -mr-2 w-12 h-12 bg-blue-200 rounded-full opacity-50 blur-xl"></div>
-                            <h4 class="font-bold text-blue-900 mb-2 flex items-center">
-                                <i class="fas fa-toggle-on mr-2"></i>
-                                Firewall Policy NAT (預設)
-                            </h4>
-                            <p class="text-sm text-blue-800 mb-3 font-medium">直接在 Firewall Policy 內勾選 "NAT"。</p>
-                            <ul class="text-sm text-gray-600 space-y-2">
-                                <li class="flex items-start"><i class="fas fa-check-circle text-blue-500 mt-0.5 mr-2"></i> <span>邏輯簡單：流量允許通過即轉換。</span></li>
-                                <li class="flex items-start"><i class="fas fa-check-circle text-blue-500 mt-0.5 mr-2"></i> <span>適用：中小型企業、快速部署。</span></li>
-                            </ul>
-                        </div>
-                        <div class="bg-purple-50 p-5 rounded-lg border border-purple-100 hover:shadow-md transition-shadow relative overflow-hidden">
-                            <div class="absolute top-0 right-0 -mt-2 -mr-2 w-12 h-12 bg-purple-200 rounded-full opacity-50 blur-xl"></div>
-                            <h4 class="font-bold text-purple-900 mb-2 flex items-center">
-                                <i class="fas fa-network-wired mr-2"></i>
-                                Central NAT (進階)
-                            </h4>
-                            <p class="text-sm text-purple-800 mb-3 font-medium">獨立的 Central SNAT / DNAT 表格。</p>
-                            <ul class="text-sm text-gray-600 space-y-2">
-                                <li class="flex items-start"><i class="fas fa-check-circle text-purple-500 mt-0.5 mr-2"></i> <span>邏輯嚴謹：先查 Policy 放行，再查 NAT 表轉換。</span></li>
-                                <li class="flex items-start"><i class="fas fa-check-circle text-purple-500 mt-0.5 mr-2"></i> <span>適用：大型企業、複雜路由、Cisco/Juniper 移轉。</span></li>
-                            </ul>
-                        </div>
-                    </div>
+            </div>
+            <div class="fg-card plain">
+                <h3>2. NAT 模式比較</h3>
+            </div>
+            <div class="fg-grid fg-grid-2">
+                <div class="fg-card">
+                    <h3>Firewall Policy NAT (預設)</h3>
+                    <p>直接在 Firewall Policy 內勾選 "NAT"。</p>
+                    <ul class="fg-list">
+                        <li>邏輯簡單：流量允許通過即轉換。</li>
+                        <li>適用：中小型企業、快速部署。</li>
+                    </ul>
+                </div>
+                <div class="fg-card">
+                    <h3>Central NAT (進階)</h3>
+                    <p>獨立的 Central SNAT / DNAT 表格。</p>
+                    <ul class="fg-list">
+                        <li>邏輯嚴謹：先查 Policy 放行，再查 NAT 表轉換。</li>
+                        <li>適用：大型企業、複雜路由、Cisco/Juniper 移轉。</li>
+                    </ul>
                 </div>
             </div>
         </section>
 
-        <!-- 3. 架構視覺化 -->
-        <section class="section-card">
-            <h2 class="section-title">
-                <span class="title-badge badge-green"><i class="fas fa-project-diagram mr-2"></i>Visuals</span>
-                架構視覺化
-            </h2>
-            
-            <div class="space-y-8">
-                <!-- 圖表 1: SNAT -->
-                <div>
-                    <h4 class="font-bold text-gray-700 mb-3 pl-2 border-l-4 border-green-500 flex items-center">
-                        <span class="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-full mr-2">圖 1</span>
-                        SNAT 封包流向與轉換 (員工上網)
-                    </h4>
-                    <div class="mermaid-container">
-                        <!-- 時序圖 (由 Mermaid 10.9.1 預先轉成靜態 SVG,套用網站配色)。原始 Mermaid 碼:
+        <section class="fg-section">
+            <h2 class="fg-section-title"><span class="fg-num">03</span>架構視覺化 <span class="fg-en">Visuals</span></h2>
+            <figure class="fg-figure">
+                <figcaption>圖 1：SNAT 封包流向與轉換 (員工上網)</figcaption>
+                <!-- 時序圖 (由 Mermaid 10.9.1 預先轉成靜態 SVG,套用網站配色)。原始 Mermaid 碼:
                             %%{init: {'theme': 'neutral', 'themeVariables': { 'fontFamily': 'Noto Sans TC', 'fontSize': '20px', 'actorFontSize': '20px', 'noteFontSize': '18px', 'messageFontSize': '18px' }}}%%
                             sequenceDiagram
                                 autonumber
@@ -342,17 +104,10 @@
                         
                         -->
                         <div style="width:100%;overflow-x:auto"><svg xmlns="http://www.w3.org/2000/svg" aria-roledescription="sequence" role="img" viewBox="-50 -10 1658.5 491" style="width:100%;min-width:560px;max-width:1659px;height:auto;display:block;margin:0 auto" id="seq-fortigate04-1" aria-labelledby="seq-fortigate04-1-title"><title id="seq-fortigate04-1-title">圖 1 SNAT 封包流向與轉換 (員工上網)</title><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="1482.5" y1="5" x1="1482.5"/><g><rect class="actor actor-top" ry="3" rx="3" name="WAN" height="65" width="152" stroke="#666" fill="#eaeaea" y="0" x="1406.5"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="1482.5"><tspan dy="0" x="1482.5">網際網路(Google)</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="618.5" y1="5" x1="618.5"/><g><rect class="actor actor-top" ry="3" rx="3" name="FG" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="543.5"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="618.5"><tspan dy="0" x="618.5">FortiGate(NAT)</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="94.5" y1="5" x1="94.5"/><g><rect class="actor actor-top" ry="3" rx="3" name="PC" height="65" width="189" stroke="#666" fill="#eaeaea" y="0" x="0"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="94.5"><tspan dy="0" x="94.5">員工 PC(192.168.1.10)</tspan></text></g></g><style>#seq-fortigate04-1{font-family:'Noto Sans TC',Roboto,'Microsoft JhengHei',sans-serif;font-size:15px;fill:#1e2235;}#seq-fortigate04-1 .marker{fill:#5b6278;stroke:#5b6278;}#seq-fortigate04-1 .marker.cross{stroke:#5b6278;}#seq-fortigate04-1 .actor{stroke:#673ab7;fill:#f3effc;}#seq-fortigate04-1 text.actor&gt;tspan{fill:#311b92;stroke:none;}#seq-fortigate04-1 .actor-line{stroke:#b39ddb;}#seq-fortigate04-1 .messageLine0{stroke-width:1.5;stroke-dasharray:none;stroke:#5b6278;}#seq-fortigate04-1 .messageLine1{stroke-width:1.5;stroke-dasharray:2,2;stroke:#5b6278;}#seq-fortigate04-1 #seq-fortigate04-1-arrowhead path{fill:#5b6278;stroke:#5b6278;}#seq-fortigate04-1 #sequencenumber{fill:#5b6278;}#seq-fortigate04-1 #crosshead path{fill:#5b6278;stroke:#5b6278;}#seq-fortigate04-1 .messageText{fill:#1e2235;stroke:none;}#seq-fortigate04-1 .note{stroke:#f5b041;fill:#fff8e1;}#seq-fortigate04-1 .noteText,#seq-fortigate04-1 .noteText&gt;tspan{fill:#5d4037;stroke:none;}</style><g/><defs><marker orient="auto" markerHeight="12" markerWidth="12" markerUnits="userSpaceOnUse" refY="5" refX="7.9" id="seq-fortigate04-1-arrowhead"><path d="M 0 0 L 10 5 L 0 10 z"/></marker></defs><defs><marker orient="auto" markerHeight="40" markerWidth="60" refY="15" refX="15" id="seq-fortigate04-1-sequencenumber"><circle r="6" cy="15" cx="15"/></marker></defs><g><rect class="note" ry="0" rx="0" height="48" width="614" stroke="#666" fill="#EDF2AE" y="75" x="49.5"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="81" x="357"><tspan x="357">SNAT 場景：員工上網</tspan></text></g><g><rect class="note" ry="0" rx="0" height="48" width="778" stroke="#666" fill="#EDF2AE" y="191" x="663.5"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="197" x="1053"><tspan x="1053">查表與轉換 (SNAT)將 192.168.1.10 轉為 WAN IP (203.0.113.1)建立 Session 表：Port 51234 -&gt; 10001 (PAT)</tspan></text></g><g><rect class="note" ry="0" rx="0" height="48" width="438" stroke="#666" fill="#EDF2AE" y="365" x="135.5"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="371" x="355"><tspan x="355">查表還原將 203.0.113.1:10001 還原為 192.168.1.10:51234</tspan></text></g><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="138" x="355">請求: Src=192.168.1.10:51234, Dst=8.8.8.8:443</text><line style="fill: none;" marker-start="url(#seq-fortigate04-1-sequencenumber)" marker-end="url(#seq-fortigate04-1-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="181" x2="614.5" y1="181" x1="95.5"/><text class="sequenceNumber" text-anchor="middle" font-size="12px" font-family="sans-serif" y="185" x="95.5">1</text><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="254" x="1049">轉發: Src=203.0.113.1:10001, Dst=8.8.8.8:443</text><line style="fill: none;" marker-start="url(#seq-fortigate04-1-sequencenumber)" marker-end="url(#seq-fortigate04-1-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="297" x2="1478.5" y1="297" x1="619.5"/><text class="sequenceNumber" text-anchor="middle" font-size="12px" font-family="sans-serif" y="301" x="619.5">2</text><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="312" x="1052">回應: Src=8.8.8.8:443, Dst=203.0.113.1:10001</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-start="url(#seq-fortigate04-1-sequencenumber)" marker-end="url(#seq-fortigate04-1-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="355" x2="622.5" y1="355" x1="1481.5"/><text class="sequenceNumber" text-anchor="middle" font-size="12px" font-family="sans-serif" y="359" x="1481.5">3</text><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="428" x="358">轉發: Src=8.8.8.8:443, Dst=192.168.1.10:51234</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-start="url(#seq-fortigate04-1-sequencenumber)" marker-end="url(#seq-fortigate04-1-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="471" x2="98.5" y1="471" x1="617.5"/><text class="sequenceNumber" text-anchor="middle" font-size="12px" font-family="sans-serif" y="475" x="617.5">4</text></svg></div>
-                    </div>
-                </div>
-
-                <!-- 圖表 2: DNAT -->
-                <div>
-                    <h4 class="font-bold text-gray-700 mb-3 pl-2 border-l-4 border-green-500 flex items-center">
-                        <span class="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-full mr-2">圖 2</span>
-                        DNAT (VIP) 拓樸與邏輯 (外部存取伺服器)
-                    </h4>
-                    <div class="mermaid-container">
-                        <div style="width:100%;overflow-x:auto">
+            </figure>
+            <figure class="fg-figure">
+                <figcaption>圖 2：DNAT (VIP) 拓樸與邏輯 (外部存取伺服器)</figcaption>
+                <div style="width:100%;overflow-x:auto">
                         <svg viewBox="0 0 760 736" role="img" aria-labelledby="fg04a-title fg04a-desc" style="width:100%;min-width:560px;max-width:760px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
                         <title id="fg04a-title">DNAT (VIP) 拓樸與邏輯</title>
                         <desc id="fg04a-desc">外部使用者 (IP 1.2.3.4,位於網際網路 Untrust 區) 存取 http://203.0.113.50,封包進入 FortiGate 的 WAN1 介面 (Public IP 203.0.113.50);接著匹配 Virtual IP 物件的 DNAT 規則 (203.0.113.50:80 對應到 10.1.1.20:8080),再檢查 Firewall Policy (Src: All, Dst: VIP_Obj, Action: Accept) 放行,最後把目的 IP 改寫後轉發給 DMZ (Trust) 區的網頁伺服器 (Private IP 10.1.1.20, Port 8080)。</desc>
@@ -387,17 +142,10 @@
                         </g>
                         </svg>
                         </div>
-                    </div>
-                </div>
-
-                <!-- 圖表 3: Central NAT 流程 -->
-                <div>
-                    <h4 class="font-bold text-gray-700 mb-3 pl-2 border-l-4 border-green-500 flex items-center">
-                        <span class="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-full mr-2">圖 3</span>
-                        NAT 模式決策流程圖
-                    </h4>
-                    <div class="mermaid-container">
-                        <div style="width:100%;overflow-x:auto">
+            </figure>
+            <figure class="fg-figure">
+                <figcaption>圖 3：NAT 模式決策流程圖</figcaption>
+                <div style="width:100%;overflow-x:auto">
                         <svg viewBox="0 0 820 784" role="img" aria-labelledby="fg04b-title fg04b-desc" style="width:100%;min-width:560px;max-width:820px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
                         <title id="fg04b-title">NAT 模式決策流程</title>
                         <desc id="fg04b-desc">封包進入 FortiGate 後先做路由查表,再判斷使用哪種 NAT 模式。Policy NAT (預設):檢查 Firewall Policy,符合 Policy 時再看該 Policy 是否啟用 NAT,啟用 (Yes) 就依照 Policy 設定執行 SNAT,未啟用 (No) 則不進行轉換,兩者都接著轉發封包;不符合 Policy (No) 則由隱含拒絕 (Implicit Deny) 丟棄。Central NAT:檢查 Firewall Policy (只看放行),符合並放行 (Yes) 後查閱 Central SNAT/DNAT 表格、套用符合的 NAT 規則,再轉發封包;未放行 (No) 同樣由隱含拒絕丟棄。</desc>
@@ -437,327 +185,150 @@
                         <path d="M290 404 H336" fill="none" stroke="#dc2626" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#fg04b-arr-r)"/><text x="312" y="396" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#b91c1c">No</text><path d="M530 404 H484" fill="none" stroke="#dc2626" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#fg04b-arr-r)"/><text x="508" y="396" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#b91c1c">No</text><rect x="340" y="384" width="140" height="40" rx="20" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/><text x="410" y="402" text-anchor="middle" font-size="12" font-weight="700" fill="#b91c1c">隱含拒絕</text><text x="410" y="417" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="10.5" fill="#b91c1c">Implicit Deny / Drop</text><rect x="310" y="720" width="200" height="44" rx="22.0" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/><text x="410.0" y="747.0" text-anchor="middle" font-size="13" font-weight="700" fill="#15803d">轉發封包</text>
                         </svg>
                         </div>
-                    </div>
-                </div>
-            </div>
+            </figure>
         </section>
 
-        <!-- 4. 實務應用場景 -->
-        <section class="section-card">
-            <h2 class="section-title">
-                <span class="title-badge badge-purple"><i class="fas fa-briefcase mr-2"></i>Use Case</span>
-                實務應用場景
-            </h2>
-            
-            <div class="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-6 shadow-inner">
-                <h3 class="font-bold text-lg text-gray-900 mb-2 flex items-center">
-                    <i class="fas fa-map-marker-alt text-red-600 mr-2"></i>
-                    場景：混合型企業網路部署
-                </h3>
-                <p class="text-gray-700">某科技公司需要同時滿足以下需求：</p>
-                <ol class="list-decimal list-inside mt-3 text-gray-600 space-y-2 bg-white p-4 rounded border border-gray-100">
-                    <li><span class="font-medium text-gray-800">財務部 (Internal)：</span> 只能存取銀行網站，且出去的 IP 必須固定為 <code class="bg-gray-100 text-red-600 px-1 rounded border border-gray-200">203.0.113.10</code>。</li>
-                    <li><span class="font-medium text-gray-800">一般員工 (Internal)：</span> 可自由上網，共用公司主要 IP <code class="bg-gray-100 px-1 rounded border border-gray-200">203.0.113.1</code>。</li>
-                    <li><span class="font-medium text-gray-800">ERP 系統 (DMZ)：</span> 需提供給外部廠商存取，使用 Port 4433 對應內部的 Port 443。</li>
+        <section class="fg-section">
+            <h2 class="fg-section-title"><span class="fg-num">04</span>實務應用場景 <span class="fg-en">Use Case</span></h2>
+            <div class="fg-card plain">
+                <h3>場景：混合型企業網路部署</h3>
+                <p>某科技公司需要同時滿足以下需求：</p>
+                <ol class="fg-steps">
+                    <li><strong>財務部 (Internal)：</strong> 只能存取銀行網站，且出去的 IP 必須固定為 <code>203.0.113.10</code>。</li>
+                    <li><strong>一般員工 (Internal)：</strong> 可自由上網，共用公司主要 IP <code>203.0.113.1</code>。</li>
+                    <li><strong>ERP 系統 (DMZ)：</strong> 需提供給外部廠商存取，使用 Port 4433 對應內部的 Port 443。</li>
                 </ol>
             </div>
+            <div class="fg-card">
+                <h3>解決方案配置邏輯</h3>
+                <ol class="fg-steps">
+                    <li><strong>財務部 (SNAT Pool)</strong><br>建立 IP Pool，並在 Policy 內啟用 "Use Dynamic IP Pool"。</li>
+                    <li><strong>一般員工 (Interface NAT)</strong><br>Policy 啟用 NAT 並選擇 "Use Outgoing Interface Address" (預設)。</li>
+                    <li><strong>ERP 系統 (VIP / DNAT)</strong><br>建立 Virtual IP (VIP) 物件，Policy 目的端指向 VIP。</li>
+                </ol>
+            </div>
+            <div class="fg-card">
+                <span class="fg-tag cyan">Policy NAT Mode</span>
+                <h3>CLI 配置實戰範例</h3>
+                <p><strong>FortiGate CLI</strong></p>
+                <pre class="fg-code"><span class="dim"># --- 步驟 1: 定義物件 (IP Pool & VIP) ---</span>
 
-            <!-- 解決方案與 CLI 範例 -->
-            <div class="space-y-6">
-                <!-- 1. 配置摘要 -->
-                <div class="border border-green-200 bg-green-50/50 rounded-lg p-5">
-                    <h4 class="font-bold text-green-800 mb-3 flex items-center">
-                        <i class="fas fa-check-circle mr-2"></i> 解決方案配置邏輯
-                    </h4>
-                    <ul class="text-sm text-gray-700 space-y-3">
-                        <li class="flex items-start">
-                            <span class="bg-green-200 text-green-800 text-xs font-bold px-2 py-0.5 rounded-full mr-2 mt-0.5">1</span>
-                            <div>
-                                <span class="font-bold block text-gray-900">財務部 (SNAT Pool)</span>
-                                建立 IP Pool，並在 Policy 內啟用 "Use Dynamic IP Pool"。
-                            </div>
-                        </li>
-                        <li class="flex items-start">
-                            <span class="bg-green-200 text-green-800 text-xs font-bold px-2 py-0.5 rounded-full mr-2 mt-0.5">2</span>
-                            <div>
-                                <span class="font-bold block text-gray-900">一般員工 (Interface NAT)</span>
-                                Policy 啟用 NAT 並選擇 "Use Outgoing Interface Address" (預設)。
-                            </div>
-                        </li>
-                        <li class="flex items-start">
-                            <span class="bg-green-200 text-green-800 text-xs font-bold px-2 py-0.5 rounded-full mr-2 mt-0.5">3</span>
-                            <div>
-                                <span class="font-bold block text-gray-900">ERP 系統 (VIP / DNAT)</span>
-                                建立 Virtual IP (VIP) 物件，Policy 目的端指向 VIP。
-                            </div>
-                        </li>
-                    </ul>
-                </div>
+config firewall ippool
+    edit "Finance_NAT_Pool"
+        set type overload
+        set startip 203.0.113.10
+        set endip 203.0.113.10
+    next
+end
 
-                <!-- 2. CLI 配置實戰 -->
-                <div>
-                    <h4 class="font-bold text-gray-800 mb-3 flex items-center border-l-4 border-gray-700 pl-3">
-                        <i class="fas fa-terminal mr-2"></i> CLI 配置實戰範例
-                    </h4>
-                    <div class="cli-block">
-                        <div class="cli-header">
-                            <span><i class="fas fa-code mr-1"></i> FortiGate CLI</span>
-                            <span>Policy NAT Mode</span>
-                        </div>
-<pre>
-<span class="cli-comment"># --- 步驟 1: 定義物件 (IP Pool & VIP) ---</span>
+config firewall vip
+    edit "ERP_Service_DNAT"
+        set extip 203.0.113.1
+        set extintf "any"
+        set portforward enable
+        set extport 4433
+        set mappedip 192.168.100.5
+        set mappedport 443
+    next
+end
 
-<span class="cli-keyword">config firewall ippool</span>
-    <span class="cli-keyword">edit</span> <span class="cli-string">"Finance_NAT_Pool"</span>
-        <span class="cli-keyword">set</span> type overload
-        <span class="cli-keyword">set</span> startip <span class="cli-value">203.0.113.10</span>
-        <span class="cli-keyword">set</span> endip <span class="cli-value">203.0.113.10</span>
-    <span class="cli-keyword">next</span>
-<span class="cli-keyword">end</span>
+<span class="dim"># --- 步驟 2: 設定防火牆策略 (Firewall Policy) ---</span>
 
-<span class="cli-keyword">config firewall vip</span>
-    <span class="cli-keyword">edit</span> <span class="cli-string">"ERP_Service_DNAT"</span>
-        <span class="cli-keyword">set</span> extip <span class="cli-value">203.0.113.1</span>
-        <span class="cli-keyword">set</span> extintf <span class="cli-string">"any"</span>
-        <span class="cli-keyword">set</span> portforward enable
-        <span class="cli-keyword">set</span> extport <span class="cli-value">4433</span>
-        <span class="cli-keyword">set</span> mappedip <span class="cli-value">192.168.100.5</span>
-        <span class="cli-keyword">set</span> mappedport <span class="cli-value">443</span>
-    <span class="cli-keyword">next</span>
-<span class="cli-keyword">end</span>
+config firewall policy
 
-<span class="cli-comment"># --- 步驟 2: 設定防火牆策略 (Firewall Policy) ---</span>
+    <span class="dim"># 場景 A: 財務部 (SNAT: 指定 IP)</span>
+    edit 10
+        set name "Finance_to_Internet"
+        set srcintf "port2"         <span class="dim"># 內部介面</span>
+        set dstintf "wan1"          <span class="dim"># 外部介面</span>
+        set srcaddr "Finance_Subnet"
+        set dstaddr "all"
+        set action accept
+        set schedule "always"
+        set service "ALL"
+        set nat enable              <span class="dim"># 啟用 NAT</span>
+        set ippool enable           <span class="dim"># 啟用 IP Pool</span>
+        set poolname "Finance_NAT_Pool" <span class="dim"># 選擇剛剛建立的 Pool</span>
+    next
 
-<span class="cli-keyword">config firewall policy</span>
+    <span class="dim"># 場景 B: 一般員工 (SNAT: 介面 IP)</span>
+    edit 20
+        set name "Staff_to_Internet"
+        set srcintf "port2"
+        set dstintf "wan1"
+        set srcaddr "Staff_Subnet"
+        set dstaddr "all"
+        set action accept
+        set schedule "always"
+        set service "ALL"
+        set nat enable              <span class="dim"># 預設使用外網介面 IP (203.0.113.1)</span>
+    next
 
-    <span class="cli-comment"># 場景 A: 財務部 (SNAT: 指定 IP)</span>
-    <span class="cli-keyword">edit</span> 10
-        <span class="cli-keyword">set</span> name <span class="cli-string">"Finance_to_Internet"</span>
-        <span class="cli-keyword">set</span> srcintf <span class="cli-string">"port2"</span>         <span class="cli-comment"># 內部介面</span>
-        <span class="cli-keyword">set</span> dstintf <span class="cli-string">"wan1"</span>          <span class="cli-comment"># 外部介面</span>
-        <span class="cli-keyword">set</span> srcaddr <span class="cli-string">"Finance_Subnet"</span>
-        <span class="cli-keyword">set</span> dstaddr <span class="cli-string">"all"</span>
-        <span class="cli-keyword">set</span> action accept
-        <span class="cli-keyword">set</span> schedule <span class="cli-string">"always"</span>
-        <span class="cli-keyword">set</span> service <span class="cli-string">"ALL"</span>
-        <span class="cli-keyword">set</span> nat enable              <span class="cli-comment"># 啟用 NAT</span>
-        <span class="cli-keyword">set</span> ippool enable           <span class="cli-comment"># 啟用 IP Pool</span>
-        <span class="cli-keyword">set</span> poolname <span class="cli-string">"Finance_NAT_Pool"</span> <span class="cli-comment"># 選擇剛剛建立的 Pool</span>
-    <span class="cli-keyword">next</span>
+    <span class="dim"># 場景 C: ERP 伺服器 (DNAT: VIP)</span>
+    edit 30
+        set name "Internet_to_ERP"
+        set srcintf "wan1"
+        set dstintf "dmz"
+        set srcaddr "all"
+        set dstaddr "ERP_Service_DNAT" <span class="dim"># 目的端直接放 Virtual IP 物件</span>
+        set action accept
+        set schedule "always"
+        set service "HTTPS"
+        set nat disable             <span class="dim"># DNAT 不需要此選項 (除非要隱藏來源 IP)</span>
+    next
 
-    <span class="cli-comment"># 場景 B: 一般員工 (SNAT: 介面 IP)</span>
-    <span class="cli-keyword">edit</span> 20
-        <span class="cli-keyword">set</span> name <span class="cli-string">"Staff_to_Internet"</span>
-        <span class="cli-keyword">set</span> srcintf <span class="cli-string">"port2"</span>
-        <span class="cli-keyword">set</span> dstintf <span class="cli-string">"wan1"</span>
-        <span class="cli-keyword">set</span> srcaddr <span class="cli-string">"Staff_Subnet"</span>
-        <span class="cli-keyword">set</span> dstaddr <span class="cli-string">"all"</span>
-        <span class="cli-keyword">set</span> action accept
-        <span class="cli-keyword">set</span> schedule <span class="cli-string">"always"</span>
-        <span class="cli-keyword">set</span> service <span class="cli-string">"ALL"</span>
-        <span class="cli-keyword">set</span> nat enable              <span class="cli-comment"># 預設使用外網介面 IP (203.0.113.1)</span>
-    <span class="cli-keyword">next</span>
-
-    <span class="cli-comment"># 場景 C: ERP 伺服器 (DNAT: VIP)</span>
-    <span class="cli-keyword">edit</span> 30
-        <span class="cli-keyword">set</span> name <span class="cli-string">"Internet_to_ERP"</span>
-        <span class="cli-keyword">set</span> srcintf <span class="cli-string">"wan1"</span>
-        <span class="cli-keyword">set</span> dstintf <span class="cli-string">"dmz"</span>
-        <span class="cli-keyword">set</span> srcaddr <span class="cli-string">"all"</span>
-        <span class="cli-keyword">set</span> dstaddr <span class="cli-string">"ERP_Service_DNAT"</span> <span class="cli-comment"># 目的端直接放 Virtual IP 物件</span>
-        <span class="cli-keyword">set</span> action accept
-        <span class="cli-keyword">set</span> schedule <span class="cli-string">"always"</span>
-        <span class="cli-keyword">set</span> service <span class="cli-string">"HTTPS"</span>
-        <span class="cli-keyword">set</span> nat disable             <span class="cli-comment"># DNAT 不需要此選項 (除非要隱藏來源 IP)</span>
-    <span class="cli-keyword">next</span>
-
-<span class="cli-keyword">end</span>
-</pre>
-                    </div>
-                </div>
-
-                <!-- 大師點評 -->
-                <div class="border border-orange-200 bg-orange-50/50 rounded-lg p-5 hover:bg-orange-50 transition-colors">
-                    <h4 class="font-bold text-orange-800 mb-3 flex items-center">
-                        <i class="fas fa-star text-orange-500 mr-2"></i> 大師點評
-                    </h4>
-                    <div class="text-sm text-gray-800 leading-relaxed">
-                        <p class="mb-3 font-medium text-orange-900">在此案例中，如果使用 <span class="underline decoration-orange-400 decoration-2">Central NAT</span> 會更具優勢！</p>
-                        <p class="text-gray-600 bg-white p-3 rounded border border-orange-100">
-                            因為可以將「位址轉換邏輯」與「安全放行政策」分開管理。無論財務部要連去哪個銀行，只要來源是財務部，就統一走特定的 IP Pool，這比在每一條 Policy 裡重複設定 IP Pool 更不容易出錯，也更容易維護。
-                        </p>
-                    </div>
-                </div>
+end</pre>
+            </div>
+            <div class="fg-callout info">
+                <span class="fg-callout-title">大師點評</span>
+                <p>在此案例中，如果使用 <span class="fg-hl">Central NAT</span> 會更具優勢！</p>
+                <p>因為可以將「位址轉換邏輯」與「安全放行政策」分開管理。無論財務部要連去哪個銀行，只要來源是財務部，就統一走特定的 IP Pool，這比在每一條 Policy 裡重複設定 IP Pool 更不容易出錯，也更容易維護。</p>
             </div>
         </section>
 
-        <!-- 5. 隨堂測驗 -->
-        <section class="section-card">
-            <h2 class="section-title">
-                <span class="title-badge badge-orange"><i class="fas fa-clipboard-check mr-2"></i>Quiz</span>
-                隨堂測驗
-            </h2>
-            <p class="text-gray-600 mb-6">請回答以下問題來測試你的學習成果：</p>
-
-            <div id="quiz-container" class="space-y-6">
-                <!-- 題目將由 JS 生成 -->
-            </div>
+        <section class="fg-section">
+            <h2 class="fg-section-title"><span class="fg-num">05</span>隨堂測驗 <span class="fg-en">Quiz</span></h2>
+            <p class="fg-lead">請回答以下問題來測試你的學習成果：</p>
+            <div id="fg-quiz"></div>
         </section>
-
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-gray-800 text-white py-12 mt-12 border-t-4 border-red-600">
-        <div class="max-w-5xl mx-auto px-4 text-center">
-            <div class="mb-6">
-                <i class="fas fa-shield-alt text-4xl text-gray-600"></i>
-            </div>
-            <p class="font-bold text-xl mb-2 tracking-wide">Planning & Design by Timmy</p>
-            <p class="text-gray-400 text-sm mb-6">timmyc@hauman.com.tw | 豪勉科技 Hauman Technologies Corporation</p>
-            <div class="inline-block border-t border-gray-700 pt-6 px-12">
-                <div class="text-xs text-gray-500">
-                    Ver 2.0 | © 2025 Fortinet FortiGate 實戰課程系列
-                </div>
-            </div>
-        </div>
-    </footer>
+    <footer>Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0</footer>
 
     <script>
-        // Quiz Data
-        const quizData = [
+        window.FG_QUIZ = [
             {
-                id: 1,
                 question: "在 FortiGate 中，若要讓外部使用者存取內部網頁伺服器，應該設定哪種物件？",
-                options: ["IP Pool", "Virtual IP (VIP)", "Dynamic SNAT", "FSSO Agent"],
+                options: ["A. IP Pool", "B. Virtual IP (VIP)", "C. Dynamic SNAT", "D. FSSO Agent"],
                 correct: 1,
                 explanation: "Virtual IP (VIP) 是 Fortinet 用來實作 DNAT 的物件，用於將外部請求的目的地 IP 映射到內部伺服器的私有 IP。"
             },
             {
-                id: 2,
                 question: "關於 SNAT (Source NAT) 的敘述，下列何者正確？",
-                options: ["主要用於外部使用者存取內部資源", "會改變封包的目的地 IP", "通常用於內部員工連線至網際網路時隱藏私有 IP", "必須使用 Central NAT 才能達成"],
+                options: ["A. 主要用於外部使用者存取內部資源", "B. 會改變封包的目的地 IP", "C. 通常用於內部員工連線至網際網路時隱藏私有 IP", "D. 必須使用 Central NAT 才能達成"],
                 correct: 2,
                 explanation: "SNAT 的主要用途是當內部使用者 (Private IP) 要存取 Internet 時，將來源 IP 替換成公網 IP。"
             },
             {
-                id: 3,
                 question: "在預設的 Policy NAT 模式下，若 Firewall Policy 沒有勾選 NAT 選項，封包會發生什麼事？",
-                options: ["封包會被丟棄 (Drop)", "封包會以原本的私有 IP 轉發出去 (Routing Only)", "會自動使用 WAN 介面 IP 進行轉換", "會觸發 IPS 警報"],
+                options: ["A. 封包會被丟棄 (Drop)", "B. 封包會以原本的私有 IP 轉發出去 (Routing Only)", "C. 會自動使用 WAN 介面 IP 進行轉換", "D. 會觸發 IPS 警報"],
                 correct: 1,
                 explanation: "如果沒有啟用 NAT，FortiGate 會單純進行路由轉發。帶著私有 IP 出去的封包通常會在 ISP 端被丟棄。"
             },
             {
-                id: 4,
                 question: "Central NAT 與 Policy NAT 最大的架構差異為何？",
-                options: ["Central NAT 效能較差", "Central NAT 將「防火牆策略」與「NAT 規則」分開設定", "Central NAT 不支援 IPv6", "Policy NAT 需要額外的授權"],
+                options: ["A. Central NAT 效能較差", "B. Central NAT 將「防火牆策略」與「NAT 規則」分開設定", "C. Central NAT 不支援 IPv6", "D. Policy NAT 需要額外的授權"],
                 correct: 1,
                 explanation: "Central NAT 的核心設計理念就是將 NAT 規則表從 Firewall Policy 中獨立出來，提供更精細的控制。"
             },
             {
-                id: 5,
                 question: "若要設定「多個內部使用者共用一個公網 IP 上網」，使用的是哪種技術？",
-                options: ["One-to-One NAT", "Static NAT", "PAT (Port Address Translation) / NAT Overload", "Server Load Balancing"],
+                options: ["A. One-to-One NAT", "B. Static NAT", "C. PAT (Port Address Translation) / NAT Overload", "D. Server Load Balancing"],
                 correct: 2,
                 explanation: "這是最常見的上網方式，利用不同的 Source Port 來區分不同內部使用者的連線，稱為 PAT 或 NAT Overload。"
             }
         ];
-
-        // Render Quiz
-        const quizContainer = document.getElementById('quiz-container');
-        
-        quizData.forEach((data, qIndex) => {
-            const questionBox = document.createElement('div');
-            questionBox.className = 'bg-white p-6 rounded-lg border border-gray-200 shadow-sm';
-            questionBox.dataset.answered = "false";
-            
-            let optionsHTML = '';
-            data.options.forEach((opt, optIndex) => {
-                optionsHTML += `
-                    <div class="quiz-option p-4 rounded-lg mb-3 flex items-center group" onclick="checkAnswer(${qIndex}, ${optIndex}, this)">
-                        <div class="w-8 h-8 rounded-full border-2 border-gray-300 text-gray-500 flex items-center justify-center mr-3 font-bold group-hover:border-red-400 group-hover:text-red-500 transition-colors bg-white">
-                            ${String.fromCharCode(65 + optIndex)}
-                        </div>
-                        <span class="text-gray-700 font-medium">${opt}</span>
-                    </div>
-                `;
-            });
-
-            questionBox.innerHTML = `
-                <div class="flex items-start mb-4">
-                    <span class="bg-red-100 text-red-800 text-sm font-bold px-2.5 py-0.5 rounded mt-1 mr-3 whitespace-nowrap">Q${qIndex + 1}</span>
-                    <h3 class="text-lg font-bold text-gray-900">${data.question}</h3>
-                </div>
-                <div class="space-y-2">
-                    ${optionsHTML}
-                </div>
-                <!-- Result Box (Hidden by default) -->
-                <div id="result-${qIndex}" class="hidden mt-4 p-4 rounded-lg border border-l-4">
-                    <div class="flex items-start">
-                        <div class="flex-shrink-0 result-icon mt-1"></div>
-                        <div class="ml-3">
-                            <h4 class="text-base font-bold result-title"></h4>
-                            <p class="mt-1 text-sm text-gray-700 result-explanation"></p>
-                        </div>
-                    </div>
-                </div>
-            `;
-            quizContainer.appendChild(questionBox);
-        });
-
-        // Check Answer Function
-        window.checkAnswer = function(qIndex, optIndex, element) {
-            const data = quizData[qIndex];
-            const resultBox = document.getElementById(`result-${qIndex}`);
-            const resultTitle = resultBox.querySelector('.result-title');
-            const resultExplanation = resultBox.querySelector('.result-explanation');
-            const resultIcon = resultBox.querySelector('.result-icon');
-            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
-
-            // 鎖定該題不可再選
-            if (element.parentElement.parentElement.dataset.answered === "true") return;
-            element.parentElement.parentElement.dataset.answered = "true";
-
-            // 清除 Hover 效果並重設樣式
-            allOptions.forEach(opt => {
-                opt.classList.remove('group', 'hover:bg-red-50', 'hover:border-red-200');
-                opt.style.cursor = 'default';
-                opt.classList.add('opacity-50'); // 未選的變淡
-            });
-            element.classList.remove('opacity-50');
-
-            if (optIndex === data.correct) {
-                // 答對
-                element.classList.add('bg-green-100', 'border-green-500');
-                element.querySelector('div').classList.replace('border-gray-300', 'border-green-500');
-                element.querySelector('div').classList.replace('text-gray-500', 'text-green-600');
-                
-                resultBox.classList.remove('hidden');
-                resultBox.classList.add('bg-green-50', 'border-green-500');
-                resultIcon.innerHTML = '<i class="fas fa-check-circle text-green-600 text-xl"></i>';
-                resultTitle.textContent = "✅ 答對了！";
-                resultTitle.className = "text-base font-bold text-green-800";
-            } else {
-                // 答錯
-                element.classList.add('bg-red-100', 'border-red-500');
-                element.querySelector('div').classList.replace('border-gray-300', 'border-red-500');
-                element.querySelector('div').classList.replace('text-gray-500', 'text-red-600');
-
-                // 標示正確答案
-                const correctOpt = allOptions[data.correct];
-                correctOpt.classList.remove('opacity-50');
-                correctOpt.classList.add('bg-green-100', 'border-green-500');
-                correctOpt.querySelector('div').classList.replace('border-gray-300', 'border-green-500');
-                correctOpt.querySelector('div').classList.replace('text-gray-500', 'text-green-600');
-
-                resultBox.classList.remove('hidden');
-                resultBox.classList.add('bg-red-50', 'border-red-500');
-                resultIcon.innerHTML = '<i class="fas fa-times-circle text-red-600 text-xl"></i>';
-                resultTitle.textContent = "❌ 答錯了！";
-                resultTitle.className = "text-base font-bold text-red-800";
-            }
-
-            resultExplanation.innerHTML = data.explanation;
-        };
     </script>
+    <script src="fg.js?v=1"></script>
 </body>
 </html>

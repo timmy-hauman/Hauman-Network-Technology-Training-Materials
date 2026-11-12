@@ -1,234 +1,49 @@
 <!DOCTYPE html>
-<html lang="zh-Hant-TW">
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FortiGate 實戰課程 - 使用者認證 (Authentication)</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- Google Fonts -->
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
-        
-        body {
-            font-family: 'Noto Sans TC', sans-serif;
-            background-color: #f3f4f6; /* Gray-100 */
-            color: #1f2937; /* Gray-800 */
-        }
-        
-        /* Fortinet Brand Header */
-        .brand-header {
-            background: linear-gradient(to right, #b91c1c, #7f1d1d); /* Red-700 to Red-900 */
-        }
-
-        /* Section Card Design */
-        .section-card {
-            background-color: white;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            padding: 2rem;
-            margin-bottom: 2rem;
-            border-left: 6px solid #b91c1c; /* Fortinet Red */
-            transition: transform 0.2s ease-in-out;
-        }
-
-        .section-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
-
-        /* Special Content Boxes */
-        .analogy-box {
-            background-color: #f0fdf4; /* Green-50 */
-            border: 2px solid #22c55e; /* Green-500 */
-            border-radius: 0.5rem;
-            padding: 1.5rem;
-            margin: 1.5rem 0;
-            position: relative;
-        }
-
-        .analogy-box::before {
-            content: '\f0eb'; /* Lightbulb icon */
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
-            position: absolute;
-            top: -15px;
-            left: 20px;
-            background: #22c55e;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 50%;
-            font-size: 1.2rem;
-        }
-
-        .highlight-box {
-            background-color: #fef2f2; /* Red-50 */
-            border: 2px solid #ef4444; /* Red-500 */
-            border-radius: 0.5rem;
-            padding: 1.5rem;
-            margin: 1.5rem 0;
-        }
-
-        /* Mermaid Container */
-        .mermaid-container {
-            background-color: #ffffff;
-            border: 1px solid #e5e7eb;
-            border-radius: 0.5rem;
-            padding: 1.5rem;
-            margin-top: 1.5rem;
-            display: flex;
-            justify-content: center;
-            overflow-x: auto; /* Allow horizontal scroll */
-        }
-
-        /* CRITICAL FIX FOR MERMAID FONT SIZE 
-           1. min-width: 確保 SVG 不會被壓縮，保持原始比例渲染。
-           2. !important on fonts: 強制覆寫 SVG 內部的樣式。
-        */
-        .mermaid svg {
-            min-width: 800px !important; /* 強制最小寬度，避免手機上縮成一團 */
-            height: auto;
-        }
-
-        /* 強制放大 Sequence Diagram 的文字 */
-        .mermaid .actor, 
-        .mermaid .messageText, 
-        .mermaid .noteText, 
-        .mermaid .loopText, 
-        .mermaid text {
-            font-size: 20px !important; /* 直接 CSS 暴力覆寫 */
-            font-family: 'Noto Sans TC', sans-serif !important;
-            font-weight: 500 !important;
-        }
-
-        /* 強制放大 Flowchart 的文字 */
-        .mermaid .node text,
-        .mermaid .label text {
-            font-size: 18px !important;
-        }
-
-        /* Quiz Styles */
-        .quiz-option {
-            transition: all 0.2s;
-            cursor: pointer;
-        }
-        .quiz-option:hover {
-            background-color: #f3f4f6;
-        }
-        
-        /* Footer */
-        .course-footer {
-            background-color: #1f2937; /* Gray-800 */
-            color: #d1d5db; /* Gray-300 */
-            font-size: 0.875rem;
-        }
-
-    </style>
-    <!-- Mermaid JS for Diagrams -->
-    <script type="module">
-        const mermaid = { initialize() {}, init() {}, run: async () => {} }; // 架構圖已改為靜態 SVG,不再載入 Mermaid
-        
-        mermaid.initialize({ 
-            startOnLoad: true, 
-            theme: 'neutral',
-            securityLevel: 'loose', // 允許更寬鬆的樣式渲染
-            themeVariables: {
-                fontFamily: 'Noto Sans TC, sans-serif',
-                fontSize: '20px' // 基礎字體大小
-            },
-            sequence: {
-                actorFontSize: 22,
-                noteFontSize: 20,
-                messageFontSize: 20,
-                mirrorActors: false,
-                useMaxWidth: false // 禁止自動縮放寬度
-            },
-            flowchart: {
-                htmlLabels: true,
-                useMaxWidth: false
-            }
-        });
-    </script>
-    <!-- 教學網站共用外觀 -->
-    <link rel="stylesheet" href="../assets/site-theme.css?v=20261112">
-    <script src="../assets/site-chrome.js?v=20261112" defer></script>
+    <link rel="stylesheet" href="fg.css?v=1">
+    <link rel="stylesheet" href="../assets/site-theme.css?v=20261112b">
+    <script src="../assets/site-chrome.js?v=20261112b" defer></script>
 </head>
 <body>
-
-    <!-- Header -->
-    <header class="brand-header text-white shadow-lg sticky top-0 z-50">
-        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <i class="fas fa-shield-alt text-3xl"></i>
-                <div>
-                    <h1 class="text-2xl font-bold tracking-wide">Fortinet FortiGate 實戰課程</h1>
-                    <!-- 修改後的標題結構：包含階段與課程名稱 -->
-                    <div class="flex flex-wrap items-center mt-1 text-sm">
-                        <span class="text-red-200">階段一：基礎管理 (Administrator)</span>
-                        <span class="mx-2 text-red-400">|</span>
-                        <span class="font-bold text-white tracking-wide">5. 使用者認證 (Authentication)</span>
-                    </div>
-                </div>
-            </div>
-            <div class="hidden md:block">
-                <span class="bg-red-800 text-xs px-3 py-1 rounded-full uppercase tracking-wider">Level 1</span>
-            </div>
+    <header class="fg-hero">
+        <div class="fg-hero-inner">
+            <p class="fg-kicker">Fortinet FortiGate 實戰課程 · 第 05 課</p>
+            <h1>使用者認證</h1>
+            <p class="fg-subtitle">Authentication</p>
         </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="container mx-auto px-4 py-8 max-w-5xl">
-
-        <!-- Topic Intro Removed as requested -->
-        <div class="mb-4"></div>
-
-        <!-- Section 1: 主動式認證 (Active Auth) - Local & Remote -->
-        <div class="section-card">
-            <!-- Concept -->
-            <div class="mb-6">
-                <span class="inline-block px-3 py-1 rounded-full text-sm font-semibold text-white bg-red-600 mb-3">
-                    <i class="fas fa-lightbulb mr-1"></i> 一、核心概念 (Concept)
-                </span>
-                <h3 class="text-xl font-bold text-gray-800 mb-2">Local User 與 Remote Server (LDAP/RADIUS)</h3>
-                <p class="text-gray-700 leading-relaxed">
-                    防火牆不僅能基於 IP 進行過濾，還能要求使用者「出示證件」後才放行。這分為將帳號建立在防火牆內 (Local) 或與外部資料庫連動 (Remote)。
-                </p>
-
-                <div class="analogy-box">
-                    <h4 class="font-bold text-green-700 mb-2">生活化比喻：大樓門禁管理</h4>
-                    <ul class="list-disc list-inside text-gray-700 space-y-2">
+    <main class="fg-main">
+        <section class="fg-section">
+            <h2 class="fg-section-title"><span class="fg-num">01</span>主動式認證 <span class="fg-en">Local User &amp; Remote Server</span></h2>
+            <div class="fg-card">
+                <span class="fg-tag">一、核心概念 (Concept)</span>
+                <h3>Local User 與 Remote Server (LDAP/RADIUS)</h3>
+                <p>防火牆不僅能基於 IP 進行過濾，還能要求使用者「出示證件」後才放行。這分為將帳號建立在防火牆內 (Local) 或與外部資料庫連動 (Remote)。</p>
+                <div class="fg-callout"><span class="fg-callout-title">生活化比喻：大樓門禁管理</span>
+                    <ul class="fg-list">
                         <li><strong>Local User (本地使用者)：</strong> 就像小型公寓的警衛，手上有一本手寫的住戶名單。訪客來時，警衛直接翻閱本子確認。優點是簡單，缺點是如果公寓有 50 棟，每一棟的警衛都要重新抄一份名單，管理很累。</li>
                         <li><strong>Remote Server (LDAP/RADIUS)：</strong> 就像大型跨國企業的門禁。警衛 (FortiGate) 不保留名單，而是打電話給總部的人資部門 (AD/LDAP 伺服器) 確認：「這個人是不是員工？」。優點是總部更新名單後，所有分公司的門禁同步生效。</li>
                     </ul>
                 </div>
             </div>
-
-            <!-- Mechanism -->
-            <div class="mb-6">
-                <span class="inline-block px-3 py-1 rounded-full text-sm font-semibold text-white bg-blue-600 mb-3">
-                    <i class="fas fa-cogs mr-1"></i> 二、運作原理 (Mechanism)
-                </span>
-                <div class="text-gray-700 space-y-4">
-                    <p>當我們在 Firewall Policy 啟用身分驗證時，流量觸發認證的流程如下：</p>
-                    <ul class="list-disc list-inside ml-4 space-y-1">
-                        <li><strong>Captive Portal (強制路徑入口)：</strong> 使用者發起 HTTP/HTTPS 請求，FortiGate 攔截該封包，並將使用者重導向至登入頁面。</li>
-                        <li><strong>認證查詢：</strong> FortiGate 接收帳號密碼，若是 Remote User，則透過 LDAP (TCP 389/636) 或 RADIUS (UDP 1812) 轉發給後端伺服器驗證。</li>
-                        <li><strong>Session 建立：</strong> 驗證成功後，FortiGate 會記錄 <strong>來源 IP 與 使用者名稱</strong> 的對應關係 (Mapping)，在 Timeout 時間內，該 IP 的流量都被視為該使用者。</li>
-                    </ul>
-                    <div class="highlight-box">
-                        <strong class="text-red-700">關鍵技術點：</strong> 防火牆的認證基礎是 <strong>"IP Address"</strong>。一旦認證成功，該 IP 權限全開。若在多人共用一台電腦 (如 Citrix/Terminal Server) 的環境下，需要特殊設定 (TS Agent) 才能區分不同使用者的流量。
-                    </div>
-                </div>
+            <div class="fg-card">
+                <span class="fg-tag">二、運作原理 (Mechanism)</span>
+                <p>當我們在 Firewall Policy 啟用身分驗證時，流量觸發認證的流程如下：</p>
+                <ul class="fg-list">
+                    <li><strong>Captive Portal (強制路徑入口)：</strong> 使用者發起 HTTP/HTTPS 請求，FortiGate 攔截該封包，並將使用者重導向至登入頁面。</li>
+                    <li><strong>認證查詢：</strong> FortiGate 接收帳號密碼，若是 Remote User，則透過 LDAP (TCP 389/636) 或 RADIUS (UDP 1812) 轉發給後端伺服器驗證。</li>
+                    <li><strong>Session 建立：</strong> 驗證成功後，FortiGate 會記錄 <strong>來源 IP 與 使用者名稱</strong> 的對應關係 (Mapping)，在 Timeout 時間內，該 IP 的流量都被視為該使用者。</li>
+                </ul>
+                <div class="fg-callout warn"><span class="fg-callout-title">關鍵技術點：</span><p>防火牆的認證基礎是 <strong>"IP Address"</strong>。一旦認證成功，該 IP 權限全開。若在多人共用一台電腦 (如 Citrix/Terminal Server) 的環境下，需要特殊設定 (TS Agent) 才能區分不同使用者的流量。</p></div>
             </div>
-
-            <!-- Visuals -->
-            <div class="mb-6">
-                <span class="inline-block px-3 py-1 rounded-full text-sm font-semibold text-white bg-green-600 mb-3">
-                    <i class="fas fa-project-diagram mr-1"></i> 三、架構視覺化 (Visuals)
-                </span>
-                <p class="text-sm text-gray-500 mb-2">圖表：Remote Server (LDAP) 認證流程</p>
-                <div class="mermaid-container">
-                    <!-- 時序圖 (由 Mermaid 10.9.1 預先轉成靜態 SVG,套用網站配色)。原始 Mermaid 碼:
+            <figure class="fg-figure">
+                <figcaption>三、架構視覺化 (Visuals)<small>圖表：Remote Server (LDAP) 認證流程</small></figcaption>
+                <!-- 時序圖 (由 Mermaid 10.9.1 預先轉成靜態 SVG,套用網站配色)。原始 Mermaid 碼:
 %%{init: {'theme': 'neutral'}}%%
 sequenceDiagram
     participant User as 使用者(User PC)
@@ -252,55 +67,41 @@ sequenceDiagram
                     
                     -->
                     <div style="width:100%;overflow-x:auto"><svg xmlns="http://www.w3.org/2000/svg" aria-roledescription="sequence" role="img" viewBox="-50 -10 898 753" style="width:100%;min-width:560px;max-width:898px;height:auto;display:block;margin:0 auto" id="seq-fortigate05-1" aria-labelledby="seq-fortigate05-1-title"><title id="seq-fortigate05-1-title">生活化比喻：大樓門禁管理</title><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="723" y1="5" x1="723"/><g><rect class="actor actor-top" ry="3" rx="3" name="AD" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="648"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="723"><tspan dy="0" x="723">AD/LDAPServer</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="432" y1="5" x1="432"/><g><rect class="actor actor-top" ry="3" rx="3" name="FG" height="65" width="153" stroke="#666" fill="#eaeaea" y="0" x="355.5"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="432"><tspan dy="0" x="432">FortiGate(Client)</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="75" y1="5" x1="75"/><g><rect class="actor actor-top" ry="3" rx="3" name="User" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="0"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="75"><tspan dy="0" x="75">使用者(User PC)</tspan></text></g></g><style>#seq-fortigate05-1{font-family:'Noto Sans TC',Roboto,'Microsoft JhengHei',sans-serif;font-size:15px;fill:#1e2235;}#seq-fortigate05-1 .marker{fill:#5b6278;stroke:#5b6278;}#seq-fortigate05-1 .marker.cross{stroke:#5b6278;}#seq-fortigate05-1 .actor{stroke:#673ab7;fill:#f3effc;}#seq-fortigate05-1 text.actor&gt;tspan{fill:#311b92;stroke:none;}#seq-fortigate05-1 .actor-line{stroke:#b39ddb;}#seq-fortigate05-1 .messageLine0{stroke-width:1.5;stroke-dasharray:none;stroke:#5b6278;}#seq-fortigate05-1 .messageLine1{stroke-width:1.5;stroke-dasharray:2,2;stroke:#5b6278;}#seq-fortigate05-1 #seq-fortigate05-1-arrowhead path{fill:#5b6278;stroke:#5b6278;}#seq-fortigate05-1 #sequencenumber{fill:#5b6278;}#seq-fortigate05-1 #crosshead path{fill:#5b6278;stroke:#5b6278;}#seq-fortigate05-1 .messageText{fill:#1e2235;stroke:none;}#seq-fortigate05-1 .note{stroke:#f5b041;fill:#fff8e1;}#seq-fortigate05-1 .noteText,#seq-fortigate05-1 .noteText&gt;tspan{fill:#5d4037;stroke:none;}</style><g/><defs><marker orient="auto" markerHeight="12" markerWidth="12" markerUnits="userSpaceOnUse" refY="5" refX="7.9" id="seq-fortigate05-1-arrowhead"><path d="M 0 0 L 10 5 L 0 10 z"/></marker></defs><g><rect class="note" ry="0" rx="0" height="48" width="447" stroke="#666" fill="#EDF2AE" y="75" x="30"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="81" x="254"><tspan x="254">階段 1: 觸發認證</tspan></text></g><g><rect class="note" ry="0" rx="0" height="48" width="447" stroke="#666" fill="#EDF2AE" y="249" x="30"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="255" x="254"><tspan x="254">階段 2: 提交憑證</tspan></text></g><g><rect class="note" ry="0" rx="0" height="48" width="381" stroke="#666" fill="#EDF2AE" y="365" x="387"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="371" x="578"><tspan x="578">階段 3: 後端驗證</tspan></text></g><g><rect class="note" ry="0" rx="0" height="48" width="447" stroke="#666" fill="#EDF2AE" y="539" x="30"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="545" x="254"><tspan x="254">階段 4: 放行流量</tspan></text></g><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="138" x="252">發起 HTTP 訪問 (GET google.com)</text><line style="fill: none;" marker-end="url(#seq-fortigate05-1-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="181" x2="428" y1="181" x1="76"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="196" x="255">攔截並重導向至 Captive Portal</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-fortigate05-1-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="239" x2="79" y1="239" x1="431"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="312" x="252">輸入帳號 / 密碼</text><line style="fill: none;" marker-end="url(#seq-fortigate05-1-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="355" x2="428" y1="355" x1="76"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="428" x="576">LDAP Query (帳密正確?)</text><line style="fill: none;" marker-end="url(#seq-fortigate05-1-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="471" x2="719" y1="471" x1="433"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="486" x="579">OK (驗證成功 + 群組資訊)</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-fortigate05-1-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="529" x2="436" y1="529" x1="722"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="602" x="433">建立 IP-User Mapping 表</text><path style="fill: none;" marker-end="url(#seq-fortigate05-1-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" d="M 433,645 C 493,635 493,675 433,665"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="690" x="255">允許存取 Internet</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-fortigate05-1-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="733" x2="79" y1="733" x1="431"/></svg></div>
-                </div>
-            </div>
-
-            <!-- Use Case -->
-            <div>
-                 <span class="inline-block px-3 py-1 rounded-full text-sm font-semibold text-gray-700 bg-gray-200 mb-3">
-                    <i class="fas fa-briefcase mr-1"></i> 四、實務應用場景
-                </span>
-                <h4 class="font-bold text-gray-800">案例：財務部門專用網路存取</h4>
-                <p class="text-gray-700 mt-2">
-                    企業希望雖然全公司都在同一個網段，但只有「財務群組 (Finance Group)」的成員可以存取 ERP 伺服器，其他人只能上網。
-                </p>
-                <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="bg-gray-50 p-3 rounded border border-gray-200">
-                        <strong class="text-green-600">優點</strong>
-                        <ul class="text-sm text-gray-600 mt-1 list-disc list-inside">
+            </figure>
+            <div class="fg-card">
+                <span class="fg-tag">四、實務應用場景</span>
+                <h3>案例：財務部門專用網路存取</h3>
+                <p>企業希望雖然全公司都在同一個網段，但只有「財務群組 (Finance Group)」的成員可以存取 ERP 伺服器，其他人只能上網。</p>
+                <div class="fg-grid fg-grid-2">
+                    <div>
+                        <h4>優點</h4>
+                        <ul class="fg-list">
                             <li>安全性高，基於身分而非僅基於 IP。</li>
                             <li>紀錄檔 (Log) 會顯示 "User: Alice"，而非僅是 "Source: 192.168.1.50"，便於稽核。</li>
                         </ul>
                     </div>
-                    <div class="bg-gray-50 p-3 rounded border border-gray-200">
-                        <strong class="text-red-600">缺點</strong>
-                        <ul class="text-sm text-gray-600 mt-1 list-disc list-inside">
+                    <div>
+                        <h4>缺點</h4>
+                        <ul class="fg-list">
                             <li>使用者體驗較差，開啟瀏覽器需先登入 (主動式認證)。</li>
                             <li>IoT 設備 (印表機、攝影機) 無法輸入帳號密碼，需設例外。</li>
                         </ul>
                     </div>
                 </div>
-
-                <!-- CLI Example Added -->
-                <div class="mt-6 bg-gray-800 rounded-lg p-4 text-white font-mono text-sm overflow-x-auto border border-gray-700 shadow-inner">
-                    <div class="flex justify-between items-center mb-2 border-b border-gray-600 pb-2">
-                        <span class="text-yellow-400 font-bold"><i class="fas fa-terminal mr-2"></i>CLI 設定範例</span>
-                        <span class="text-xs text-gray-400">FortiOS 7.x</span>
-                    </div>
-                    <pre class="whitespace-pre-wrap leading-relaxed">
-<span class="text-gray-500"># 1. 連接 AD/LDAP 伺服器 (前置作業)</span>
-<span class="text-blue-300">config user ldap</span>
+                <h4>CLI 設定範例 <span class="fg-tag">FortiOS 7.x</span></h4>
+                <pre class="fg-code"><span class="dim"># 1. 連接 AD/LDAP 伺服器 (前置作業)</span>
+config user ldap
     edit "LDAP_Server"
-        set server "192.168.100.10"        <span class="text-gray-500"># AD 伺服器 IP</span>
-        set cnid "sAMAccountName"          <span class="text-gray-500"># 帳號屬性 (Windows AD 預設)</span>
-        set dn "dc=company,dc=local"       <span class="text-gray-500"># Base DN (搜尋範圍)</span>
+        set server "192.168.100.10"        <span class="dim"># AD 伺服器 IP</span>
+        set cnid "sAMAccountName"          <span class="dim"># 帳號屬性 (Windows AD 預設)</span>
+        set dn "dc=company,dc=local"       <span class="dim"># Base DN (搜尋範圍)</span>
         set type regular
-        set username "cn=admin,dc=company,dc=local" <span class="text-gray-500"># 具有查詢權限的帳號 (Bind DN)</span>
-        set password <password>            <span class="text-gray-500"># 該帳號的密碼</span>
+        set username "cn=admin,dc=company,dc=local" <span class="dim"># 具有查詢權限的帳號 (Bind DN)</span>
+        set password &lt;password&gt;            <span class="dim"># 該帳號的密碼</span>
     next
 end
 
-<span class="text-gray-500"># 2. 定義 ERP 伺服器與財務群組 (整合 LDAP)</span>
+<span class="dim"># 2. 定義 ERP 伺服器與財務群組 (整合 LDAP)</span>
 config firewall address
     edit "ERP_Server"
         set subnet 192.168.100.50 255.255.255.255
@@ -309,76 +110,55 @@ end
 
 config user group
     edit "Finance_Group"
-        set member "LDAP_Server" <span class="text-gray-500"># 將剛才設定的 LDAP Server 加入群組來源</span>
+        set member "LDAP_Server" <span class="dim"># 將剛才設定的 LDAP Server 加入群組來源</span>
     next
 end
 
-<span class="text-gray-500"># 3. 設定財務部專用策略 (需驗證身分)</span>
+<span class="dim"># 3. 設定財務部專用策略 (需驗證身分)</span>
 config firewall policy
     edit 10
         set name "Finance_Access_ERP"
         set srcintf "lan"
-        set dstintf "dmz"       <span class="text-gray-500"># ERP 位於 DMZ 或不同網段</span>
-        set srcaddr "all"       <span class="text-gray-500"># 來源 IP 不限 (因為在同網段，需靠身分區分)</span>
+        set dstintf "dmz"       <span class="dim"># ERP 位於 DMZ 或不同網段</span>
+        set srcaddr "all"       <span class="dim"># 來源 IP 不限 (因為在同網段，需靠身分區分)</span>
         set dstaddr "ERP_Server"
         set action accept
         set schedule "always"
         set service "HTTPS" "RDP"
-        <span class="text-yellow-300">set groups "Finance_Group"</span>  <span class="text-gray-500"># 關鍵：綁定財務群組，未登入者會跳出認證視窗</span>
+        <span class="ok">set groups "Finance_Group"</span>  <span class="dim"># 關鍵：綁定財務群組，未登入者會跳出認證視窗</span>
         set nat disable
     next
 end</pre>
-                </div>
-
             </div>
-        </div>
+        </section>
 
-        <!-- Section 2: 被動式認證 (Passive Auth) - FSSO -->
-        <div class="section-card">
-            <!-- Concept -->
-            <div class="mb-6">
-                <span class="inline-block px-3 py-1 rounded-full text-sm font-semibold text-white bg-red-600 mb-3">
-                    <i class="fas fa-lightbulb mr-1"></i> 一、核心概念 (Concept)
-                </span>
-                <h3 class="text-xl font-bold text-gray-800 mb-2">FSSO (Fortinet Single Sign-On)</h3>
-                <p class="text-gray-700 leading-relaxed">
-                    FSSO 是一種「透明」的認證方式。使用者只需登入 Windows 電腦 (AD 網域)，防火牆就自動知道你是誰，無需再次輸入帳號密碼。
-                </p>
-
-                <div class="analogy-box">
-                    <h4 class="font-bold text-green-700 mb-2">生活化比喻：全包式度假村的手環</h4>
-                    <ul class="list-disc list-inside text-gray-700 space-y-2">
+        <section class="fg-section">
+            <h2 class="fg-section-title"><span class="fg-num">02</span>被動式認證 <span class="fg-en">FSSO (Fortinet Single Sign-On)</span></h2>
+            <div class="fg-card">
+                <span class="fg-tag">一、核心概念 (Concept)</span>
+                <h3>FSSO (Fortinet Single Sign-On)</h3>
+                <p>FSSO 是一種「透明」的認證方式。使用者只需登入 Windows 電腦 (AD 網域)，防火牆就自動知道你是誰，無需再次輸入帳號密碼。</p>
+                <div class="fg-callout"><span class="fg-callout-title">生活化比喻：全包式度假村的手環</span>
+                    <ul class="fg-list">
                         <li><strong>傳統認證：</strong> 每次去餐廳吃飯、去泳池游泳，都要拿身分證出來登記，很麻煩。</li>
                         <li><strong>FSSO (單一登入)：</strong> 當你在飯店大廳 Check-in (登入 Windows) 時，櫃台就給你戴上一個專屬手環 (IP-User Mapping)。之後你在度假村內任何設施 (防火牆閘道)，警衛只要看你的手環就知道你是誰，直接放行，你完全感覺不到檢查的存在。</li>
                     </ul>
                 </div>
             </div>
-
-            <!-- Mechanism -->
-            <div class="mb-6">
-                <span class="inline-block px-3 py-1 rounded-full text-sm font-semibold text-white bg-blue-600 mb-3">
-                    <i class="fas fa-cogs mr-1"></i> 二、運作原理 (Mechanism)
-                </span>
-                <div class="text-gray-700 space-y-4">
-                    <p>FSSO 的核心在於「監聽」登入事件，主要組件包含 <strong>Collector Agent</strong>。</p>
-                    <ol class="list-decimal list-inside ml-4 space-y-2">
-                        <li><strong>使用者登入：</strong> User 輸入帳密登入 Windows AD 網域。</li>
-                        <li><strong>產生紀錄：</strong> AD Domain Controller (DC) 的 Event Log 產生一筆「登入成功 (Event ID 4624)」的紀錄，包含 IP 與 Username。</li>
-                        <li><strong>Agent 抓取：</strong> 安裝在伺服器上的 <strong>FSSO Collector Agent</strong> 讀取這筆 Event Log。</li>
-                        <li><strong>同步防火牆：</strong> Agent 將 <code>IP address + User Group</code> 的資訊推送到 FortiGate。</li>
-                        <li><strong>策略比對：</strong> FortiGate 更新內部的認證清單，當該 IP 的流量經過時，直接匹配對應的 Identity-based Policy。</li>
-                    </ol>
-                </div>
+            <div class="fg-card">
+                <span class="fg-tag">二、運作原理 (Mechanism)</span>
+                <p>FSSO 的核心在於「監聽」登入事件，主要組件包含 <strong>Collector Agent</strong>。</p>
+                <ol class="fg-steps">
+                    <li><strong>使用者登入：</strong> User 輸入帳密登入 Windows AD 網域。</li>
+                    <li><strong>產生紀錄：</strong> AD Domain Controller (DC) 的 Event Log 產生一筆「登入成功 (Event ID 4624)」的紀錄，包含 IP 與 Username。</li>
+                    <li><strong>Agent 抓取：</strong> 安裝在伺服器上的 <strong>FSSO Collector Agent</strong> 讀取這筆 Event Log。</li>
+                    <li><strong>同步防火牆：</strong> Agent 將 <code>IP address + User Group</code> 的資訊推送到 FortiGate。</li>
+                    <li><strong>策略比對：</strong> FortiGate 更新內部的認證清單，當該 IP 的流量經過時，直接匹配對應的 Identity-based Policy。</li>
+                </ol>
             </div>
-
-            <!-- Visuals -->
-            <div class="mb-6">
-                <span class="inline-block px-3 py-1 rounded-full text-sm font-semibold text-white bg-green-600 mb-3">
-                    <i class="fas fa-project-diagram mr-1"></i> 三、架構視覺化 (Visuals)
-                </span>
-                <p class="text-sm text-gray-500 mb-2">圖表：FSSO Agent 運作拓撲</p>
-                <div class="mermaid-container">
-                    <div style="width:100%;overflow-x:auto">
+            <figure class="fg-figure">
+                <figcaption>三、架構視覺化 (Visuals)<small>圖表：FSSO Agent 運作拓撲</small></figcaption>
+                <div style="width:100%;overflow-x:auto">
                     <svg viewBox="0 0 820 576" role="img" aria-labelledby="fg05a-title fg05a-desc" style="width:100%;min-width:560px;max-width:820px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
                     <title id="fg05a-title">FSSO Agent 運作拓撲</title>
                     <desc id="fg05a-desc">Client Side 的員工電腦 (192.168.1.100) 先登入網域 (1),Server Side 的 AD Server (網域控制站) 因此產生 Event Log (2);同在 Server Side 的 FSSO Collector Agent 以 WMI/WinSec 讀取 AD 的 Log (3),再把 IP+User 資訊推送給 Gateway 的 FortiGate 防火牆 (4);之後員工電腦的上網流量經過 FortiGate 時直接透明通過 (5),不需要再次登入。</desc>
@@ -411,77 +191,51 @@ end</pre>
                     </g>
                     </svg>
                     </div>
-                </div>
+            </figure>
+            <div class="fg-card">
+                <span class="fg-tag">四、實務應用場景</span>
+                <h3>案例：大型企業的無感上網監控</h3>
+                <p>員工上班打開電腦後，不需要再跳出任何網頁登入畫面，就可以直接存取 Internet。但 IT 管理員可以在報表中看到：「業務部 John 在 10:00 訪問了 YouTube」。</p>
+                <div class="fg-callout tip"><span class="fg-callout-title">架構大師筆記：</span><p>FSSO 雖然方便，但依賴 <strong>DNS 與 IP 的準確性</strong>。如果使用 DHCP 環境，務必確保 DNS Server 更新即時，或使用 <strong>DC Agent</strong> 模式來確保 IP 異動時能即時抓取，否則會出現「張冠李戴」的權限錯誤。</p></div>
             </div>
-
-            <!-- Use Case -->
-            <div>
-                 <span class="inline-block px-3 py-1 rounded-full text-sm font-semibold text-gray-700 bg-gray-200 mb-3">
-                    <i class="fas fa-briefcase mr-1"></i> 四、實務應用場景
-                </span>
-                <h4 class="font-bold text-gray-800">案例：大型企業的無感上網監控</h4>
-                <p class="text-gray-700 mt-2">
-                    員工上班打開電腦後，不需要再跳出任何網頁登入畫面，就可以直接存取 Internet。但 IT 管理員可以在報表中看到：「業務部 John 在 10:00 訪問了 YouTube」。
-                </p>
-                <div class="highlight-box mt-4">
-                    <strong>架構大師筆記：</strong> FSSO 雖然方便，但依賴 <strong>DNS 與 IP 的準確性</strong>。如果使用 DHCP 環境，務必確保 DNS Server 更新即時，或使用 <strong>DC Agent</strong> 模式來確保 IP 異動時能即時抓取，否則會出現「張冠李戴」的權限錯誤。
-                </div>
-
-                <!-- FSSO Step-by-Step Guide Added -->
-                <div class="mt-6 bg-gray-800 rounded-lg p-5 text-white font-mono text-sm border border-gray-700 shadow-inner">
-                    <div class="flex justify-between items-center mb-4 border-b border-gray-600 pb-2">
-                        <span class="text-yellow-400 font-bold text-lg"><i class="fas fa-list-ol mr-2"></i>FSSO 完整部署流程範例</span>
-                        <span class="text-xs text-gray-400">Windows Server & FortiOS</span>
-                    </div>
-
-                    <!-- Step 1: Windows GPO -->
-                    <div class="mb-6">
-                        <strong class="text-green-400 block mb-2">Step 1: AD Server 前置設定 (Windows GPO)</strong>
-                        <p class="text-gray-300 text-xs mb-2 pl-2 border-l-2 border-gray-600">
-                            為了讓 FSSO Agent 讀取登入事件，必須開啟 AD 的稽核功能。
-                        </p>
-                        <ul class="list-disc list-inside text-gray-400 space-y-1 pl-2">
-                            <li>開啟 <strong>Group Policy Management (群組原則管理)</strong></li>
-                            <li>路徑: Computer Configuration > Windows Settings > Security Settings > Advanced Audit Policy Configuration > Logon/Logoff</li>
-                            <li>設定: <strong>Audit Logon (稽核登入)</strong> -> 勾選 <strong>Success (成功)</strong></li>
-                            <li class="text-gray-500 italic">確認 AD Event Viewer 的 Security Log 中開始出現 Event ID 4624。</li>
-                        </ul>
-                    </div>
-
-                    <!-- Step 2: Collector Agent -->
-                    <div class="mb-6">
-                        <strong class="text-green-400 block mb-2">Step 2: FSSO Collector Agent 設定 (Server Side)</strong>
-                        <ul class="list-disc list-inside text-gray-400 space-y-1 pl-2">
-                            <li>在伺服器上安裝 Fortinet FSSO Collector Agent。</li>
-                            <li>設定 <strong>Monitoring Method</strong>: 勾選 Monitor DC (Polling 或 DC Agent)。</li>
-                            <li>設定 <strong>Listening Port</strong>: 預設為 TCP 8000 (FortiGate 將連線此埠)。</li>
-                            <li>設定 <strong>Password</strong>: 設定一組共用密碼 (Shared Secret)，稍後 FortiGate 需填入相同密碼。</li>
-                        </ul>
-                    </div>
-
-                    <!-- Step 3: FortiGate CLI -->
-                    <div>
-                        <strong class="text-green-400 block mb-2">Step 3: FortiGate 設定 (CLI)</strong>
-                        <pre class="whitespace-pre-wrap leading-relaxed bg-gray-900 p-3 rounded border border-gray-700">
-<span class="text-gray-500"># 1. 建立 FSSO Connector (連接 Agent)</span>
-<span class="text-blue-300">config user fsso</span>
+            <div class="fg-card">
+                <span class="fg-tag">Windows Server &amp; FortiOS</span>
+                <h3>FSSO 完整部署流程範例</h3>
+                <h4>Step 1: AD Server 前置設定 (Windows GPO)</h4>
+                <p>為了讓 FSSO Agent 讀取登入事件，必須開啟 AD 的稽核功能。</p>
+                <ul class="fg-list">
+                    <li>開啟 <strong>Group Policy Management (群組原則管理)</strong></li>
+                    <li>路徑: Computer Configuration &gt; Windows Settings &gt; Security Settings &gt; Advanced Audit Policy Configuration &gt; Logon/Logoff</li>
+                    <li>設定: <strong>Audit Logon (稽核登入)</strong> -&gt; 勾選 <strong>Success (成功)</strong></li>
+                    <li>確認 AD Event Viewer 的 Security Log 中開始出現 Event ID 4624。</li>
+                </ul>
+                <h4>Step 2: FSSO Collector Agent 設定 (Server Side)</h4>
+                <ul class="fg-list">
+                    <li>在伺服器上安裝 Fortinet FSSO Collector Agent。</li>
+                    <li>設定 <strong>Monitoring Method</strong>: 勾選 Monitor DC (Polling 或 DC Agent)。</li>
+                    <li>設定 <strong>Listening Port</strong>: 預設為 TCP 8000 (FortiGate 將連線此埠)。</li>
+                    <li>設定 <strong>Password</strong>: 設定一組共用密碼 (Shared Secret)，稍後 FortiGate 需填入相同密碼。</li>
+                </ul>
+                <h4>Step 3: FortiGate 設定 (CLI)</h4>
+                <pre class="fg-code"><span class="dim"># 1. 建立 FSSO Connector (連接 Agent)</span>
+config user fsso
     edit "FSSO_Agent_Connect"
-        set server "192.168.10.20"    <span class="text-gray-500"># FSSO Agent 的 IP</span>
-        set port 8000                 <span class="text-gray-500"># 預設 TCP 8000</span>
-        set password <secret_key>     <span class="text-gray-500"># 填入 Step 2 設定的密碼</span>
-        set ldap-server "LDAP_Server" <span class="text-gray-500"># 選擇已建立的 LDAP 設定以同步群組</span>
+        set server "192.168.10.20"    <span class="dim"># FSSO Agent 的 IP</span>
+        set port 8000                 <span class="dim"># 預設 TCP 8000</span>
+        set password &lt;secret_key&gt;     <span class="dim"># 填入 Step 2 設定的密碼</span>
+        set ldap-server "LDAP_Server" <span class="dim"># 選擇已建立的 LDAP 設定以同步群組</span>
     next
 end
 
-<span class="text-gray-500"># 2. 建立 FSSO 使用者群組 (對應 AD 群組)</span>
+<span class="dim"># 2. 建立 FSSO 使用者群組 (對應 AD 群組)</span>
 config user group
     edit "FSSO_Employees"
-        set member "FSSO_Agent_Connect" <span class="text-gray-500"># 來源選擇 FSSO Connector</span>
-        <span class="text-gray-500"># 此處通常在 GUI 選擇 AD 中的 "Domain Users" 等群組</span>
+        set member "FSSO_Agent_Connect" <span class="dim"># 來源選擇 FSSO Connector</span>
+        <span class="dim"># 此處通常在 GUI 選擇 AD 中的 "Domain Users" 等群組</span>
     next
 end
 
-<span class="text-gray-500"># 3. 套用防火牆策略 (無感認證)</span>
+<span class="dim"># 3. 套用防火牆策略 (無感認證)</span>
 config firewall policy
     edit 20
         set name "FSSO_Internet_Access"
@@ -492,40 +246,28 @@ config firewall policy
         set action accept
         set schedule "always"
         set service "ALL"
-        <span class="text-yellow-300">set groups "FSSO_Employees"</span>   <span class="text-gray-500"># 綁定群組，只要 AD 登入過，流量自動放行</span>
+        <span class="ok">set groups "FSSO_Employees"</span>   <span class="dim"># 綁定群組，只要 AD 登入過，流量自動放行</span>
         set nat enable
     next
 end</pre>
-                    </div>
-                </div>
-
             </div>
-        </div>
+        </section>
 
-        <!-- Quiz Section -->
-        <div class="section-card border-l-yellow-500">
-            <h3 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-                <i class="fas fa-pencil-alt text-yellow-500 mr-3"></i> 隨堂測驗 (Quiz)
-            </h3>
-            
-            <div id="quiz-container" class="space-y-8">
-                <!-- Javascript will inject questions here -->
-            </div>
-        </div>
-
+        <section class="fg-section">
+            <h2 class="fg-section-title"><span class="fg-num">03</span>隨堂測驗 <span class="fg-en">Quiz</span></h2>
+            <p class="fg-lead">請選擇最適當的答案,作答後會顯示解析。</p>
+            <div id="fg-quiz"></div>
+        </section>
     </main>
 
-    <!-- Footer -->
-    <footer class="course-footer py-6 text-center">
-        <p class="font-bold text-white mb-2">Fortinet FortiGate 實戰課程</p>
-        <p>Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0</p>
+    <footer>
+        Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0
     </footer>
 
-    <!-- Scripts -->
     <script>
-        const quizData = [
+        window.FG_QUIZ = [
             {
-                question: "1. 關於 Local User 與 Remote User 的敘述，下列何者正確？",
+                question: "關於 Local User 與 Remote User 的敘述，下列何者正確？",
                 options: [
                     "Local User 適合數千人的大型企業管理，因為不需依賴外部伺服器。",
                     "Remote User 設定中，FortiGate 會將帳號密碼儲存在硬碟裡以備份。",
@@ -536,7 +278,7 @@ end</pre>
                 explanation: "Local User 難以維護大量帳號；Remote User 不儲存密碼而是轉發驗證；LDAP 是標準目錄存取協定；Remote Auth 必須網路連通至伺服器。"
             },
             {
-                question: "2. FSSO (Fortinet Single Sign-On) 的主要優點是什麼？",
+                question: "FSSO (Fortinet Single Sign-On) 的主要優點是什麼？",
                 options: [
                     "提供雙因子認證 (2FA) 功能。",
                     "使用者登入 Windows 後，無需再次輸入帳號密碼即可通過防火牆認證。",
@@ -547,7 +289,7 @@ end</pre>
                 explanation: "FSSO 的核心價值在於「透明認證」，利用 AD 的登入狀態自動對應防火牆權限。"
             },
             {
-                question: "3. 在 FSSO 架構中，Collector Agent 的主要功能為何？",
+                question: "在 FSSO 架構中，Collector Agent 的主要功能為何？",
                 options: [
                     "攔截使用者的 HTTP 流量並顯示登入頁面。",
                     "替換 AD Server 的功能，負責發放 IP。",
@@ -558,7 +300,7 @@ end</pre>
                 explanation: "Collector Agent 負責收集登入資訊 (從 DC 讀取 Event Log) 並標準化後推送到 FortiGate。"
             },
             {
-                question: "4. 若要在防火牆策略中使用「使用者認證」，通常需要配合哪種功能來攔截未認證的流量？",
+                question: "若要在防火牆策略中使用「使用者認證」，通常需要配合哪種功能來攔截未認證的流量？",
                 options: [
                     "Static Route (靜態路由)",
                     "Captive Portal (強制路徑入口)",
@@ -569,7 +311,7 @@ end</pre>
                 explanation: "對於主動式認證 (非 FSSO)，FortiGate 需透過 Captive Portal 攔截 HTTP/HTTPS 請求來跳出登入視窗。"
             },
             {
-                question: "5. 下列哪種情況最容易導致 FSSO 判斷錯誤 (例如：A 使用者被誤認為 B 使用者)？",
+                question: "下列哪種情況最容易導致 FSSO 判斷錯誤 (例如：A 使用者被誤認為 B 使用者)？",
                 options: [
                     "使用固定 IP (Static IP) 的環境。",
                     "共用電腦環境 (如多人使用同一台 PC 且不登出) 或 DHCP IP 更新不及時。",
@@ -580,82 +322,7 @@ end</pre>
                 explanation: "FSSO 是基於 Source IP 辨識身分。若多人共用同一 IP (如 Terminal Server 且未裝 TS Agent) 或 DHCP IP 換人但 FSSO 紀錄未更新，就會發生誤判。"
             }
         ];
-
-        function renderQuiz() {
-            const container = document.getElementById('quiz-container');
-            
-            quizData.forEach((data, qIndex) => {
-                const questionHTML = `
-                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                        <h4 class="font-bold text-lg mb-4 text-gray-800">${data.question}</h4>
-                        <div class="space-y-3">
-                            ${data.options.map((opt, optIndex) => `
-                                <div class="quiz-option p-3 border rounded border-gray-200 flex items-center" 
-                                     onclick="checkAnswer(this, ${qIndex}, ${optIndex})">
-                                    <div class="w-6 h-6 rounded-full border-2 border-gray-300 mr-3 flex items-center justify-center">
-                                        <div class="w-3 h-3 rounded-full bg-transparent transition-colors"></div>
-                                    </div>
-                                    <span>${opt}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                        <div id="result-${qIndex}" class="hidden mt-4 p-4 rounded bg-gray-50 border">
-                            <p class="result-title font-bold mb-1"></p>
-                            <p class="text-sm text-gray-600">解析：${data.explanation}</p>
-                        </div>
-                    </div>
-                `;
-                container.innerHTML += questionHTML;
-            });
-        }
-
-        function checkAnswer(element, qIndex, optIndex) {
-            const data = quizData[qIndex];
-            const resultBox = document.getElementById(`result-${qIndex}`);
-            const resultTitle = resultBox.querySelector('.result-title');
-            const allOptions = element.parentElement.querySelectorAll('.quiz-option');
-
-            // 鎖定該題不可再選
-            if (element.parentElement.dataset.answered) return;
-            element.parentElement.dataset.answered = "true";
-
-            // 清除並重設樣式
-            allOptions.forEach(opt => {
-                opt.classList.remove('bg-green-100', 'bg-red-100', 'border-green-500', 'border-red-500');
-                opt.querySelector('.w-6').classList.remove('border-green-500', 'border-red-500');
-            });
-
-            if (optIndex === data.correct) {
-                // 答對
-                element.classList.add('bg-green-100', 'border-green-500');
-                element.querySelector('.w-6').classList.add('border-green-500');
-                element.querySelector('.w-3').classList.add('bg-green-500');
-                
-                resultBox.classList.remove('hidden', 'border-red-500');
-                resultBox.classList.add('border-green-500', 'bg-green-50');
-                resultTitle.textContent = "✅ 答對了！";
-                resultTitle.classList.add('text-green-700');
-            } else {
-                // 答錯
-                element.classList.add('bg-red-100', 'border-red-500');
-                element.querySelector('.w-6').classList.add('border-red-500');
-                element.querySelector('.w-3').classList.add('bg-red-500');
-                
-                // 標示正確答案
-                const correctOption = allOptions[data.correct];
-                correctOption.classList.add('bg-green-100', 'border-green-500');
-                correctOption.querySelector('.w-6').classList.add('border-green-500');
-                correctOption.querySelector('.w-3').classList.add('bg-green-500');
-
-                resultBox.classList.remove('hidden', 'border-green-500');
-                resultBox.classList.add('border-red-500', 'bg-red-50');
-                resultTitle.textContent = "❌ 答錯了！";
-                resultTitle.classList.add('text-red-700');
-            }
-        }
-
-        // Initialize
-        renderQuiz();
     </script>
+    <script src="fg.js?v=1"></script>
 </body>
 </html>
