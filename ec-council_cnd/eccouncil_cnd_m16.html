@@ -13,41 +13,35 @@
         }
 
         body {
-            background-color: #111111;
-            color: #e0e0e0;
+            color: #1e2235;
             font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
             line-height: 1.6;
             overflow-x: hidden;
-            background-image: 
-                linear-gradient(rgba(17, 17, 17, 0.95), rgba(17, 17, 17, 0.95)),
-                url('data:image/svg+xml;utf8,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><g fill="%231a1a1a" fill-opacity="0.4"><path d="M10 10h10v10H10zM50 50h10v10H50zM80 20h10v10H80z"/></g></svg>');
         }
 
         /* --- TYPOGRAPHY --- */
         h1, h2, h3, h4 {
-            color: #ffffff;
-            text-transform: uppercase;
-            letter-spacing: 2px;
+            color: #1e2235;
+            letter-spacing: 0.5px;
             font-weight: 700;
         }
 
         h1 {
             font-size: 2.5rem;
-            text-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
             margin-bottom: 0.5rem;
         }
 
         h2 {
-            border-left: 5px solid #FF0000;
+            border-left: 5px solid #dc2626;
             padding-left: 15px;
             margin-top: 40px;
             margin-bottom: 20px;
             font-size: 1.8rem;
-            color: #f0f0f0;
+            color: #1e2235;
         }
 
         h3 {
-            color: #FF0000;
+            color: #b91c1c;
             margin-bottom: 15px;
             font-size: 1.3rem;
         }
@@ -55,15 +49,15 @@
         p {
             margin-bottom: 1.2rem;
             font-size: 1rem;
-            color: #cccccc;
+            color: #5b6278;
         }
 
         strong {
-            color: #ffffff;
+            color: #1e2235;
         }
 
         .highlight-red {
-            color: #FF0000;
+            color: #dc2626;
         }
 
         /* --- LAYOUT & GRID --- */
@@ -73,32 +67,31 @@
             padding: 20px;
         }
 
+        /* 頁首:深色橫幅 (site-chrome.js 會換成品牌漸層) */
         .header-section {
             text-align: center;
             padding: 60px 20px;
-            border-bottom: 2px solid #333;
+            background-color: #1e2235;
+            color: #ffffff;
+            border-radius: 16px;
+            margin-top: 20px;
             position: relative;
         }
 
-        .header-section::after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 200px;
-            height: 2px;
-            background-color: #FF0000;
-            box-shadow: 0 0 10px #FF0000;
+        .header-section h1,
+        .header-section p {
+            color: #ffffff;
         }
 
         .module-badge {
             display: inline-block;
-            background-color: rgba(255, 0, 0, 0.1);
-            border: 1px solid #FF0000;
-            color: #FF0000;
+            background-color: rgba(255, 255, 255, 0.16);
+            border: 1px solid rgba(255, 255, 255, 0.45);
+            color: #ffffff;
+            border-radius: 999px;
             padding: 5px 15px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            font-weight: 500;
             margin-bottom: 20px;
             letter-spacing: 1px;
         }
@@ -112,8 +105,10 @@
 
         /* --- CARDS --- */
         .card {
-            background-color: #1a1a1a;
-            border: 1px solid #333;
+            background-color: #ffffff;
+            border: 1px solid #e3e6f0;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(30, 34, 53, 0.06);
             padding: 30px;
             position: relative;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -127,19 +122,27 @@
             left: 0;
             width: 100%;
             height: 3px;
-            background: linear-gradient(90deg, #FF0000, transparent);
+            background: linear-gradient(90deg, #dc2626, transparent);
         }
 
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
-            border-color: #555;
+            box-shadow: 0 10px 24px rgba(30, 34, 53, 0.10);
+            border-color: #fecaca;
         }
 
         .card-icon {
-            font-size: 2rem;
-            margin-bottom: 20px;
-            color: #FF0000;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            background-color: #fef2f2;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #b91c1c;
         }
 
         /* --- LISTS & TABLES --- */
@@ -152,14 +155,14 @@
             position: relative;
             padding-left: 20px;
             margin-bottom: 10px;
-            color: #ccc;
+            color: #5b6278;
         }
 
         ul li::before {
             content: '>';
             position: absolute;
             left: 0;
-            color: #FF0000;
+            color: #dc2626;
             font-weight: bold;
         }
 
@@ -167,58 +170,48 @@
             width: 100%;
             border-collapse: collapse;
             margin: 20px 0;
-            background-color: #161616;
+            background-color: #ffffff;
         }
 
         .tech-table th, .tech-table td {
-            border: 1px solid #333;
+            border: 1px solid #e3e6f0;
             padding: 12px;
             text-align: left;
         }
 
         .tech-table th {
-            background-color: #222;
-            color: #FF0000;
+            background-color: #fef2f2;
+            color: #b91c1c;
             text-transform: uppercase;
             font-size: 0.9rem;
         }
 
         .tech-table tr:hover {
-            background-color: #1e1e1e;
+            background-color: #f8f9fc;
         }
 
         /* --- QUIZ SECTION --- */
         .quiz-section {
             margin-top: 80px;
-            background-color: #161616;
-            border: 1px solid #333;
+            background-color: #ffffff;
+            border: 1px solid #e3e6f0;
+            border-top: 4px solid #dc2626;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(30, 34, 53, 0.06);
             padding: 40px;
             position: relative;
         }
 
-        .quiz-section::before {
-            content: 'SIMULATION MODE // ACTIVATED';
-            position: absolute;
-            top: -15px;
-            right: 20px;
-            background-color: #FF0000;
-            color: #000;
-            padding: 5px 15px;
-            font-weight: bold;
-            font-size: 0.8rem;
-            letter-spacing: 1px;
-        }
-
         .question-block {
             margin-bottom: 40px;
-            border-bottom: 1px solid #222;
+            border-bottom: 1px solid #e3e6f0;
             padding-bottom: 30px;
         }
 
         .question-text {
             font-size: 1.1rem;
             font-weight: bold;
-            color: #ffffff;
+            color: #1e2235;
             margin-bottom: 20px;
         }
 
@@ -229,9 +222,10 @@
         }
 
         .option-btn {
-            background-color: #222;
-            color: #aaa;
-            border: 1px solid #333;
+            background-color: #f8f9fc;
+            color: #5b6278;
+            border: 1px solid #e3e6f0;
+            border-radius: 8px;
             padding: 15px;
             text-align: left;
             cursor: pointer;
@@ -240,35 +234,36 @@
         }
 
         .option-btn:hover {
-            background-color: #2a2a2a;
-            border-color: #555;
-            color: #fff;
+            background-color: #fef2f2;
+            border-color: #fecaca;
+            color: #1e2235;
         }
 
         .option-btn.correct {
-            background-color: rgba(0, 255, 0, 0.1);
-            border-color: #00ff00;
-            color: #00ff00;
+            background-color: #f0fdf4;
+            border-color: #15803d;
+            color: #15803d;
         }
 
         .option-btn.incorrect {
-            background-color: rgba(255, 0, 0, 0.1);
-            border-color: #FF0000;
-            color: #FF0000;
+            background-color: #fef2f2;
+            border-color: #dc2626;
+            color: #b91c1c;
         }
 
         .explanation {
             display: none;
             margin-top: 15px;
             padding: 15px;
-            background-color: #1a1a1a;
-            border-left: 3px solid #FF0000;
-            color: #ddd;
+            background-color: #f8f9fc;
+            border-left: 3px solid #dc2626;
+            border-radius: 0 8px 8px 0;
+            color: #1e2235;
             font-size: 0.95rem;
         }
 
         .explanation-title {
-            color: #FF0000;
+            color: #b91c1c;
             font-weight: bold;
             text-transform: uppercase;
             font-size: 0.8rem;
@@ -276,34 +271,20 @@
             display: block;
         }
 
-        /* --- FOOTER --- */
+        /* --- FOOTER (配色由 site-theme.css 統一) --- */
         footer {
             margin-top: 80px;
             padding: 30px;
-            background-color: #000;
-            border-top: 1px solid #222;
             text-align: center;
             font-size: 0.85rem;
-            color: #555;
-            letter-spacing: 1px;
-            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         /* --- UTILS --- */
         .hud-line {
             height: 1px;
-            background-color: #333;
-            margin: 20px 0;
-            position: relative;
-        }
-        .hud-line::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: -2px;
-            width: 20px;
-            height: 5px;
-            background-color: #FF0000;
+            background-color: #e3e6f0;
+            margin: 16px 0 20px;
         }
 
         @media (max-width: 768px) {
@@ -314,7 +295,7 @@
     <link rel="stylesheet" href="../assets/site-theme.css?v=20261112b">
     <script src="../assets/site-chrome.js?v=20261112b" defer></script>
 </head>
-<body class="hm-keep-dark">
+<body>
 
     <div class="container">
         <!-- HEADER -->
@@ -381,7 +362,7 @@
                     在進行活體鑑識 (Live Forensics) 時，收集證據的順序至關重要。必須優先收集「最容易消失」的數據。若先進行磁碟映像備份 (Disk Imaging) 再收集記憶體，將導致記憶體數據被覆蓋或遺失。
                 </p>
                 <p><strong>標準收集順序 (由高揮發性至低揮發性)：</strong></p>
-                <ol style="margin-left: 20px; color: #ccc;">
+                <ol style="margin-left: 20px; color: #5b6278;">
                     <li><strong>CPU 暫存器與快取 (Registers, Cache)</strong>：數奈秒內消失。</li>
                     <li><strong>路由表、ARP 快取、進程表、核心統計</strong>：系統關機即消失。</li>
                     <li><strong>主記憶體 (RAM)</strong>：包含執行中的惡意程式、解密金鑰等關鍵資訊。</li>

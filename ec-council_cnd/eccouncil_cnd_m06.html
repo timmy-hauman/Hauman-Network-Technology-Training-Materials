@@ -6,15 +6,16 @@
     <title>EC-Council CND 網路防禦課程 - Module 06</title>
     <style>
         :root {
-            --bg-color: #111111;
-            --card-bg: #1a1a1a;
-            --text-main: #e0e0e0;
-            --text-dim: #a0a0a0;
-            --accent-red: #FF0000;
-            --accent-dark-red: #8a0000;
-            --hud-grid: rgba(255, 0, 0, 0.1);
+            --bg-color: #f5f7fc;
+            --card-bg: #ffffff;
+            --text-main: #1e2235;
+            --text-dim: #5b6278;
+            --accent-red: #dc2626;
+            --accent-dark-red: #fecaca;
+            --hud-grid: rgba(220, 38, 38, 0.06);
+            --border: #e3e6f0;
             --font-main: 'Segoe UI', 'Roboto', Helvetica, Arial, sans-serif;
-            --font-tech: 'Courier New', Courier, monospace;
+            --font-tech: 'JetBrains Mono', Consolas, monospace;
         }
 
         * {
@@ -24,48 +25,41 @@
         }
 
         body {
-            background-color: var(--bg-color);
             color: var(--text-main);
             font-family: var(--font-main);
             line-height: 1.6;
-            background-image: 
-                linear-gradient(var(--hud-grid) 1px, transparent 1px),
-                linear-gradient(90deg, var(--hud-grid) 1px, transparent 1px);
-            background-size: 40px 40px;
             overflow-x: hidden;
         }
 
-        /* HUD Header */
+        /* Header 橫幅 (深色底, site-chrome 會換成品牌漸層) */
         header {
-            background: linear-gradient(180deg, rgba(20,20,20,0.95) 0%, rgba(20,20,20,0.8) 100%);
-            border-bottom: 2px solid var(--accent-red);
-            padding: 20px 40px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            background: #1e2235;
+            color: #fff;
+            padding: 28px 40px;
+            position: relative;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 4px 20px rgba(255, 0, 0, 0.2);
-            backdrop-filter: blur(5px);
         }
 
         h1 {
-            font-family: var(--font-tech);
-            text-transform: uppercase;
-            letter-spacing: 2px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
             font-size: 1.8rem;
             color: #fff;
-            text-shadow: 0 0 10px var(--accent-red);
         }
+
+        header h1 span { color: #fecaca !important; }
 
         .status-bar {
             font-family: var(--font-tech);
-            color: var(--accent-red);
+            color: rgba(255, 255, 255, 0.92);
             font-size: 0.9rem;
-            border: 1px solid var(--accent-red);
-            padding: 5px 15px;
-            border-radius: 2px;
+            font-size: 0.8rem;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.16);
+            padding: 4px 14px;
+            border-radius: 999px;
         }
 
         /* Main Container */
@@ -80,9 +74,8 @@
             padding-left: 15px;
             margin: 40px 0 20px 0;
             font-size: 1.5rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #fff;
+            color: var(--text-main);
+            font-weight: 700;
             display: flex;
             align-items: center;
         }
@@ -91,7 +84,7 @@
             content: '';
             flex-grow: 1;
             height: 1px;
-            background: linear-gradient(90deg, var(--accent-red), transparent);
+            background: linear-gradient(90deg, #fecaca, transparent);
             margin-left: 20px;
         }
 
@@ -104,12 +97,13 @@
 
         .card {
             background-color: var(--card-bg);
-            border: 1px solid #333;
-            border-radius: 4px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
             padding: 25px;
             position: relative;
             transition: all 0.3s ease;
             overflow: hidden;
+            box-shadow: 0 4px 16px rgba(30, 34, 53, 0.06);
         }
 
         .card::before {
@@ -127,8 +121,8 @@
 
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            border-color: var(--accent-red);
+            box-shadow: 0 10px 30px rgba(30, 34, 53, 0.12);
+            border-color: #fca5a5;
         }
 
         .card:hover::before {
@@ -136,9 +130,8 @@
         }
 
         .card h3 {
-            color: var(--accent-red);
+            color: #b91c1c;
             margin-bottom: 15px;
-            font-family: var(--font-tech);
             display: flex;
             align-items: center;
         }
@@ -153,23 +146,30 @@
             margin-bottom: 15px;
         }
 
+        .card ul {
+            color: var(--text-dim);
+            padding-left: 20px;
+        }
+
         .key-term {
-            color: #fff;
+            color: #b91c1c;
             font-weight: bold;
-            background: rgba(255, 0, 0, 0.1);
+            background: #fef2f2;
             padding: 2px 5px;
             border-radius: 3px;
         }
 
+        /* 指令區塊維持深色終端機樣式 */
         .code-block {
-            background: #000;
-            border: 1px solid #333;
-            color: #0f0;
+            background: #1e2235;
+            border: 1px solid #1e2235;
+            color: #86efac;
             padding: 10px;
             font-family: var(--font-tech);
             font-size: 0.85rem;
             margin-top: 10px;
             border-left: 3px solid var(--accent-red);
+            border-radius: 8px;
         }
 
         /* Quiz Section */
@@ -178,22 +178,28 @@
             border: 1px solid var(--accent-dark-red);
             padding: 30px;
             margin-top: 50px;
-            border-radius: 4px;
-            box-shadow: 0 0 20px rgba(255, 0, 0, 0.05);
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(30, 34, 53, 0.06);
         }
 
         .quiz-header {
             text-align: center;
             margin-bottom: 30px;
-            border-bottom: 1px solid #333;
+            border-bottom: 1px solid var(--border);
             padding-bottom: 20px;
+            color: var(--text-main);
+        }
+
+        .quiz-header p {
+            color: var(--text-dim);
         }
 
         .question-block {
             margin-bottom: 40px;
             padding: 20px;
-            background: rgba(0,0,0,0.2);
-            border-left: 3px solid #333;
+            background: #f8f9fc;
+            border-left: 3px solid var(--border);
+            border-radius: 8px;
             transition: all 0.3s;
         }
 
@@ -205,7 +211,7 @@
             font-size: 1.1rem;
             font-weight: bold;
             margin-bottom: 15px;
-            color: #fff;
+            color: var(--text-main);
         }
 
         .options {
@@ -215,10 +221,11 @@
         }
 
         .option-btn {
-            background: transparent;
-            border: 1px solid #444;
+            background: #ffffff;
+            border: 1px solid #d5d9e6;
             color: var(--text-dim);
             padding: 12px 15px;
+            border-radius: 8px;
             text-align: left;
             cursor: pointer;
             transition: all 0.2s;
@@ -235,35 +242,36 @@
             transform: translateY(-50%);
             width: 12px;
             height: 12px;
-            border: 1px solid #666;
+            border: 1px solid #8a90a6;
             border-radius: 50%;
         }
 
         .option-btn:hover {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: #666;
+            background: #fef2f2;
+            border-color: #fca5a5;
+            color: var(--text-main);
         }
 
         .option-btn.selected {
             border-color: var(--accent-red);
-            color: #fff;
+            color: var(--text-main);
         }
 
         .option-btn.correct {
-            border-color: #0f0;
-            background: rgba(0, 255, 0, 0.1);
-            color: #0f0;
+            border-color: #15803d;
+            background: #f0fdf4;
+            color: #15803d;
         }
-        
+
         .option-btn.correct::before {
-            background: #0f0;
-            border-color: #0f0;
+            background: #15803d;
+            border-color: #15803d;
         }
 
         .option-btn.incorrect {
             border-color: var(--accent-red);
-            background: rgba(255, 0, 0, 0.1);
-            color: var(--accent-red);
+            background: #fef2f2;
+            color: #b91c1c;
         }
 
         .option-btn.incorrect::before {
@@ -274,8 +282,10 @@
         .feedback {
             margin-top: 15px;
             padding: 15px;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid #333;
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-main);
             display: none;
             font-size: 0.9rem;
         }
@@ -292,19 +302,16 @@
             font-family: var(--font-tech);
         }
 
-        .text-success { color: #0f0; }
-        .text-danger { color: var(--accent-red); }
+        .text-success { color: #15803d; }
+        .text-danger { color: #b91c1c; }
 
-        /* Footer */
+        /* Footer (底色與字色由 site-theme.css 統一) */
         footer {
             margin-top: 60px;
             padding: 20px;
-            background: #0a0a0a;
-            border-top: 1px solid #333;
             text-align: center;
             font-family: var(--font-tech);
             font-size: 0.8rem;
-            color: #555;
             letter-spacing: 1px;
         }
 
@@ -313,33 +320,16 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Decorative Elements */
-        .hud-corner {
-            position: fixed;
-            width: 100px;
-            height: 100px;
-            border: 2px solid var(--accent-red);
-            opacity: 0.5;
-            pointer-events: none;
-            z-index: 50;
-        }
-        .top-left { top: 20px; left: 20px; border-right: none; border-bottom: none; }
-        .bottom-right { bottom: 20px; right: 20px; border-left: none; border-top: none; }
-
         /* Responsive */
         @media (max-width: 768px) {
             header { padding: 15px; flex-direction: column; gap: 10px; }
             .grid { grid-template-columns: 1fr; }
-            .hud-corner { display: none; }
         }
     </style>
     <link rel="stylesheet" href="../assets/site-theme.css?v=20261112b">
     <script src="../assets/site-chrome.js?v=20261112b" defer></script>
 </head>
-<body class="hm-keep-dark">
-
-    <div class="hud-corner top-left"></div>
-    <div class="hud-corner bottom-right"></div>
+<body>
 
     <header>
         <h1>CND V2 <span style="color:var(--accent-red)">//</span> 網路防禦課程</h1>
@@ -659,7 +649,7 @@
         function updateScore() {
             scoreDisplay.textContent = `SCORE: ${currentScore} / 10`;
             if (currentScore === 10) {
-                scoreDisplay.innerHTML += " <span style='color:#0f0'>[ELITE STATUS]</span>";
+                scoreDisplay.innerHTML += " <span style='color:#15803d'>[ELITE STATUS]</span>";
             }
         }
 

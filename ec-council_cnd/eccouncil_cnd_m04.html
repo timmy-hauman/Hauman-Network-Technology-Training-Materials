@@ -6,29 +6,22 @@
     <title>EC-Council CND Module 04: Network Perimeter Security</title>
     <style>
         :root {
-            --bg-color: #111111;
-            --card-bg: #1a1a1a;
-            --text-main: #e0e0e0;
-            --text-muted: #a0a0a0;
-            --accent-red: #FF0000;
-            --accent-dim: #550000;
-            --border-color: #333333;
-            --glow: 0 0 10px rgba(255, 0, 0, 0.3);
+            --card-bg: #ffffff;
+            --text-main: #1e2235;
+            --text-muted: #5b6278;
+            --accent-red: #dc2626;
+            --accent-dim: #fef2f2;
+            --border-color: #e3e6f0;
             --font-head: 'Segoe UI', 'Roboto', Helvetica, Arial, sans-serif;
             --font-mono: 'Courier New', Courier, monospace;
         }
 
         body {
-            background-color: var(--bg-color);
             color: var(--text-main);
-            font-family: var(--font-head);
+            font-family: inherit;
             margin: 0;
             padding: 0;
             line-height: 1.6;
-            background-image: 
-                linear-gradient(0deg, transparent 24%, rgba(255, 0, 0, .03) 25%, rgba(255, 0, 0, .03) 26%, transparent 27%, transparent 74%, rgba(255, 0, 0, .03) 75%, rgba(255, 0, 0, .03) 76%, transparent 77%, transparent),
-                linear-gradient(90deg, transparent 24%, rgba(255, 0, 0, .03) 25%, rgba(255, 0, 0, .03) 26%, transparent 27%, transparent 74%, rgba(255, 0, 0, .03) 75%, rgba(255, 0, 0, .03) 76%, transparent 77%, transparent);
-            background-size: 50px 50px;
         }
 
         /* Layout */
@@ -38,9 +31,13 @@
             padding: 20px;
         }
 
+        /* 頁首:深色橫幅 (site-chrome.js 會換成品牌漸層) */
         header {
+            background: #1e2235;
+            color: #fff;
             border-bottom: 2px solid var(--accent-red);
-            padding: 40px 0;
+            border-radius: 12px;
+            padding: 40px 20px;
             text-align: center;
             margin-bottom: 40px;
             position: relative;
@@ -50,29 +47,25 @@
             content: "CND_MODULE_04 // SYSTEM_READY";
             position: absolute;
             top: 10px;
-            left: 0;
+            left: 20px;
             font-family: var(--font-mono);
             font-size: 12px;
-            color: var(--accent-red);
-            opacity: 0.7;
+            color: #fecaca;
+            opacity: 0.9;
         }
 
         h1 {
             font-size: 3rem;
-            text-transform: uppercase;
-            letter-spacing: 3px;
             margin: 0;
-            text-shadow: var(--glow);
         }
 
         h2 {
             border-left: 5px solid var(--accent-red);
             padding-left: 15px;
-            text-transform: uppercase;
-            color: #fff;
+            color: #1e2235;
             margin-top: 50px;
             margin-bottom: 30px;
-            background: linear-gradient(90deg, rgba(255,0,0,0.1) 0%, transparent 100%);
+            background: linear-gradient(90deg, #fef2f2 0%, transparent 100%);
         }
 
         /* Grid System */
@@ -85,8 +78,10 @@
 
         /* Cards */
         .card {
+            border-radius: 12px;
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
+            box-shadow: 0 4px 16px rgba(30, 34, 53, 0.06);
             padding: 25px;
             position: relative;
             transition: transform 0.3s, box-shadow 0.3s;
@@ -95,36 +90,27 @@
 
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            box-shadow: 0 8px 24px rgba(30, 34, 53, 0.10);
             border-color: var(--accent-red);
         }
 
-        .card::after {
-            content: "";
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 20px;
-            height: 20px;
-            background: linear-gradient(45deg, transparent 50%, var(--accent-red) 50%);
-            opacity: 0.5;
-        }
 
         .card h3 {
-            color: var(--accent-red);
+            color: #b91c1c;
             margin-top: 0;
             font-family: var(--font-mono);
-            border-bottom: 1px solid #333;
+            border-bottom: 1px solid var(--border-color);
             padding-bottom: 10px;
         }
 
         .tag {
+            border-radius: 4px;
             display: inline-block;
             background: var(--accent-dim);
-            color: #ffcccc;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
             padding: 2px 8px;
             font-size: 0.8rem;
-            border-radius: 2px;
             margin-bottom: 10px;
             font-family: var(--font-mono);
         }
@@ -136,7 +122,7 @@
         }
 
         strong {
-            color: #fff;
+            color: #1e2235;
         }
 
         ul {
@@ -149,23 +135,24 @@
         }
 
         .highlight-box {
-            background: rgba(255, 0, 0, 0.05);
+            border-radius: 8px;
+            background: #fef2f2;
             border: 1px dashed var(--accent-red);
             padding: 15px;
             margin: 15px 0;
         }
 
         .blue-team-note {
-            border-left: 3px solid #00aaff;
-            background: rgba(0, 170, 255, 0.05);
+            border-radius: 0 8px 8px 0;
+            border-left: 3px solid #0891b2;
+            background: #ecfeff;
             padding: 15px;
             margin-top: 15px;
         }
         .blue-team-note h4 {
-            color: #00aaff;
+            color: #0e7490;
             margin: 0 0 5px 0;
             font-size: 0.9rem;
-            text-transform: uppercase;
         }
 
         /* HUD Elements */
@@ -189,22 +176,23 @@
 
         /* Quiz Section */
         #quiz-section {
-            background: #0f0f0f;
+            border-radius: 12px;
+            background: #ffffff;
             border: 1px solid var(--border-color);
             padding: 40px;
             margin-top: 60px;
-            box-shadow: inset 0 0 50px rgba(0,0,0,0.8);
+            box-shadow: 0 4px 16px rgba(30, 34, 53, 0.06);
         }
 
         .quiz-question {
             margin-bottom: 30px;
-            border-bottom: 1px solid #222;
+            border-bottom: 1px solid var(--border-color);
             padding-bottom: 20px;
         }
 
         .question-text {
             font-size: 1.1rem;
-            color: #fff;
+            color: #1e2235;
             margin-bottom: 15px;
         }
 
@@ -214,57 +202,57 @@
         }
 
         .option-btn {
-            background: #1a1a1a;
-            border: 1px solid #444;
-            color: #ccc;
+            border-radius: 8px;
+            background: #f8f9fc;
+            border: 1px solid #d6dae6;
+            color: #1e2235;
             padding: 15px;
             text-align: left;
             cursor: pointer;
             transition: all 0.2s;
-            font-family: var(--font-head);
+            font-family: inherit;
         }
 
         .option-btn:hover:not(:disabled) {
-            background: #252525;
-            border-color: #666;
+            background: #f1f3f8;
+            border-color: #a8afc4;
         }
 
         .option-btn.correct {
-            background: rgba(0, 255, 0, 0.1);
-            border-color: #00ff00;
-            color: #00ff00;
+            background: #f0fdf4;
+            border-color: #15803d;
+            color: #15803d;
         }
 
         .option-btn.wrong {
-            background: rgba(255, 0, 0, 0.1);
-            border-color: #ff0000;
-            color: #ff0000;
+            background: #fef2f2;
+            border-color: #dc2626;
+            color: #b91c1c;
         }
 
         .feedback {
+            border-radius: 8px;
             margin-top: 10px;
             padding: 10px;
             font-size: 0.9rem;
             display: none;
         }
-        
+
         .feedback.show {
             display: block;
         }
 
-        /* Footer */
+        /* Footer (底色與文字顏色由 site-theme.css 統一) */
         footer {
             margin-top: 80px;
             padding: 20px;
-            border-top: 1px solid #333;
             text-align: center;
             font-family: var(--font-mono);
             font-size: 0.8rem;
-            color: #666;
-            background: #000;
         }
-        
+
         .cnd-intro {
+            border-radius: 12px;
             font-size: 1.2rem;
             color: var(--text-muted);
             max-width: 800px;
@@ -272,19 +260,19 @@
             text-align: center;
             border: 1px solid var(--border-color);
             padding: 20px;
-            background: rgba(0,0,0,0.3);
+            background: #ffffff;
+            box-shadow: 0 4px 16px rgba(30, 34, 53, 0.06);
         }
-
     </style>
     <link rel="stylesheet" href="../assets/site-theme.css?v=20261112b">
     <script src="../assets/site-chrome.js?v=20261112b" defer></script>
 </head>
-<body class="hm-keep-dark">
+<body>
 
 <div class="container">
     <header>
         <h1>EC-Council CND 網路防禦課程</h1>
-        <div style="color: var(--accent-red); font-family: var(--font-mono); margin-top: 10px;">MODULE 04: NETWORK PERIMETER SECURITY</div>
+        <div style="color: #fecaca; font-family: var(--font-mono); margin-top: 10px;">MODULE 04: NETWORK PERIMETER SECURITY</div>
     </header>
 
     <div class="cnd-intro">
@@ -375,16 +363,16 @@
     <div class="hud-line"></div>
     <h2>3. 入侵偵測與防禦 (IDS & IPS)</h2>
     
-    <div style="background: #1a1a1a; padding: 20px; border: 1px solid #333; margin-bottom: 20px;">
-        <h3 style="color: #fff;">Placement Strategy (部署策略)</h3>
-        <p style="color: #bbb;">IDS 與 IPS 的部署位置決定了它們的效能與可視性。</p>
+    <div style="background: #ffffff; padding: 20px; border: 1px solid #e3e6f0; box-shadow: 0 4px 16px rgba(30, 34, 53, 0.06); margin-bottom: 20px;">
+        <h3 style="color: #1e2235;">Placement Strategy (部署策略)</h3>
+        <p style="color: #5b6278;">IDS 與 IPS 的部署位置決定了它們的效能與可視性。</p>
         <ul style="display: flex; flex-wrap: wrap; gap: 20px; list-style: none; padding: 0;">
-            <li style="flex: 1; border: 1px solid #444; padding: 15px;">
+            <li style="flex: 1; border: 1px solid #e3e6f0; background: #f8f9fc; padding: 15px;">
                 <strong style="color: var(--accent-red);">NIDS (Network IDS)</strong><br>
                 部署在 Switch 的 Mirror Port (SPAN Port) 或網路分接器 (TAP)。<br>
                 <em>被動監控，不影響網路延遲。</em>
             </li>
-            <li style="flex: 1; border: 1px solid #444; padding: 15px;">
+            <li style="flex: 1; border: 1px solid #e3e6f0; background: #f8f9fc; padding: 15px;">
                 <strong style="color: var(--accent-red);">NIPS (Network IPS)</strong><br>
                 部署在網路路徑上 (Inline Mode)。<br>
                 <em>主動攔截，但若設備故障可能導致網路中斷 (Fail-Open vs Fail-Closed)。</em>
@@ -569,18 +557,18 @@
 
         if (selectedOpt.correct) {
             btnElement.classList.add('correct');
-            feedbackEl.innerHTML = `<strong style="color:#00ff00;">[CORRECT]</strong> ${selectedOpt.explanation}`;
-            feedbackEl.style.borderLeft = "3px solid #00ff00";
-            feedbackEl.style.background = "rgba(0,255,0,0.05)";
+            feedbackEl.innerHTML = `<strong style="color:#15803d;">[CORRECT]</strong> ${selectedOpt.explanation}`;
+            feedbackEl.style.borderLeft = "3px solid #15803d";
+            feedbackEl.style.background = "#f0fdf4";
         } else {
             btnElement.classList.add('wrong');
             correctBtn.classList.add('correct');
-            feedbackEl.innerHTML = `<strong style="color:#ff0000;">[INCORRECT]</strong> ${question.options[correctOptIndex].explanation}`;
-            feedbackEl.style.borderLeft = "3px solid #ff0000";
-            feedbackEl.style.background = "rgba(255,0,0,0.05)";
+            feedbackEl.innerHTML = `<strong style="color:#b91c1c;">[INCORRECT]</strong> ${question.options[correctOptIndex].explanation}`;
+            feedbackEl.style.borderLeft = "3px solid #dc2626";
+            feedbackEl.style.background = "#fef2f2";
         }
         
-        feedbackEl.style.color = "#ccc";
+        feedbackEl.style.color = "#1e2235";
         feedbackEl.classList.add('show');
     }
 

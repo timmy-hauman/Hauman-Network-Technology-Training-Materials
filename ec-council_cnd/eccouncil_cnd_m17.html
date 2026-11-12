@@ -4,18 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EC-Council CND 網路防禦課程 | Module 17</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&family=Noto+Sans+TC:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #111111;
-            --card-bg: #1a1a1a;
-            --text-main: #e0e0e0;
-            --text-dim: #a0a0a0;
-            --accent-red: #FF0000;
-            --accent-dark-red: #8a0000;
-            --hud-grid: rgba(255, 0, 0, 0.05);
-            --border-color: #333;
-            --success-green: #00ff41;
+            --card-bg: #ffffff;
+            --text-main: #1e2235;
+            --text-dim: #5b6278;
+            --text-muted: #8a90a6;
+            --accent-red: #dc2626;
+            --accent-dark-red: #b91c1c;
+            --accent-red-tint: #fef2f2;
+            --border-color: #e3e6f0;
+            --success-green: #15803d;
+            --success-tint: #f0fdf4;
+            --card-shadow: 0 4px 16px rgba(30, 34, 53, 0.06);
         }
 
         * {
@@ -25,37 +26,15 @@
         }
 
         body {
-            background-color: var(--bg-color);
             color: var(--text-main);
-            font-family: 'Rajdhani', 'Noto Sans TC', sans-serif;
+            font-family: 'Roboto', 'Noto Sans TC', sans-serif;
             line-height: 1.6;
-            background-image: 
-                linear-gradient(var(--hud-grid) 1px, transparent 1px),
-                linear-gradient(90deg, var(--hud-grid) 1px, transparent 1px);
-            background-size: 40px 40px;
             overflow-x: hidden;
         }
 
-        /* HUD Scanline Effect */
-        body::before {
-            content: " ";
-            display: block;
-            position: fixed;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            z-index: 2;
-            background-size: 100% 2px, 3px 100%;
-            pointer-events: none;
-        }
-
         h1, h2, h3, h4 {
-            font-family: 'Orbitron', sans-serif;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: #fff;
+            letter-spacing: 0.5px;
+            color: var(--text-main);
         }
 
         .container {
@@ -66,34 +45,35 @@
             z-index: 3;
         }
 
-        /* Header Section */
+        /* Header Section:深色橫幅 (site-chrome.js 會換成品牌漸層) */
         header {
-            border-bottom: 2px solid var(--accent-red);
-            padding: 40px 0;
+            background-color: #1e2235;
+            color: #ffffff;
+            border-radius: 16px;
+            padding: 40px 20px;
+            margin-top: 20px;
             margin-bottom: 40px;
             position: relative;
             text-align: center;
         }
 
-        header::after {
-            content: "SYSTEM_READY";
-            position: absolute;
-            bottom: 5px;
-            right: 0;
-            font-size: 0.8rem;
-            color: var(--accent-red);
-            font-family: 'Orbitron', sans-serif;
+        header h1 {
+            color: #ffffff;
+        }
+
+        header .subtitle {
+            color: #fecaca;
         }
 
         h1 {
             font-size: 3rem;
-            text-shadow: 0 0 10px var(--accent-dark-red);
         }
 
         .subtitle {
             color: var(--accent-red);
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: 700;
+            letter-spacing: 1px;
         }
 
         /* Module Content Cards */
@@ -107,22 +87,18 @@
         .cyber-card {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
             padding: 25px;
             position: relative;
             transition: transform 0.3s, box-shadow 0.3s;
-            clip-path: polygon(
-                0 0, 
-                100% 0, 
-                100% calc(100% - 20px), 
-                calc(100% - 20px) 100%, 
-                0 100%
-            );
         }
 
         .cyber-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 0 15px rgba(255, 0, 0, 0.2);
-            border-color: var(--accent-red);
+            box-shadow: 0 10px 24px rgba(220, 38, 38, 0.12);
+            border-color: #fecaca;
         }
 
         .cyber-card::before {
@@ -130,9 +106,9 @@
             position: absolute;
             top: 0;
             left: 0;
-            width: 100px;
-            height: 2px;
-            background: var(--accent-red);
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-red), #f87171);
         }
 
         .card-icon {
@@ -143,10 +119,10 @@
         }
 
         .cyber-card h3 {
-            border-left: 3px solid var(--accent-red);
+            border-left: 4px solid var(--accent-red);
             padding-left: 10px;
             margin-bottom: 15px;
-            color: #fff;
+            color: var(--text-main);
         }
 
         .cyber-card p, .cyber-card li {
@@ -183,6 +159,8 @@
             overflow-x: auto;
             margin: 20px 0;
             border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: #ffffff;
         }
 
         table {
@@ -198,14 +176,12 @@
         }
 
         th {
-            background-color: #222;
-            color: var(--accent-red);
-            font-family: 'Orbitron', sans-serif;
-            text-transform: uppercase;
+            background-color: var(--accent-red-tint);
+            color: var(--accent-dark-red);
         }
 
         tr:hover td {
-            background-color: rgba(255, 0, 0, 0.05);
+            background-color: #f8f9fc;
         }
 
         /* Quiz Section */
@@ -228,6 +204,9 @@
         .question-card {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
+            border-left: 4px solid var(--accent-red);
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
             padding: 30px;
             margin-bottom: 30px;
             position: relative;
@@ -236,7 +215,8 @@
         .question-card h4 {
             color: var(--accent-red);
             margin-bottom: 15px;
-            font-size: 1.1rem;
+            font-size: 1rem;
+            letter-spacing: 1px;
         }
 
         .question-text {
@@ -251,34 +231,35 @@
         }
 
         .option-btn {
-            background: transparent;
+            background: #f8f9fc;
             border: 1px solid var(--border-color);
+            border-radius: 8px;
             color: var(--text-dim);
             padding: 15px;
             text-align: left;
             cursor: pointer;
-            font-family: 'Rajdhani', sans-serif;
+            font-family: inherit;
             font-size: 1rem;
             transition: all 0.2s;
             position: relative;
         }
 
         .option-btn:hover:not(:disabled) {
-            background: rgba(255, 0, 0, 0.1);
-            border-color: var(--accent-red);
-            color: #fff;
+            background: var(--accent-red-tint);
+            border-color: #fecaca;
+            color: var(--text-main);
         }
 
         .option-btn.correct {
             border-color: var(--success-green);
-            background: rgba(0, 255, 65, 0.1);
-            color: #fff;
+            background: var(--success-tint);
+            color: var(--success-green);
         }
 
         .option-btn.wrong {
             border-color: var(--accent-red);
-            background: rgba(255, 0, 0, 0.1);
-            color: var(--accent-red);
+            background: var(--accent-red-tint);
+            color: var(--accent-dark-red);
             text-decoration: line-through;
         }
 
@@ -286,14 +267,16 @@
             display: none;
             margin-top: 20px;
             padding: 15px;
-            background: rgba(0, 0, 0, 0.3);
+            background: #f8f9fc;
+            color: var(--text-main);
             border-left: 3px solid var(--accent-red);
+            border-radius: 0 8px 8px 0;
             font-size: 0.95rem;
             animation: slideDown 0.3s ease-out;
         }
 
         .explanation strong {
-            color: var(--accent-red);
+            color: var(--accent-dark-red);
         }
 
         @keyframes slideDown {
@@ -301,16 +284,12 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Footer */
+        /* Footer (配色由 site-theme.css 統一) */
         footer {
             margin-top: 80px;
-            border-top: 1px solid var(--border-color);
             padding: 20px;
-            background: #000;
             text-align: center;
-            font-family: 'Rajdhani', sans-serif;
             font-size: 0.9rem;
-            color: var(--text-dim);
             letter-spacing: 1px;
             width: 100%;
         }
@@ -325,13 +304,13 @@
     <link rel="stylesheet" href="../assets/site-theme.css?v=20261112b">
     <script src="../assets/site-chrome.js?v=20261112b" defer></script>
 </head>
-<body class="hm-keep-dark">
+<body>
 
 <div class="container">
     <header>
         <h1>EC-Council CND</h1>
         <div class="subtitle">CERTIFIED NETWORK DEFENDER // MODULE 17</div>
-        <p style="color: var(--text-dim); margin-top: 10px;">資料復原與業務連續性 (Data Recovery and Business Continuity)</p>
+        <p style="color: rgba(255, 255, 255, 0.8); margin-top: 10px;">資料復原與業務連續性 (Data Recovery and Business Continuity)</p>
     </header>
 
     <!-- Main Content -->

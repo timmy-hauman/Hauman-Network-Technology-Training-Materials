@@ -5,18 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EC-Council CND Module 10: Data Security</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Noto+Sans+TC:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
 
         :root {
-            --bg-color: #111111;
-            --card-bg: #1a1a1a;
-            --text-main: #e0e0e0;
-            --text-muted: #a0a0a0;
-            --accent-red: #FF0000;
-            --accent-dim: #550000;
-            --border-color: #333333;
-            --glow: 0 0 10px rgba(255, 0, 0, 0.5);
-            --font-tech: 'Rajdhani', sans-serif;
+            --bg-color: #f5f7fc;
+            --card-bg: #ffffff;
+            --text-main: #1e2235;
+            --text-muted: #5b6278;
+            --accent-red: #dc2626;
+            --accent-dim: #fecaca;
+            --border-color: #e3e6f0;
+            --glow: 0 4px 16px rgba(30, 34, 53, 0.06);
+            --font-tech: 'Roboto', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
             --font-main: 'Noto Sans TC', sans-serif;
         }
 
@@ -27,14 +27,10 @@
         }
 
         body {
-            background-color: var(--bg-color);
             color: var(--text-main);
             font-family: var(--font-main);
             line-height: 1.6;
             overflow-x: hidden;
-            background-image: 
-                linear-gradient(rgba(17, 17, 17, 0.95), rgba(17, 17, 17, 0.95)),
-                url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23222222' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
         }
 
         /* HUD Elements */
@@ -45,61 +41,44 @@
             opacity: 0.7;
         }
 
+        header .hud-line {
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent);
+        }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
         }
 
-        /* Header */
+        /* Header 橫幅 (深色底, site-chrome 會換成品牌漸層) */
         header {
+            background: #1e2235;
+            color: #fff;
+            border-radius: 8px;
             text-align: center;
-            padding: 4rem 0;
-            border-bottom: 1px solid var(--border-color);
+            padding: 4rem 24px;
             position: relative;
-        }
-
-        header::before {
-            content: "SYSTEM: SECURE";
-            position: absolute;
-            top: 10px;
-            left: 20px;
-            font-family: var(--font-tech);
-            color: var(--accent-red);
-            font-size: 0.8rem;
-            letter-spacing: 2px;
-        }
-
-        header::after {
-            content: "MODULE: 10";
-            position: absolute;
-            top: 10px;
-            right: 20px;
-            font-family: var(--font-tech);
-            color: var(--accent-red);
-            font-size: 0.8rem;
-            letter-spacing: 2px;
         }
 
         h1 {
             font-family: var(--font-tech);
-            font-size: 3.5rem;
-            text-transform: uppercase;
-            letter-spacing: 4px;
-            text-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
+            font-size: 3rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #fff;
             margin-bottom: 10px;
         }
 
         h1 span {
-            color: var(--accent-red);
+            color: #fecaca;
         }
 
         .subtitle {
             font-family: var(--font-tech);
-            color: var(--text-muted);
+            color: rgba(255, 255, 255, 0.85);
             font-size: 1.2rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         /* Grid System */
@@ -114,10 +93,12 @@
         .card {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
+            border-radius: 12px;
             padding: 25px;
             position: relative;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             overflow: hidden;
+            box-shadow: 0 4px 16px rgba(30, 34, 53, 0.06);
         }
 
         .card::before {
@@ -134,8 +115,8 @@
 
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            border-color: var(--accent-red);
+            box-shadow: 0 10px 30px rgba(30, 34, 53, 0.12);
+            border-color: #fca5a5;
         }
 
         .card:hover::before {
@@ -151,15 +132,16 @@
 
         .card h3 {
             font-family: var(--font-tech);
-            font-size: 1.5rem;
-            text-transform: uppercase;
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--text-main);
             margin-bottom: 15px;
-            border-bottom: 1px solid #333;
+            border-bottom: 1px solid var(--border-color);
             padding-bottom: 10px;
         }
 
         .card h4 {
-            color: #fff;
+            color: #b91c1c;
             margin: 15px 0 5px 0;
             font-size: 1.1rem;
         }
@@ -170,15 +152,18 @@
             margin-bottom: 10px;
         }
 
+        .card strong {
+            color: var(--text-main);
+        }
+
         .card ul {
             list-style: none;
             padding-left: 10px;
         }
 
         .card ul li::before {
-            content: ">> ";
+            content: "\2022  ";
             color: var(--accent-red);
-            font-family: var(--font-tech);
         }
 
         /* Comparison Tables */
@@ -186,7 +171,7 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
-            background: #151515;
+            background: #ffffff;
             border: 1px solid var(--border-color);
         }
 
@@ -197,22 +182,25 @@
             font-size: 0.9rem;
         }
 
+        .tech-table td {
+            color: var(--text-muted);
+        }
+
         .tech-table th {
-            background-color: #222;
-            color: var(--accent-red);
-            font-family: var(--font-tech);
-            text-transform: uppercase;
+            background-color: #fef2f2;
+            color: #b91c1c;
         }
 
         .tech-table tr:hover {
-            background-color: #1e1e1e;
+            background-color: #fafbfe;
         }
 
         /* Section Titles */
         .section-title {
             font-family: var(--font-tech);
             font-size: 2rem;
-            color: #fff;
+            font-weight: 700;
+            color: var(--text-main);
             margin: 60px 0 30px 0;
             display: flex;
             align-items: center;
@@ -235,35 +223,39 @@
         #quiz-section {
             margin-top: 80px;
             padding: 40px;
-            background: #151515;
+            background: var(--card-bg);
             border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(30, 34, 53, 0.06);
             position: relative;
         }
 
         #quiz-section::before {
             content: "TACTICAL SIMULATION // EXAM MODE";
             position: absolute;
-            top: -15px;
-            left: 20px;
-            background: var(--bg-color);
-            padding: 0 10px;
-            color: var(--accent-red);
-            font-family: var(--font-tech);
+            top: -14px;
+            left: 24px;
+            background: #fef2f2;
+            padding: 2px 14px;
+            color: #b91c1c;
+            font-size: 0.8rem;
             font-weight: bold;
-            border: 1px solid var(--accent-red);
+            letter-spacing: 1px;
+            border: 1px solid #fecaca;
+            border-radius: 999px;
         }
 
         .question-card {
             margin-bottom: 40px;
             padding-bottom: 30px;
-            border-bottom: 1px dashed #333;
+            border-bottom: 1px dashed var(--border-color);
         }
 
         .question-text {
             font-size: 1.2rem;
             font-weight: bold;
             margin-bottom: 20px;
-            color: #fff;
+            color: var(--text-main);
         }
 
         .options {
@@ -272,10 +264,11 @@
         }
 
         .option-btn {
-            background: #222;
-            border: 1px solid #444;
+            background: #ffffff;
+            border: 1px solid #d5d9e6;
             color: var(--text-muted);
             padding: 15px;
+            border-radius: 8px;
             text-align: left;
             cursor: pointer;
             font-family: var(--font-main);
@@ -284,45 +277,45 @@
         }
 
         .option-btn:hover {
-            background: #2a2a2a;
-            border-color: #666;
+            background: #fef2f2;
+            border-color: #fca5a5;
+            color: var(--text-main);
         }
 
         .option-btn.correct {
-            border-color: #00ff00;
-            background: rgba(0, 255, 0, 0.05);
-            color: #fff;
+            border-color: #15803d;
+            background: #f0fdf4;
+            color: #15803d;
         }
 
         .option-btn.wrong {
             border-color: var(--accent-red);
-            background: rgba(255, 0, 0, 0.05);
-            color: #fff;
+            background: #fef2f2;
+            color: #b91c1c;
         }
 
         .feedback {
             margin-top: 15px;
             padding: 15px;
-            background: #1a1a1a;
+            background: #f8f9fc;
             border-left: 3px solid var(--accent-red);
+            border-radius: 0 8px 8px 0;
+            color: var(--text-main);
             display: none;
             font-size: 0.95rem;
         }
 
         .feedback strong {
-            color: #fff;
+            color: var(--text-main);
         }
 
-        /* Footer */
+        /* Footer (底色與字色由 site-theme.css 統一) */
         footer {
             margin-top: 80px;
             padding: 20px;
-            background: #000;
-            border-top: 1px solid var(--accent-red);
             text-align: center;
             font-family: var(--font-tech);
             font-size: 0.9rem;
-            color: #666;
             letter-spacing: 1px;
             display: flex;
             justify-content: center;
@@ -330,13 +323,9 @@
             white-space: nowrap;
         }
 
-        footer span {
-            color: var(--accent-red);
-        }
-
         /* Responsive */
         @media (max-width: 768px) {
-            h1 { font-size: 2.5rem; }
+            h1 { font-size: 2.2rem; }
             .grid { grid-template-columns: 1fr; }
             footer { white-space: normal; flex-direction: column; }
         }
@@ -346,9 +335,10 @@
             display: inline-block;
             padding: 2px 6px;
             font-size: 0.7rem;
-            border: 1px solid var(--accent-red);
-            color: var(--accent-red);
-            font-family: var(--font-tech);
+            border: 1px solid #fecaca;
+            background: #fef2f2;
+            border-radius: 999px;
+            color: #b91c1c;
             margin-left: 10px;
             vertical-align: middle;
         }
@@ -356,14 +346,14 @@
     <link rel="stylesheet" href="../assets/site-theme.css?v=20261112b">
     <script src="../assets/site-chrome.js?v=20261112b" defer></script>
 </head>
-<body class="hm-keep-dark">
+<body>
 
 <div class="container">
     <header>
         <h1>EC-Council CND <span>Module 10</span></h1>
         <div class="subtitle">Data Security & Protection Strategies</div>
         <div class="hud-line"></div>
-        <p style="max-width: 800px; margin: 0 auto; color: var(--text-muted);">
+        <p style="max-width: 800px; margin: 0 auto; color: rgba(255, 255, 255, 0.88);">
             身為網路防禦者 (Network Defender)，保護組織的「核心資產—數據」是最終目標。本模組探討如何識別數據狀態、應用加密技術、實施資料遺失防護 (DLP) 以及規劃災難復原策略。
         </p>
     </header>
@@ -483,13 +473,13 @@
     <!-- Quiz Section -->
     <div id="quiz-section">
         <div style="text-align: center; margin-bottom: 30px;">
-            <h2 style="font-family: var(--font-tech); color: var(--accent-red); letter-spacing: 2px;">TACTICAL ASSESSMENT</h2>
+            <h2 style="font-family: var(--font-tech); color: #b91c1c; letter-spacing: 2px;">TACTICAL ASSESSMENT</h2>
             <p style="color: var(--text-muted);">CND Module 10 Practice Exam</p>
         </div>
         <div id="quiz-container">
             <!-- Questions will be loaded here by JS -->
         </div>
-        <div style="text-align: center; margin-top: 20px; font-family: var(--font-tech); color: #666;">
+        <div style="text-align: center; margin-top: 20px; font-family: var(--font-tech); color: #5b6278;">
             END OF SIMULATION
         </div>
     </div>
@@ -644,7 +634,7 @@
                 if (opt.correct) {
                     btn.classList.add('correct');
                     feedback.innerHTML = `<strong>[CORRECT]</strong> <br>${q.rationale}`;
-                    feedback.style.borderColor = "#00ff00";
+                    feedback.style.borderColor = "#15803d";
                 } else {
                     btn.classList.add('wrong');
                     // Find and highlight the correct one

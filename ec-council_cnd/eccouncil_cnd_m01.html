@@ -6,43 +6,34 @@
     <title>EC-Council CND 網路防禦課程 | Module 01</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Orbitron (Headers) & Share Tech Mono (Data/Code) -->
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        /* --- CORE THEME SETTINGS --- */
+        /* --- CORE THEME SETTINGS (淺色主題) --- */
         :root {
-            --bg-dark: #111111;
-            --bg-panel: #1a1a1a;
-            --alert-red: #FF0000;
-            --alert-red-dim: #990000;
-            --text-main: #e0e0e0;
-            --text-muted: #888888;
-            --border-tech: #333333;
-            --glow-red: 0 0 10px rgba(255, 0, 0, 0.5);
+            --bg-panel: #ffffff;
+            --alert-red: #dc2626;
+            --alert-red-dim: #fecaca;
+            --text-main: #1e2235;
+            --text-muted: #8a90a6;
+            --border-tech: #e3e6f0;
+            --glow-red: 0 0 0 3px rgba(220, 38, 38, 0.18);
         }
 
         body {
-            background-color: var(--bg-dark);
             color: var(--text-main);
-            font-family: 'Rajdhani', sans-serif;
+            font-family: inherit;
             overflow-x: hidden;
-            background-image: 
-                linear-gradient(rgba(17, 17, 17, 0.95), rgba(17, 17, 17, 0.95)),
-                url('data:image/svg+xml;utf8,%3Csvg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"%3E%3Ctext x="10" y="20" fill="%23333" font-family="monospace" font-size="10" opacity="0.2"%3E1%3C/text%3E%3Ctext x="30" y="30" fill="%23333" font-family="monospace" font-size="10" opacity="0.2"%3E0%3C/text%3E%3C/svg%3E');
         }
 
         /* --- TYPOGRAPHY --- */
         h1, h2, h3, .hud-text {
-            font-family: 'Orbitron', sans-serif;
-            text-transform: uppercase;
-            letter-spacing: 2px;
+            font-family: inherit;
         }
 
         .mono {
-            font-family: 'Share Tech Mono', monospace;
+            font-family: var(--hm-mono);
         }
 
         /* --- COMPONENTS --- */
@@ -54,54 +45,40 @@
 
         /* Panels/Cards */
         .cyber-card {
+            border-radius: 12px;
             background: var(--bg-panel);
             border: 1px solid var(--border-tech);
+            box-shadow: 0 4px 16px rgba(30, 34, 53, 0.06);
             position: relative;
             padding: 1.5rem;
             transition: all 0.3s ease;
         }
 
-        .cyber-card::before {
-            content: '';
-            position: absolute;
-            top: -1px; left: -1px;
-            width: 10px; height: 10px;
-            border-top: 2px solid var(--alert-red);
-            border-left: 2px solid var(--alert-red);
-        }
 
-        .cyber-card::after {
-            content: '';
-            position: absolute;
-            bottom: -1px; right: -1px;
-            width: 10px; height: 10px;
-            border-bottom: 2px solid var(--alert-red);
-            border-right: 2px solid var(--alert-red);
-        }
 
         .cyber-card:hover {
             border-color: var(--alert-red-dim);
-            box-shadow: 0 0 15px rgba(255, 0, 0, 0.1);
+            box-shadow: 0 8px 24px rgba(220, 38, 38, 0.10);
         }
 
         /* Buttons */
         .btn-tactical {
+            border-radius: 8px;
             background: transparent;
             border: 1px solid var(--alert-red);
             color: var(--alert-red);
             padding: 0.5rem 1.5rem;
-            font-family: 'Orbitron', sans-serif;
+            font-family: inherit;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.2s;
-            text-transform: uppercase;
             display: inline-block;
         }
 
         .btn-tactical:hover {
             background: var(--alert-red);
-            color: #000;
-            box-shadow: var(--glow-red);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(220, 38, 38, 0.25);
         }
 
         /* Section Dividers */
@@ -109,54 +86,56 @@
             height: 2px;
             background: linear-gradient(90deg, transparent, var(--alert-red), transparent);
             margin: 2rem 0;
-            opacity: 0.7;
+            opacity: 0.5;
         }
 
         /* --- QUIZ STYLES --- */
         .quiz-option {
+            border-radius: 8px;
             display: block;
             width: 100%;
             padding: 1rem;
             margin-bottom: 0.5rem;
-            background: #222;
-            border: 1px solid #333;
-            color: #ccc;
+            background: #f8f9fc;
+            border: 1px solid #e3e6f0;
+            color: #1e2235;
             text-align: left;
             cursor: pointer;
             transition: all 0.2s;
-            font-family: 'Rajdhani', sans-serif;
+            font-family: inherit;
             font-size: 1.1rem;
         }
 
         .quiz-option:hover {
-            background: #2a2a2a;
-            border-color: #666;
+            background: #f1f3f8;
+            border-color: #b8bfd2;
         }
 
         .quiz-option.selected {
             border-color: var(--alert-red);
-            background: rgba(255, 0, 0, 0.1);
-            color: white;
+            background: #fef2f2;
+            color: #b91c1c;
         }
 
         .quiz-option.correct {
-            border-color: #00ff00;
-            background: rgba(0, 255, 0, 0.1);
-            color: #00ff00;
+            border-color: #15803d;
+            background: #f0fdf4;
+            color: #15803d;
         }
 
         .quiz-option.incorrect {
             border-color: var(--alert-red);
-            background: rgba(255, 0, 0, 0.2);
-            color: var(--alert-red);
+            background: #fef2f2;
+            color: #b91c1c;
         }
 
         .explanation-box {
+            border-radius: 0 8px 8px 0;
             display: none;
             margin-top: 1rem;
             padding: 1rem;
             border-left: 3px solid var(--alert-red);
-            background: rgba(255, 255, 255, 0.05);
+            background: #f8f9fc;
         }
 
         .explanation-box.visible {
@@ -169,15 +148,12 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Footer */
+        /* Footer (底色與文字顏色由 site-theme.css 統一) */
         footer {
-            border-top: 1px solid #333;
-            background: #000;
             padding: 1rem 0;
             text-align: center;
-            font-family: 'Share Tech Mono', monospace;
+            font-family: var(--hm-mono);
             font-size: 0.8rem;
-            color: #666;
             margin-top: 4rem;
         }
 
@@ -186,32 +162,33 @@
             width: 8px;
         }
         ::-webkit-scrollbar-track {
-            background: #111;
+            background: #f1f3f8;
         }
         ::-webkit-scrollbar-thumb {
-            background: #333;
+            background: #c5cad8;
         }
         ::-webkit-scrollbar-thumb:hover {
             background: var(--alert-red);
         }
 
-        /* HUD Header */
+        /* HUD Header:深色橫幅 (site-chrome.js 會換成品牌漸層) */
         .hud-header {
-            border-bottom: 1px solid var(--border-tech);
+            background: #1e2235;
+            color: #fff;
+            border-radius: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding-bottom: 1rem;
+            padding: 1.5rem 2rem;
             margin-bottom: 2rem;
         }
-        
+
         .status-dot {
             height: 10px;
             width: 10px;
-            background-color: var(--alert-red);
+            background-color: #f87171;
             border-radius: 50%;
             display: inline-block;
-            box-shadow: var(--glow-red);
             animation: pulse 2s infinite;
         }
 
@@ -220,12 +197,11 @@
             50% { opacity: 0.4; }
             100% { opacity: 1; }
         }
-
     </style>
     <link rel="stylesheet" href="../assets/site-theme.css?v=20261112b">
     <script src="../assets/site-chrome.js?v=20261112b" defer></script>
 </head>
-<body class="hm-keep-dark">
+<body>
 
     <!-- NAV / HUD -->
     <div class="cyber-container">
@@ -235,7 +211,7 @@
                 <p class="mono text-red-500 text-sm tracking-widest">CERTIFIED NETWORK DEFENDER v2/v3</p>
             </div>
             <div class="text-right hidden md:block">
-                <div class="mono text-xs text-gray-500">SYSTEM STATUS</div>
+                <div class="mono text-xs text-gray-300">SYSTEM STATUS</div>
                 <div class="text-xl text-white font-bold"><span class="status-dot mr-2"></span>ONLINE</div>
                 <div class="mono text-xs text-red-500">DEFCON 3</div>
             </div>
@@ -249,17 +225,17 @@
                     歡迎來到 CND 第一模組。作為一名網路防禦者 (Network Defender)，我們的目標不僅是配置防火牆，更是要理解攻擊者的思維並制定全面的防禦策略。本模組將深入探討網路防禦的核心目標、攻擊面分析以及現代防禦架構。
                 </p>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                    <div class="bg-black p-4 border border-gray-800">
-                        <h3 class="text-red-500 text-sm mb-1">GOAL</h3>
-                        <p class="font-bold text-white">CIA Triad 維護</p>
+                    <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <h3 class="text-red-600 text-sm mb-1">GOAL</h3>
+                        <p class="font-bold text-gray-900">CIA Triad 維護</p>
                     </div>
-                    <div class="bg-black p-4 border border-gray-800">
-                        <h3 class="text-red-500 text-sm mb-1">STRATEGY</h3>
-                        <p class="font-bold text-white">Defense-in-Depth</p>
+                    <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <h3 class="text-red-600 text-sm mb-1">STRATEGY</h3>
+                        <p class="font-bold text-gray-900">Defense-in-Depth</p>
                     </div>
-                    <div class="bg-black p-4 border border-gray-800">
-                        <h3 class="text-red-500 text-sm mb-1">STANDARD</h3>
-                        <p class="font-bold text-white">NIST / GDPR</p>
+                    <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <h3 class="text-red-600 text-sm mb-1">STANDARD</h3>
+                        <p class="font-bold text-gray-900">NIST / GDPR</p>
                     </div>
                 </div>
             </div>
@@ -272,49 +248,49 @@
             
             <!-- Left: CIA Triad -->
             <div>
-                <h3 class="text-xl text-white mb-4"><i class="fas fa-tri-ring text-red-600 mr-2"></i>核心防禦目標 (The CIA Triad)</h3>
+                <h3 class="text-xl text-gray-900 mb-4"><i class="fas fa-tri-ring text-red-600 mr-2"></i>核心防禦目標 (The CIA Triad)</h3>
                 <div class="space-y-4">
                     <div class="cyber-card">
-                        <h4 class="text-white font-bold mb-2">Confidentiality (機密性)</h4>
-                        <p class="text-sm text-gray-400 mb-2">確保數據僅能被授權人員訪問。</p>
-                        <p class="mono text-xs text-red-400">Threats: Snooping, Dumpster Diving, Wiretapping.<br>Defense: Encryption (AES/RSA), Access Control (ACLs).</p>
+                        <h4 class="text-gray-900 font-bold mb-2">Confidentiality (機密性)</h4>
+                        <p class="text-sm text-gray-600 mb-2">確保數據僅能被授權人員訪問。</p>
+                        <p class="mono text-xs text-red-700">Threats: Snooping, Dumpster Diving, Wiretapping.<br>Defense: Encryption (AES/RSA), Access Control (ACLs).</p>
                     </div>
                     <div class="cyber-card">
-                        <h4 class="text-white font-bold mb-2">Integrity (完整性)</h4>
-                        <p class="text-sm text-gray-400 mb-2">確保數據在傳輸或存儲過程中未被未經授權地修改。</p>
-                        <p class="mono text-xs text-red-400">Threats: Salami attacks, Data Diddling.<br>Defense: Hashing (SHA-256), Digital Signatures.</p>
+                        <h4 class="text-gray-900 font-bold mb-2">Integrity (完整性)</h4>
+                        <p class="text-sm text-gray-600 mb-2">確保數據在傳輸或存儲過程中未被未經授權地修改。</p>
+                        <p class="mono text-xs text-red-700">Threats: Salami attacks, Data Diddling.<br>Defense: Hashing (SHA-256), Digital Signatures.</p>
                     </div>
                     <div class="cyber-card">
-                        <h4 class="text-white font-bold mb-2">Availability (可用性)</h4>
-                        <p class="text-sm text-gray-400 mb-2">確保授權用戶在需要時可以訪問系統與數據。</p>
-                        <p class="mono text-xs text-red-400">Threats: DoS/DDoS attacks.<br>Defense: Redundancy, Load Balancing, IPS.</p>
+                        <h4 class="text-gray-900 font-bold mb-2">Availability (可用性)</h4>
+                        <p class="text-sm text-gray-600 mb-2">確保授權用戶在需要時可以訪問系統與數據。</p>
+                        <p class="mono text-xs text-red-700">Threats: DoS/DDoS attacks.<br>Defense: Redundancy, Load Balancing, IPS.</p>
                     </div>
                 </div>
             </div>
 
             <!-- Right: Defense Strategy -->
             <div>
-                <h3 class="text-xl text-white mb-4"><i class="fas fa-chess-rook text-red-600 mr-2"></i>防禦策略 (Defense Strategies)</h3>
+                <h3 class="text-xl text-gray-900 mb-4"><i class="fas fa-chess-rook text-red-600 mr-2"></i>防禦策略 (Defense Strategies)</h3>
                 
                 <div class="cyber-card mb-6">
-                    <h4 class="text-lg text-red-500 font-bold mb-2">Defense-in-Depth (縱深防禦)</h4>
+                    <h4 class="text-lg text-red-600 font-bold mb-2">Defense-in-Depth (縱深防禦)</h4>
                     <p class="text-sm mb-3">不要依賴單一防禦層。如果防火牆失效，IPS 必須接手；如果 IPS 失效，主機防禦 (HIDS) 必須發揮作用。</p>
-                    <ul class="list-disc list-inside text-sm text-gray-400 space-y-1">
-                        <li><strong class="text-white">Physical:</strong> 警衛, 門禁, CCTV</li>
-                        <li><strong class="text-white">Network:</strong> Firewall, VPN, NIDS, VLAN</li>
-                        <li><strong class="text-white">Host:</strong> OS Hardening, Antivirus, Patching</li>
-                        <li><strong class="text-white">Application:</strong> Input Validation, WAF</li>
-                        <li><strong class="text-white">Data:</strong> Encryption, DLP</li>
+                    <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
+                        <li><strong class="text-gray-900">Physical:</strong> 警衛, 門禁, CCTV</li>
+                        <li><strong class="text-gray-900">Network:</strong> Firewall, VPN, NIDS, VLAN</li>
+                        <li><strong class="text-gray-900">Host:</strong> OS Hardening, Antivirus, Patching</li>
+                        <li><strong class="text-gray-900">Application:</strong> Input Validation, WAF</li>
+                        <li><strong class="text-gray-900">Data:</strong> Encryption, DLP</li>
                     </ul>
                 </div>
 
                 <div class="cyber-card">
-                    <h4 class="text-lg text-white font-bold mb-2">Adaptive Security Strategy</h4>
+                    <h4 class="text-lg text-gray-900 font-bold mb-2">Adaptive Security Strategy</h4>
                     <div class="grid grid-cols-2 gap-2 text-center text-sm">
-                        <div class="bg-gray-900 p-2 border border-red-900"><span class="text-red-500 block font-bold">PREDICT</span>威脅情資分析</div>
-                        <div class="bg-gray-900 p-2 border border-red-900"><span class="text-red-500 block font-bold">PREVENT</span>強化配置與隔離</div>
-                        <div class="bg-gray-900 p-2 border border-red-900"><span class="text-red-500 block font-bold">DETECT</span>持續監控 (SIEM)</div>
-                        <div class="bg-gray-900 p-2 border border-red-900"><span class="text-red-500 block font-bold">RESPOND</span>事故應變 (IR)</div>
+                        <div class="bg-red-50 rounded-lg p-2 border border-red-200"><span class="text-red-600 block font-bold">PREDICT</span>威脅情資分析</div>
+                        <div class="bg-red-50 rounded-lg p-2 border border-red-200"><span class="text-red-600 block font-bold">PREVENT</span>強化配置與隔離</div>
+                        <div class="bg-red-50 rounded-lg p-2 border border-red-200"><span class="text-red-600 block font-bold">DETECT</span>持續監控 (SIEM)</div>
+                        <div class="bg-red-50 rounded-lg p-2 border border-red-200"><span class="text-red-600 block font-bold">RESPOND</span>事故應變 (IR)</div>
                     </div>
                 </div>
             </div>
@@ -323,43 +299,43 @@
         <!-- SECTION 2: ATTACK VECTORS -->
         <div class="divider-line"></div>
         <section class="mb-12">
-            <h3 class="text-2xl text-white mb-6">常見攻擊向量 (Common Attack Vectors)</h3>
+            <h3 class="text-2xl text-gray-900 mb-6">常見攻擊向量 (Common Attack Vectors)</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 
                 <!-- Card 1 -->
                 <div class="cyber-card">
                     <div class="text-red-600 text-3xl mb-2"><i class="fas fa-network-wired"></i></div>
-                    <h4 class="text-white font-bold text-lg">DDoS Attacks</h4>
-                    <p class="text-xs text-gray-400 mt-2">耗盡系統資源。</p>
-                    <hr class="border-gray-800 my-2">
-                    <p class="mono text-xs text-red-400">Defense: Anti-DDoS appliances, Rate Limiting, CDN.</p>
+                    <h4 class="text-gray-900 font-bold text-lg">DDoS Attacks</h4>
+                    <p class="text-xs text-gray-600 mt-2">耗盡系統資源。</p>
+                    <hr class="border-gray-200 my-2">
+                    <p class="mono text-xs text-red-700">Defense: Anti-DDoS appliances, Rate Limiting, CDN.</p>
                 </div>
 
                 <!-- Card 2 -->
                 <div class="cyber-card">
                     <div class="text-red-600 text-3xl mb-2"><i class="fas fa-user-secret"></i></div>
-                    <h4 class="text-white font-bold text-lg">Social Engineering</h4>
-                    <p class="text-xs text-gray-400 mt-2">Phishing, Vishing, Tailgating.</p>
-                    <hr class="border-gray-800 my-2">
-                    <p class="mono text-xs text-red-400">Defense: Security Awareness Training, MFA.</p>
+                    <h4 class="text-gray-900 font-bold text-lg">Social Engineering</h4>
+                    <p class="text-xs text-gray-600 mt-2">Phishing, Vishing, Tailgating.</p>
+                    <hr class="border-gray-200 my-2">
+                    <p class="mono text-xs text-red-700">Defense: Security Awareness Training, MFA.</p>
                 </div>
 
                 <!-- Card 3 -->
                 <div class="cyber-card">
                     <div class="text-red-600 text-3xl mb-2"><i class="fas fa-bug"></i></div>
-                    <h4 class="text-white font-bold text-lg">Malware</h4>
-                    <p class="text-xs text-gray-400 mt-2">Ransomware, Trojans, Rootkits.</p>
-                    <hr class="border-gray-800 my-2">
-                    <p class="mono text-xs text-red-400">Defense: EDR, Sandboxing, Backup (3-2-1 rule).</p>
+                    <h4 class="text-gray-900 font-bold text-lg">Malware</h4>
+                    <p class="text-xs text-gray-600 mt-2">Ransomware, Trojans, Rootkits.</p>
+                    <hr class="border-gray-200 my-2">
+                    <p class="mono text-xs text-red-700">Defense: EDR, Sandboxing, Backup (3-2-1 rule).</p>
                 </div>
 
                 <!-- Card 4 -->
                 <div class="cyber-card">
                     <div class="text-red-600 text-3xl mb-2"><i class="fas fa-wifi"></i></div>
-                    <h4 class="text-white font-bold text-lg">MiTM</h4>
-                    <p class="text-xs text-gray-400 mt-2">ARP Poisoning, DNS Spoofing.</p>
-                    <hr class="border-gray-800 my-2">
-                    <p class="mono text-xs text-red-400">Defense: VPN, HTTPS everywhere, Dynamic ARP Inspection.</p>
+                    <h4 class="text-gray-900 font-bold text-lg">MiTM</h4>
+                    <p class="text-xs text-gray-600 mt-2">ARP Poisoning, DNS Spoofing.</p>
+                    <hr class="border-gray-200 my-2">
+                    <p class="mono text-xs text-red-700">Defense: VPN, HTTPS everywhere, Dynamic ARP Inspection.</p>
                 </div>
             </div>
         </section>
@@ -367,7 +343,7 @@
         <!-- SECTION 3: QUIZ -->
         <div class="divider-line"></div>
         <section id="quiz-section">
-            <h2 class="text-3xl mb-2 text-white"><i class="fas fa-crosshairs text-red-600 mr-3"></i>TACTICAL SIMULATION</h2>
+            <h2 class="text-3xl mb-2 text-gray-900"><i class="fas fa-crosshairs text-red-600 mr-3"></i>TACTICAL SIMULATION</h2>
             <p class="mono text-gray-500 mb-8">EC-COUNCIL STYLE EXAM PRACTICE // SELECT THE OPTIMAL DEFENSE STRATEGY</p>
 
             <div id="quiz-container" class="space-y-8">
@@ -513,7 +489,7 @@
             questions.forEach((q, index) => {
                 const questionHTML = `
                     <div class="cyber-card mb-6" id="q-card-${index}">
-                        <h4 class="text-lg font-bold text-white mb-4">
+                        <h4 class="text-lg font-bold text-gray-900 mb-4">
                             <span class="text-red-600 mr-2">Q${q.id}.</span> ${q.question}
                         </h4>
                         <div class="options-container">
@@ -523,7 +499,7 @@
                                 </div>
                             `).join('')}
                         </div>
-                        <div class="explanation-box mono text-sm text-gray-300" id="explain-${index}">
+                        <div class="explanation-box mono text-sm text-gray-700" id="explain-${index}">
                             ${q.explanation}
                         </div>
                     </div>

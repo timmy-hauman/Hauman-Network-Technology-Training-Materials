@@ -6,17 +6,21 @@
     <title>EC-Council CND 網路防禦課程 - Module 12</title>
     <style>
         :root {
-            --bg-color: #111111;
-            --card-bg: #1a1a1a;
-            --text-main: #e0e0e0;
-            --text-muted: #a0a0a0;
-            --accent-red: #FF0000;
-            --accent-dark-red: #8b0000;
-            --tech-cyan: #00f3ff; /* Sub-accent for HUD elements */
-            --border-color: #333333;
+            --bg-color: transparent;
+            --card-bg: #ffffff;
+            --text-main: #1e2235;
+            --text-muted: #5b6278;
+            --text-faint: #8a90a6;
+            --accent-red: #dc2626;
+            --accent-dark-red: #b91c1c;
+            --accent-dim: #fecaca;
+            --accent-tint: #fef2f2;
+            --tech-cyan: #0891b2; /* Sub-accent for HUD elements */
+            --border-color: #e3e6f0;
+            --card-shadow: 0 4px 16px rgba(30, 34, 53, .06);
             --font-main: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            --font-heading: 'Impact', 'Arial Black', sans-serif;
-            --font-mono: 'Consolas', 'Monaco', monospace;
+            --font-heading: inherit;
+            --font-mono: 'JetBrains Mono', Consolas, monospace;
         }
 
         * {
@@ -26,13 +30,9 @@
         }
 
         body {
-            background-color: var(--bg-color);
             color: var(--text-main);
             font-family: var(--font-main);
             line-height: 1.6;
-            background-image: 
-                linear-gradient(rgba(17, 17, 17, 0.95), rgba(17, 17, 17, 0.95)),
-                url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23222222' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
         }
 
         /* --- Layout & Typography --- */
@@ -43,46 +43,33 @@
         }
 
         h1, h2, h3 {
-            font-family: var(--font-heading);
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            font-weight: 700;
+            line-height: 1.4;
         }
 
         h1 {
             color: var(--text-main);
-            font-size: 2.5rem;
+            font-size: 2.2rem;
             border-bottom: 3px solid var(--accent-red);
             padding-bottom: 10px;
             margin-bottom: 30px;
-            text-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
             display: flex;
             align-items: center;
         }
 
-        h1::before {
-            content: "CND_V2::MOD_12";
-            font-family: var(--font-mono);
-            font-size: 0.8rem;
-            color: var(--accent-red);
-            margin-right: 15px;
-            border: 1px solid var(--accent-red);
-            padding: 2px 5px;
-        }
-
         h2 {
-            color: var(--accent-red);
-            font-size: 1.8rem;
+            color: var(--accent-dark-red);
+            font-size: 1.5rem;
             margin-top: 40px;
             margin-bottom: 20px;
             border-left: 5px solid var(--accent-red);
-            padding-left: 15px;
-            background: linear-gradient(90deg, rgba(255, 0, 0, 0.1), transparent);
+            padding-left: 14px;
         }
 
         h3 {
             color: var(--text-main);
-            font-size: 1.3rem;
-            margin-top: 25px;
+            font-size: 1.2rem;
+            margin-top: 0;
             margin-bottom: 15px;
         }
 
@@ -91,12 +78,12 @@
         }
 
         strong {
-            color: #fff;
+            color: var(--text-main);
             font-weight: 700;
         }
 
         .highlight-term {
-            color: var(--accent-red);
+            color: var(--accent-dark-red);
             font-family: var(--font-mono);
             font-weight: bold;
         }
@@ -105,29 +92,18 @@
         .card {
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
-            border-radius: 4px;
+            border-radius: 12px;
             padding: 25px;
             margin-bottom: 20px;
             position: relative;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-            transition: transform 0.2s, border-color 0.2s;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
         }
 
         .card:hover {
-            border-color: var(--accent-red);
+            border-color: var(--accent-dim);
+            box-shadow: 0 8px 22px rgba(30, 34, 53, 0.10);
             transform: translateY(-2px);
-        }
-
-        .card::before {
-            /* HUD corner accent */
-            content: "";
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 20px;
-            height: 20px;
-            border-top: 2px solid var(--accent-red);
-            border-right: 2px solid var(--accent-red);
         }
 
         .grid-2 {
@@ -147,7 +123,7 @@
             width: 100%;
             border-collapse: collapse;
             margin: 20px 0;
-            background-color: #222;
+            background-color: #ffffff;
             border: 1px solid var(--border-color);
         }
 
@@ -158,14 +134,13 @@
         }
 
         th {
-            background-color: #333;
-            color: var(--accent-red);
-            font-family: var(--font-heading);
-            text-transform: uppercase;
+            background-color: var(--accent-tint);
+            color: var(--accent-dark-red);
+            font-weight: 700;
         }
 
         tr:hover {
-            background-color: #2a2a2a;
+            background-color: #fafbfe;
         }
 
         /* --- Lists --- */
@@ -181,12 +156,14 @@
         }
 
         ul li::before {
-            content: ">>";
-            color: var(--accent-red);
+            content: "";
             position: absolute;
-            left: -20px;
-            font-family: var(--font-mono);
-            font-size: 0.8rem;
+            left: 0;
+            top: 0.65em;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--accent-red);
         }
 
         /* --- Quiz Section --- */
@@ -197,28 +174,31 @@
         }
 
         .quiz-question {
-            background-color: #151515;
+            background-color: var(--card-bg);
             border: 1px solid var(--border-color);
-            padding: 20px;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            padding: 22px;
             margin-bottom: 30px;
             position: relative;
         }
-        
+
         .question-header {
             display: flex;
             justify-content: space-between;
             margin-bottom: 15px;
-            border-bottom: 1px solid #333;
+            border-bottom: 1px solid var(--border-color);
             padding-bottom: 10px;
+            color: var(--text-muted);
         }
 
         .q-tag {
             background-color: var(--accent-dark-red);
             color: white;
             padding: 2px 8px;
-            font-size: 0.7rem;
-            font-family: var(--font-mono);
-            border-radius: 2px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border-radius: 999px;
         }
 
         .options {
@@ -232,15 +212,16 @@
             display: flex;
             align-items: center;
             padding: 12px;
-            background-color: #222;
-            border: 1px solid #333;
+            background-color: #f8f9fc;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
             cursor: pointer;
             transition: all 0.2s;
         }
 
         .option-label:hover {
-            background-color: #2a2a2a;
-            border-color: #555;
+            background-color: var(--accent-tint);
+            border-color: var(--accent-dim);
         }
 
         .option-input {
@@ -253,26 +234,31 @@
             padding: 15px;
             display: none;
             border-left: 4px solid;
+            border-radius: 0 8px 8px 0;
             font-size: 0.95rem;
         }
 
         .feedback.correct {
-            background-color: rgba(0, 255, 0, 0.1);
-            border-color: #00ff00;
-            color: #ccffcc;
+            background-color: #f0fdf4;
+            border-color: #15803d;
+            color: #15803d;
         }
 
         .feedback.incorrect {
-            background-color: rgba(255, 0, 0, 0.1);
+            background-color: var(--accent-tint);
             border-color: var(--accent-red);
-            color: #ffcccc;
+            color: var(--accent-dark-red);
+        }
+
+        .feedback strong {
+            color: inherit;
         }
 
         .explanation {
             margin-top: 10px;
             font-size: 0.9rem;
             color: var(--text-muted);
-            border-top: 1px solid rgba(255,255,255,0.1);
+            border-top: 1px solid rgba(30, 34, 53, 0.1);
             padding-top: 10px;
         }
 
@@ -282,11 +268,8 @@
             padding: 20px 0;
             border-top: 1px solid var(--border-color);
             text-align: center;
-            font-family: var(--font-mono);
             font-size: 0.8rem;
-            color: #555;
-            background-color: #0a0a0a;
-            letter-spacing: 1px;
+            color: var(--text-muted);
             white-space: nowrap;
             overflow: hidden;
         }
@@ -300,17 +283,21 @@
         }
 
         .system-status {
-            font-family: var(--font-mono);
-            color: var(--accent-red);
+            display: table;
+            margin: 0 0 20px auto;
             font-size: 0.8rem;
-            text-align: right;
-            margin-bottom: 20px;
+            font-weight: 500;
+            color: var(--accent-dark-red);
+            background: var(--accent-tint);
+            border: 1px solid var(--accent-dim);
+            border-radius: 999px;
+            padding: 4px 14px;
         }
     </style>
     <link rel="stylesheet" href="../assets/site-theme.css?v=20261112b">
     <script src="../assets/site-chrome.js?v=20261112b" defer></script>
 </head>
-<body class="hm-keep-dark">
+<body>
 
 <div class="container">
     <div class="system-status">
@@ -375,7 +362,7 @@
             <li><strong>客戶負責：</strong> "Security IN the Cloud" (雲端內部的安全性)。包括客戶數據、IAM、OS 修補 (IaaS)、防火牆配置、網路流量加密。</li>
         </ul>
         <p style="margin-top: 10px; border-left: 3px solid var(--accent-red); padding-left: 10px;">
-            <em style="color: #bbb;">教練提示：如果考題問「誰負責修補 EC2 實例上的 Windows Server 漏洞？」，答案永遠是「客戶」。如果是「誰負責更換壞掉的硬碟？」，答案是「供應商」。</em>
+            <em style="color: var(--text-muted);">教練提示：如果考題問「誰負責修補 EC2 實例上的 Windows Server 漏洞？」，答案永遠是「客戶」。如果是「誰負責更換壞掉的硬碟？」，答案是「供應商」。</em>
         </p>
     </div>
 
@@ -422,15 +409,15 @@
     <div class="card">
         <p>參考 <span class="highlight-term">OWASP Cloud Top 10</span> 與 CSA Treacherous 12。</p>
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; margin-top: 15px;">
-            <div style="background: #222; padding: 10px; border: 1px solid #444;">
+            <div style="background: #f8f9fc; padding: 10px; border: 1px solid var(--border-color);">
                 <strong>1. Data Breach (資料外洩)</strong><br>
                 最常見原因：<span style="color:var(--accent-red)">Misconfiguration (錯誤配置)</span>，例如公開的 S3 儲存桶。
             </div>
-            <div style="background: #222; padding: 10px; border: 1px solid #444;">
+            <div style="background: #f8f9fc; padding: 10px; border: 1px solid var(--border-color);">
                 <strong>2. Insecure Interfaces and APIs</strong><br>
                 API 是雲端的管理入口。不安全的 API 金鑰管理或缺乏速率限制 (Rate Limiting) 會導致災害。
             </div>
-            <div style="background: #222; padding: 10px; border: 1px solid #444;">
+            <div style="background: #f8f9fc; padding: 10px; border: 1px solid var(--border-color);">
                 <strong>3. Account Hijacking</strong><br>
                 攻擊者竊取雲端管理員憑證。防禦：強制 MFA、監控異常登入。
             </div>

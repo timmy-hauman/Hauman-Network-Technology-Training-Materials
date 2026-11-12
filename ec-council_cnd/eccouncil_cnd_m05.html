@@ -4,22 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EC-Council CND: Network Perimeter Security</title>
-    <!-- Google Fonts for Tech/Cyberpunk look -->
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         :root {
-            --bg-dark: #111111;
-            --bg-panel: #1a1a1a;
-            --primary-red: #FF0000;
-            --primary-red-dim: #cc0000;
-            --cyber-text: #e0e0e0;
-            --muted-text: #888888;
-            --success-green: #00ff41; 
-            --grid-line: rgba(255, 0, 0, 0.1);
-            --border-glow: 0 0 10px rgba(255, 0, 0, 0.3);
+            --bg-panel: #ffffff;
+            --primary-red: #dc2626;
+            --primary-red-dim: #b91c1c;
+            --cyber-text: #1e2235;
+            --muted-text: #5b6278;
+            --success-green: #15803d;
+            --border-glow: 0 8px 24px rgba(220, 38, 38, 0.12);
         }
 
         * {
@@ -29,38 +25,31 @@
         }
 
         body {
-            background-color: var(--bg-dark);
             color: var(--cyber-text);
-            font-family: 'Rajdhani', sans-serif;
+            font-family: inherit;
             line-height: 1.6;
             overflow-x: hidden;
-            background-image: 
-                linear-gradient(var(--grid-line) 1px, transparent 1px),
-                linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
-            background-size: 40px 40px;
         }
 
         h1, h2, h3, h4 {
-            font-family: 'Orbitron', sans-serif;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: #fff;
+            font-family: inherit;
+            color: #1e2235;
         }
 
-        /* --- Header / HUD --- */
+        /* --- Header / HUD:深色橫幅 (site-chrome.js 會換成品牌漸層) ---
+           改為 sticky,避免固定定位蓋住網站頂端導覽列 */
         header {
-            background: linear-gradient(180deg, rgba(20,20,20,0.95) 0%, rgba(17,17,17,0.8) 100%);
+            background: #1e2235;
+            color: #fff;
             border-bottom: 2px solid var(--primary-red);
             padding: 20px 40px;
-            position: fixed;
+            position: sticky;
             width: 100%;
             top: 0;
             z-index: 1000;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            backdrop-filter: blur(5px);
-            box-shadow: var(--border-glow);
         }
 
         .brand {
@@ -71,28 +60,29 @@
 
         .brand i {
             font-size: 2rem;
-            color: var(--primary-red);
+            color: #fecaca;
         }
 
         .brand-text h1 {
             font-size: 1.5rem;
             margin: 0;
-            text-shadow: 0 0 5px var(--primary-red);
+            color: #fff;
         }
 
         .brand-text span {
             font-size: 0.8rem;
-            color: var(--primary-red);
-            font-family: 'Roboto Mono', monospace;
+            color: #fecaca;
+            font-family: var(--hm-mono);
         }
 
         .status-panel {
-            font-family: 'Roboto Mono', monospace;
+            border-radius: 999px;
+            font-family: var(--hm-mono);
             font-size: 0.8rem;
-            color: var(--primary-red);
-            border: 1px solid var(--primary-red);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.4);
             padding: 5px 15px;
-            background: rgba(255, 0, 0, 0.05);
+            background: rgba(255, 255, 255, 0.12);
             display: flex;
             align-items: center;
             gap: 10px;
@@ -102,7 +92,7 @@
             animation: blinker 1.5s linear infinite;
             width: 8px;
             height: 8px;
-            background-color: var(--primary-red);
+            background-color: #f87171;
             border-radius: 50%;
             display: inline-block;
         }
@@ -114,35 +104,21 @@
         /* --- Main Content Layout --- */
         .container {
             max-width: 1200px;
-            margin: 120px auto 60px;
+            margin: 40px auto 60px;
             padding: 0 20px;
         }
 
         .hero-section {
+            border-radius: 12px;
             text-align: center;
             margin-bottom: 60px;
-            border: 1px solid #333;
+            border: 1px solid #e3e6f0;
             padding: 40px;
-            background: radial-gradient(circle at center, #222 0%, #111 100%);
+            background: #ffffff;
+            box-shadow: 0 4px 16px rgba(30, 34, 53, 0.06);
             position: relative;
         }
 
-        .hero-section::before {
-            content: "";
-            position: absolute;
-            top: 0; left: 0;
-            width: 10px; height: 10px;
-            border-top: 2px solid var(--primary-red);
-            border-left: 2px solid var(--primary-red);
-        }
-        .hero-section::after {
-            content: "";
-            position: absolute;
-            bottom: 0; right: 0;
-            width: 10px; height: 10px;
-            border-bottom: 2px solid var(--primary-red);
-            border-right: 2px solid var(--primary-red);
-        }
 
         .hero-title {
             font-size: 2.5rem;
@@ -150,7 +126,7 @@
         }
 
         .hero-subtitle {
-            font-family: 'Roboto Mono', monospace;
+            font-family: var(--hm-mono);
             color: var(--primary-red);
             margin-bottom: 20px;
         }
@@ -164,8 +140,10 @@
         }
 
         .card {
+            border-radius: 12px;
             background: var(--bg-panel);
-            border: 1px solid #333;
+            border: 1px solid #e3e6f0;
+            box-shadow: 0 4px 16px rgba(30, 34, 53, 0.06);
             padding: 25px;
             position: relative;
             transition: all 0.3s ease;
@@ -182,31 +160,32 @@
             display: flex;
             align-items: center;
             margin-bottom: 20px;
-            border-bottom: 1px solid #333;
+            border-bottom: 1px solid #e3e6f0;
             padding-bottom: 15px;
         }
 
         .card-icon {
+            border-radius: 8px;
             font-size: 1.8rem;
             color: var(--primary-red);
             margin-right: 15px;
             border: 1px solid var(--primary-red);
             padding: 10px;
-            background: rgba(255, 0, 0, 0.05);
+            background: #fef2f2;
         }
 
         .card-title {
             font-size: 1.2rem;
-            color: #fff;
+            color: #1e2235;
         }
 
         .card-content {
             font-size: 0.95rem;
-            color: #ccc;
+            color: #5b6278;
         }
 
         .card-content strong {
-            color: #fff;
+            color: #1e2235;
             font-weight: 700;
         }
 
@@ -226,19 +205,20 @@
             position: absolute;
             left: 0;
             color: var(--primary-red);
-            font-family: 'Roboto Mono', monospace;
+            font-family: var(--hm-mono);
         }
 
         .tech-tag {
+            border-radius: 4px;
             display: inline-block;
-            background: #222;
-            border: 1px solid #444;
-            color: var(--primary-red);
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #b91c1c;
             padding: 2px 6px;
             font-size: 0.7rem;
             margin-right: 5px;
             margin-top: 5px;
-            font-family: 'Roboto Mono', monospace;
+            font-family: var(--hm-mono);
         }
 
         /* --- Section Divider --- */
@@ -248,23 +228,25 @@
             margin: 60px 0;
             position: relative;
         }
-        
+
         .divider-text {
             position: absolute;
             top: -12px;
             left: 50%;
             transform: translateX(-50%);
-            background: var(--bg-dark);
+            background: #f5f7fc;
             padding: 0 15px;
             color: var(--primary-red);
-            font-family: 'Orbitron', sans-serif;
+            font-family: inherit;
             font-size: 0.9rem;
         }
 
         /* --- Assessment Section --- */
         .quiz-section {
-            background: #0f0f0f;
-            border: 1px solid #333;
+            border-radius: 12px;
+            background: #ffffff;
+            border: 1px solid #e3e6f0;
+            box-shadow: 0 4px 16px rgba(30, 34, 53, 0.06);
             padding: 40px;
             position: relative;
         }
@@ -276,21 +258,22 @@
         }
 
         .question-container {
+            border-radius: 10px;
             margin-bottom: 40px;
-            background: #161616;
+            background: #f8f9fc;
             padding: 25px;
-            border: 1px solid #2a2a2a;
+            border: 1px solid #e3e6f0;
         }
 
         .question-title {
             font-size: 1.1rem;
             margin-bottom: 20px;
-            color: #fff;
+            color: #1e2235;
             font-weight: 600;
         }
 
         .question-meta {
-            font-family: 'Roboto Mono', monospace;
+            font-family: var(--hm-mono);
             font-size: 0.8rem;
             color: var(--muted-text);
             margin-bottom: 10px;
@@ -303,13 +286,14 @@
         }
 
         .option-btn {
-            background: #222;
-            border: 1px solid #444;
-            color: #ccc;
+            border-radius: 8px;
+            background: #ffffff;
+            border: 1px solid #d6dae6;
+            color: #1e2235;
             padding: 15px;
             text-align: left;
             cursor: pointer;
-            font-family: 'Rajdhani', sans-serif;
+            font-family: inherit;
             font-size: 1rem;
             transition: all 0.2s;
             position: relative;
@@ -317,21 +301,21 @@
         }
 
         .option-btn:hover:not(:disabled) {
-            background: #2a2a2a;
+            background: #fef2f2;
             border-color: var(--primary-red);
-            color: #fff;
+            color: #1e2235;
         }
 
         .option-btn.correct {
-            background: rgba(0, 255, 65, 0.1) !important;
+            background: #f0fdf4 !important;
             border-color: var(--success-green) !important;
-            color: #fff !important;
+            color: #15803d !important;
         }
-        
+
         .option-btn.wrong {
-            background: rgba(255, 0, 0, 0.1) !important;
+            background: #fef2f2 !important;
             border-color: var(--primary-red) !important;
-            color: #fff !important;
+            color: #b91c1c !important;
         }
 
         .option-btn:disabled {
@@ -340,11 +324,13 @@
         }
 
         .feedback-panel {
+            border-radius: 0 8px 8px 0;
             margin-top: 15px;
             padding: 15px;
             border-left: 3px solid;
             display: none;
-            background: #1a1a1a;
+            background: #ffffff;
+            color: #1e2235;
             font-size: 0.95rem;
         }
 
@@ -357,21 +343,18 @@
         }
 
         .feedback-title {
-            font-family: 'Orbitron', sans-serif;
+            font-family: inherit;
             margin-bottom: 5px;
             font-size: 0.9rem;
             display: block;
         }
 
-        /* --- Footer --- */
+        /* --- Footer (底色與文字顏色由 site-theme.css 統一) --- */
         footer {
-            background: #000;
-            border-top: 1px solid #333;
             padding: 20px;
             text-align: center;
-            font-family: 'Roboto Mono', monospace;
+            font-family: var(--hm-mono);
             font-size: 0.8rem;
-            color: #666;
             margin-top: 80px;
         }
 
@@ -391,7 +374,7 @@
     <link rel="stylesheet" href="../assets/site-theme.css?v=20261112b">
     <script src="../assets/site-chrome.js?v=20261112b" defer></script>
 </head>
-<body class="hm-keep-dark">
+<body>
 
     <!-- HUD Header -->
     <header>
@@ -413,7 +396,7 @@
         <div class="hero-section">
             <h2 class="hero-title">Network Perimeter Security</h2>
             <p class="hero-subtitle">網路邊界安全防禦架構解析</p>
-            <p style="max-width: 700px; margin: 0 auto; color: #ccc;">
+            <p style="max-width: 700px; margin: 0 auto; color: #5b6278;">
                 作為藍隊 (Blue Team) 防禦者，邊界是我們控制進出流量的第一道防線。本模組深入探討如何透過防火牆、DMZ、IDS/IPS 及 VPN 技術，構建符合 NIST 框架與縱深防禦 (Defense-in-Depth) 原則的堅固堡壘。
             </p>
         </div>
@@ -516,7 +499,7 @@
         <div class="quiz-section" id="quiz-anchor">
             <div class="quiz-header">
                 <h3><i class="fas fa-tasks"></i> 模擬實戰測驗 (Scenario-based)</h3>
-                <p style="color: #888;">以下題目模擬 EC-Council CND 認證考試情境。請以「網路防禦者」的角度思考最佳解法。</p>
+                <p style="color: #5b6278;">以下題目模擬 EC-Council CND 認證考試情境。請以「網路防禦者」的角度思考最佳解法。</p>
             </div>
 
             <div id="quiz-container">

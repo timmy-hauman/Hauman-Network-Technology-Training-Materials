@@ -13,124 +13,102 @@
     
     <style>
         :root {
-            --bg-dark: #111111;
-            --bg-card: #1a1a1a;
-            --alert-red: #FF0000;
-            --cyber-gray: #2d2d2d;
-            --text-main: #e0e0e0;
-            --neon-red-glow: 0 0 10px rgba(255, 0, 0, 0.5), 0 0 20px rgba(255, 0, 0, 0.3);
-            --border-tech: 1px solid #333;
+            --bg-dark: transparent;
+            --bg-card: #ffffff;
+            --alert-red: #dc2626;
+            --alert-red-dark: #b91c1c;
+            --alert-dim: #fecaca;
+            --alert-tint: #fef2f2;
+            --cyber-gray: #f1f3f9;
+            --text-main: #1e2235;
+            --text-muted: #5b6278;
+            --card-shadow: 0 4px 16px rgba(30, 34, 53, .06);
+            --border-tech: 1px solid #e3e6f0;
         }
 
         body {
-            background-color: var(--bg-dark);
             color: var(--text-main);
-            font-family: 'Rajdhani', sans-serif;
-            background-image: 
-                linear-gradient(rgba(17, 17, 17, 0.95), rgba(17, 17, 17, 0.95)),
-                url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23222' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
         }
 
-        h1, h2, h3, .hud-text {
-            font-family: 'Orbitron', sans-serif;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
+        h1, h2, h3, h4, h5 {
+            line-height: 1.35;
         }
 
         .code-font {
-            font-family: 'Roboto Mono', monospace;
+            font-family: 'JetBrains Mono', Consolas, monospace;
         }
 
         /* Tactical Borders & Cards */
         .cyber-card {
             background: var(--bg-card);
-            border: 1px solid #333;
+            border: var(--border-tech);
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
             position: relative;
             overflow: hidden;
             transition: all 0.3s ease;
         }
 
-        .cyber-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--alert-red), transparent);
-            opacity: 0.5;
-        }
-
-        .cyber-card::after {
-            content: "CND_DEFENSE_NODE";
-            position: absolute;
-            bottom: 5px;
-            right: 5px;
-            font-size: 0.6rem;
-            color: #444;
-            font-family: 'Orbitron', sans-serif;
-        }
-
         .cyber-card:hover {
-            border-color: var(--alert-red);
-            box-shadow: 0 0 15px rgba(255, 0, 0, 0.1);
+            border-color: var(--alert-dim);
+            box-shadow: 0 8px 22px rgba(30, 34, 53, 0.10);
         }
 
-        /* HUD Elements */
-        .hud-corner {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            border: 2px solid var(--alert-red);
-            transition: all 0.3s;
-        }
-        .tl { top: 0; left: 0; border-right: none; border-bottom: none; }
-        .tr { top: 0; right: 0; border-left: none; border-bottom: none; }
-        .bl { bottom: 0; left: 0; border-right: none; border-top: none; }
-        .br { bottom: 0; right: 0; border-left: none; border-top: none; }
+        /* HUD corner brackets are not used in the light theme */
+        .hud-corner { display: none; }
 
         /* Typography Accents */
         .text-accent {
-            color: var(--alert-red);
-            text-shadow: 0 0 5px rgba(255, 0, 0, 0.6);
+            color: var(--alert-red-dark);
+        }
+
+        .border-accent {
+            border-color: var(--alert-red);
+        }
+
+        /* Header banner stays dark: lighter accent for contrast */
+        header .text-accent {
+            color: #fecaca;
         }
 
         .section-title {
             border-left: 4px solid var(--alert-red);
             padding-left: 1rem;
             margin-bottom: 2rem;
-            background: linear-gradient(90deg, rgba(255,0,0,0.1), transparent);
+            font-weight: 700;
         }
 
         /* Interactive Quiz Styles */
         .quiz-option {
-            background: #222;
-            border: 1px solid #444;
+            background: #f8f9fc;
+            border: 1px solid #e3e6f0;
             cursor: pointer;
             transition: all 0.2s;
         }
 
         .quiz-option:hover {
-            background: #2a2a2a;
-            border-color: #666;
+            background: var(--alert-tint);
+            border-color: var(--alert-dim);
         }
 
         .quiz-option.selected-correct {
-            background: rgba(0, 255, 0, 0.1);
-            border-color: #00ff00;
-            color: #00ff00;
+            background: #f0fdf4;
+            border-color: #15803d;
+            color: #15803d;
         }
 
         .quiz-option.selected-wrong {
-            background: rgba(255, 0, 0, 0.1);
-            border-color: #ff0000;
-            color: #ff0000;
+            background: var(--alert-tint);
+            border-color: var(--alert-red);
+            color: var(--alert-red-dark);
         }
 
         .explanation-box {
             display: none;
-            background: #1e1e1e;
+            background: #f8f9fc;
             border-left: 3px solid var(--alert-red);
+            border-radius: 0 8px 8px 0;
+            color: var(--text-main);
             margin-top: 1rem;
             padding: 1rem;
             font-size: 0.95rem;
@@ -141,52 +119,31 @@
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #111;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #444;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--alert-red);
-        }
-        
-        /* Footer specific */
-        footer {
-            border-top: 2px solid var(--alert-red);
-            background: #000;
-        }
-
     </style>
     <link rel="stylesheet" href="../assets/site-theme.css?v=20261112b">
     <script src="../assets/site-chrome.js?v=20261112b" defer></script>
 </head>
-<body class="hm-keep-dark antialiased min-h-screen flex flex-col">
+<body class="antialiased min-h-screen flex flex-col">
 
     <!-- Header -->
-    <header class="fixed top-0 w-full z-50 bg-[#111] border-b border-[#333] shadow-lg bg-opacity-95 backdrop-blur-sm">
+    <header class="sticky top-0 w-full z-50 bg-[#1e2235] border-b border-white/10 shadow-lg">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
             <div class="flex items-center gap-3">
                 <i data-lucide="shield-alert" class="text-accent h-8 w-8"></i>
                 <div>
                     <h1 class="text-xl font-bold tracking-widest text-white">EC-Council <span class="text-accent">CND</span></h1>
-                    <p class="text-xs text-gray-500 tracking-wider">CERTIFIED NETWORK DEFENDER v2/v3</p>
+                    <p class="text-xs text-white/70 tracking-wider">CERTIFIED NETWORK DEFENDER v2/v3</p>
                 </div>
             </div>
             <div class="hidden md:flex items-center gap-6 text-sm font-bold tracking-widest">
-                <span class="text-gray-400">STATUS: <span class="text-green-500 animate-pulse">ONLINE</span></span>
-                <span class="text-gray-400">MODULE: <span class="text-accent">15</span></span>
+                <span class="text-white/80">STATUS: <span class="text-green-300 animate-pulse">ONLINE</span></span>
+                <span class="text-white/80">MODULE: <span class="text-accent">15</span></span>
             </div>
         </div>
     </header>
 
     <!-- Main Content -->
-    <main class="flex-grow pt-24 pb-12 container mx-auto px-4 md:px-8">
+    <main class="flex-grow pt-10 pb-12 container mx-auto px-4 md:px-8">
         
         <!-- Hero Section -->
         <section class="mb-16">
@@ -194,17 +151,17 @@
                 <div class="hud-corner tl"></div><div class="hud-corner tr"></div><div class="hud-corner bl"></div><div class="hud-corner br"></div>
                 <div class="grid md:grid-cols-2 gap-8 items-center">
                     <div>
-                        <div class="inline-block px-3 py-1 border border-red-900 bg-red-900/20 text-red-500 text-xs font-bold mb-4 tracking-widest">BLUE TEAM PROTOCOL</div>
-                        <h2 class="text-4xl md:text-6xl font-black mb-6 leading-tight text-white">
+                        <div class="inline-block px-3 py-1 border border-red-200 bg-red-50 text-red-700 text-xs font-bold mb-4 tracking-widest">BLUE TEAM PROTOCOL</div>
+                        <h2 class="text-4xl md:text-6xl font-black mb-6 leading-tight text-gray-900">
                             MODULE 15 <br>
-                            <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-red-800">Logs Monitoring</span><br>
+                            <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-red-800">Logs Monitoring</span><br>
                             & Analysis
                         </h2>
-                        <p class="text-gray-400 text-lg mb-6 leading-relaxed">
+                        <p class="text-gray-600 text-lg mb-6 leading-relaxed">
                             日誌 (Logs) 是網路防禦的「黑盒子」。在網路戰場中，即時監控與事後鑑識是區分「被入侵」與「成功防禦」的關鍵。本模組將深入探討如何將數據轉化為情報。
                         </p>
                     </div>
-                    <div class="relative h-64 md:h-full bg-black/50 border border-gray-800 p-4 font-mono text-xs text-green-500 overflow-hidden rounded opacity-80">
+                    <div class="relative h-64 md:h-full bg-[#1e2235] border border-slate-700 p-4 font-mono text-xs text-green-400 overflow-hidden rounded-lg">
                         <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/diagmonds-light.png')] opacity-10"></div>
                         <div class="typing-effect">
                             > SYSTEM_INIT... OK<br>
@@ -212,8 +169,8 @@
                             > CHECKING_INTEGRITY... 100%<br>
                             > DETECTED_THREAT_LEVEL: HIGH<br>
                             > ACTIVATING_LOG_COLLECTOR...<br>
-                            > <span class="text-red-500">[ALERT]</span> Multiple failed login attempts detected (EventID: 4625)<br>
-                            > <span class="text-red-500">[ALERT]</span> Analyzing Source IP: 192.168.1.105<br>
+                            > <span class="text-red-300">[ALERT]</span> Multiple failed login attempts detected (EventID: 4625)<br>
+                            > <span class="text-red-300">[ALERT]</span> Analyzing Source IP: 192.168.1.105<br>
                             > CORRELATING EVENTS...<br>
                             > DEFENSE MEASURES: ENGAGED<br>
                         </div>
@@ -224,7 +181,7 @@
 
         <!-- Concept 1: The Why -->
         <section class="mb-16">
-            <h3 class="section-title text-2xl text-white">01 // LOGGING CONCEPTS & INFRASTRUCTURE</h3>
+            <h3 class="section-title text-2xl text-gray-900">01 // LOGGING CONCEPTS & INFRASTRUCTURE</h3>
             <div class="grid md:grid-cols-3 gap-6">
                 <!-- Card 1 -->
                 <div class="cyber-card p-6">
@@ -232,7 +189,7 @@
                         <i data-lucide="eye" class="text-accent"></i>
                         <h4 class="text-xl font-bold">可視性 (Visibility)</h4>
                     </div>
-                    <p class="text-gray-400 text-sm leading-relaxed">
+                    <p class="text-gray-600 text-sm leading-relaxed">
                         你無法防禦你看不見的東西。日誌提供網路活動的詳細記錄，協助我們回答：誰(Who)、做了什麼(What)、何時(When)、在哪裡(Where)以及如何(How)。
                     </p>
                 </div>
@@ -242,8 +199,8 @@
                         <i data-lucide="clock" class="text-accent"></i>
                         <h4 class="text-xl font-bold">NTP 時間同步</h4>
                     </div>
-                    <p class="text-gray-400 text-sm leading-relaxed">
-                        <strong class="text-white">關鍵防禦點：</strong> 在法庭鑑識中，如果日誌時間不同步，證據將無效。所有設備必須指向同一個 Stratum 1 或 Stratum 2 NTP 伺服器。
+                    <p class="text-gray-600 text-sm leading-relaxed">
+                        <strong class="text-gray-900">關鍵防禦點：</strong> 在法庭鑑識中，如果日誌時間不同步，證據將無效。所有設備必須指向同一個 Stratum 1 或 Stratum 2 NTP 伺服器。
                     </p>
                 </div>
                 <!-- Card 3 -->
@@ -252,7 +209,7 @@
                         <i data-lucide="database" class="text-accent"></i>
                         <h4 class="text-xl font-bold">集中式管理 (SIEM)</h4>
                     </div>
-                    <p class="text-gray-400 text-sm leading-relaxed">
+                    <p class="text-gray-600 text-sm leading-relaxed">
                         單機日誌容易被駭客清除。防禦者必須將日誌即時轉發 (Log Forwarding) 至安全的 Syslog Server 或 SIEM，確保數據的不可否認性 (Non-repudiation)。
                     </p>
                 </div>
@@ -261,43 +218,43 @@
 
         <!-- Concept 2: Windows Logs -->
         <section class="mb-16">
-            <h3 class="section-title text-2xl text-white">02 // WINDOWS LOG ANALYSIS</h3>
-            <div class="bg-[#1a1a1a] border border-gray-800 p-8 rounded-sm">
+            <h3 class="section-title text-2xl text-gray-900">02 // WINDOWS LOG ANALYSIS</h3>
+            <div class="bg-white shadow-sm border border-gray-200 p-8 rounded-sm">
                 <div class="mb-6">
-                    <h4 class="text-xl font-bold mb-2 text-white"><span class="text-accent">>>></span> Event Viewer 關鍵事件 ID (Event IDs)</h4>
-                    <p class="text-gray-400 mb-4">作為 CND 防禦者，您不需要記住所有 ID，但以下幾個是偵測入侵的關鍵指標 (IoA)：</p>
+                    <h4 class="text-xl font-bold mb-2 text-gray-900"><span class="text-accent">>>></span> Event Viewer 關鍵事件 ID (Event IDs)</h4>
+                    <p class="text-gray-600 mb-4">作為 CND 防禦者，您不需要記住所有 ID，但以下幾個是偵測入侵的關鍵指標 (IoA)：</p>
                 </div>
                 
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="border-b border-gray-700 text-accent font-bold uppercase text-sm">
+                            <tr class="border-b border-gray-200 text-accent font-bold uppercase text-sm">
                                 <th class="p-4">Event ID</th>
                                 <th class="p-4">Log Type</th>
                                 <th class="p-4">Description (描述)</th>
                                 <th class="p-4">Defense Context (防禦視角)</th>
                             </tr>
                         </thead>
-                        <tbody class="text-gray-300 text-sm code-font">
-                            <tr class="border-b border-gray-800 hover:bg-white/5 transition">
+                        <tbody class="text-gray-700 text-sm code-font">
+                            <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
                                 <td class="p-4 text-accent font-bold">4624</td>
                                 <td class="p-4">Security</td>
                                 <td class="p-4">Logon Successful</td>
                                 <td class="p-4">正常登入。若發生在非上班時間或來自異常 IP，需警覺。</td>
                             </tr>
-                            <tr class="border-b border-gray-800 hover:bg-white/5 transition">
+                            <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
                                 <td class="p-4 text-accent font-bold">4625</td>
                                 <td class="p-4">Security</td>
                                 <td class="p-4">Logon Failed</td>
-                                <td class="p-4">登入失敗。連續大量的 4625 是 <span class="text-red-400">Brute Force</span> 攻擊的典型特徵。</td>
+                                <td class="p-4">登入失敗。連續大量的 4625 是 <span class="text-red-700">Brute Force</span> 攻擊的典型特徵。</td>
                             </tr>
-                            <tr class="border-b border-gray-800 hover:bg-white/5 transition">
+                            <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
                                 <td class="p-4 text-accent font-bold">4720</td>
                                 <td class="p-4">Security</td>
                                 <td class="p-4">User Account Created</td>
                                 <td class="p-4">駭客建立後門帳號的跡象。需核對變更管理紀錄。</td>
                             </tr>
-                            <tr class="border-b border-gray-800 hover:bg-white/5 transition">
+                            <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
                                 <td class="p-4 text-accent font-bold">7045</td>
                                 <td class="p-4">System</td>
                                 <td class="p-4">Service Installed</td>
@@ -311,15 +268,15 @@
 
         <!-- Concept 3: Linux Logs -->
         <section class="mb-16">
-            <h3 class="section-title text-2xl text-white">03 // LINUX LOGGING & SYSLOG</h3>
+            <h3 class="section-title text-2xl text-gray-900">03 // LINUX LOGGING & SYSLOG</h3>
             <div class="grid md:grid-cols-2 gap-8">
                 <!-- Visual Structure -->
                 <div class="space-y-4">
-                    <p class="text-gray-400">Linux 系統主要依賴 <span class="text-white font-bold">Syslog</span> 協定。設定檔通常位於 <code class="text-accent">/etc/rsyslog.conf</code> 或 <code class="text-accent">/etc/syslog.conf</code>。</p>
+                    <p class="text-gray-600">Linux 系統主要依賴 <span class="text-gray-900 font-bold">Syslog</span> 協定。設定檔通常位於 <code class="text-accent">/etc/rsyslog.conf</code> 或 <code class="text-accent">/etc/syslog.conf</code>。</p>
                     
                     <div class="cyber-card p-5">
-                        <h5 class="text-lg font-bold mb-3 border-b border-gray-700 pb-2">關鍵日誌路徑</h5>
-                        <ul class="space-y-3 code-font text-sm text-gray-300">
+                        <h5 class="text-lg font-bold mb-3 border-b border-gray-200 pb-2">關鍵日誌路徑</h5>
+                        <ul class="space-y-3 code-font text-sm text-gray-700">
                             <li class="flex items-start">
                                 <span class="text-accent mr-2">/var/log/auth.log</span>
                                 <span>(Debian/Ubuntu) 認證日誌，包含 sudo 使用紀錄、SSH 登入。</span>
@@ -342,16 +299,16 @@
 
                 <!-- Severity Levels -->
                 <div class="cyber-card p-5">
-                    <h5 class="text-lg font-bold mb-3 border-b border-gray-700 pb-2">Syslog Severity Levels (嚴重性等級)</h5>
+                    <h5 class="text-lg font-bold mb-3 border-b border-gray-200 pb-2">Syslog Severity Levels (嚴重性等級)</h5>
                     <div class="grid grid-cols-2 gap-2 text-sm code-font">
-                        <div class="bg-red-900/40 p-2 text-red-200 border border-red-900">0 - Emergency (系統無法使用)</div>
-                        <div class="bg-red-800/40 p-2 text-red-200 border border-red-900">1 - Alert (需立即處理)</div>
-                        <div class="bg-red-700/40 p-2 text-red-200 border border-red-900">2 - Critical (嚴重錯誤)</div>
-                        <div class="bg-orange-800/40 p-2 text-orange-200 border border-orange-900">3 - Error (錯誤)</div>
-                        <div class="bg-yellow-800/40 p-2 text-yellow-200 border border-yellow-900">4 - Warning (警告)</div>
-                        <div class="bg-blue-900/40 p-2 text-blue-200 border border-blue-900">5 - Notice (正常但重要)</div>
-                        <div class="bg-gray-800 p-2 text-gray-400">6 - Informational</div>
-                        <div class="bg-gray-800 p-2 text-gray-400">7 - Debug</div>
+                        <div class="bg-red-100 p-2 text-red-900 border border-red-300">0 - Emergency (系統無法使用)</div>
+                        <div class="bg-red-50 p-2 text-red-800 border border-red-300">1 - Alert (需立即處理)</div>
+                        <div class="bg-red-50 p-2 text-red-700 border border-red-200">2 - Critical (嚴重錯誤)</div>
+                        <div class="bg-orange-50 p-2 text-orange-800 border border-orange-200">3 - Error (錯誤)</div>
+                        <div class="bg-amber-50 p-2 text-amber-800 border border-amber-200">4 - Warning (警告)</div>
+                        <div class="bg-cyan-50 p-2 text-cyan-800 border border-cyan-200">5 - Notice (正常但重要)</div>
+                        <div class="bg-gray-100 p-2 text-gray-700 border border-gray-200">6 - Informational</div>
+                        <div class="bg-gray-100 p-2 text-gray-700 border border-gray-200">7 - Debug</div>
                     </div>
                     <p class="mt-4 text-xs text-gray-500">*防禦重點：應特別監控 Level 0-4 的日誌。</p>
                 </div>
@@ -360,32 +317,32 @@
 
         <!-- Compliance & Regulatory -->
         <section class="mb-20">
-             <h3 class="section-title text-2xl text-white">04 // LEGAL & COMPLIANCE</h3>
+             <h3 class="section-title text-2xl text-gray-900">04 // LEGAL & COMPLIANCE</h3>
              <div class="flex flex-col md:flex-row gap-6">
-                 <div class="flex-1 bg-gray-900 p-6 border-l-2 border-accent">
-                     <h4 class="font-bold text-white mb-2">PCI-DSS Requirement 10</h4>
-                     <p class="text-sm text-gray-400">針對支付卡產業。要求必須追蹤並監控所有對網路資源和持卡人資料的存取。日誌必須保存至少一年，且最近三個月的日誌需可隨時線上查詢。</p>
+                 <div class="flex-1 bg-white border border-gray-200 shadow-sm p-6 border-l-2 border-accent">
+                     <h4 class="font-bold text-gray-900 mb-2">PCI-DSS Requirement 10</h4>
+                     <p class="text-sm text-gray-600">針對支付卡產業。要求必須追蹤並監控所有對網路資源和持卡人資料的存取。日誌必須保存至少一年，且最近三個月的日誌需可隨時線上查詢。</p>
                  </div>
-                 <div class="flex-1 bg-gray-900 p-6 border-l-2 border-accent">
-                     <h4 class="font-bold text-white mb-2">GDPR (一般資料保護規則)</h4>
-                     <p class="text-sm text-gray-400">若日誌中包含個人識別資訊 (PII)，必須受到嚴格保護。同時日誌本身是證明企業是否盡到「資料保護責任」的關鍵證據。</p>
+                 <div class="flex-1 bg-white border border-gray-200 shadow-sm p-6 border-l-2 border-accent">
+                     <h4 class="font-bold text-gray-900 mb-2">GDPR (一般資料保護規則)</h4>
+                     <p class="text-sm text-gray-600">若日誌中包含個人識別資訊 (PII)，必須受到嚴格保護。同時日誌本身是證明企業是否盡到「資料保護責任」的關鍵證據。</p>
                  </div>
-                 <div class="flex-1 bg-gray-900 p-6 border-l-2 border-accent">
-                     <h4 class="font-bold text-white mb-2">SOX / HIPAA</h4>
-                     <p class="text-sm text-gray-400">針對上市公司財務與醫療資訊。要求保留稽核軌跡 (Audit Trails) 以防止詐欺與未授權存取。</p>
+                 <div class="flex-1 bg-white border border-gray-200 shadow-sm p-6 border-l-2 border-accent">
+                     <h4 class="font-bold text-gray-900 mb-2">SOX / HIPAA</h4>
+                     <p class="text-sm text-gray-600">針對上市公司財務與醫療資訊。要求保留稽核軌跡 (Audit Trails) 以防止詐欺與未授權存取。</p>
                  </div>
              </div>
         </section>
 
         <!-- QUIZ SECTION -->
-        <section id="quiz-section" class="py-12 border-t border-gray-800">
+        <section id="quiz-section" class="py-12 border-t border-gray-200">
             <div class="flex items-center gap-4 mb-8">
-                <div class="h-1 flex-grow bg-gray-800"></div>
-                <h2 class="text-3xl font-black text-white text-center">TACTICAL ASSESSMENT <span class="text-accent">V3.0</span></h2>
-                <div class="h-1 flex-grow bg-gray-800"></div>
+                <div class="h-1 flex-grow bg-gray-200"></div>
+                <h2 class="text-3xl font-black text-gray-900 text-center">TACTICAL ASSESSMENT <span class="text-accent">V3.0</span></h2>
+                <div class="h-1 flex-grow bg-gray-200"></div>
             </div>
             
-            <p class="text-center text-gray-400 mb-10 max-w-2xl mx-auto">
+            <p class="text-center text-gray-600 mb-10 max-w-2xl mx-auto">
                 以下 10 題模擬 EC-Council CND 認證考題情境。請以「防禦者 (Network Defender)」的角度進行決策。<br>
                 <span class="text-xs text-accent">注意：請選擇最佳答案，選擇後將直接顯示解析。</span>
             </p>
@@ -395,10 +352,10 @@
             </div>
 
             <!-- Score Display -->
-            <div class="mt-12 text-center p-6 border border-gray-800 bg-[#151515] hidden" id="final-score-box">
-                <h3 class="text-2xl font-bold text-white mb-2">ASSESSMENT COMPLETE</h3>
-                <p class="text-gray-400">SCORE: <span id="score-display" class="text-accent text-3xl font-mono font-bold">0/10</span></p>
-                <button onclick="location.reload()" class="mt-6 px-6 py-2 bg-red-900 text-white font-bold hover:bg-red-800 transition border border-red-600">RESTART SIMULATION</button>
+            <div class="mt-12 text-center p-6 border border-gray-200 bg-white shadow-sm hidden" id="final-score-box">
+                <h3 class="text-2xl font-bold text-gray-900 mb-2">ASSESSMENT COMPLETE</h3>
+                <p class="text-gray-600">SCORE: <span id="score-display" class="text-accent text-3xl font-mono font-bold">0/10</span></p>
+                <button onclick="location.reload()" class="mt-6 px-6 py-2 bg-red-700 text-white font-bold hover:bg-red-800 transition border border-red-700">RESTART SIMULATION</button>
             </div>
         </section>
 
@@ -548,12 +505,12 @@
                 const questionHTML = `
                     <div class="cyber-card p-6 md:p-8" id="question-${index}">
                         <div class="flex justify-between items-start mb-4">
-                            <h4 class="text-lg md:text-xl font-bold text-white"><span class="text-accent">Q${q.id}.</span> ${q.scenario}</h4>
+                            <h4 class="text-lg md:text-xl font-bold text-gray-900"><span class="text-accent">Q${q.id}.</span> ${q.scenario}</h4>
                         </div>
                         
                         <div class="space-y-3">
                             ${q.options.map((opt, optIndex) => `
-                                <div class="quiz-option p-4 rounded text-gray-300 font-mono text-sm" 
+                                <div class="quiz-option p-4 rounded text-gray-700 font-mono text-sm" 
                                      onclick="checkAnswer(${index}, ${optIndex}, this)">
                                     ${opt}
                                 </div>

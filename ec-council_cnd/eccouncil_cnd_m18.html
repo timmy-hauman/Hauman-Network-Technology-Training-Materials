@@ -6,13 +6,17 @@
     <title>EC-Council CND 網路防禦課程: Module 18</title>
     <style>
         :root {
-            --bg-color: #111111;
-            --card-bg: #1a1a1a;
-            --text-color: #e0e0e0;
-            --accent-red: #FF0000;
-            --accent-dim: #550000;
-            --tech-cyan: #00f0ff; /* Secondary accent for data streams */
-            --border-color: #333;
+            --card-bg: #ffffff;
+            --text-color: #1e2235;
+            --text-dim: #5b6278;
+            --text-muted: #8a90a6;
+            --accent-red: #dc2626;
+            --accent-dark-red: #b91c1c;
+            --accent-red-tint: #fef2f2;
+            --tech-cyan: #0e7490; /* Secondary accent for data streams */
+            --tech-cyan-tint: #ecfeff;
+            --border-color: #e3e6f0;
+            --card-shadow: 0 4px 16px rgba(30, 34, 53, 0.06);
             --hud-font: 'Segoe UI', 'Roboto', Helvetica, Arial, sans-serif;
         }
 
@@ -23,54 +27,48 @@
         }
 
         body {
-            background-color: var(--bg-color);
             color: var(--text-color);
             font-family: var(--hud-font);
             line-height: 1.6;
             overflow-x: hidden;
-            background-image: 
-                linear-gradient(rgba(17, 17, 17, 0.95), rgba(17, 17, 17, 0.95)),
-                url('data:image/svg+xml;utf8,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><text x="10" y="20" font-family="monospace" font-size="10" fill="%23222">10110</text><text x="30" y="50" font-family="monospace" font-size="10" fill="%23222">01001</text></svg>');
         }
 
         /* --- Header & Typography --- */
+        /* 頁首:深色橫幅 (site-chrome.js 會換成品牌漸層) */
         header {
-            background: linear-gradient(180deg, #000 0%, var(--bg-color) 100%);
-            padding: 40px 20px;
+            background: #1e2235;
+            color: #ffffff;
+            padding: 48px 20px;
             text-align: center;
-            border-bottom: 2px solid var(--accent-red);
             position: relative;
-            box-shadow: 0 0 20px rgba(255, 0, 0, 0.2);
-        }
-
-        header::before {
-            content: "SECURE CONNECTION ESTABLISHED // MODULE 18";
-            position: absolute;
-            top: 10px;
-            left: 20px;
-            font-size: 0.7rem;
-            color: var(--accent-red);
-            letter-spacing: 2px;
-            animation: blink 2s infinite;
         }
 
         h1 {
             font-size: 2.5rem;
-            text-transform: uppercase;
-            font-weight: 800;
-            letter-spacing: 3px;
+            font-weight: 700;
+            letter-spacing: 1px;
             margin-bottom: 10px;
-            color: #fff;
-            text-shadow: 2px 2px 0px var(--accent-dim);
+            color: var(--text-color);
         }
 
         h1 span {
             color: var(--accent-red);
         }
 
+        header h1 {
+            color: #ffffff;
+        }
+
+        header h1 span {
+            color: #fecaca;
+        }
+
+        header p {
+            color: rgba(255, 255, 255, 0.85);
+        }
+
         h2, h3 {
-            text-transform: uppercase;
-            color: #fff;
+            color: var(--text-color);
             margin-bottom: 15px;
             border-left: 4px solid var(--accent-red);
             padding-left: 10px;
@@ -78,7 +76,7 @@
 
         p {
             margin-bottom: 1rem;
-            color: #bbb;
+            color: var(--text-dim);
         }
 
         .highlight {
@@ -89,7 +87,7 @@
         .tech-term {
             color: var(--tech-cyan);
             font-family: monospace;
-            background: rgba(0, 240, 255, 0.1);
+            background: var(--tech-cyan-tint);
             padding: 2px 4px;
             border-radius: 3px;
         }
@@ -112,16 +110,12 @@
         .card {
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
             padding: 25px;
             position: relative;
             transition: transform 0.3s, box-shadow 0.3s;
-            clip-path: polygon(
-                0 0, 
-                100% 0, 
-                100% calc(100% - 20px), 
-                calc(100% - 20px) 100%, 
-                0 100%
-            );
         }
 
         .card::before {
@@ -130,21 +124,29 @@
             top: 0;
             left: 0;
             width: 100%;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--accent-red), transparent);
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-red), #f87171);
         }
 
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            border-color: var(--accent-red);
+            box-shadow: 0 10px 24px rgba(30, 34, 53, 0.10);
+            border-color: #fecaca;
         }
 
         .card-icon {
-            font-size: 2rem;
-            margin-bottom: 15px;
-            color: var(--accent-red);
-            text-align: right;
+            float: right;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            background: var(--accent-red-tint);
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin: 0 0 10px 10px;
+            color: var(--accent-dark-red);
         }
 
         /* --- Tables --- */
@@ -153,30 +155,30 @@
             border-collapse: collapse;
             margin: 20px 0;
             font-size: 0.9rem;
-            background: #151515;
+            background: #ffffff;
         }
 
         .tech-table th, .tech-table td {
-            border: 1px solid #333;
+            border: 1px solid var(--border-color);
             padding: 12px;
             text-align: left;
         }
 
         .tech-table th {
-            background-color: #222;
-            color: var(--accent-red);
+            background-color: var(--accent-red-tint);
+            color: var(--accent-dark-red);
             text-transform: uppercase;
             font-size: 0.8rem;
         }
 
         .tech-table tr:hover {
-            background-color: #1e1e1e;
+            background-color: #f8f9fc;
         }
 
         /* --- Interactive Quiz Section --- */
         .quiz-section {
             margin-top: 60px;
-            border-top: 1px solid #333;
+            border-top: 1px solid var(--border-color);
             padding-top: 40px;
         }
 
@@ -186,18 +188,21 @@
         }
 
         .question-card {
-            background: #151515;
-            border: 1px solid #333;
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--accent-red);
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
             padding: 30px;
             margin-bottom: 30px;
             position: relative;
         }
-        
+
         .question-header {
             display: flex;
             justify-content: space-between;
             margin-bottom: 20px;
-            border-bottom: 1px dashed #444;
+            border-bottom: 1px dashed var(--border-color);
             padding-bottom: 10px;
         }
 
@@ -210,7 +215,7 @@
             font-size: 1.1rem;
             font-weight: bold;
             margin-bottom: 20px;
-            color: #fff;
+            color: var(--text-color);
         }
 
         .options {
@@ -220,9 +225,10 @@
         }
 
         .option-btn {
-            background: #222;
-            border: 1px solid #444;
-            color: #aaa;
+            background: #f8f9fc;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-dim);
             padding: 15px;
             text-align: left;
             cursor: pointer;
@@ -233,59 +239,56 @@
         }
 
         .option-btn:hover {
-            background: #2a2a2a;
-            border-color: #666;
-            color: #fff;
+            background: var(--accent-red-tint);
+            border-color: #fecaca;
+            color: var(--text-color);
         }
 
         .option-btn.correct {
-            background: rgba(0, 255, 0, 0.1);
-            border-color: #00ff00;
-            color: #00ff00;
+            background: #f0fdf4;
+            border-color: #15803d;
+            color: #15803d;
         }
 
         .option-btn.incorrect {
-            background: rgba(255, 0, 0, 0.1);
+            background: var(--accent-red-tint);
             border-color: var(--accent-red);
-            color: var(--accent-red);
+            color: var(--accent-dark-red);
         }
 
         .feedback {
             display: none;
             margin-top: 20px;
             padding: 15px;
-            background: #1a1a1a;
+            background: #f8f9fc;
             border-left: 3px solid var(--accent-red);
+            border-radius: 0 8px 8px 0;
             animation: slideDown 0.3s ease-out;
         }
 
         .feedback-title {
             font-weight: bold;
-            color: #fff;
+            color: var(--text-color);
             margin-bottom: 5px;
             display: block;
         }
-        
-        .feedback.correct-feedback {
-            border-color: #00ff00;
-        }
-        .feedback.correct-feedback .feedback-title { color: #00ff00; }
-        
-        .feedback.incorrect-feedback {
-            border-color: #ff0000;
-        }
-        .feedback.incorrect-feedback .feedback-title { color: #ff0000; }
 
-        /* --- Footer --- */
+        .feedback.correct-feedback {
+            border-color: #15803d;
+        }
+        .feedback.correct-feedback .feedback-title { color: #15803d; }
+
+        .feedback.incorrect-feedback {
+            border-color: var(--accent-red);
+        }
+        .feedback.incorrect-feedback .feedback-title { color: var(--accent-dark-red); }
+
+        /* --- Footer (配色由 site-theme.css 統一) --- */
         footer {
-            background-color: #000;
-            color: #555;
             text-align: center;
             padding: 20px 0;
             font-size: 0.8rem;
-            border-top: 1px solid #222;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -293,34 +296,18 @@
         }
 
         /* --- Animations --- */
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
         @keyframes slideDown {
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* --- HUD Decor --- */
-        .corner {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            border: 2px solid var(--accent-red);
-            transition: all 0.3s;
-        }
-        .top-left { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
-        .top-right { top: -1px; right: -1px; border-left: 0; border-bottom: 0; }
-        .bottom-left { bottom: -1px; left: -1px; border-right: 0; border-top: 0; }
-        .bottom-right { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
-
+        /* 原 HUD 角框裝飾,淺色版不顯示 */
+        .corner { display: none; }
     </style>
     <link rel="stylesheet" href="../assets/site-theme.css?v=20261112b">
     <script src="../assets/site-chrome.js?v=20261112b" defer></script>
 </head>
-<body class="hm-keep-dark">
+<body>
 
     <header>
         <h1>EC-Council <span>CND</span> 網路防禦課程</h1>
@@ -402,11 +389,11 @@
                 <h3>The Pyramid of Pain</h3>
                 <p>這是 <span class="highlight">David Bianco</span> 提出的概念，描述不同類型的 IoC 對攻擊者造成的「痛苦指數」。藍隊的目標是盡可能讓攻擊者感到痛苦。</p>
                 <ul style="list-style: none; padding: 0;">
-                    <li style="border-bottom: 1px solid #333; padding: 5px 0;">🔴 <strong>TTPs</strong> (最頂層 - Tough): 攻擊者的行為模式。如果我們能偵測並阻斷 TTPs，攻擊者必須重新訓練或發明新戰術。</li>
-                    <li style="border-bottom: 1px solid #333; padding: 5px 0;">🟠 <strong>Tools</strong>: 攻擊工具 (如 Mimikatz)。</li>
-                    <li style="border-bottom: 1px solid #333; padding: 5px 0;">🟡 <strong>Network/Host Artifacts</strong>: User-agent 字串、檔案路徑。</li>
-                    <li style="border-bottom: 1px solid #333; padding: 5px 0;">🟢 <strong>Domain Names</strong>: 惡意網域。</li>
-                    <li style="border-bottom: 1px solid #333; padding: 5px 0;">🔵 <strong>IP Addresses</strong>: 攻擊來源 IP。</li>
+                    <li style="border-bottom: 1px solid #e3e6f0; padding: 5px 0;">🔴 <strong>TTPs</strong> (最頂層 - Tough): 攻擊者的行為模式。如果我們能偵測並阻斷 TTPs，攻擊者必須重新訓練或發明新戰術。</li>
+                    <li style="border-bottom: 1px solid #e3e6f0; padding: 5px 0;">🟠 <strong>Tools</strong>: 攻擊工具 (如 Mimikatz)。</li>
+                    <li style="border-bottom: 1px solid #e3e6f0; padding: 5px 0;">🟡 <strong>Network/Host Artifacts</strong>: User-agent 字串、檔案路徑。</li>
+                    <li style="border-bottom: 1px solid #e3e6f0; padding: 5px 0;">🟢 <strong>Domain Names</strong>: 惡意網域。</li>
+                    <li style="border-bottom: 1px solid #e3e6f0; padding: 5px 0;">🔵 <strong>IP Addresses</strong>: 攻擊來源 IP。</li>
                     <li style="padding: 5px 0;">⚪ <strong>Hash Values</strong> (最底層 - Trivial): 檔案雜湊值。攻擊者只需改一個 bit 就能改變 Hash，對他們來說不痛不癢。</li>
                 </ul>
             </div>
@@ -553,7 +540,7 @@
                     <div class="corner bottom-left"></div><div class="corner bottom-right"></div>
                     <div class="question-header">
                         <span class="q-number">QUESTION ${index + 1}</span>
-                        <span style="color:#555">CND V2 MODULE 18</span>
+                        <span style="color:#8a90a6">CND V2 MODULE 18</span>
                     </div>
                     <div class="q-text">${item.q}</div>
                     <div class="options" id="opts-${index}"></div>

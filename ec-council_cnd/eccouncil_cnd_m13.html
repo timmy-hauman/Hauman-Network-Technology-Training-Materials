@@ -10,72 +10,47 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
-            --bg-dark: #111111;
-            --bg-panel: #1a1a1a;
-            --text-main: #e0e0e0;
-            --text-muted: #9ca3af;
-            --accent-red: #FF0000;
-            --accent-dark-red: #8b0000;
-            --tech-blue: #0ea5e9;
-            --border-color: #333333;
+            --bg-dark: transparent;
+            --bg-panel: #ffffff;
+            --text-main: #1e2235;
+            --text-muted: #5b6278;
+            --accent-red: #dc2626;
+            --accent-dark-red: #b91c1c;
+            --accent-dim: #fecaca;
+            --accent-tint: #fef2f2;
+            --tech-blue: #0891b2;
+            --border-color: #e3e6f0;
+            --card-shadow: 0 4px 16px rgba(30, 34, 53, .06);
         }
 
         body {
-            background-color: var(--bg-dark);
             color: var(--text-main);
-            font-family: 'Rajdhani', sans-serif;
-            background-image: 
-                linear-gradient(rgba(17, 17, 17, 0.95), rgba(17, 17, 17, 0.95)),
-                url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23222222' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
             overflow-x: hidden;
         }
 
-        h1, h2, h3, .hud-text {
-            font-family: 'Teko', sans-serif;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
+        h1, h2, h3, h4, h5 {
+            font-weight: 700;
+            line-height: 1.4;
         }
 
         .mono-font {
-            font-family: 'Roboto Mono', monospace;
+            font-family: 'JetBrains Mono', Consolas, monospace;
         }
 
-        /* Cyberpunk UI Elements */
+        /* Cards */
         .cyber-card {
             background-color: var(--bg-panel);
             border: 1px solid var(--border-color);
+            border-radius: 12px;
             position: relative;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
-        }
-
-        .cyber-card::before {
-            content: '';
-            position: absolute;
-            top: -1px;
-            left: -1px;
-            width: 20px;
-            height: 20px;
-            border-top: 2px solid var(--accent-red);
-            border-left: 2px solid var(--accent-red);
-            transition: all 0.3s ease;
-        }
-
-        .cyber-card::after {
-            content: '';
-            position: absolute;
-            bottom: -1px;
-            right: -1px;
-            width: 20px;
-            height: 20px;
-            border-bottom: 2px solid var(--accent-red);
-            border-right: 2px solid var(--accent-red);
-            transition: all 0.3s ease;
+            box-shadow: var(--card-shadow);
         }
 
         .cyber-card:hover {
-            box-shadow: 0 0 15px rgba(255, 0, 0, 0.2);
-            border-color: var(--accent-dark-red);
+            box-shadow: 0 8px 22px rgba(30, 34, 53, 0.10);
+            border-color: var(--accent-dim);
+            transform: translateY(-2px);
         }
 
         .section-header {
@@ -96,23 +71,23 @@
 
         /* Buttons */
         .btn-cyber {
-            background: transparent;
+            background: #ffffff;
             border: 1px solid var(--accent-red);
-            color: var(--accent-red);
+            color: var(--accent-dark-red);
             padding: 0.5rem 1.5rem;
-            font-family: 'Teko', sans-serif;
-            font-size: 1.2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
-            text-transform: uppercase;
         }
 
         .btn-cyber:hover {
             background: var(--accent-red);
-            color: #000;
-            box-shadow: 0 0 20px var(--accent-red);
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
         }
 
         .btn-option {
@@ -120,29 +95,30 @@
             text-align: left;
             padding: 1rem;
             margin-bottom: 0.5rem;
-            background: #222;
-            border: 1px solid #444;
-            color: #fff;
+            background: #f8f9fc;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-main);
             transition: all 0.2s;
             display: flex;
             align-items: flex-start;
         }
-        
+
         .btn-option:hover {
             border-color: var(--accent-red);
-            background: #2a2a2a;
+            background: var(--accent-tint);
         }
 
         .btn-option.selected-correct {
-            border-color: #00ff00;
-            background: rgba(0, 255, 0, 0.1);
-            color: #00ff00;
+            border-color: #15803d;
+            background: #f0fdf4;
+            color: #15803d;
         }
 
         .btn-option.selected-wrong {
             border-color: var(--accent-red);
-            background: rgba(255, 0, 0, 0.1);
-            color: var(--accent-red);
+            background: var(--accent-tint);
+            color: var(--accent-dark-red);
         }
 
         /* Grid specific */
@@ -152,39 +128,20 @@
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
         }
 
-        /* HUD Overlay styles */
         .hud-line {
             height: 1px;
-            background: rgba(255, 0, 0, 0.3);
+            background: var(--accent-dim);
             width: 100%;
             margin: 2rem 0;
         }
 
         .glowing-text {
-            text-shadow: 0 0 5px var(--accent-red);
-        }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #111;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #444;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--accent-red);
+            color: var(--accent-dark-red);
         }
 
         /* Footer */
         footer {
-            border-top: 1px solid var(--border-color);
-            background: #0a0a0a;
-            font-family: 'Roboto Mono', monospace;
             font-size: 0.8rem;
-            color: #666;
             text-align: center;
             padding: 1rem;
             margin-top: 4rem;
@@ -194,8 +151,9 @@
             display: none;
             margin-top: 1rem;
             padding: 1rem;
-            border: 1px dashed var(--accent-red);
-            background: rgba(255, 0, 0, 0.05);
+            border: 1px solid var(--accent-red);
+            border-radius: 8px;
+            background: #f8f9fc;
         }
 
         .raid-box {
@@ -206,30 +164,30 @@
         .disk {
             width: 30px;
             height: 40px;
-            background: #333;
-            border: 1px solid #555;
+            background: #f1f3f9;
+            border: 1px solid #c5cad8;
+            border-radius: 4px;
             display: grid;
             place-items: center;
             font-size: 0.7rem;
-            color: #fff;
+            color: var(--text-main);
         }
-        .disk.parity { border-color: var(--tech-blue); color: var(--tech-blue); }
-        .disk.mirror { border-color: #00ff00; color: #00ff00; }
-        
+        .disk.parity { border-color: var(--tech-blue); color: #0e7490; background: #ecfeff; }
+        .disk.mirror { border-color: #15803d; color: #15803d; background: #f0fdf4; }
     </style>
     <link rel="stylesheet" href="../assets/site-theme.css?v=20261112b">
     <script src="../assets/site-chrome.js?v=20261112b" defer></script>
 </head>
-<body class="hm-keep-dark antialiased">
+<body class="antialiased">
 
     <!-- HUD Header -->
-    <header class="fixed top-0 w-full z-50 bg-[#111111]/90 backdrop-blur-md border-b border-red-900/50">
+    <header class="sticky top-0 w-full z-50 bg-[#1e2235] border-b border-red-900/50">
         <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center gap-3">
                 <svg class="w-8 h-8 text-red-600 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
                 <div class="leading-tight">
-                    <h1 class="text-xl font-bold text-white tracking-widest">EC-COUNCIL <span class="text-[#FF0000]">CND</span></h1>
-                    <p class="text-xs text-gray-500 font-mono tracking-wider">CERTIFIED NETWORK DEFENDER v2</p>
+                    <h1 class="text-xl font-bold text-white tracking-widest">EC-COUNCIL <span class="text-red-300">CND</span></h1>
+                    <p class="text-xs text-white/70 font-mono tracking-wider">CERTIFIED NETWORK DEFENDER v2</p>
                 </div>
             </div>
             <div class="hidden md:block">
@@ -239,120 +197,120 @@
     </header>
 
     <!-- Main Container -->
-    <main class="max-w-7xl mx-auto px-4 pt-24 pb-12">
+    <main class="max-w-7xl mx-auto px-4 pt-10 pb-12">
 
         <!-- Module Intro -->
         <section class="mb-16">
-            <div class="border border-red-900/30 bg-gradient-to-r from-red-900/10 to-transparent p-8 rounded-sm">
-                <h2 class="text-4xl mb-4 text-white"><span class="text-[#FF0000]">MODULE 13</span> Data Backup & Recovery</h2>
-                <p class="text-lg text-gray-300 max-w-4xl font-light">
-                    作為網路防禦者 (Network Defender)，我們的職責不僅是防止攻擊，還必須確保在攻擊發生後（如 Ransomware 勒索軟體事件）或硬體故障時，組織能夠存活並恢復運作。本模組聚焦於 CIA 三角中的 <span class="text-[#FF0000] font-bold">可用性 (Availability)</span>。
+            <div class="bg-white border border-red-200 bg-gradient-to-r from-red-50 to-white shadow-sm p-8 rounded-sm">
+                <h2 class="text-4xl mb-4 text-gray-900"><span class="text-red-600">MODULE 13</span> Data Backup & Recovery</h2>
+                <p class="text-lg text-gray-700 max-w-4xl font-light">
+                    作為網路防禦者 (Network Defender)，我們的職責不僅是防止攻擊，還必須確保在攻擊發生後（如 Ransomware 勒索軟體事件）或硬體故障時，組織能夠存活並恢復運作。本模組聚焦於 CIA 三角中的 <span class="text-red-600 font-bold">可用性 (Availability)</span>。
                 </p>
             </div>
         </section>
 
         <!-- Topic 1: Backup Strategy -->
         <section class="mb-16">
-            <h3 class="section-header text-2xl text-white">1. 資料備份策略 (Backup Strategies)</h3>
+            <h3 class="section-header text-2xl text-gray-900">1. 資料備份策略 (Backup Strategies)</h3>
             <div class="grid md:grid-cols-3 gap-6">
                 <!-- Full Backup -->
                 <article class="cyber-card p-6">
-                    <h4 class="text-xl text-[#FF0000] mb-2 font-bold">Full Backup (完整備份)</h4>
-                    <p class="text-sm text-gray-400 mb-4">備份所有選定的資料。</p>
-                    <ul class="text-sm space-y-2 text-gray-300 list-disc list-inside">
-                        <li><strong class="text-white">優點：</strong> 復原速度最快 (只需載入最近一次備份)。</li>
-                        <li><strong class="text-white">缺點：</strong> 備份時間最久，佔用最多儲存空間。</li>
-                        <li><strong class="text-white">重設 Archive Bit：</strong> 是 (Yes)。</li>
+                    <h4 class="text-xl text-red-600 mb-2 font-bold">Full Backup (完整備份)</h4>
+                    <p class="text-sm text-gray-600 mb-4">備份所有選定的資料。</p>
+                    <ul class="text-sm space-y-2 text-gray-700 list-disc list-inside">
+                        <li><strong class="text-gray-900">優點：</strong> 復原速度最快 (只需載入最近一次備份)。</li>
+                        <li><strong class="text-gray-900">缺點：</strong> 備份時間最久，佔用最多儲存空間。</li>
+                        <li><strong class="text-gray-900">重設 Archive Bit：</strong> 是 (Yes)。</li>
                     </ul>
                 </article>
 
                 <!-- Differential Backup -->
                 <article class="cyber-card p-6">
-                    <h4 class="text-xl text-[#FF0000] mb-2 font-bold">Differential Backup (差異備份)</h4>
-                    <p class="text-sm text-gray-400 mb-4">備份自「上一次完整備份」後變更的資料。</p>
-                    <ul class="text-sm space-y-2 text-gray-300 list-disc list-inside">
-                        <li><strong class="text-white">優點：</strong> 復原速度中等 (需要 Full + 最近一次 Diff)。</li>
-                        <li><strong class="text-white">缺點：</strong> 隨著時間推移，備份檔會越來越大。</li>
-                        <li><strong class="text-white">重設 Archive Bit：</strong> 否 (No)。</li>
+                    <h4 class="text-xl text-red-600 mb-2 font-bold">Differential Backup (差異備份)</h4>
+                    <p class="text-sm text-gray-600 mb-4">備份自「上一次完整備份」後變更的資料。</p>
+                    <ul class="text-sm space-y-2 text-gray-700 list-disc list-inside">
+                        <li><strong class="text-gray-900">優點：</strong> 復原速度中等 (需要 Full + 最近一次 Diff)。</li>
+                        <li><strong class="text-gray-900">缺點：</strong> 隨著時間推移，備份檔會越來越大。</li>
+                        <li><strong class="text-gray-900">重設 Archive Bit：</strong> 否 (No)。</li>
                     </ul>
                 </article>
 
                 <!-- Incremental Backup -->
                 <article class="cyber-card p-6">
-                    <h4 class="text-xl text-[#FF0000] mb-2 font-bold">Incremental Backup (增量備份)</h4>
-                    <p class="text-sm text-gray-400 mb-4">備份自「上一次備份 (無論全備或增量)」後變更的資料。</p>
-                    <ul class="text-sm space-y-2 text-gray-300 list-disc list-inside">
-                        <li><strong class="text-white">優點：</strong> 備份最快，空間最省。</li>
-                        <li><strong class="text-white">缺點：</strong> 復原最慢 (需要 Full + 每一份 Inc)。</li>
-                        <li><strong class="text-white">重設 Archive Bit：</strong> 是 (Yes)。</li>
+                    <h4 class="text-xl text-red-600 mb-2 font-bold">Incremental Backup (增量備份)</h4>
+                    <p class="text-sm text-gray-600 mb-4">備份自「上一次備份 (無論全備或增量)」後變更的資料。</p>
+                    <ul class="text-sm space-y-2 text-gray-700 list-disc list-inside">
+                        <li><strong class="text-gray-900">優點：</strong> 備份最快，空間最省。</li>
+                        <li><strong class="text-gray-900">缺點：</strong> 復原最慢 (需要 Full + 每一份 Inc)。</li>
+                        <li><strong class="text-gray-900">重設 Archive Bit：</strong> 是 (Yes)。</li>
                     </ul>
                 </article>
             </div>
             
-            <div class="mt-6 bg-[#1a1a1a] p-4 border border-gray-700">
-                <h4 class="text-white font-bold mb-2">🛡️ CND 實戰準則：3-2-1 備份原則</h4>
-                <p class="text-gray-400 text-sm font-mono">
-                    <span class="text-[#FF0000]">3</span> Copies of Data (3 份資料副本：原件+2備份)<br>
-                    <span class="text-[#FF0000]">2</span> Different Media (2 種不同介質：如 NAS + Tape/Cloud)<br>
-                    <span class="text-[#FF0000]">1</span> Offsite (1 份異地保存：防止火災或物理破壞)<br>
-                    <span class="text-blue-400 block mt-1">* 針對 Ransomware，建議增加 "1 Offline" (離線冷備份)。</span>
+            <div class="mt-6 bg-white p-4 border border-gray-200">
+                <h4 class="text-gray-900 font-bold mb-2">🛡️ CND 實戰準則：3-2-1 備份原則</h4>
+                <p class="text-gray-600 text-sm font-mono">
+                    <span class="text-red-600">3</span> Copies of Data (3 份資料副本：原件+2備份)<br>
+                    <span class="text-red-600">2</span> Different Media (2 種不同介質：如 NAS + Tape/Cloud)<br>
+                    <span class="text-red-600">1</span> Offsite (1 份異地保存：防止火災或物理破壞)<br>
+                    <span class="text-cyan-700 block mt-1">* 針對 Ransomware，建議增加 "1 Offline" (離線冷備份)。</span>
                 </p>
             </div>
         </section>
 
         <!-- Topic 2: RAID -->
         <section class="mb-16">
-            <h3 class="section-header text-2xl text-white">2. RAID (Redundant Array of Independent Disks)</h3>
-            <p class="text-gray-400 mb-6">RAID 不是備份，而是<span class="text-white font-bold">容錯 (Fault Tolerance)</span>機制。它保證硬碟損壞時服務不中斷。</p>
+            <h3 class="section-header text-2xl text-gray-900">2. RAID (Redundant Array of Independent Disks)</h3>
+            <p class="text-gray-600 mb-6">RAID 不是備份，而是<span class="text-gray-900 font-bold">容錯 (Fault Tolerance)</span>機制。它保證硬碟損壞時服務不中斷。</p>
             
             <div class="data-grid">
                 <!-- RAID 0 -->
                 <div class="cyber-card p-5">
                     <div class="flex justify-between items-center mb-2">
                         <h4 class="font-bold text-lg">RAID 0 (Striping)</h4>
-                        <span class="text-xs bg-red-900 text-white px-2 py-1">無容錯</span>
+                        <span class="text-xs bg-red-700 text-white px-2 py-1">無容錯</span>
                     </div>
                     <div class="raid-box mb-4 justify-center">
                         <div class="disk">D1</div><div class="disk">D2</div>
                     </div>
-                    <p class="text-sm text-gray-400">資料分散寫入。效能最高，但任一顆壞掉則資料全毀。</p>
+                    <p class="text-sm text-gray-600">資料分散寫入。效能最高，但任一顆壞掉則資料全毀。</p>
                 </div>
 
                 <!-- RAID 1 -->
                 <div class="cyber-card p-5">
                     <div class="flex justify-between items-center mb-2">
                         <h4 class="font-bold text-lg">RAID 1 (Mirroring)</h4>
-                        <span class="text-xs bg-green-900 text-white px-2 py-1">高容錯</span>
+                        <span class="text-xs bg-green-700 text-white px-2 py-1">高容錯</span>
                     </div>
                     <div class="raid-box mb-4 justify-center">
                         <div class="disk mirror">D1</div><div class="disk mirror">D1</div>
                     </div>
-                    <p class="text-sm text-gray-400">資料鏡像複製。成本高 (50% 空間利用率)，讀取快，寫入稍慢。</p>
+                    <p class="text-sm text-gray-600">資料鏡像複製。成本高 (50% 空間利用率)，讀取快，寫入稍慢。</p>
                 </div>
 
                 <!-- RAID 5 -->
                 <div class="cyber-card p-5">
                     <div class="flex justify-between items-center mb-2">
                         <h4 class="font-bold text-lg">RAID 5 (Parity)</h4>
-                        <span class="text-xs bg-blue-900 text-white px-2 py-1">最常用</span>
+                        <span class="text-xs bg-blue-700 text-white px-2 py-1">最常用</span>
                     </div>
                     <div class="raid-box mb-4 justify-center">
                         <div class="disk">D1</div><div class="disk">D2</div><div class="disk parity">P</div>
                     </div>
-                    <p class="text-sm text-gray-400">分散同位元檢查 (Distributed Parity)。至少 3 顆硬碟，容許壞 1 顆。</p>
+                    <p class="text-sm text-gray-600">分散同位元檢查 (Distributed Parity)。至少 3 顆硬碟，容許壞 1 顆。</p>
                 </div>
 
                 <!-- RAID 10 -->
                 <div class="cyber-card p-5">
                     <div class="flex justify-between items-center mb-2">
                         <h4 class="font-bold text-lg">RAID 10 (1+0)</h4>
-                        <span class="text-xs bg-purple-900 text-white px-2 py-1">高效能+高容錯</span>
+                        <span class="text-xs bg-purple-700 text-white px-2 py-1">高效能+高容錯</span>
                     </div>
                     <div class="raid-box mb-4 justify-center">
-                        <div class="p-1 border border-gray-600 flex gap-1"><div class="disk">A</div><div class="disk mirror">A</div></div>
-                        <div class="p-1 border border-gray-600 flex gap-1"><div class="disk">B</div><div class="disk mirror">B</div></div>
+                        <div class="p-1 border border-gray-300 flex gap-1"><div class="disk">A</div><div class="disk mirror">A</div></div>
+                        <div class="p-1 border border-gray-300 flex gap-1"><div class="disk">B</div><div class="disk mirror">B</div></div>
                     </div>
-                    <p class="text-sm text-gray-400">先鏡像再分條。至少 4 顆硬碟，成本最高但效能與安全性最佳。</p>
+                    <p class="text-sm text-gray-600">先鏡像再分條。至少 4 顆硬碟，成本最高但效能與安全性最佳。</p>
                 </div>
             </div>
         </section>
@@ -362,47 +320,47 @@
             <div class="grid md:grid-cols-2 gap-8">
                 <!-- Storage Types -->
                 <div>
-                    <h3 class="section-header text-2xl text-white">3. 儲存架構 (Storage Types)</h3>
+                    <h3 class="section-header text-2xl text-gray-900">3. 儲存架構 (Storage Types)</h3>
                     <div class="space-y-4">
                         <div class="cyber-card p-4">
-                            <h5 class="text-[#FF0000] font-bold">DAS (Direct Attached Storage)</h5>
-                            <p class="text-sm text-gray-400">直接連接主機 (如 USB 硬碟、伺服器內接硬碟)。成本低，難以共享。</p>
+                            <h5 class="text-red-600 font-bold">DAS (Direct Attached Storage)</h5>
+                            <p class="text-sm text-gray-600">直接連接主機 (如 USB 硬碟、伺服器內接硬碟)。成本低，難以共享。</p>
                         </div>
                         <div class="cyber-card p-4">
-                            <h5 class="text-[#FF0000] font-bold">NAS (Network Attached Storage)</h5>
-                            <p class="text-sm text-gray-400">檔案層級 (File-level) 存取。透過 IP 網路 (TCP/IP)。<br>協議：<span class="text-white">NFS (Linux), CIFS/SMB (Windows)</span>。</p>
+                            <h5 class="text-red-600 font-bold">NAS (Network Attached Storage)</h5>
+                            <p class="text-sm text-gray-600">檔案層級 (File-level) 存取。透過 IP 網路 (TCP/IP)。<br>協議：<span class="text-gray-900">NFS (Linux), CIFS/SMB (Windows)</span>。</p>
                         </div>
                         <div class="cyber-card p-4">
-                            <h5 class="text-[#FF0000] font-bold">SAN (Storage Area Network)</h5>
-                            <p class="text-sm text-gray-400">區塊層級 (Block-level) 存取。高效能專用網路。<br>協議：<span class="text-white">Fibre Channel (FC), iSCSI</span>。</p>
+                            <h5 class="text-red-600 font-bold">SAN (Storage Area Network)</h5>
+                            <p class="text-sm text-gray-600">區塊層級 (Block-level) 存取。高效能專用網路。<br>協議：<span class="text-gray-900">Fibre Channel (FC), iSCSI</span>。</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- BC/DR Concepts -->
                 <div>
-                    <h3 class="section-header text-2xl text-white">4. 災難復原指標 (BC/DR Metrics)</h3>
-                    <div class="bg-[#1a1a1a] border border-gray-700 p-6 h-full relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-red-900/10 rounded-full blur-3xl"></div>
+                    <h3 class="section-header text-2xl text-gray-900">4. 災難復原指標 (BC/DR Metrics)</h3>
+                    <div class="bg-white border border-gray-200 p-6 h-full relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-red-100/60 rounded-full blur-3xl"></div>
                         
                         <div class="mb-6">
-                            <h5 class="text-white text-xl font-bold mb-1">RPO (Recovery Point Objective)</h5>
-                            <p class="text-xs text-[#FF0000] uppercase tracking-wider mb-2">資料遺失容忍度</p>
-                            <p class="text-sm text-gray-400">"我們能容忍遺失多少資料？" 決定了<span class="text-white">備份的頻率</span>。如果 RPO 是 1 小時，你必須每小時備份一次。</p>
+                            <h5 class="text-gray-900 text-xl font-bold mb-1">RPO (Recovery Point Objective)</h5>
+                            <p class="text-xs text-red-600 uppercase tracking-wider mb-2">資料遺失容忍度</p>
+                            <p class="text-sm text-gray-600">"我們能容忍遺失多少資料？" 決定了<span class="text-gray-900">備份的頻率</span>。如果 RPO 是 1 小時，你必須每小時備份一次。</p>
                         </div>
 
                         <div class="mb-6">
-                            <h5 class="text-white text-xl font-bold mb-1">RTO (Recovery Time Objective)</h5>
-                            <p class="text-xs text-[#FF0000] uppercase tracking-wider mb-2">停機時間容忍度</p>
-                            <p class="text-sm text-gray-400">"系統崩潰後，多久必須恢復運作？" 決定了<span class="text-white">復原方案的成本</span> (如 Hot Site vs Cold Site)。</p>
+                            <h5 class="text-gray-900 text-xl font-bold mb-1">RTO (Recovery Time Objective)</h5>
+                            <p class="text-xs text-red-600 uppercase tracking-wider mb-2">停機時間容忍度</p>
+                            <p class="text-sm text-gray-600">"系統崩潰後，多久必須恢復運作？" 決定了<span class="text-gray-900">復原方案的成本</span> (如 Hot Site vs Cold Site)。</p>
                         </div>
 
-                        <div class="border-t border-gray-700 pt-4">
-                            <h5 class="text-white font-bold mb-2">備援站點 (Recovery Sites)</h5>
-                            <ul class="text-sm text-gray-400 space-y-2">
-                                <li><span class="text-red-500">Hot Site:</span> 設備齊全，資料即時同步，可立即切換 (最貴)。</li>
-                                <li><span class="text-yellow-500">Warm Site:</span> 有設備，但資料需要時間回存 (數小時至一天)。</li>
-                                <li><span class="text-blue-500">Cold Site:</span> 只有空間與電源，需自行架設設備 (最便宜，復原最慢)。</li>
+                        <div class="border-t border-gray-200 pt-4">
+                            <h5 class="text-gray-900 font-bold mb-2">備援站點 (Recovery Sites)</h5>
+                            <ul class="text-sm text-gray-600 space-y-2">
+                                <li><span class="text-red-700">Hot Site:</span> 設備齊全，資料即時同步，可立即切換 (最貴)。</li>
+                                <li><span class="text-amber-700">Warm Site:</span> 有設備，但資料需要時間回存 (數小時至一天)。</li>
+                                <li><span class="text-cyan-700">Cold Site:</span> 只有空間與電源，需自行架設設備 (最便宜，復原最慢)。</li>
                             </ul>
                         </div>
                     </div>
@@ -413,8 +371,8 @@
         <!-- QUIZ SECTION -->
         <section id="quiz-section" class="mt-20">
             <div class="flex items-center gap-4 mb-8">
-                <div class="h-1 bg-[#FF0000] w-12"></div>
-                <h2 class="text-3xl text-white">TACTICAL SIMULATION <span class="text-gray-600 text-xl block md:inline font-mono">// 實戰模擬測驗</span></h2>
+                <div class="h-1 bg-red-600 w-12"></div>
+                <h2 class="text-3xl text-gray-900">TACTICAL SIMULATION <span class="text-gray-600 text-xl block md:inline font-mono">// 實戰模擬測驗</span></h2>
             </div>
 
             <div class="space-y-8" id="quiz-container">
@@ -428,9 +386,9 @@
     <footer>
         <div class="container mx-auto flex justify-center items-center gap-4 text-xs md:text-sm tracking-wide">
             <span>Planning & Design by Timmy(timmyc@hauman.com.tw)</span>
-            <span class="text-[#FF0000]">|</span>
+            <span class="text-red-600">|</span>
             <span>豪勉科技 Hauman Technologies Corporation</span>
-            <span class="text-[#FF0000]">|</span>
+            <span class="text-red-600">|</span>
             <span>Ver 2.0</span>
         </div>
     </footer>
@@ -566,11 +524,11 @@
             const questionCard = document.createElement('div');
             questionCard.className = 'cyber-card p-6';
             questionCard.innerHTML = `
-                <div class="flex justify-between mb-4 border-b border-gray-700 pb-2">
-                    <span class="text-[#FF0000] font-bold text-xl">QUESTION ${q.id}</span>
+                <div class="flex justify-between mb-4 border-b border-gray-200 pb-2">
+                    <span class="text-red-600 font-bold text-xl">QUESTION ${q.id}</span>
                     <span class="text-xs text-gray-500 font-mono">SCENARIO MODE</span>
                 </div>
-                <p class="text-lg text-white mb-6 font-medium">${q.question}</p>
+                <p class="text-lg text-gray-900 mb-6 font-medium">${q.question}</p>
                 <div class="space-y-2">
                     ${q.options.map((opt, i) => `
                         <button class="btn-option font-mono text-sm" onclick="checkAnswer(${q.id}, ${i}, this)">
@@ -579,8 +537,8 @@
                     `).join('')}
                 </div>
                 <div id="feedback-${q.id}" class="answer-box">
-                    <h5 class="text-white font-bold mb-1 status-text"></h5>
-                    <p class="text-gray-300 text-sm leading-relaxed">${q.explanation}</p>
+                    <h5 class="text-gray-900 font-bold mb-1 status-text"></h5>
+                    <p class="text-gray-700 text-sm leading-relaxed">${q.explanation}</p>
                 </div>
             `;
             quizContainer.appendChild(questionCard);
@@ -604,15 +562,15 @@
             if (selectedIndex === question.correct) {
                 // Correct
                 btnElement.classList.add('selected-correct');
-                statusText.innerHTML = '<span class="text-green-500">✅ CORRECT [存取授權允許]</span>';
-                feedbackBox.style.borderColor = '#00ff00';
+                statusText.innerHTML = '<span class="text-green-700">✅ CORRECT [存取授權允許]</span>';
+                feedbackBox.style.borderColor = '#15803d';
             } else {
                 // Wrong
                 btnElement.classList.add('selected-wrong');
                 // Highlight the correct one
                 allBtns[question.correct].classList.add('selected-correct');
-                statusText.innerHTML = '<span class="text-[#FF0000]">❌ INCORRECT [存取被拒絕]</span>';
-                feedbackBox.style.borderColor = '#FF0000';
+                statusText.innerHTML = '<span class="text-red-600">❌ INCORRECT [存取被拒絕]</span>';
+                feedbackBox.style.borderColor = '#dc2626';
             }
         }
     </script>
