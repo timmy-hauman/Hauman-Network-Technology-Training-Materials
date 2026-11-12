@@ -138,6 +138,9 @@
             margin-top: 4rem;
         }
     </style>
+    <!-- 教學網站共用外觀 -->
+    <link rel="stylesheet" href="../assets/site-theme.css?v=20261112">
+    <script src="../assets/site-chrome.js?v=20261112" defer></script>
 </head>
 <body class="antialiased">
 
@@ -389,7 +392,7 @@ end
                 <span class="bg-green-100 text-green-800 text-sm font-semibold mr-2 px-2.5 py-0.5 rounded">Visuals</span>
                 四、架構視覺化
             </h2>
-            <p class="mb-4 text-gray-600">使用 Mermaid 語法展示物件組成與封包決策流程。</p>
+            <p class="mb-4 text-gray-600">以圖示展示物件組成與封包決策流程。</p>
 
             <div class="space-y-8">
                 <!-- 圖表 1: 物件與策略關係 -->
@@ -397,36 +400,55 @@ end
                     <h3 class="text-lg font-bold text-gray-700 mb-2">1. 物件與策略的關係 (Object Composition)</h3>
                     <p class="text-sm text-gray-500 mb-2">展示 Address/Service 物件如何被 Policy 引用。</p>
                     <div class="mermaid-container">
-                        <div class="mermaid">
-graph TD
-    classDef obj fill:#f3f4f6,stroke:#4b5563,stroke-width:1px;
-    classDef policy fill:#fee2e2,stroke:#b91c1c,stroke-width:2px;
-
-    subgraph Address_Objects [位址物件庫]
-        direction TB
-        A1[HR_PC: 192.168.1.10]:::obj
-        A2[IT_Admin: 10.0.0.5]:::obj
-        A3[Server_Farm: 172.16.1.0/24]:::obj
-    end
-    
-    subgraph Service_Objects [服務物件庫]
-        direction TB
-        S1[Web: TCP 80/443]:::obj
-        S2[SSH: TCP 22]:::obj
-    end
-
-    subgraph Firewall_Policy [防火牆策略規則]
-        direction TB
-        P1[Policy 1: IT to Server<br/>Action: Allow]:::policy
-        P2[Policy 2: HR to Web<br/>Action: Allow]:::policy
-    end
-
-    A2 --> P1
-    A3 --> P1
-    S2 --> P1
-    
-    A1 --> P2
-    S1 --> P2
+                        <!-- 關係圖 (手繪 SVG):位址 / 服務物件被 Policy 引用 -->
+                        <div style="width:100%;overflow-x:auto">
+                        <svg viewBox="0 0 800 384" role="img" aria-labelledby="fg03a-title fg03a-desc" style="width:100%;min-width:560px;max-width:800px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+                        <title id="fg03a-title">物件與策略的關係 (Object Composition)</title>
+                        <desc id="fg03a-desc">位址物件庫有 HR_PC: 192.168.1.10、IT_Admin: 10.0.0.5、Server_Farm: 172.16.1.0/24;服務物件庫有 Web: TCP 80/443 與 SSH: TCP 22。防火牆策略規則 Policy 1: IT to Server (Action: Allow) 以 IT_Admin 為來源、Server_Farm 為目的,服務為 SSH;Policy 2: HR to Web (Action: Allow) 以 HR_PC 為來源、目的為 all (外部網站),服務為 Web。實際建立 Policy 時還需指定進入與送出介面。</desc>
+                        <defs><linearGradient id="fg03a-pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7e57c2"/><stop offset="1" stop-color="#311b92"/></linearGradient><filter id="fg03a-sh" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#311b92" flood-opacity="0.16"/></filter><marker id="fg03a-arr" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5b6278"/></marker></defs>
+                        <rect x="20" y="20" width="250" height="280" rx="16" fill="#effafc" stroke="#67c5d6" stroke-width="1.5" stroke-dasharray="6 5"/>
+                        <text x="40" y="46" font-size="13" font-weight="700" fill="#0891b2">位址物件庫</text>
+                        <rect x="310" y="20" width="220" height="280" rx="16" fill="#f6f2fe" stroke="#b39ddb" stroke-width="1.5" stroke-dasharray="6 5"/>
+                        <text x="330" y="46" font-size="13" font-weight="700" fill="#673ab7">防火牆策略規則</text>
+                        <rect x="570" y="20" width="210" height="280" rx="16" fill="#fffbeb" stroke="#f5b041" stroke-width="1.5" stroke-dasharray="6 5"/>
+                        <text x="590" y="46" font-size="13" font-weight="700" fill="#b45309">服務物件庫</text>
+                        <path d="M250 93 H328" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#fg03a-arr)"/><text x="289" y="86" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="10.5" font-weight="700" fill="#0e7490">Src</text>
+                        <path d="M250 151 H328" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#fg03a-arr)"/><text x="289" y="144" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="10.5" font-weight="700" fill="#0e7490">Dst</text>
+                        <path d="M250 251 H328" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#fg03a-arr)"/><text x="289" y="244" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="10.5" font-weight="700" fill="#0e7490">Src</text>
+                        <path d="M595 122 H512" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#fg03a-arr)"/><text x="553" y="115" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="10.5" font-weight="700" fill="#b45309">Service</text>
+                        <path d="M595 251 H512" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#fg03a-arr)"/><text x="553" y="244" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="10.5" font-weight="700" fill="#b45309">Service</text>
+                        <g filter="url(#fg03a-sh)"><rect x="40" y="70" width="210" height="46" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/></g>
+                        <text x="145.0" y="89" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">IT_Admin:</text>
+                        <text x="145.0" y="106" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#5b6278">10.0.0.5</text>
+                        <g filter="url(#fg03a-sh)"><rect x="40" y="128" width="210" height="46" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/></g>
+                        <text x="145.0" y="147" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">Server_Farm:</text>
+                        <text x="145.0" y="164" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#5b6278">172.16.1.0/24</text>
+                        <g filter="url(#fg03a-sh)"><rect x="40" y="228" width="210" height="46" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/></g>
+                        <text x="145.0" y="247" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">HR_PC:</text>
+                        <text x="145.0" y="264" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#5b6278">192.168.1.10</text>
+                        <g filter="url(#fg03a-sh)"><rect x="595" y="99" width="165" height="46" rx="10" fill="#fff" stroke="#d97706" stroke-width="2"/></g>
+                        <text x="677.5" y="118" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">SSH:</text>
+                        <text x="677.5" y="135" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#5b6278">TCP 22</text>
+                        <g filter="url(#fg03a-sh)"><rect x="595" y="228" width="165" height="46" rx="10" fill="#fff" stroke="#d97706" stroke-width="2"/></g>
+                        <text x="677.5" y="247" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">Web:</text>
+                        <text x="677.5" y="264" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#5b6278">TCP 80/443</text>
+                        <g filter="url(#fg03a-sh)"><rect x="330" y="82" width="180" height="80" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/></g>
+                        <text x="420" y="116" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">Policy 1: IT to Server</text>
+                        <text x="420" y="138" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#15803d">Action: Allow</text>
+                        <g filter="url(#fg03a-sh)"><rect x="330" y="211" width="180" height="80" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/></g>
+                        <text x="420" y="237" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">Policy 2: HR to Web</text><text x="420" y="256" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#5b6278">Dst: all (外部網站)</text>
+                        <text x="420" y="275" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#15803d">Action: Allow</text>
+                        <g font-size="12" fill="#5b6278">
+                        <rect x="150" y="326" width="22" height="14" rx="3" fill="#fff" stroke="#0891b2" stroke-width="2"/>
+                        <text x="180" y="337" font-size="12" fill="#5b6278">位址物件</text>
+                        <rect x="270" y="326" width="22" height="14" rx="3" fill="#fff" stroke="#d97706" stroke-width="2"/>
+                        <text x="300" y="337" font-size="12" fill="#5b6278">服務物件</text>
+                        <rect x="390" y="326" width="22" height="14" rx="3" fill="#fff" stroke="#673ab7" stroke-width="2"/>
+                        <text x="420" y="337" font-size="12" fill="#5b6278">策略規則</text>
+                        <line x1="510" y1="333" x2="540" y2="333" stroke="#5b6278" stroke-width="2.2" marker-end="url(#fg03a-arr)"/>
+                        <text x="548" y="337" font-size="12" fill="#5b6278">物件被 Policy 引用</text><text x="400" y="370" text-anchor="middle" font-size="11" fill="#6b7280">* 實際建立 Policy 時,還需指定進入與送出介面 (Incoming / Outgoing Interface)。</text>
+                        </g>
+                        </svg>
                         </div>
                     </div>
                 </div>
@@ -436,7 +458,7 @@ graph TD
                     <h3 class="text-lg font-bold text-gray-700 mb-2">2. 封包匹配流程 (Matching Logic)</h3>
                     <p class="text-sm text-gray-500 mb-2">由上而下的決策過程。</p>
                     <div class="mermaid-container">
-                        <div class="mermaid">
+                        <!-- 時序圖 (由 Mermaid 10.9.1 預先轉成靜態 SVG,套用網站配色)。原始 Mermaid 碼:
 sequenceDiagram
     participant Packet as 封包 (Packet)
     participant Policy1 as Policy 1 (Specific)
@@ -445,18 +467,20 @@ sequenceDiagram
 
     Packet->>Policy1: 檢查條件 (Src, Dst, Svc)
     alt 符合 Policy 1 ?
-        Policy1-->>Packet: 符合! 執行動作 (Allow/Deny)
+        Policy1--&gt;>Packet: 符合! 執行動作 (Allow/Deny)
         Note right of Policy1: 停止搜尋 (Stop)
     else 不符合
         Packet->>Policy2: 繼續檢查下一條
         alt 符合 Policy 2 ?
-            Policy2-->>Packet: 符合! 執行動作
+            Policy2--&gt;>Packet: 符合! 執行動作
         else 不符合
             Packet->>Implicit: 落入最後一條
-            Implicit-->>Packet: DROP (丟棄)
+            Implicit--&gt;>Packet: DROP (丟棄)
         end
     end
-                        </div>
+                        
+                        -->
+                        <div style="width:100%;overflow-x:auto"><svg xmlns="http://www.w3.org/2000/svg" aria-roledescription="sequence" role="img" viewBox="-50 -10 1056.5 707" style="width:100%;min-width:560px;max-width:1057px;height:auto;display:block;margin:0 auto" id="seq-fortigate03-2" aria-labelledby="seq-fortigate03-2-title"><title id="seq-fortigate03-2-title">2. 封包匹配流程 (Matching Logic)</title><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="881.5" y1="5" x1="881.5"/><g><rect class="actor actor-top" ry="3" rx="3" name="Implicit" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="806.5"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="881.5"><tspan dy="0" x="881.5">Implicit Deny</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="637.5" y1="5" x1="637.5"/><g><rect class="actor actor-top" ry="3" rx="3" name="Policy2" height="65" width="158" stroke="#666" fill="#eaeaea" y="0" x="558.5"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="637.5"><tspan dy="0" x="637.5">Policy 2 (General)</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="389" y1="5" x1="389"/><g><rect class="actor actor-top" ry="3" rx="3" name="Policy1" height="65" width="159" stroke="#666" fill="#eaeaea" y="0" x="309.5"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="389"><tspan dy="0" x="389">Policy 1 (Specific)</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="75" y1="5" x1="75"/><g><rect class="actor actor-top" ry="3" rx="3" name="Packet" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="0"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="75"><tspan dy="0" x="75">封包 (Packet)</tspan></text></g></g><style>#seq-fortigate03-2{font-family:'Noto Sans TC',Roboto,'Microsoft JhengHei',sans-serif;font-size:15px;fill:#1e2235;}#seq-fortigate03-2 .marker{fill:#5b6278;stroke:#5b6278;}#seq-fortigate03-2 .marker.cross{stroke:#5b6278;}#seq-fortigate03-2 .actor{stroke:#673ab7;fill:#f3effc;}#seq-fortigate03-2 text.actor&gt;tspan{fill:#311b92;stroke:none;}#seq-fortigate03-2 .actor-line{stroke:#b39ddb;}#seq-fortigate03-2 .messageLine0{stroke-width:1.5;stroke-dasharray:none;stroke:#5b6278;}#seq-fortigate03-2 .messageLine1{stroke-width:1.5;stroke-dasharray:2,2;stroke:#5b6278;}#seq-fortigate03-2 #seq-fortigate03-2-arrowhead path{fill:#5b6278;stroke:#5b6278;}#seq-fortigate03-2 #sequencenumber{fill:#5b6278;}#seq-fortigate03-2 #crosshead path{fill:#5b6278;stroke:#5b6278;}#seq-fortigate03-2 .messageText{fill:#1e2235;stroke:none;}#seq-fortigate03-2 .labelBox{stroke:#673ab7;fill:#f3effc;}#seq-fortigate03-2 .labelText,#seq-fortigate03-2 .labelText&gt;tspan{fill:#311b92;stroke:none;}#seq-fortigate03-2 .loopText,#seq-fortigate03-2 .loopText&gt;tspan{fill:#311b92;stroke:none;}#seq-fortigate03-2 .loopLine{stroke-width:2px;stroke-dasharray:2,2;stroke:#673ab7;fill:#673ab7;}#seq-fortigate03-2 .note{stroke:#f5b041;fill:#fff8e1;}#seq-fortigate03-2 .noteText,#seq-fortigate03-2 .noteText&gt;tspan{fill:#5d4037;stroke:none;}</style><g/><defs><marker orient="auto" markerHeight="12" markerWidth="12" markerUnits="userSpaceOnUse" refY="5" refX="7.9" id="seq-fortigate03-2-arrowhead"><path d="M 0 0 L 10 5 L 0 10 z"/></marker></defs><g><rect class="note" ry="0" rx="0" height="48" width="159" stroke="#666" fill="#EDF2AE" y="240" x="434"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="246" x="514"><tspan x="514">停止搜尋 (Stop)</tspan></text></g><g><line class="loopLine" y2="405" x2="892.5" y1="405" x1="64"/><line class="loopLine" y2="677" x2="892.5" y1="405" x1="892.5"/><line class="loopLine" y2="677" x2="892.5" y1="677" x1="64"/><line class="loopLine" y2="677" x2="64" y1="405" x1="64"/><line style="stroke-dasharray: 3, 3;" class="loopLine" y2="517" x2="892.5" y1="517" x1="64"/><polygon class="labelBox" points="64,405 114,405 114,418 105.6,425 64,425"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" class="labelText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="418" x="89">alt</text><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" class="loopText" text-anchor="middle" y="423" x="503.25"><tspan x="503.25">[符合 Policy 2 ?]</tspan></text><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" class="loopText" text-anchor="middle" y="535" x="478.25">[不符合]</text></g><g><line class="loopLine" y2="133" x2="902.5" y1="133" x1="54"/><line class="loopLine" y2="687" x2="902.5" y1="133" x1="902.5"/><line class="loopLine" y2="687" x2="902.5" y1="687" x1="54"/><line class="loopLine" y2="687" x2="54" y1="133" x1="54"/><line style="stroke-dasharray: 3, 3;" class="loopLine" y2="303" x2="902.5" y1="303" x1="54"/><polygon class="labelBox" points="54,133 104,133 104,146 95.6,153 54,153"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" class="labelText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="146" x="79">alt</text><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" class="loopText" text-anchor="middle" y="151" x="503.25"><tspan x="503.25">[符合 Policy 1 ?]</tspan></text><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" class="loopText" text-anchor="middle" y="321" x="478.25">[不符合]</text></g><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="80" x="231">檢查條件 (Src, Dst, Svc)</text><line style="fill: none;" marker-end="url(#seq-fortigate03-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="123" x2="385" y1="123" x1="76"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="187" x="234">符合! 執行動作 (Allow/Deny)</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-fortigate03-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="230" x2="79" y1="230" x1="388"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="352" x="355">繼續檢查下一條</text><line style="fill: none;" marker-end="url(#seq-fortigate03-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="395" x2="633.5" y1="395" x1="76"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="459" x="358">符合! 執行動作</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-fortigate03-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="502" x2="79" y1="502" x1="636.5"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="566" x="477">落入最後一條</text><line style="fill: none;" marker-end="url(#seq-fortigate03-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="609" x2="877.5" y1="609" x1="76"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="624" x="480">DROP (丟棄)</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-fortigate03-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="667" x2="79" y1="667" x1="880.5"/></svg></div>
                     </div>
                 </div>
             </div>
@@ -522,12 +546,12 @@ sequenceDiagram
     </main>
 
     <footer class="footer-signature">
-        Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0
+        Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0
     </footer>
 
     <!-- 使用 module type 載入 mermaid -->
     <script type="module">
-        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        const mermaid = { initialize() {}, init() {}, run: async () => {} }; // 架構圖已改為靜態 SVG,不再載入 Mermaid
         mermaid.initialize({ 
             startOnLoad: true,
             theme: 'neutral', 

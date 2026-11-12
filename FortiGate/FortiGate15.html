@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FortiGate 實戰課程 - 系統診斷與除錯</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <!-- 架構圖已改為靜態 SVG,不再載入 Mermaid;保留空殼讓頁面上既有的呼叫不出錯 --><script>window.mermaid = { initialize: function () {}, init: function () {}, run: function () { return Promise.resolve(); } };</script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
@@ -136,6 +136,9 @@
             border-top: 4px solid #b91c1c;
         }
     </style>
+    <!-- 教學網站共用外觀 -->
+    <link rel="stylesheet" href="../assets/site-theme.css?v=20261112">
+    <script src="../assets/site-chrome.js?v=20261112" defer></script>
 </head>
 <body>
 
@@ -191,42 +194,91 @@
 
             <span class="badge badge-green mt-6">架構視覺化 (Visuals)</span>
             <div class="mermaid-container">
-                <div class="mermaid">
-flowchart TD
-    subgraph Ingress_Process [進入處理]
-    A[封包進入 Ingress Interface] --> B{是否已存在 Session?}
-    B -- Yes (Fast Path) --> C[NPU/SPU 加速轉發]
-    B -- No (First Packet) --> D[DOS Policy 檢查]
-    end
-
-    subgraph Core_Process [核心決策]
-    D --> E[IP Integrity 完整性檢查]
-    E --> F{DNAT / VIP?}
-    F -- Yes --> G[修改 Destination IP]
-    F -- No --> H[路由表查詢 Routing Lookup]
-    G --> H
-    H --> I{是否有匹配的防火牆策略?}
-    I -- No (Deny) --> Drop((丟棄封包 Drop))
-    I -- Yes (Accept) --> J[建立 Session]
-    end
-
-    subgraph Security_UTM [安全檢測]
-    J --> K{啟用 UTM?}
-    K -- Yes --> L[Flow-based / Proxy-based 檢測<br/>AV, IPS, Web Filter]
-    L -- 威脅偵測 --> Drop
-    L -- 安全 --> M[SNAT 處理]
-    K -- No --> M
-    end
-
-    subgraph Egress_Process [輸出處理]
-    M --> N[傳送至 Egress Interface]
-    C --> N
-    end
-    
-    style A fill:#fca5a5,stroke:#b91c1c,stroke-width:2px
-    style Drop fill:#ef4444,stroke:#7f1d1d,color:white
-    style N fill:#86efac,stroke:#15803d,stroke-width:2px
-    style C fill:#fde047,stroke:#ca8a04,stroke-dasharray: 5 5
+                <!-- 流程圖 (手繪 SVG):直式主流程,右側為 Fast Path 捷徑,左側為丟棄 (Drop) 分支 -->
+                <div style="width:100%;overflow-x:auto">
+                <svg viewBox="0 0 820 1250" role="img" aria-labelledby="fg15a-title fg15a-desc" style="width:100%;min-width:560px;max-width:820px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+                <title id="fg15a-title">FortiGate 封包處理流程 (Packet Flow)</title>
+                <desc id="fg15a-desc">進入處理:封包進入 Ingress Interface 後判斷是否已存在 Session。Yes (Fast Path) 交給 NPU/SPU 加速轉發 (無法卸載時由 CPU 依 Session 快速轉發),直接傳送至 Egress Interface;No (First Packet) 進行 DOS Policy 檢查。核心決策:IP Integrity 完整性檢查,接著判斷 DNAT / VIP?,Yes 先修改 Destination IP,再做路由表查詢 (Routing Lookup);然後判斷是否有匹配的防火牆策略:No (Deny) 丟棄封包 (Drop),Yes (Accept) 建立 Session。安全檢測:判斷是否啟用 UTM,Yes 進行 Flow-based / Proxy-based 檢測 (AV, IPS, Web Filter),偵測到威脅則丟棄封包,安全則進行 SNAT 處理;No 直接進行 SNAT 處理。輸出處理:傳送至 Egress Interface。</desc>
+                <defs><linearGradient id="fg15a-pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7e57c2"/><stop offset="1" stop-color="#311b92"/></linearGradient><filter id="fg15a-sh" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#311b92" flood-opacity="0.18"/></filter><marker id="fg15a-arr-g" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5b6278"/></marker><marker id="fg15a-arr-r" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="fg15a-arr-p" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#673ab7"/></marker><marker id="fg15a-arr-c" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#0891b2"/></marker></defs>
+                <rect x="16" y="16" width="788" height="272" rx="16" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="6 5"/>
+                <text x="36" y="40" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#64748b">進入處理</text>
+                <rect x="16" y="304" width="788" height="480" rx="16" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="6 5"/>
+                <text x="36" y="328" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#64748b">核心決策</text>
+                <rect x="16" y="800" width="788" height="286" rx="16" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="6 5"/>
+                <text x="36" y="824" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#64748b">安全檢測</text>
+                <rect x="16" y="1102" width="788" height="92" rx="16" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="6 5"/>
+                <text x="36" y="1126" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#64748b">輸出處理</text>
+                <path d="M380 84 V110" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg15a-arr-g)"/>
+                <path d="M510 152 H618" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg15a-arr-g)"/>
+                <text x="564" y="130" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#5b6278">Yes</text>
+                <text x="564" y="144" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#5b6278">(Fast Path)</text>
+                <path d="M380 192 V224" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg15a-arr-g)"/>
+                <text x="390" y="214" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#5b6278">No (First Packet)</text>
+                <path d="M380 270 V322" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg15a-arr-g)"/>
+                <path d="M380 376 V402" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg15a-arr-g)"/>
+                <path d="M280 444 H222" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg15a-arr-g)"/>
+                <text x="251" y="436" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#5b6278">Yes</text>
+                <path d="M380 484 V512" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg15a-arr-g)"/>
+                <text x="390" y="503" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#5b6278">No</text>
+                <path d="M130 466 V540 H268" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg15a-arr-g)"/>
+                <path d="M380 566 V592" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg15a-arr-g)"/>
+                <path d="M230 640 H130 V698" fill="none" stroke="#dc2626" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg15a-arr-r)"/>
+                <text x="180" y="632" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#b91c1c">No (Deny)</text>
+                <path d="M380 686 V714" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg15a-arr-g)"/>
+                <text x="390" y="706" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#15803d">Yes (Accept)</text>
+                <path d="M380 760 V820" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg15a-arr-g)"/>
+                <path d="M380 902 V930" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg15a-arr-g)"/>
+                <text x="390" y="922" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#5b6278">Yes</text>
+                <path d="M480 862 H580 V1044 H492" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg15a-arr-g)"/>
+                <text x="530" y="854" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#5b6278">No</text>
+                <path d="M260 960 H130 V774" fill="none" stroke="#dc2626" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg15a-arr-r)"/>
+                <text x="195" y="952" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#b91c1c">威脅偵測</text>
+                <path d="M380 988 V1020" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg15a-arr-g)"/>
+                <text x="390" y="1010" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#15803d">安全</text>
+                <path d="M380 1066 V1128" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg15a-arr-g)"/>
+                <path d="M705 176 V1152 H492" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg15a-arr-g)"/>
+                <rect x="260.0" y="40" width="240" height="44" rx="22.0" fill="url(#fg15a-pg)" stroke="#311b92" stroke-width="2"/>
+                <text x="380" y="66.5" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">封包進入 Ingress Interface</text>
+                <polygon points="380,112 510,152 380,192 250,152" fill="#e0f7fa" stroke="#0891b2" stroke-width="2"/>
+                <text x="380" y="156.5" text-anchor="middle" font-size="13" font-weight="700" fill="#0e7490">是否已存在 Session?</text>
+                <rect x="620.0" y="122" width="170" height="62" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="2" stroke-dasharray="6 4"/>
+                <text x="705" y="148" text-anchor="middle" font-size="13" font-weight="700" fill="#92400e">NPU/SPU 加速轉發</text><text x="705" y="168" text-anchor="middle" font-size="10.5" fill="#92400e">無法卸載時由 CPU 依 Session 轉發</text>
+                <rect x="270.0" y="226" width="220" height="44" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/>
+                <text x="380" y="252.5" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">DOS Policy 檢查</text>
+                <rect x="270.0" y="324" width="220" height="52" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/>
+                <text x="380" y="345.5" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">IP Integrity</text>
+                <text x="380" y="363.5" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="10.5" fill="#5b6278">完整性檢查</text>
+                <polygon points="380,404 480,444 380,484 280,444" fill="#e0f7fa" stroke="#0891b2" stroke-width="2"/>
+                <text x="380" y="448.5" text-anchor="middle" font-size="13" font-weight="700" fill="#0e7490">DNAT / VIP?</text>
+                <rect x="40.0" y="422" width="180" height="44" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/>
+                <text x="130" y="448.5" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">修改 Destination IP</text>
+                <rect x="270.0" y="514" width="220" height="52" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/>
+                <text x="380" y="535.5" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">路由表查詢</text>
+                <text x="380" y="553.5" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="10.5" fill="#5b6278">Routing Lookup</text>
+                <polygon points="380,594 530,640 380,686 230,640" fill="#e0f7fa" stroke="#0891b2" stroke-width="2"/>
+                <text x="380" y="635.5" text-anchor="middle" font-size="13" font-weight="700" fill="#0e7490">是否有匹配的</text>
+                <text x="380" y="653.5" text-anchor="middle" font-size="13" font-weight="700" fill="#0e7490">防火牆策略?</text>
+                <circle cx="130" cy="736" r="36" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
+                <text x="130" y="732.5" text-anchor="middle" font-size="12" font-weight="700" fill="#b91c1c">丟棄封包</text>
+                <text x="130" y="748.5" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#b91c1c">Drop</text>
+                <rect x="270.0" y="716" width="220" height="44" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/>
+                <text x="380" y="742.5" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">建立 Session</text>
+                <polygon points="380,822 480,862 380,902 280,862" fill="#e0f7fa" stroke="#0891b2" stroke-width="2"/>
+                <text x="380" y="866.5" text-anchor="middle" font-size="13" font-weight="700" fill="#0e7490">啟用 UTM?</text>
+                <rect x="260.0" y="932" width="240" height="56" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/>
+                <text x="380" y="955.5" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">Flow-based / Proxy-based 檢測</text>
+                <text x="380" y="973.5" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="10.5" fill="#5b6278">AV, IPS, Web Filter</text>
+                <rect x="270.0" y="1022" width="220" height="44" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/>
+                <text x="380" y="1048.5" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">SNAT 處理</text>
+                <rect x="270.0" y="1130" width="220" height="44" rx="22.0" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+                <text x="380" y="1156.5" text-anchor="middle" font-size="13" font-weight="700" fill="#15803d">傳送至 Egress Interface</text>
+                <g font-size="12" fill="#5b6278">
+                <rect x="40" y="1216" width="30" height="16" rx="5" fill="#fffbeb" stroke="#d97706" stroke-width="1.5" stroke-dasharray="4 3"/><text x="78" y="1228">硬體加速 (Fast Path)</text>
+                <polygon points="250,1214 266,1224 250,1234 234,1224" fill="#e0f7fa" stroke="#0891b2" stroke-width="1.5"/><text x="274" y="1228">判斷</text>
+                <rect x="330" y="1216" width="30" height="16" rx="8" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/><text x="368" y="1228">成功送出</text>
+                <path d="M450 1224 H484" fill="none" stroke="#dc2626" stroke-width="2.2" marker-end="url(#fg15a-arr-r)"/><text x="494" y="1228">丟棄路徑 (Deny / 威脅)</text>
+                </g>
+                </svg>
                 </div>
             </div>
         </div>
@@ -375,7 +427,7 @@ flowchart TD
 
     <!-- Footer -->
     <footer class="signature-footer">
-        <p>Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0</p>
+        <p>Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0</p>
     </footer>
 
     <!-- JavaScript for Quiz -->

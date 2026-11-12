@@ -29,14 +29,30 @@
         body.insertBefore(bar, body.firstChild);
     }
 
-    // 文字為淺色的頁首 = 深色橫幅,換成品牌漸層;白底頁首維持原樣
+    // 文字為淺色的頁首 = 深色橫幅,換成品牌漸層;白底頁首維持原樣。
+    // 頁首可能寫成 <header>,也可能是 body 底下的 <nav> (例如 FortiGate 系列)
+    function isLightText(el) {
+        var m = getComputedStyle(el).color.match(/\d+(\.\d+)?/g);
+        if (!m) return false;
+        return 0.299 * m[0] + 0.587 * m[1] + 0.114 * m[2] > 200;
+    }
+
+    // 頁首本身或其中的標題是淺色字,就視為深色橫幅 (有些頁面白字只設在內層元素)
+    function isDarkBanner(el) {
+        if (isLightText(el)) return true;
+        var title = el.querySelector('h1, h2');
+        return !!title && isLightText(title);
+    }
+
     function markHero() {
-        var header = document.querySelector('body header');
-        if (!header || header.classList.contains('hm-hero')) return;
-        var m = getComputedStyle(header).color.match(/\d+(\.\d+)?/g);
-        if (!m) return;
-        var lum = 0.299 * m[0] + 0.587 * m[1] + 0.114 * m[2];
-        if (lum > 200) header.classList.add('hm-hero');
+        if (document.querySelector('.hm-hero')) return;
+        var candidates = document.querySelectorAll('body header, body > nav');
+        for (var i = 0; i < candidates.length; i++) {
+            if (isDarkBanner(candidates[i])) {
+                candidates[i].classList.add('hm-hero');
+                return;
+            }
+        }
     }
 
     function init() {

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fortinet FortiGate 實戰課程 - 路由控制 (Advanced Routing)</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.0/mermaid.min.js"></script>
+    <!-- 架構圖已改為靜態 SVG,不再載入 Mermaid;保留空殼讓頁面上既有的呼叫不出錯 --><script>window.mermaid = { initialize: function () {}, init: function () {}, run: function () { return Promise.resolve(); } };</script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
@@ -123,6 +123,9 @@
             background-color: #f3f4f6;
         }
     </style>
+    <!-- 教學網站共用外觀 -->
+    <link rel="stylesheet" href="../assets/site-theme.css?v=20261112">
+    <script src="../assets/site-chrome.js?v=20261112" defer></script>
 </head>
 <body>
 
@@ -190,19 +193,14 @@
                 <span class="badge badge-visual">架構視覺化 (Visuals)</span>
                 <div class="mermaid-container">
                     <div class="text-center font-bold mb-2 text-gray-500">雙 ISP 負載平衡架構圖</div>
-                    <div class="mermaid">
-%%{init: {'themeVariables': {'fontSize': '21px'}}}%%
-flowchart TD
-    LAN_User["內網使用者<br>192.168.1.0/24"] -->|Traffic| FG["FortiGate Firewall"]
-    
-    subgraph ECMP_Group ["ECMP Load Balancing"]
-        direction TB
-        FG -->|"Route 1 (AD=10)"| WAN1["ISP 1 - 中華電信<br>GW: 1.1.1.1"]
-        FG -->|"Route 2 (AD=10)"| WAN2["ISP 2 - 遠傳電信<br>GW: 2.2.2.2"]
-    end
-    
-    WAN1 --> Internet(("Internet"))
-    WAN2 --> Internet
+                    <!-- 拓撲圖 (手繪 SVG):內網使用者 -> FortiGate -> ECMP 兩條 AD=10 路由 (ISP 1 / ISP 2) -> Internet -->
+                    <div style="width:100%;overflow-x:auto">
+<svg viewBox="0 0 760 570" role="img" aria-labelledby="fg11a-title fg11a-desc" style="width:100%;min-width:560px;max-width:760px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+<title id="fg11a-title">雙 ISP 負載平衡架構圖</title>
+<desc id="fg11a-desc">內網使用者 192.168.1.0/24 的流量 (Traffic) 送到 FortiGate Firewall。在 ECMP Load Balancing 群組中,FortiGate 有兩條 AD 同為 10 的路由:Route 1 (AD=10) 走 ISP 1 - 中華電信 (GW: 1.1.1.1),Route 2 (AD=10) 走 ISP 2 - 遠傳電信 (GW: 2.2.2.2),兩條線路最後都通往 Internet。</desc>
+<defs><linearGradient id="fg11a-pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7e57c2"/><stop offset="1" stop-color="#311b92"/></linearGradient><linearGradient id="fg11a-cg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1aa0bb"/><stop offset="1" stop-color="#0e6378"/></linearGradient><filter id="fg11a-sh" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#311b92" flood-opacity="0.18"/></filter><marker id="fg11a-arr" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5b6278"/></marker><marker id="fg11a-arr-r" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="fg11a-arr-c" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#0891b2"/></marker><marker id="fg11a-arr-p" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#673ab7"/></marker><marker id="fg11a-arr-a" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#d97706"/></marker></defs>
+<rect x="60" y="220" width="640" height="194" rx="16" fill="#f6f2fe" stroke="#b39ddb" stroke-width="1.5" stroke-dasharray="6 5"/><text x="76" y="244" text-anchor="start" font-size="13" font-family="'JetBrains Mono', Consolas, monospace" font-weight="700" fill="#673ab7">ECMP Load Balancing</text><path d="M380 84 V134" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg11a-arr-c)"/><rect x="390" y="99" width="64" height="20" rx="10" fill="#fff" stroke="#0891b2"/><text x="422" y="113" text-anchor="middle" font-size="11" font-family="'JetBrains Mono', Consolas, monospace" font-weight="700" fill="#0e7490">Traffic</text><path d="M360 196 V300 H200 V328" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg11a-arr-c)"/><path d="M400 196 V300 H560 V328" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg11a-arr-c)"/><rect x="222" y="266" width="116" height="20" rx="10" fill="#fff" stroke="#673ab7"/><text x="280" y="280" text-anchor="middle" font-size="11" font-family="'JetBrains Mono', Consolas, monospace" font-weight="700" fill="#4527a0">Route 1 (AD=10)</text><rect x="422" y="266" width="116" height="20" rx="10" fill="#fff" stroke="#673ab7"/><text x="480" y="280" text-anchor="middle" font-size="11" font-family="'JetBrains Mono', Consolas, monospace" font-weight="700" fill="#4527a0">Route 2 (AD=10)</text><path d="M200 390 V480 H304" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg11a-arr-c)"/><path d="M560 390 V480 H464" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg11a-arr-c)"/><rect x="270" y="20" width="220" height="64" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/><g fill="none" stroke="#0891b2" stroke-width="1.8" stroke-linecap="round"><rect x="282" y="43.0" width="20" height="13" rx="2"/><path d="M286 61.0 H298 M292 56.0 V61.0"/></g><text x="392.0" y="48.0" text-anchor="middle" font-size="14" font-weight="700" fill="#1e2235">內網使用者</text><text x="392.0" y="67.0" text-anchor="middle" font-size="11.5" font-family="'JetBrains Mono', Consolas, monospace" fill="#5b6278">192.168.1.0/24</text><rect x="280" y="136" width="200" height="60" rx="10" fill="url(#fg11a-pg)" filter="url(#fg11a-sh)"/><text x="380.0" y="171.0" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">FortiGate Firewall</text><rect x="100" y="330" width="200" height="60" rx="10" fill="url(#fg11a-cg)" filter="url(#fg11a-sh)"/><text x="200.0" y="357.0" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">ISP 1 - 中華電信</text><text x="200.0" y="376.0" text-anchor="middle" font-size="12" font-family="'JetBrains Mono', Consolas, monospace" fill="#cdeff5">GW: 1.1.1.1</text><rect x="460" y="330" width="200" height="60" rx="10" fill="url(#fg11a-cg)" filter="url(#fg11a-sh)"/><text x="560.0" y="357.0" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">ISP 2 - 遠傳電信</text><text x="560.0" y="376.0" text-anchor="middle" font-size="12" font-family="'JetBrains Mono', Consolas, monospace" fill="#cdeff5">GW: 2.2.2.2</text><path transform="translate(380 480)" d="M-52 32 H52 A28 28 0 0 0 56 -22 A34 34 0 0 0 -2 -34 A30 30 0 0 0 -50 -14 A23 23 0 0 0 -52 32 Z" fill="#eef2ff" stroke="#9fa8da" stroke-width="2"/><text x="384" y="484" text-anchor="middle" font-size="14" font-weight="700" fill="#3949ab">Internet</text><g font-size="12" fill="#5b6278"><line x1="160" y1="548" x2="196" y2="548" stroke="#0891b2" stroke-width="4" marker-end="url(#fg11a-arr-c)"/><text x="204" y="552">流量路徑</text><rect x="300" y="541" width="22" height="14" rx="4" fill="url(#fg11a-pg)"/><text x="330" y="552">FortiGate</text><rect x="430" y="541" width="22" height="14" rx="4" fill="url(#fg11a-cg)"/><text x="460" y="552">ISP Gateway</text></g>
+</svg>
                     </div>
                 </div>
             </div>
@@ -286,20 +284,13 @@ end
                 <div class="mermaid-container">
                     <div class="text-center font-bold mb-2 text-gray-500">封包路由決策流程 (Life of a Packet - Routing Decision)</div>
                     <!-- CSS 暴力覆寫：設定最小寬度，強制圖表撐開，並利用容器的 scroll 避免破版 -->
-                    <div class="mermaid" style="min-width: 900px !important;">
-%%{init: {'themeVariables': {'fontSize': '20px'}}}%%
-flowchart TD
-    Start["封包進入 Ingress Interface"] --> CheckPBR{"是否匹配<br>Policy Route?"}
-    
-    CheckPBR -- Yes --> PBR_Action["執行 PBR 動作<br>強制指定 Outgoing Interface/Gateway"]
-    PBR_Action --> PolicyCheck["Firewall Policy 檢查"]
-    
-    CheckPBR -- No --> LookRT{"查詢 Routing Table<br>FIB Lookup"}
-    LookRT -- "有路由" --> PolicyCheck
-    LookRT -- "無路由" --> Drop["丟棄封包 Drop"]
-    
-    PolicyCheck -- Accept --> Egress["轉發至 Egress Interface"]
-    PolicyCheck -- Deny --> Drop
+                    <!-- 流程圖 (手繪 SVG):Policy Route 判斷 -> PBR 或 FIB Lookup -> Firewall Policy -> Egress / Drop -->
+                    <div style="width:100%;overflow-x:auto">
+<svg viewBox="0 0 780 706" role="img" aria-labelledby="fg11b-title fg11b-desc" style="width:100%;min-width:560px;max-width:780px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+<title id="fg11b-title">封包路由決策流程 (Life of a Packet - Routing Decision)</title>
+<desc id="fg11b-desc">封包進入 Ingress Interface 後,先判斷是否匹配 Policy Route。Yes:執行 PBR 動作,強制指定 Outgoing Interface/Gateway,再進行 Firewall Policy 檢查。No:查詢 Routing Table (FIB Lookup),有路由則進行 Firewall Policy 檢查,無路由則丟棄封包 (Drop)。Firewall Policy 檢查結果為 Accept 時轉發至 Egress Interface,Deny 時丟棄封包 (Drop)。</desc>
+<defs><linearGradient id="fg11b-pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7e57c2"/><stop offset="1" stop-color="#311b92"/></linearGradient><linearGradient id="fg11b-cg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1aa0bb"/><stop offset="1" stop-color="#0e6378"/></linearGradient><filter id="fg11b-sh" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#311b92" flood-opacity="0.18"/></filter><marker id="fg11b-arr" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5b6278"/></marker><marker id="fg11b-arr-r" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="fg11b-arr-c" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#0891b2"/></marker><marker id="fg11b-arr-p" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#673ab7"/></marker><marker id="fg11b-arr-a" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#d97706"/></marker></defs>
+<path d="M390 64 V94" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg11b-arr)"/><path d="M260 150 H150 V248" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg11b-arr)"/><text x="205" y="140" text-anchor="middle" font-size="11" font-family="'JetBrains Mono', Consolas, monospace" font-weight="700" fill="#15803d">Yes</text><path d="M390 204 V324" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg11b-arr)"/><text x="402" y="268" text-anchor="start" font-size="11" font-family="'JetBrains Mono', Consolas, monospace" font-weight="700" fill="#b45309">No</text><path d="M150 306 V540 H268" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg11b-arr)"/><path d="M390 434 V484" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg11b-arr)"/><text x="402" y="463" text-anchor="start" font-size="11" font-family="'JetBrains Mono', Consolas, monospace" font-weight="700" fill="#15803d">有路由</text><path d="M500 380 H655 V516" fill="none" stroke="#dc2626" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg11b-arr-r)"/><text x="578" y="370" text-anchor="middle" font-size="11" font-family="'JetBrains Mono', Consolas, monospace" font-weight="700" fill="#b91c1c">無路由</text><path d="M510 540 H568" fill="none" stroke="#dc2626" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg11b-arr-r)"/><text x="538" y="530" text-anchor="middle" font-size="11" font-family="'JetBrains Mono', Consolas, monospace" font-weight="700" fill="#b91c1c">Deny</text><path d="M390 594 V640" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg11b-arr)"/><text x="402" y="621" text-anchor="start" font-size="11" font-family="'JetBrains Mono', Consolas, monospace" font-weight="700" fill="#15803d">Accept</text><rect x="270" y="20" width="240" height="44" rx="22" fill="url(#fg11b-pg)" stroke="#311b92" stroke-width="2"/><text x="390" y="47" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">封包進入 Ingress Interface</text><polygon points="390,96 520,150 390,204 260,150" fill="#e0f7fa" stroke="#0891b2" stroke-width="2"/><text x="390" y="146" text-anchor="middle" font-size="13" font-weight="700" fill="#0e7490">是否匹配</text><text x="390" y="164" text-anchor="middle" font-size="13" font-weight="700" fill="#0e7490">Policy Route?</text><rect x="20" y="250" width="260" height="56" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/><text x="150" y="273" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">執行 PBR 動作</text><text x="150" y="293" text-anchor="middle" font-size="10.5" font-family="'JetBrains Mono', Consolas, monospace" fill="#5b6278">強制指定 Outgoing Interface/Gateway</text><polygon points="390,326 500,380 390,434 280,380" fill="#e0f7fa" stroke="#0891b2" stroke-width="2"/><text x="390" y="376" text-anchor="middle" font-size="13" font-weight="700" fill="#0e7490">查詢 Routing Table</text><text x="390" y="394" text-anchor="middle" font-size="11" font-family="'JetBrains Mono', Consolas, monospace" font-weight="700" fill="#0e7490">FIB Lookup</text><polygon points="390,486 510,540 390,594 270,540" fill="#e0f7fa" stroke="#0891b2" stroke-width="2"/><text x="390" y="545" text-anchor="middle" font-size="13" font-weight="700" fill="#0e7490">Firewall Policy 檢查</text><rect x="570" y="518" width="170" height="44" rx="22" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/><text x="655" y="545" text-anchor="middle" font-size="13" font-weight="700" fill="#b91c1c">丟棄封包 Drop</text><rect x="270" y="642" width="240" height="44" rx="22" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/><text x="390" y="669" text-anchor="middle" font-size="13" font-weight="700" fill="#15803d">轉發至 Egress Interface</text></svg>
                     </div>
                 </div>
             </div>
@@ -380,22 +371,14 @@ end
                 <div class="mermaid-container">
                     <div class="text-center font-bold mb-2 text-gray-500">Hub-and-Spoke VPN OSPF 架構</div>
                     <!-- CSS 暴力覆寫：設定最小寬度，強制圖表撐開，並利用容器的 scroll 避免破版 -->
-                    <div class="mermaid" style="min-width: 900px !important;">
-%%{init: {'themeVariables': {'fontSize': '18px'}}}%%
-flowchart TD
-    HO["總公司 HQ - Hub<br>Area 0"] ---|IPsec VPN| B1["分公司 Branch 1<br>Area 1"]
-    HO ---|IPsec VPN| B2["分公司 Branch 2<br>Area 1"]
-    
-    subgraph "Routing Updates"
-    direction TB
-    B1 -.->|"LSA Updates"| HO
-    B2 -.->|"LSA Updates"| HO
-    HO -.->|"Redistribute"| B1
-    end
-    
-    style HO fill:#fca5a5,stroke:#991b1b
-    style B1 fill:#bfdbfe,stroke:#1e40af
-    style B2 fill:#bfdbfe,stroke:#1e40af
+                    <!-- 拓撲圖 (手繪 SVG):HQ Hub 以 IPsec VPN 連接 Branch 1/2,虛線為 OSPF Routing Updates -->
+                    <div style="width:100%;overflow-x:auto">
+<svg viewBox="0 0 860 210" role="img" aria-labelledby="fg11c-title fg11c-desc" style="width:100%;min-width:560px;max-width:860px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+<title id="fg11c-title">Hub-and-Spoke VPN OSPF 架構</title>
+<desc id="fg11c-desc">總公司 HQ - Hub (Area 0) 以 IPsec VPN 分別連接分公司 Branch 1 (Area 1) 與分公司 Branch 2 (Area 1)。Routing Updates:Branch 1 與 Branch 2 各自向 HQ 送出 LSA Updates,HQ 再把彙整後的 LSA 泛洪 (通告) 給 Branch 1 與 Branch 2。</desc>
+<defs><linearGradient id="fg11c-pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7e57c2"/><stop offset="1" stop-color="#311b92"/></linearGradient><linearGradient id="fg11c-cg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1aa0bb"/><stop offset="1" stop-color="#0e6378"/></linearGradient><filter id="fg11c-sh" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#311b92" flood-opacity="0.18"/></filter><marker id="fg11c-arr" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5b6278"/></marker><marker id="fg11c-arr-r" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="fg11c-arr-c" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#0891b2"/></marker><marker id="fg11c-arr-p" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#673ab7"/></marker><marker id="fg11c-arr-a" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#d97706"/></marker></defs>
+<line x1="190" y1="85" x2="345" y2="85" stroke="#673ab7" stroke-width="7"/><line x1="190" y1="85" x2="345" y2="85" stroke="#fff" stroke-width="2"/><line x1="515" y1="85" x2="670" y2="85" stroke="#673ab7" stroke-width="7"/><line x1="515" y1="85" x2="670" y2="85" stroke="#fff" stroke-width="2"/><rect x="225.5" y="75" width="84" height="20" rx="10" fill="#fff" stroke="#673ab7"/><text x="267.5" y="89" text-anchor="middle" font-size="11" font-family="'JetBrains Mono', Consolas, monospace" font-weight="700" fill="#4527a0">IPsec VPN</text><rect x="550.5" y="75" width="84" height="20" rx="10" fill="#fff" stroke="#673ab7"/><text x="592.5" y="89" text-anchor="middle" font-size="11" font-family="'JetBrains Mono', Consolas, monospace" font-weight="700" fill="#4527a0">IPsec VPN</text><path d="M190 58 H343" fill="none" stroke="#d97706" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="6 4" marker-end="url(#fg11c-arr-a)"/><text x="267.5" y="48" text-anchor="middle" font-size="11" font-family="'JetBrains Mono', Consolas, monospace" font-weight="700" fill="#b45309">LSA Updates</text><path d="M345 112 H192" fill="none" stroke="#d97706" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="6 4" marker-end="url(#fg11c-arr-a)"/><text x="267.5" y="130" text-anchor="middle" font-size="11" font-family="'JetBrains Mono', Consolas, monospace" font-weight="700" fill="#b45309">LSA Flooding</text><path d="M515 112 H668" fill="none" stroke="#d97706" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="6 4" marker-end="url(#fg11c-arr-a)"/><text x="592.5" y="130" text-anchor="middle" font-size="11" font-family="'JetBrains Mono', Consolas, monospace" font-weight="700" fill="#b45309">LSA Flooding</text><path d="M670 58 H517" fill="none" stroke="#d97706" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="6 4" marker-end="url(#fg11c-arr-a)"/><text x="592.5" y="48" text-anchor="middle" font-size="11" font-family="'JetBrains Mono', Consolas, monospace" font-weight="700" fill="#b45309">LSA Updates</text><rect x="345" y="30" width="170" height="110" rx="10" fill="url(#fg11c-pg)" filter="url(#fg11c-sh)"/><text x="430.0" y="82.0" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">總公司 HQ - Hub</text><text x="430.0" y="101.0" text-anchor="middle" font-size="12" font-family="'JetBrains Mono', Consolas, monospace" fill="#d1c4e9">Area 0</text><rect x="20" y="30" width="170" height="110" rx="10" fill="url(#fg11c-cg)" filter="url(#fg11c-sh)"/><text x="105.0" y="82.0" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">分公司 Branch 1</text><text x="105.0" y="101.0" text-anchor="middle" font-size="12" font-family="'JetBrains Mono', Consolas, monospace" fill="#cdeff5">Area 1</text><rect x="670" y="30" width="170" height="110" rx="10" fill="url(#fg11c-cg)" filter="url(#fg11c-sh)"/><text x="755.0" y="82.0" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">分公司 Branch 2</text><text x="755.0" y="101.0" text-anchor="middle" font-size="12" font-family="'JetBrains Mono', Consolas, monospace" fill="#cdeff5">Area 1</text><g font-size="12" fill="#5b6278"><line x1="120" y1="182" x2="156" y2="182" stroke="#673ab7" stroke-width="7"/><line x1="120" y1="182" x2="156" y2="182" stroke="#fff" stroke-width="2"/><text x="164" y="186">IPsec VPN 隧道</text><line x1="300" y1="182" x2="336" y2="182" stroke="#d97706" stroke-width="2.2" stroke-dasharray="6 4" marker-end="url(#fg11c-arr-a)"/><text x="344" y="186">Routing Updates (OSPF 路由更新)</text><rect x="610" y="175" width="22" height="14" rx="4" fill="url(#fg11c-cg)"/><text x="640" y="186">Branch (Spoke)</text></g>
+</svg>
                     </div>
                 </div>
             </div>
@@ -453,7 +436,7 @@ end
     <!-- Footer -->
     <footer class="bg-gray-800 text-gray-400 py-6 text-center text-sm">
         <div class="container mx-auto">
-            <p>Fortinet FortiGate 實戰課程 | Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0</p>
+            <p>Fortinet FortiGate 實戰課程 | Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0</p>
         </div>
     </footer>
 

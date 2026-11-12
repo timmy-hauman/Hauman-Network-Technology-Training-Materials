@@ -9,7 +9,7 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Mermaid.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+    <!-- 架構圖已改為靜態 SVG,不再載入 Mermaid;保留空殼讓頁面上既有的呼叫不出錯 --><script>window.mermaid = { initialize: function () {}, init: function () {}, run: function () { return Promise.resolve(); } };</script>
     
     <style>
         /* 強制字體與寬度設定 (CSS 暴力覆寫) */
@@ -158,6 +158,9 @@
             font-size: 0.9rem;
         }
     </style>
+    <!-- 教學網站共用外觀 -->
+    <link rel="stylesheet" href="../assets/site-theme.css?v=20261112">
+    <script src="../assets/site-chrome.js?v=20261112" defer></script>
 </head>
 <body>
 
@@ -252,57 +255,68 @@
 
             <h3 class="text-lg font-bold text-gray-700 mb-2">圖一：實體 vs. 邏輯視角</h3>
             <div class="mermaid-container">
-                <div class="mermaid">
-                    flowchart TD
-                    subgraph Physical_View ["實體視角 (Physical HW)"]
-                        FG_Box["FortiGate Hardware"]
-                        Port1["Wan1"]
-                        Port2["Lan1"]
-                        Port3["Lan2"]
-                        Port4["DMZ"]
-                        FG_Box --- Port1
-                        FG_Box --- Port2
-                        FG_Box --- Port3
-                        FG_Box --- Port4
-                    end
-
-                    subgraph Logical_View ["邏輯視角 (VDOM Configuration)"]
-                        direction TB
-                        subgraph Root_VDOM ["Root VDOM (Management/Shared)"]
-                            v_wan1["Wan1"]
-                        end
-                        
-                        subgraph Office_VDOM ["Office VDOM"]
-                            v_lan1["Lan1 - Finance"]
-                            v_lan2["Lan2 - RD"]
-                        end
-                        
-                        subgraph Guest_VDOM ["Guest VDOM"]
-                            v_dmz["DMZ - Guest Wi-Fi"]
-                        end
-                    end
-
-                    Physical_View -.-> Logical_View
-                    Port1 -.-> v_wan1
-                    Port2 -.-> v_lan1
-                    Port3 -.-> v_lan2
-                    Port4 -.-> v_dmz
-                    
-                    style FG_Box fill:#c02428,color:white,stroke:#333
-                    style Root_VDOM fill:#ffe4e6,stroke:#c02428
-                    style Office_VDOM fill:#dbeafe,stroke:#1e40af
-                    style Guest_VDOM fill:#d1fae5,stroke:#047857
+                <!-- 對照圖 (手繪 SVG):左實體、右邏輯並排,虛線箭頭表示實體埠指派到哪個 VDOM -->
+                <div style="width:100%;overflow-x:auto">
+                <svg viewBox="0 0 860 470" role="img" aria-labelledby="fg13a-title fg13a-desc" style="width:100%;min-width:560px;max-width:860px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+                <title id="fg13a-title">VDOM 實體視角 vs. 邏輯視角</title>
+                <desc id="fg13a-desc">左側實體視角:一台 FortiGate Hardware 上有 Wan1、Lan1、Lan2、DMZ 四個實體埠。右側邏輯視角 (VDOM Configuration):Wan1 被指派到 Root VDOM (Management/Shared);Lan1 (Finance) 與 Lan2 (RD) 被指派到 Office VDOM;DMZ (Guest Wi-Fi) 被指派到 Guest VDOM。虛線箭頭表示實體埠對應到的 VDOM 邏輯介面。</desc>
+                <defs><linearGradient id="fg13a-pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7e57c2"/><stop offset="1" stop-color="#311b92"/></linearGradient><filter id="fg13a-sh" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#311b92" flood-opacity="0.18"/></filter><marker id="fg13a-arr-g" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5b6278"/></marker><marker id="fg13a-arr-r" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="fg13a-arr-p" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#673ab7"/></marker><marker id="fg13a-arr-c" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#0891b2"/></marker></defs>
+                <rect x="20" y="20" width="300" height="400" rx="16" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="6 5"/>
+                <text x="36" y="44" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#64748b">實體視角 (Physical HW)</text>
+                <rect x="440" y="20" width="400" height="400" rx="16" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="6 5"/>
+                <text x="456" y="44" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#64748b">邏輯視角 (VDOM Configuration)</text>
+                <path d="M326 40 H432" fill="none" stroke="#673ab7" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="7 5" marker-end="url(#fg13a-arr-p)"/>
+                <rect x="460" y="70" width="360" height="80" rx="16" fill="#f6f2fe" stroke="#b39ddb" stroke-width="1.5" stroke-dasharray="6 5"/>
+                <rect x="460" y="170" width="360" height="130" rx="16" fill="#effafc" stroke="#67c5d6" stroke-width="1.5" stroke-dasharray="6 5"/>
+                <rect x="460" y="320" width="360" height="80" rx="16" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5" stroke-dasharray="6 5"/>
+                <text x="736" y="106" text-anchor="middle" font-size="13" font-weight="700" fill="#673ab7">Root VDOM</text>
+                <text x="736" y="124" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#5b6278">(Management/Shared)</text>
+                <text x="736" y="240" text-anchor="middle" font-size="13" font-weight="700" fill="#0e7490">Office VDOM</text>
+                <text x="736" y="365" text-anchor="middle" font-size="13" font-weight="700" fill="#15803d">Guest VDOM</text>
+                <g filter="url(#fg13a-sh)"><rect x="44" y="92" width="110" height="286" rx="10" fill="url(#fg13a-pg)"/></g>
+                <text x="99" y="223.5" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">FortiGate</text>
+                <text x="99" y="241.5" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">Hardware</text>
+                <g fill="#b39ddb"><rect x="66" y="262" width="12" height="6" rx="1"/><rect x="84" y="262" width="12" height="6" rx="1"/><rect x="102" y="262" width="12" height="6" rx="1"/><rect x="120" y="262" width="12" height="6" rx="1"/><rect x="75" y="272" width="12" height="6" rx="1"/><rect x="93" y="272" width="12" height="6" rx="1"/><rect x="111" y="272" width="12" height="6" rx="1"/></g>
+                <line x1="154" y1="110" x2="192" y2="110" stroke="#673ab7" stroke-width="3.5" stroke-linecap="round"/>
+                <path d="M292 110 H476" fill="none" stroke="#673ab7" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="6 5" marker-end="url(#fg13a-arr-p)"/>
+                <rect x="192" y="92" width="100" height="36" rx="8" fill="#fff" stroke="#673ab7" stroke-width="2"/>
+                <text x="242" y="114.5" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="13" font-weight="700" fill="#311b92">Wan1</text>
+                <rect x="478" y="92" width="170" height="36" rx="8" fill="#fff" stroke="#673ab7" stroke-width="2"/>
+                <text x="563" y="114.5" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#1e2235">Wan1</text>
+                <line x1="154" y1="210" x2="192" y2="210" stroke="#673ab7" stroke-width="3.5" stroke-linecap="round"/>
+                <path d="M292 210 H476" fill="none" stroke="#673ab7" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="6 5" marker-end="url(#fg13a-arr-p)"/>
+                <rect x="192" y="192" width="100" height="36" rx="8" fill="#fff" stroke="#673ab7" stroke-width="2"/>
+                <text x="242" y="214.5" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="13" font-weight="700" fill="#311b92">Lan1</text>
+                <rect x="478" y="192" width="170" height="36" rx="8" fill="#fff" stroke="#673ab7" stroke-width="2"/>
+                <text x="563" y="214.5" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#1e2235">Lan1 - Finance</text>
+                <line x1="154" y1="262" x2="192" y2="262" stroke="#673ab7" stroke-width="3.5" stroke-linecap="round"/>
+                <path d="M292 262 H476" fill="none" stroke="#673ab7" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="6 5" marker-end="url(#fg13a-arr-p)"/>
+                <rect x="192" y="244" width="100" height="36" rx="8" fill="#fff" stroke="#673ab7" stroke-width="2"/>
+                <text x="242" y="266.5" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="13" font-weight="700" fill="#311b92">Lan2</text>
+                <rect x="478" y="244" width="170" height="36" rx="8" fill="#fff" stroke="#673ab7" stroke-width="2"/>
+                <text x="563" y="266.5" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#1e2235">Lan2 - RD</text>
+                <line x1="154" y1="360" x2="192" y2="360" stroke="#673ab7" stroke-width="3.5" stroke-linecap="round"/>
+                <path d="M292 360 H476" fill="none" stroke="#673ab7" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="6 5" marker-end="url(#fg13a-arr-p)"/>
+                <rect x="192" y="342" width="100" height="36" rx="8" fill="#fff" stroke="#673ab7" stroke-width="2"/>
+                <text x="242" y="364.5" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="13" font-weight="700" fill="#311b92">DMZ</text>
+                <rect x="478" y="342" width="170" height="36" rx="8" fill="#fff" stroke="#673ab7" stroke-width="2"/>
+                <text x="563" y="364.5" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#1e2235">DMZ - Guest Wi-Fi</text>
+                <g font-size="12" fill="#5b6278">
+                <line x1="200" y1="448" x2="232" y2="448" stroke="#673ab7" stroke-width="3.5" stroke-linecap="round"/><text x="240" y="452">實體埠 (屬於同一台硬體)</text>
+                <path d="M440 448 H474" fill="none" stroke="#673ab7" stroke-width="2.2" stroke-dasharray="6 5" marker-end="url(#fg13a-arr-p)"/><text x="484" y="452">邏輯對應 (介面指派至 VDOM)</text>
+                </g>
+                </svg>
                 </div>
             </div>
 
             <h3 class="text-lg font-bold text-gray-700 mb-2">圖二：跨 VDOM 通訊 (Inter-VDOM Link)</h3>
             <p class="text-sm text-gray-600 mb-2">VDOM 之間預設是隔離的，若要通訊 (例如 Guest 借用 Root 的 WAN 上網)，需要建立虛擬連線 (Virtual Link)。</p>
             <div class="mermaid-container">
-                <div class="mermaid">
+                <!-- 時序圖 (由 Mermaid 10.9.1 預先轉成靜態 SVG,套用網站配色)。原始 Mermaid 碼:
                     sequenceDiagram
                         participant User as User (Office)
                         participant O_VDOM as Office VDOM
-                        participant V_Link as Inter-VDOM Link<br/>(Virtual Cable)
+                        participant V_Link as Inter-VDOM Link(Virtual Cable)
                         participant R_VDOM as Root VDOM
                         participant Internet as Internet
 
@@ -313,11 +327,13 @@
                         V_Link->>R_VDOM: 3. 封包進入 Root VDOM
                         Note right of R_VDOM: 查表：預設路由指向 WAN1
                         R_VDOM->>Internet: 4. SNAT 出去 (FW Policy 2 Allow)
-                        Internet-->>R_VDOM: 5. 回應封包
-                        R_VDOM-->>V_Link: 6. 轉回 V-Link
-                        V_Link-->>O_VDOM: 7. 回到 Office VDOM
-                        O_VDOM-->>User: 8. 回應用戶
-                </div>
+                        Internet--&gt;>R_VDOM: 5. 回應封包
+                        R_VDOM--&gt;>V_Link: 6. 轉回 V-Link
+                        V_Link--&gt;>O_VDOM: 7. 回到 Office VDOM
+                        O_VDOM--&gt;>User: 8. 回應用戶
+                
+                -->
+                <div style="width:100%;overflow-x:auto"><svg xmlns="http://www.w3.org/2000/svg" aria-roledescription="sequence" role="img" viewBox="-50 -10 1465 723" style="width:100%;min-width:560px;max-width:1465px;height:auto;display:block;margin:0 auto" id="seq-fortigate13-2" aria-labelledby="seq-fortigate13-2-title"><title id="seq-fortigate13-2-title">圖二：跨 VDOM 通訊 (Inter-VDOM Link)</title><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="1290" y1="5" x1="1290"/><g><rect class="actor actor-top" ry="3" rx="3" name="Internet" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="1215"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="1290"><tspan dy="0" x="1290">Internet</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="945" y1="5" x1="945"/><g><rect class="actor actor-top" ry="3" rx="3" name="R_VDOM" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="870"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="945"><tspan dy="0" x="945">Root VDOM</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="649" y1="5" x1="649"/><g><rect class="actor actor-top" ry="3" rx="3" name="V_Link" height="65" width="262" stroke="#666" fill="#eaeaea" y="0" x="518"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="649"><tspan dy="0" x="649">Inter-VDOM Link(Virtual Cable)</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="315" y1="5" x1="315"/><g><rect class="actor actor-top" ry="3" rx="3" name="O_VDOM" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="240"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="315"><tspan dy="0" x="315">Office VDOM</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="75" y1="5" x1="75"/><g><rect class="actor actor-top" ry="3" rx="3" name="User" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="0"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="75"><tspan dy="0" x="75">User (Office)</tspan></text></g></g><style>#seq-fortigate13-2{font-family:'Noto Sans TC',Roboto,'Microsoft JhengHei',sans-serif;font-size:15px;fill:#1e2235;}#seq-fortigate13-2 .marker{fill:#5b6278;stroke:#5b6278;}#seq-fortigate13-2 .marker.cross{stroke:#5b6278;}#seq-fortigate13-2 .actor{stroke:#673ab7;fill:#f3effc;}#seq-fortigate13-2 text.actor&gt;tspan{fill:#311b92;stroke:none;}#seq-fortigate13-2 .actor-line{stroke:#b39ddb;}#seq-fortigate13-2 .messageLine0{stroke-width:1.5;stroke-dasharray:none;stroke:#5b6278;}#seq-fortigate13-2 .messageLine1{stroke-width:1.5;stroke-dasharray:2,2;stroke:#5b6278;}#seq-fortigate13-2 #seq-fortigate13-2-arrowhead path{fill:#5b6278;stroke:#5b6278;}#seq-fortigate13-2 #sequencenumber{fill:#5b6278;}#seq-fortigate13-2 #crosshead path{fill:#5b6278;stroke:#5b6278;}#seq-fortigate13-2 .messageText{fill:#1e2235;stroke:none;}#seq-fortigate13-2 .note{stroke:#f5b041;fill:#fff8e1;}#seq-fortigate13-2 .noteText,#seq-fortigate13-2 .noteText&gt;tspan{fill:#5d4037;stroke:none;}</style><g/><defs><marker orient="auto" markerHeight="12" markerWidth="12" markerUnits="userSpaceOnUse" refY="5" refX="7.9" id="seq-fortigate13-2-arrowhead"><path d="M 0 0 L 10 5 L 0 10 z"/></marker></defs><g><rect class="note" ry="0" rx="0" height="48" width="1305" stroke="#666" fill="#EDF2AE" y="75" x="30"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="81" x="683"><tspan x="683">場景：Office VDOM 的用戶透過 Root VDOM 上網</tspan></text></g><g><rect class="note" ry="0" rx="0" height="48" width="218" stroke="#666" fill="#EDF2AE" y="191" x="360"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="197" x="469"><tspan x="469">查表：預設路由指向 V-Link</tspan></text></g><g><rect class="note" ry="0" rx="0" height="48" width="216" stroke="#666" fill="#EDF2AE" y="365" x="990"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="371" x="1098"><tspan x="1098">查表：預設路由指向 WAN1</tspan></text></g><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="138" x="194">1. 發送上網請求</text><line style="fill: none;" marker-end="url(#seq-fortigate13-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="181" x2="311" y1="181" x1="76"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="254" x="481">2. 轉送封包 (FW Policy 1 Allow)</text><line style="fill: none;" marker-end="url(#seq-fortigate13-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="297" x2="645" y1="297" x1="316"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="312" x="796">3. 封包進入 Root VDOM</text><line style="fill: none;" marker-end="url(#seq-fortigate13-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="355" x2="941" y1="355" x1="650"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="428" x="1116">4. SNAT 出去 (FW Policy 2 Allow)</text><line style="fill: none;" marker-end="url(#seq-fortigate13-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="471" x2="1286" y1="471" x1="946"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="486" x="1119">5. 回應封包</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-fortigate13-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="529" x2="949" y1="529" x1="1289"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="544" x="799">6. 轉回 V-Link</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-fortigate13-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="587" x2="653" y1="587" x1="944"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="602" x="484">7. 回到 Office VDOM</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-fortigate13-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="645" x2="319" y1="645" x1="648"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="660" x="197">8. 回應用戶</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-fortigate13-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="703" x2="79" y1="703" x1="314"/></svg></div>
             </div>
         </div>
 
@@ -482,7 +498,7 @@ end</div>
 
     <!-- Footer -->
     <footer>
-        <p>Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0</p>
+        <p>Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0</p>
     </footer>
 
     <script>

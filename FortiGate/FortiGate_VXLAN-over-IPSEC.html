@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script type="module">
-        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        const mermaid = { initialize() {}, init() {}, run: async () => {} }; // 架構圖已改為靜態 SVG,不再載入 Mermaid
         mermaid.initialize({ 
             startOnLoad: true,
             theme: 'neutral', // 使用 neutral 主題讓文字對比更清晰
@@ -119,6 +119,9 @@
             font-size: 0.875rem;
         }
     </style>
+    <!-- 教學網站共用外觀 -->
+    <link rel="stylesheet" href="../assets/site-theme.css?v=20261112">
+    <script src="../assets/site-chrome.js?v=20261112" defer></script>
 </head>
 <body>
 
@@ -219,34 +222,76 @@
             <h3 class="text-lg font-semibold mb-2 text-gray-700">1. 邏輯拓撲圖 (Network Topology)</h3>
             <p class="text-sm text-gray-500 mb-2">說明：Site A 與 Site B 透過 Internet 連接，底層是 IPsec VPN，上層跑 VXLAN，將內部 VLAN 10 打通。</p>
             <div class="mermaid-container">
-                <div class="mermaid">
-                    graph LR
-                        subgraph Site_A [台北總公司]
-                            PC_A[PC A<br>192.168.10.10] -- VLAN 10 --> LAN_A[Port2<br>Soft Switch]
-                            LAN_A -- Bridge --> VXLAN_A[VXLAN Int]
-                            VXLAN_A -- Encapsulate --> FGT_A[FortiGate A<br>WAN: 1.1.1.1]
-                        end
-
-                        FGT_A == "IPsec Tunnel (Encrypted)" ==> Internet((Internet))
-
-                        subgraph Site_B [高雄分公司]
-                            Internet == "IPsec Tunnel (Encrypted)" ==> FGT_B[FortiGate B<br>WAN: 2.2.2.2]
-                            FGT_B -- Decapsulate --> VXLAN_B[VXLAN Int]
-                            VXLAN_B -- Bridge --> LAN_B[Port2<br>Soft Switch]
-                            LAN_B -- VLAN 10 --> PC_B[PC B<br>192.168.10.20]
-                        end
-
-                        classDef device fill:#f9f,stroke:#333,stroke-width:2px;
-                        classDef pc fill:#bbf,stroke:#333,stroke-width:2px;
-                        class FGT_A,FGT_B device;
-                        class PC_A,PC_B pc;
+                <!-- 拓撲圖 (手繪 SVG):兩站點左右並排、各自由上而下,底部經 Internet 以 IPsec Tunnel 相連 -->
+                <div style="width:100%;overflow-x:auto">
+                <svg viewBox="0 0 860 610" role="img" aria-labelledby="fgvx-a-title fgvx-a-desc" style="width:100%;min-width:560px;max-width:860px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+                <title id="fgvx-a-title">VXLAN over IPsec 邏輯拓撲</title>
+                <desc id="fgvx-a-desc">Site A (台北總公司):PC A (192.168.10.10) 以 VLAN 10 連到 Port2 Soft Switch,Soft Switch 以 Bridge 接到 VXLAN Int,VXLAN Int 封裝 (Encapsulate) 後交給 FortiGate A (WAN: 1.1.1.1)。FortiGate A 經 IPsec Tunnel (Encrypted) 穿越 Internet 到達 Site B (高雄分公司) 的 FortiGate B (WAN: 2.2.2.2),FortiGate B 解封裝 (Decapsulate) 後交給 VXLAN Int,再以 Bridge 接到 Port2 Soft Switch,最後以 VLAN 10 送到 PC B (192.168.10.20)。</desc>
+                <defs><linearGradient id="fgvx-a-pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7e57c2"/><stop offset="1" stop-color="#311b92"/></linearGradient><filter id="fgvx-a-sh" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#311b92" flood-opacity="0.18"/></filter><marker id="fgvx-a-arr-g" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5b6278"/></marker><marker id="fgvx-a-arr-r" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="fgvx-a-arr-p" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#673ab7"/></marker><marker id="fgvx-a-arr-c" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#0891b2"/></marker></defs>
+                <rect x="20" y="20" width="300" height="432" rx="16" fill="#effafc" stroke="#67c5d6" stroke-width="1.5" stroke-dasharray="6 5"/>
+                <text x="36" y="44" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#0891b2">Site A · 台北總公司</text>
+                <rect x="540" y="20" width="300" height="432" rx="16" fill="#effafc" stroke="#67c5d6" stroke-width="1.5" stroke-dasharray="6 5"/>
+                <text x="556" y="44" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#0891b2">Site B · 高雄分公司</text>
+                <path d="M170 120 V166" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fgvx-a-arr-c)"/>
+                <text x="182" y="148.0" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">VLAN 10</text>
+                <path d="M170 224 V270" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fgvx-a-arr-c)"/>
+                <text x="182" y="252.0" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">Bridge</text>
+                <path d="M170 316 V362" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fgvx-a-arr-c)"/>
+                <text x="182" y="344.0" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">Encapsulate</text>
+                <path d="M690 168 V122" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fgvx-a-arr-c)"/>
+                <text x="702" y="148.0" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">VLAN 10</text>
+                <path d="M690 272 V226" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fgvx-a-arr-c)"/>
+                <text x="702" y="252.0" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">Bridge</text>
+                <path d="M690 364 V318" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fgvx-a-arr-c)"/>
+                <text x="702" y="344.0" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">Decapsulate</text>
+                <path d="M170 428 V520 H343" fill="none" stroke="#673ab7" stroke-width="4" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="10 6" marker-end="url(#fgvx-a-arr-p)"/>
+                <path d="M517 520 H690 V430" fill="none" stroke="#673ab7" stroke-width="4" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="10 6" marker-end="url(#fgvx-a-arr-p)"/>
+                <rect x="210.0" y="499.0" width="104" height="42" rx="10" fill="#ede7f6" stroke="#673ab7"/>
+                <text x="262" y="515.5" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#4527a0">IPsec Tunnel</text>
+                <text x="262" y="533.5" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#4527a0">(Encrypted)</text>
+                <rect x="551.0" y="499.0" width="104" height="42" rx="10" fill="#ede7f6" stroke="#673ab7"/>
+                <text x="603" y="515.5" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#4527a0">IPsec Tunnel</text>
+                <text x="603" y="533.5" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#4527a0">(Encrypted)</text>
+                <g filter="url(#fgvx-a-sh)"><rect x="70.0" y="64" width="200" height="56" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/></g>
+                <rect x="84.0" y="82.0" width="24" height="16" rx="2" fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2"/><rect x="92.0" y="100.0" width="8" height="3" fill="#0891b2"/>
+                <text x="184" y="87.5" text-anchor="middle" font-size="14" font-weight="700" fill="#1e2235">PC A</text>
+                <text x="184" y="105.5" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#5b6278">192.168.10.10</text>
+                <rect x="70.0" y="168" width="200" height="56" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/>
+                <text x="170" y="191.5" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">Port2</text>
+                <text x="170" y="209.5" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="10.5" fill="#5b6278">Soft Switch</text>
+                <rect x="70.0" y="272" width="200" height="44" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/>
+                <text x="170" y="298.5" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">VXLAN Int</text>
+                <g filter="url(#fgvx-a-sh)"><rect x="70.0" y="364" width="200" height="64" rx="10" fill="url(#fgvx-a-pg)"/></g>
+                <text x="170" y="388.5" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">FortiGate A</text>
+                <text x="170" y="406.5" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#d1c4e9">WAN: 1.1.1.1</text>
+                <g fill="#b39ddb"><rect x="144" y="417" width="10" height="5" rx="1"/><rect x="158" y="417" width="10" height="5" rx="1"/><rect x="172" y="417" width="10" height="5" rx="1"/><rect x="186" y="417" width="10" height="5" rx="1"/></g>
+                <g filter="url(#fgvx-a-sh)"><rect x="590.0" y="64" width="200" height="56" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/></g>
+                <rect x="604.0" y="82.0" width="24" height="16" rx="2" fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2"/><rect x="612.0" y="100.0" width="8" height="3" fill="#0891b2"/>
+                <text x="704" y="87.5" text-anchor="middle" font-size="14" font-weight="700" fill="#1e2235">PC B</text>
+                <text x="704" y="105.5" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#5b6278">192.168.10.20</text>
+                <rect x="590.0" y="168" width="200" height="56" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/>
+                <text x="690" y="191.5" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">Port2</text>
+                <text x="690" y="209.5" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="10.5" fill="#5b6278">Soft Switch</text>
+                <rect x="590.0" y="272" width="200" height="44" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/>
+                <text x="690" y="298.5" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">VXLAN Int</text>
+                <g filter="url(#fgvx-a-sh)"><rect x="590.0" y="364" width="200" height="64" rx="10" fill="url(#fgvx-a-pg)"/></g>
+                <text x="690" y="388.5" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">FortiGate B</text>
+                <text x="690" y="406.5" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#d1c4e9">WAN: 2.2.2.2</text>
+                <g fill="#b39ddb"><rect x="664" y="417" width="10" height="5" rx="1"/><rect x="678" y="417" width="10" height="5" rx="1"/><rect x="692" y="417" width="10" height="5" rx="1"/><rect x="706" y="417" width="10" height="5" rx="1"/></g>
+                <path d="M367 550 a26 26 0 0 1 0-52 a34 34 0 0 1 62-14 a30 30 0 0 1 52 18 a24 24 0 0 1 14 48 z" fill="#eef2ff" stroke="#9fa8da" stroke-width="2"/>
+                <text x="432" y="528.5" text-anchor="middle" font-size="14" font-weight="700" fill="#283593">Internet</text>
+                <g font-size="12" fill="#5b6278">
+                <path d="M200 592 H236" fill="none" stroke="#0891b2" stroke-width="4" marker-end="url(#fgvx-a-arr-c)"/><text x="246" y="596">站內轉送 (VLAN 10 / Bridge / 封裝)</text>
+                <path d="M500 592 H540" fill="none" stroke="#673ab7" stroke-width="4" stroke-dasharray="10 6" marker-end="url(#fgvx-a-arr-p)"/><text x="550" y="596">IPsec 加密通道</text>
+                </g>
+                </svg>
                 </div>
             </div>
 
             <h3 class="text-lg font-semibold mb-2 text-gray-700 mt-8">2. 封包封裝流程 (Packet Walk)</h3>
             <p class="text-sm text-gray-500 mb-2">說明：展示從 PC A 發出封包到 PC B 接收的過程中，封包表頭的變化。</p>
             <div class="mermaid-container">
-                <div class="mermaid">
+                <!-- 時序圖 (由 Mermaid 10.9.1 預先轉成靜態 SVG,套用網站配色)。原始 Mermaid 碼:
                     sequenceDiagram
                         participant User as PC A (192.168.10.10)
                         participant FGTA as FortiGate A
@@ -255,16 +300,18 @@
                         participant Dest as PC B (192.168.10.20)
 
                         User->>FGTA: 原始封包 [Src:10.10, Dst:10.20 | Payload]
-                        Note over FGTA: 進入 Soft Switch，<br>轉發至 VXLAN 介面
-                        Note over FGTA: 加上 VXLAN Header<br>[UDP 4789 | VNI 100 | Orig Packet]
-                        Note over FGTA: 進入 IPsec Phase 1<br>加上 ESP 加密標頭
+                        Note over FGTA: 進入 Soft Switch，轉發至 VXLAN 介面
+                        Note over FGTA: 加上 VXLAN Header[UDP 4789 | VNI 100 | Orig Packet]
+                        Note over FGTA: 進入 IPsec Phase 1加上 ESP 加密標頭
                         FGTA->>Internet: 加密封包 [IPsec ESP | VXLAN | Orig Packet]
                         Internet->>FGTB: 路由傳送
                         Note over FGTB: IPsec 解密與驗證
-                        Note over FGTB: 剝除 VXLAN Header<br>取出原始封包
-                        Note over FGTB: 透過 Soft Switch<br>轉發至 LAN Port
+                        Note over FGTB: 剝除 VXLAN Header取出原始封包
+                        Note over FGTB: 透過 Soft Switch轉發至 LAN Port
                         FGTB->>Dest: 原始封包 [Src:10.10, Dst:10.20 | Payload]
-                </div>
+                
+                -->
+                <div style="width:100%;overflow-x:auto"><svg xmlns="http://www.w3.org/2000/svg" aria-roledescription="sequence" role="img" viewBox="-50 -10 1745 665" style="width:100%;min-width:560px;max-width:1745px;height:auto;display:block;margin:0 auto" id="seq-fortigate-vxlan-over-ipsec-2" aria-labelledby="seq-fortigate-vxlan-over-ipsec-2-title"><title id="seq-fortigate-vxlan-over-ipsec-2-title">2. 封包封裝流程 (Packet Walk)</title><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="1554.5" y1="5" x1="1554.5"/><g><rect class="actor actor-top" ry="3" rx="3" name="Dest" height="65" width="181" stroke="#666" fill="#eaeaea" y="0" x="1464"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="1554.5"><tspan dy="0" x="1554.5">PC B (192.168.10.20)</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="1150.5" y1="5" x1="1150.5"/><g><rect class="actor actor-top" ry="3" rx="3" name="FGTB" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="1075.5"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="1150.5"><tspan dy="0" x="1150.5">FortiGate B</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="910.5" y1="5" x1="910.5"/><g><rect class="actor actor-top" ry="3" rx="3" name="Internet" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="835.5"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="910.5"><tspan dy="0" x="910.5">Internet</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="494.5" y1="5" x1="494.5"/><g><rect class="actor actor-top" ry="3" rx="3" name="FGTA" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="419.5"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="494.5"><tspan dy="0" x="494.5">FortiGate A</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="90.5" y1="5" x1="90.5"/><g><rect class="actor actor-top" ry="3" rx="3" name="User" height="65" width="181" stroke="#666" fill="#eaeaea" y="0" x="0"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="90.5"><tspan dy="0" x="90.5">PC A (192.168.10.10)</tspan></text></g></g><style>#seq-fortigate-vxlan-over-ipsec-2{font-family:'Noto Sans TC',Roboto,'Microsoft JhengHei',sans-serif;font-size:15px;fill:#1e2235;}#seq-fortigate-vxlan-over-ipsec-2 .marker{fill:#5b6278;stroke:#5b6278;}#seq-fortigate-vxlan-over-ipsec-2 .marker.cross{stroke:#5b6278;}#seq-fortigate-vxlan-over-ipsec-2 .actor{stroke:#673ab7;fill:#f3effc;}#seq-fortigate-vxlan-over-ipsec-2 text.actor&gt;tspan{fill:#311b92;stroke:none;}#seq-fortigate-vxlan-over-ipsec-2 .actor-line{stroke:#b39ddb;}#seq-fortigate-vxlan-over-ipsec-2 .messageLine0{stroke-width:1.5;stroke-dasharray:none;stroke:#5b6278;}#seq-fortigate-vxlan-over-ipsec-2 .messageLine1{stroke-width:1.5;stroke-dasharray:2,2;stroke:#5b6278;}#seq-fortigate-vxlan-over-ipsec-2 #seq-fortigate-vxlan-over-ipsec-2-arrowhead path{fill:#5b6278;stroke:#5b6278;}#seq-fortigate-vxlan-over-ipsec-2 #sequencenumber{fill:#5b6278;}#seq-fortigate-vxlan-over-ipsec-2 #crosshead path{fill:#5b6278;stroke:#5b6278;}#seq-fortigate-vxlan-over-ipsec-2 .messageText{fill:#1e2235;stroke:none;}#seq-fortigate-vxlan-over-ipsec-2 .note{stroke:#f5b041;fill:#fff8e1;}#seq-fortigate-vxlan-over-ipsec-2 .noteText,#seq-fortigate-vxlan-over-ipsec-2 .noteText&gt;tspan{fill:#5d4037;stroke:none;}</style><g/><defs><marker orient="auto" markerHeight="12" markerWidth="12" markerUnits="userSpaceOnUse" refY="5" refX="7.9" id="seq-fortigate-vxlan-over-ipsec-2-arrowhead"><path d="M 0 0 L 10 5 L 0 10 z"/></marker></defs><g><rect class="note" ry="0" rx="0" height="48" width="295" stroke="#666" fill="#EDF2AE" y="133" x="347"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="139" x="495"><tspan x="495">進入 Soft Switch，轉發至 VXLAN 介面</tspan></text></g><g><rect class="note" ry="0" rx="0" height="48" width="412" stroke="#666" fill="#EDF2AE" y="191" x="288.5"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="197" x="495"><tspan x="495">加上 VXLAN Header[UDP 4789 | VNI 100 | Orig Packet]</tspan></text></g><g><rect class="note" ry="0" rx="0" height="48" width="292" stroke="#666" fill="#EDF2AE" y="249" x="348.5"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="255" x="495"><tspan x="495">進入 IPsec Phase 1加上 ESP 加密標頭</tspan></text></g><g><rect class="note" ry="0" rx="0" height="48" width="150" stroke="#666" fill="#EDF2AE" y="423" x="1075.5"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="429" x="1151"><tspan x="1151">IPsec 解密與驗證</tspan></text></g><g><rect class="note" ry="0" rx="0" height="48" width="262" stroke="#666" fill="#EDF2AE" y="481" x="1019.5"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="487" x="1151"><tspan x="1151">剝除 VXLAN Header取出原始封包</tspan></text></g><g><rect class="note" ry="0" rx="0" height="48" width="262" stroke="#666" fill="#EDF2AE" y="539" x="1019.5"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="545" x="1151"><tspan x="1151">透過 Soft Switch轉發至 LAN Port</tspan></text></g><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="80" x="291">原始封包 [Src:10.10, Dst:10.20 | Payload]</text><line style="fill: none;" marker-end="url(#seq-fortigate-vxlan-over-ipsec-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="123" x2="490.5" y1="123" x1="91.5"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="312" x="701">加密封包 [IPsec ESP | VXLAN | Orig Packet]</text><line style="fill: none;" marker-end="url(#seq-fortigate-vxlan-over-ipsec-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="355" x2="906.5" y1="355" x1="495.5"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="370" x="1029">路由傳送</text><line style="fill: none;" marker-end="url(#seq-fortigate-vxlan-over-ipsec-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="413" x2="1146.5" y1="413" x1="911.5"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="602" x="1351">原始封包 [Src:10.10, Dst:10.20 | Payload]</text><line style="fill: none;" marker-end="url(#seq-fortigate-vxlan-over-ipsec-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="645" x2="1550.5" y1="645" x1="1151.5"/></svg></div>
             </div>
         </div>
 
@@ -394,7 +441,7 @@ end</code></pre>
     <footer>
         <div class="container mx-auto">
             <p class="font-mono text-sm tracking-wide">
-                Fortinet FortiGate實戰課程 | Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0
+                Fortinet FortiGate實戰課程 | Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0
             </p>
         </div>
     </footer>

@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script type="module">
-        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        const mermaid = { initialize() {}, init() {}, run: async () => {} }; // 架構圖已改為靜態 SVG,不再載入 Mermaid
         mermaid.initialize({ 
             startOnLoad: true, 
             theme: 'neutral', 
@@ -145,6 +145,9 @@
             border-color: #fda4af;
         }
     </style>
+    <!-- 教學網站共用外觀 -->
+    <link rel="stylesheet" href="../assets/site-theme.css?v=20261112">
+    <script src="../assets/site-chrome.js?v=20261112" defer></script>
 </head>
 <body>
 
@@ -172,7 +175,7 @@
                     <div class="hidden md:block text-right">
                         <div class="text-xs text-red-200">Designed by Timmy</div>
                         <span class="bg-red-600 text-white text-xs font-semibold px-3 py-1 rounded-full border border-red-500 mt-1 inline-block shadow-sm">
-                            Ver 1.0
+                            Ver 2.0
                         </span>
                     </div>
                 </div>
@@ -320,23 +323,25 @@
                         SNAT 封包流向與轉換 (員工上網)
                     </h4>
                     <div class="mermaid-container">
-                        <div class="mermaid">
+                        <!-- 時序圖 (由 Mermaid 10.9.1 預先轉成靜態 SVG,套用網站配色)。原始 Mermaid 碼:
                             %%{init: {'theme': 'neutral', 'themeVariables': { 'fontFamily': 'Noto Sans TC', 'fontSize': '20px', 'actorFontSize': '20px', 'noteFontSize': '18px', 'messageFontSize': '18px' }}}%%
                             sequenceDiagram
                                 autonumber
-                                participant PC as 員工 PC<br/>(192.168.1.10)
-                                participant FG as FortiGate<br/>(NAT)
-                                participant WAN as 網際網路<br/>(Google)
+                                participant PC as 員工 PC(192.168.1.10)
+                                participant FG as FortiGate(NAT)
+                                participant WAN as 網際網路(Google)
                                 
                                 Note over PC, FG: SNAT 場景：員工上網
                                 PC->>FG: 請求: Src=192.168.1.10:51234, Dst=8.8.8.8:443
-                                Note right of FG: 查表與轉換 (SNAT)<br/>將 192.168.1.10 轉為 WAN IP (203.0.113.1)<br/>建立 Session 表：Port 51234 -> 10001 (PAT)
+                                Note right of FG: 查表與轉換 (SNAT)將 192.168.1.10 轉為 WAN IP (203.0.113.1)建立 Session 表：Port 51234 -> 10001 (PAT)
                                 FG->>WAN: 轉發: Src=203.0.113.1:10001, Dst=8.8.8.8:443
                                 
-                                WAN-->>FG: 回應: Src=8.8.8.8:443, Dst=203.0.113.1:10001
-                                Note left of FG: 查表還原<br/>將 203.0.113.1:10001 還原為 192.168.1.10:51234
-                                FG-->>PC: 轉發: Src=8.8.8.8:443, Dst=192.168.1.10:51234
-                        </div>
+                                WAN--&gt;>FG: 回應: Src=8.8.8.8:443, Dst=203.0.113.1:10001
+                                Note left of FG: 查表還原將 203.0.113.1:10001 還原為 192.168.1.10:51234
+                                FG--&gt;>PC: 轉發: Src=8.8.8.8:443, Dst=192.168.1.10:51234
+                        
+                        -->
+                        <div style="width:100%;overflow-x:auto"><svg xmlns="http://www.w3.org/2000/svg" aria-roledescription="sequence" role="img" viewBox="-50 -10 1658.5 491" style="width:100%;min-width:560px;max-width:1659px;height:auto;display:block;margin:0 auto" id="seq-fortigate04-1" aria-labelledby="seq-fortigate04-1-title"><title id="seq-fortigate04-1-title">圖 1 SNAT 封包流向與轉換 (員工上網)</title><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="1482.5" y1="5" x1="1482.5"/><g><rect class="actor actor-top" ry="3" rx="3" name="WAN" height="65" width="152" stroke="#666" fill="#eaeaea" y="0" x="1406.5"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="1482.5"><tspan dy="0" x="1482.5">網際網路(Google)</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="618.5" y1="5" x1="618.5"/><g><rect class="actor actor-top" ry="3" rx="3" name="FG" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="543.5"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="618.5"><tspan dy="0" x="618.5">FortiGate(NAT)</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="94.5" y1="5" x1="94.5"/><g><rect class="actor actor-top" ry="3" rx="3" name="PC" height="65" width="189" stroke="#666" fill="#eaeaea" y="0" x="0"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="94.5"><tspan dy="0" x="94.5">員工 PC(192.168.1.10)</tspan></text></g></g><style>#seq-fortigate04-1{font-family:'Noto Sans TC',Roboto,'Microsoft JhengHei',sans-serif;font-size:15px;fill:#1e2235;}#seq-fortigate04-1 .marker{fill:#5b6278;stroke:#5b6278;}#seq-fortigate04-1 .marker.cross{stroke:#5b6278;}#seq-fortigate04-1 .actor{stroke:#673ab7;fill:#f3effc;}#seq-fortigate04-1 text.actor&gt;tspan{fill:#311b92;stroke:none;}#seq-fortigate04-1 .actor-line{stroke:#b39ddb;}#seq-fortigate04-1 .messageLine0{stroke-width:1.5;stroke-dasharray:none;stroke:#5b6278;}#seq-fortigate04-1 .messageLine1{stroke-width:1.5;stroke-dasharray:2,2;stroke:#5b6278;}#seq-fortigate04-1 #seq-fortigate04-1-arrowhead path{fill:#5b6278;stroke:#5b6278;}#seq-fortigate04-1 #sequencenumber{fill:#5b6278;}#seq-fortigate04-1 #crosshead path{fill:#5b6278;stroke:#5b6278;}#seq-fortigate04-1 .messageText{fill:#1e2235;stroke:none;}#seq-fortigate04-1 .note{stroke:#f5b041;fill:#fff8e1;}#seq-fortigate04-1 .noteText,#seq-fortigate04-1 .noteText&gt;tspan{fill:#5d4037;stroke:none;}</style><g/><defs><marker orient="auto" markerHeight="12" markerWidth="12" markerUnits="userSpaceOnUse" refY="5" refX="7.9" id="seq-fortigate04-1-arrowhead"><path d="M 0 0 L 10 5 L 0 10 z"/></marker></defs><defs><marker orient="auto" markerHeight="40" markerWidth="60" refY="15" refX="15" id="seq-fortigate04-1-sequencenumber"><circle r="6" cy="15" cx="15"/></marker></defs><g><rect class="note" ry="0" rx="0" height="48" width="614" stroke="#666" fill="#EDF2AE" y="75" x="49.5"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="81" x="357"><tspan x="357">SNAT 場景：員工上網</tspan></text></g><g><rect class="note" ry="0" rx="0" height="48" width="778" stroke="#666" fill="#EDF2AE" y="191" x="663.5"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="197" x="1053"><tspan x="1053">查表與轉換 (SNAT)將 192.168.1.10 轉為 WAN IP (203.0.113.1)建立 Session 表：Port 51234 -&gt; 10001 (PAT)</tspan></text></g><g><rect class="note" ry="0" rx="0" height="48" width="438" stroke="#666" fill="#EDF2AE" y="365" x="135.5"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="371" x="355"><tspan x="355">查表還原將 203.0.113.1:10001 還原為 192.168.1.10:51234</tspan></text></g><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="138" x="355">請求: Src=192.168.1.10:51234, Dst=8.8.8.8:443</text><line style="fill: none;" marker-start="url(#seq-fortigate04-1-sequencenumber)" marker-end="url(#seq-fortigate04-1-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="181" x2="614.5" y1="181" x1="95.5"/><text class="sequenceNumber" text-anchor="middle" font-size="12px" font-family="sans-serif" y="185" x="95.5">1</text><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="254" x="1049">轉發: Src=203.0.113.1:10001, Dst=8.8.8.8:443</text><line style="fill: none;" marker-start="url(#seq-fortigate04-1-sequencenumber)" marker-end="url(#seq-fortigate04-1-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="297" x2="1478.5" y1="297" x1="619.5"/><text class="sequenceNumber" text-anchor="middle" font-size="12px" font-family="sans-serif" y="301" x="619.5">2</text><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="312" x="1052">回應: Src=8.8.8.8:443, Dst=203.0.113.1:10001</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-start="url(#seq-fortigate04-1-sequencenumber)" marker-end="url(#seq-fortigate04-1-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="355" x2="622.5" y1="355" x1="1481.5"/><text class="sequenceNumber" text-anchor="middle" font-size="12px" font-family="sans-serif" y="359" x="1481.5">3</text><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="428" x="358">轉發: Src=8.8.8.8:443, Dst=192.168.1.10:51234</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-start="url(#seq-fortigate04-1-sequencenumber)" marker-end="url(#seq-fortigate04-1-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="471" x2="98.5" y1="471" x1="617.5"/><text class="sequenceNumber" text-anchor="middle" font-size="12px" font-family="sans-serif" y="475" x="617.5">4</text></svg></div>
                     </div>
                 </div>
 
@@ -347,30 +352,40 @@
                         DNAT (VIP) 拓樸與邏輯 (外部存取伺服器)
                     </h4>
                     <div class="mermaid-container">
-                        <div class="mermaid">
-                            %%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#ffcccc', 'edgeLabelBackground':'#ffffff', 'tertiaryColor': '#fff0f0', 'fontSize': '20px', 'edgeLabelFontSize': '18px'}}}%%
-                            graph TD
-                                subgraph Internet ["網際網路 (Untrust)"]
-                                    User[外部使用者<br>IP: 1.2.3.4]
-                                end
-
-                                subgraph FortiGate ["FortiGate (Edge)"]
-                                    WAN_If[WAN1 介面<br>Public IP: 203.0.113.50]
-                                    VIP_Obj[Virtual IP 物件<br>對應: 203.0.113.50:80 -> 10.1.1.20:8080]
-                                    Policy[Firewall Policy<br>Src: All, Dst: VIP_Obj, Action: Accept]
-                                end
-
-                                subgraph DMZ ["DMZ 區域 (Trust)"]
-                                    WebServer[網頁伺服器<br>Private IP: 10.1.1.20<br>Port: 8080]
-                                end
-
-                                User -- "1. 存取 http://203.0.113.50" --> WAN_If
-                                WAN_If -- "2. 匹配 VIP 規則 (DNAT)" --> VIP_Obj
-                                VIP_Obj -- "3. 檢查 Policy 放行" --> Policy
-                                Policy -- "4. 轉發封包 (Dst IP 變更)" --> WebServer
-
-                                style VIP_Obj fill:#f96,stroke:#333,stroke-width:2px
-                                style Policy fill:#bbf,stroke:#333,stroke-width:2px
+                        <div style="width:100%;overflow-x:auto">
+                        <svg viewBox="0 0 760 736" role="img" aria-labelledby="fg04a-title fg04a-desc" style="width:100%;min-width:560px;max-width:760px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+                        <title id="fg04a-title">DNAT (VIP) 拓樸與邏輯</title>
+                        <desc id="fg04a-desc">外部使用者 (IP 1.2.3.4,位於網際網路 Untrust 區) 存取 http://203.0.113.50,封包進入 FortiGate 的 WAN1 介面 (Public IP 203.0.113.50);接著匹配 Virtual IP 物件的 DNAT 規則 (203.0.113.50:80 對應到 10.1.1.20:8080),再檢查 Firewall Policy (Src: All, Dst: VIP_Obj, Action: Accept) 放行,最後把目的 IP 改寫後轉發給 DMZ (Trust) 區的網頁伺服器 (Private IP 10.1.1.20, Port 8080)。</desc>
+                        <defs><linearGradient id="fg04a-pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7e57c2"/><stop offset="1" stop-color="#311b92"/></linearGradient><filter id="fg04a-sh" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#311b92" flood-opacity="0.16"/></filter><marker id="fg04a-arr" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5b6278"/></marker><marker id="fg04a-arr-r" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="fg04a-arr-c" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#0891b2"/></marker><marker id="fg04a-arr-p" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#673ab7"/></marker></defs>
+                        <rect x="60" y="16" width="640" height="116" rx="16" fill="#eef2ff" stroke="#9fa8da" stroke-width="1.5" stroke-dasharray="6 5"/><text x="76" y="38" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#3949ab">網際網路 (Untrust)</text>
+                        <rect x="60" y="176" width="640" height="324" rx="16" fill="#f6f2fe" stroke="#b39ddb" stroke-width="1.5" stroke-dasharray="6 5"/><text x="76" y="198" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#673ab7">FortiGate (Edge)</text>
+                        <rect x="60" y="544" width="640" height="132" rx="16" fill="#effafc" stroke="#67c5d6" stroke-width="1.5" stroke-dasharray="6 5"/><text x="76" y="566" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#0891b2">DMZ 區域 (Trust)</text>
+                        <path d="M280 112 V210" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#fg04a-arr-c)"/>
+                        <text x="296" y="158" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">1. 存取 http://203.0.113.50</text>
+                        <path d="M280 268 V316" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#fg04a-arr-c)"/>
+                        <text x="296" y="297" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">2. 匹配 VIP 規則 (DNAT)</text>
+                        <path d="M280 374 V422" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#fg04a-arr-c)"/>
+                        <text x="296" y="403" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">3. 檢查 Policy 放行</text>
+                        <path d="M280 480 V578" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#fg04a-arr-c)"/>
+                        <text x="296" y="526" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">4. 轉發封包 (Dst IP 變更)</text>
+                        <g filter="url(#fg04a-sh)"><rect x="170" y="52" width="220" height="60" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/></g><text x="292" y="77.5" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">外部使用者</text><text x="292" y="96.5" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="10.5" fill="#5b6278">IP: 1.2.3.4</text>
+                        <g fill="#e0f7fa" stroke="#0891b2" stroke-width="1.4"><rect x="184" y="70" width="24" height="16" rx="2"/></g><path d="M192 91 H200 M196 86 V91" stroke="#0891b2" stroke-width="1.4"/>
+                        <g filter="url(#fg04a-sh)"><rect x="110" y="212" width="340" height="56" rx="10" fill="url(#fg04a-pg)"/></g><text x="280.0" y="235.5" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">WAN1 介面</text><text x="280.0" y="254.5" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#d1c4e9">Public IP: 203.0.113.50</text>
+                        <g filter="url(#fg04a-sh)"><rect x="110" y="318" width="340" height="56" rx="10" fill="#fff7ed" stroke="#f59e0b" stroke-width="2"/></g><text x="280.0" y="341.5" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">Virtual IP 物件</text><text x="280.0" y="360.5" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="10.5" fill="#92400e">對應: 203.0.113.50:80 -&gt; 10.1.1.20:8080</text>
+                        <g filter="url(#fg04a-sh)"><rect x="110" y="424" width="340" height="56" rx="10" fill="#ede7f6" stroke="#673ab7" stroke-width="2"/></g><text x="280.0" y="447.5" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">Firewall Policy</text><text x="280.0" y="466.5" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="10.5" fill="#4527a0">Src: All, Dst: VIP_Obj, Action: Accept</text>
+                        <g filter="url(#fg04a-sh)"><rect x="160" y="580" width="240" height="76" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/></g><text x="290" y="604.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">網頁伺服器</text><text x="290" y="623.0" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="10.5" fill="#5b6278">Private IP: 10.1.1.20</text><text x="290" y="642.0" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="10.5" fill="#5b6278">Port: 8080</text>
+                        <g fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2"><rect x="174" y="603" width="22" height="8" rx="2"/><rect x="174" y="614" width="22" height="8" rx="2"/><rect x="174" y="625" width="22" height="8" rx="2"/></g>
+                        <g font-size="12" fill="#5b6278">
+                        <path d="M70 712 H100" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#fg04a-arr-c)"/>
+                        <text x="108" y="716">封包路徑 (步驟 1–4)</text>
+                        <rect x="262" y="704" width="26" height="16" rx="4" fill="url(#fg04a-pg)"/>
+                        <text x="296" y="716">FortiGate 介面</text>
+                        <rect x="410" y="704" width="26" height="16" rx="4" fill="#fff7ed" stroke="#f59e0b" stroke-width="2"/>
+                        <text x="444" y="716">VIP 物件 (DNAT 對應)</text>
+                        <rect x="586" y="704" width="26" height="16" rx="4" fill="#ede7f6" stroke="#673ab7" stroke-width="2"/>
+                        <text x="620" y="716">Firewall Policy</text>
+                        </g>
+                        </svg>
                         </div>
                     </div>
                 </div>
@@ -382,25 +397,45 @@
                         NAT 模式決策流程圖
                     </h4>
                     <div class="mermaid-container">
-                        <div class="mermaid">
-                            %%{init: {'theme': 'neutral', 'themeVariables': { 'fontSize': '20px', 'edgeLabelFontSize': '18px' }}}%%
-                            flowchart TD
-                                Start(["封包進入 FortiGate"]) --> RouteLookup["路由查表"]
-                                RouteLookup --> ModeCheck{"使用哪種 NAT 模式?"}
-                                
-                                ModeCheck -- "Policy NAT (預設)" --> PolCheck["檢查 Firewall Policy"]
-                                PolCheck --> PolMatch{"符合 Policy?"}
-                                PolMatch -- Yes --> NATEnabled{"該 Policy 啟用 NAT?"}
-                                NATEnabled -- Yes --> ApplyNAT["依照 Policy 設定執行 SNAT"]
-                                NATEnabled -- No --> NoNAT["不進行轉換"]
-                                ApplyNAT --> Forward["轉發封包"]
-                                NoNAT --> Forward
-
-                                ModeCheck -- "Central NAT" --> CN_PolCheck["檢查 Firewall Policy (只看放行)"]
-                                CN_PolCheck --> CN_Match{"符合並放行?"}
-                                CN_Match -- Yes --> CN_Table["查閱 Central SNAT/DNAT 表格"]
-                                CN_Table --> CN_Apply["套用符合的 NAT 規則"]
-                                CN_Apply --> Forward
+                        <div style="width:100%;overflow-x:auto">
+                        <svg viewBox="0 0 820 784" role="img" aria-labelledby="fg04b-title fg04b-desc" style="width:100%;min-width:560px;max-width:820px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+                        <title id="fg04b-title">NAT 模式決策流程</title>
+                        <desc id="fg04b-desc">封包進入 FortiGate 後先做路由查表,再判斷使用哪種 NAT 模式。Policy NAT (預設):檢查 Firewall Policy,符合 Policy 時再看該 Policy 是否啟用 NAT,啟用 (Yes) 就依照 Policy 設定執行 SNAT,未啟用 (No) 則不進行轉換,兩者都接著轉發封包;不符合 Policy (No) 則由隱含拒絕 (Implicit Deny) 丟棄。Central NAT:檢查 Firewall Policy (只看放行),符合並放行 (Yes) 後查閱 Central SNAT/DNAT 表格、套用符合的 NAT 規則,再轉發封包;未放行 (No) 同樣由隱含拒絕丟棄。</desc>
+                        <defs><linearGradient id="fg04b-pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7e57c2"/><stop offset="1" stop-color="#311b92"/></linearGradient><filter id="fg04b-sh" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#311b92" flood-opacity="0.16"/></filter><marker id="fg04b-arr" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5b6278"/></marker><marker id="fg04b-arr-r" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="fg04b-arr-c" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#0891b2"/></marker><marker id="fg04b-arr-p" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#673ab7"/></marker></defs>
+                        <path d="M410 62 V90" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#fg04b-arr)"/>
+                        <path d="M410 136 V158" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#fg04b-arr)"/>
+                        <path d="M290 200 H190 V288" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#fg04b-arr)"/>
+                        <text x="180" y="250" text-anchor="end" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#5b6278">Policy NAT (預設)</text>
+                        <path d="M530 200 H630 V288" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#fg04b-arr)"/>
+                        <text x="640" y="250" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#5b6278">Central NAT</text>
+                        <path d="M190 334 V364" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#fg04b-arr)"/>
+                        <path d="M190 442 V480" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#fg04b-arr)"/>
+                        <text x="200" y="466" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#15803d">Yes</text>
+                        <path d="M190 558 V598" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#fg04b-arr)"/>
+                        <text x="200" y="582" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#15803d">Yes</text>
+                        <path d="M305 520 H410 V598" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#fg04b-arr)"/>
+                        <text x="340" y="510" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#b91c1c">No</text>
+                        <path d="M190 652 V742 H308" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#fg04b-arr)"/>
+                        <path d="M410 644 V718" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#fg04b-arr)"/>
+                        <path d="M630 334 V364" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#fg04b-arr)"/>
+                        <path d="M630 442 V480" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#fg04b-arr)"/>
+                        <text x="640" y="466" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#15803d">Yes</text>
+                        <path d="M630 526 V564" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#fg04b-arr)"/>
+                        <path d="M630 610 V742 H512" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#fg04b-arr)"/>
+                        <rect x="310" y="18" width="200" height="44" rx="22.0" fill="url(#fg04b-pg)" stroke="#311b92" stroke-width="2"/><text x="410.0" y="45.0" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">封包進入 FortiGate</text>
+                        <rect x="320" y="92" width="180" height="44" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/><text x="410.0" y="119.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">路由查表</text>
+                        <polygon points="410,160 530,200 410,240 290,200" fill="#e0f7fa" stroke="#0891b2" stroke-width="2"/><text x="410" y="205" text-anchor="middle" font-size="13" font-weight="700" fill="#0e7490">使用哪種 NAT 模式?</text>
+                        <rect x="80" y="290" width="220" height="44" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/><text x="190.0" y="317.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">檢查 Firewall Policy</text>
+                        <polygon points="190,366 290,404 190,442 90,404" fill="#e0f7fa" stroke="#0891b2" stroke-width="2"/><text x="190" y="409" text-anchor="middle" font-size="13" font-weight="700" fill="#0e7490">符合 Policy?</text>
+                        <polygon points="190,482 305,520 190,558 75,520" fill="#e0f7fa" stroke="#0891b2" stroke-width="2"/><text x="190" y="525" text-anchor="middle" font-size="13" font-weight="700" fill="#0e7490">該 Policy 啟用 NAT?</text>
+                        <rect x="80" y="600" width="220" height="52" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/><text x="190.0" y="621.5" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">依照 Policy 設定</text><text x="190.0" y="640.5" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">執行 SNAT</text>
+                        <rect x="330" y="600" width="160" height="44" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/><text x="410.0" y="627.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">不進行轉換</text>
+                        <rect x="510" y="290" width="240" height="44" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/><text x="630.0" y="317.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">檢查 Firewall Policy (只看放行)</text>
+                        <polygon points="630,366 730,404 630,442 530,404" fill="#e0f7fa" stroke="#0891b2" stroke-width="2"/><text x="630" y="409" text-anchor="middle" font-size="13" font-weight="700" fill="#0e7490">符合並放行?</text>
+                        <rect x="510" y="482" width="240" height="44" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/><text x="630.0" y="509.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">查閱 Central SNAT/DNAT 表格</text>
+                        <rect x="510" y="566" width="240" height="44" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/><text x="630.0" y="593.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">套用符合的 NAT 規則</text>
+                        <path d="M290 404 H336" fill="none" stroke="#dc2626" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#fg04b-arr-r)"/><text x="312" y="396" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#b91c1c">No</text><path d="M530 404 H484" fill="none" stroke="#dc2626" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#fg04b-arr-r)"/><text x="508" y="396" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#b91c1c">No</text><rect x="340" y="384" width="140" height="40" rx="20" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/><text x="410" y="402" text-anchor="middle" font-size="12" font-weight="700" fill="#b91c1c">隱含拒絕</text><text x="410" y="417" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="10.5" fill="#b91c1c">Implicit Deny / Drop</text><rect x="310" y="720" width="200" height="44" rx="22.0" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/><text x="410.0" y="747.0" text-anchor="middle" font-size="13" font-weight="700" fill="#15803d">轉發封包</text>
+                        </svg>
                         </div>
                     </div>
                 </div>
@@ -581,7 +616,7 @@
             <p class="text-gray-400 text-sm mb-6">timmyc@hauman.com.tw | 豪勉科技 Hauman Technologies Corporation</p>
             <div class="inline-block border-t border-gray-700 pt-6 px-12">
                 <div class="text-xs text-gray-500">
-                    Ver 1.0 | © 2025 Fortinet FortiGate 實戰課程系列
+                    Ver 2.0 | © 2025 Fortinet FortiGate 實戰課程系列
                 </div>
             </div>
         </div>

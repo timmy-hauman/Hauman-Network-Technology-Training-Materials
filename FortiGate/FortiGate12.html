@@ -9,7 +9,7 @@
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Mermaid JS -->
-    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <!-- 架構圖已改為靜態 SVG,不再載入 Mermaid;保留空殼讓頁面上既有的呼叫不出錯 --><script>window.mermaid = { initialize: function () {}, init: function () {}, run: function () { return Promise.resolve(); } };</script>
     
     <style>
         /* * CSS 暴力覆寫與最小寬度策略 
@@ -166,6 +166,9 @@
             border-top: 4px solid #b91c1c;
         }
     </style>
+    <!-- 教學網站共用外觀 -->
+    <link rel="stylesheet" href="../assets/site-theme.css?v=20261112">
+    <script src="../assets/site-chrome.js?v=20261112" defer></script>
 </head>
 <body class="antialiased">
 
@@ -267,39 +270,70 @@
             
             <p class="mb-2 font-semibold text-gray-700">圖一：SD-WAN 邏輯架構與封包流向</p>
             <div class="mermaid-container">
-                <div class="mermaid">
-                    graph TD
-                        subgraph LAN_Side [內部網路]
-                            PC[使用者 PC] -->|發送流量| FGT_LAN[FortiGate LAN Port]
-                        end
-
-                        subgraph FortiGate_SDWAN [FortiGate SD-WAN 引擎]
-                            FGT_LAN --> Rules{SD-WAN Rules 規則判斷}
-                            
-                            Rules --"規則 1: 關鍵應用 (ERP/Voice)"--> SLA_Check{SLA 檢查<br/>延遲 < 50ms?}
-                            Rules --"規則 2: 一般上網"--> LB[負載平衡/成本優先]
-                            
-                            SLA_Check --"品質良好"--> Member1[Member 1: MPLS]
-                            SLA_Check --"品質低落 (Failover)"--> Member2[Member 2: Internet VPN]
-                            
-                            LB --> Member3[Member 3: Broadband]
-                        end
-
-                        subgraph WAN_Side [外部網路]
-                            Member1 --> HQ_Server[總公司伺服器]
-                            Member2 --> HQ_Server
-                            Member3 --> Google[Internet/SaaS]
-                        end
-
-                        style Rules fill:#f9f,stroke:#333,stroke-width:2px
-                        style SLA_Check fill:#bbf,stroke:#333,stroke-width:2px
-                        style FortiGate_SDWAN fill:#fff9c4,stroke:#e2e8f0,stroke-width:2px
+                <!-- 架構圖 (手繪 SVG):直式排列,LAN → SD-WAN 規則/SLA 判斷 → 三個 Member → 外部網路 -->
+                <div style="width:100%;overflow-x:auto">
+                <svg viewBox="0 0 820 790" role="img" aria-labelledby="fg12a-title fg12a-desc" style="width:100%;min-width:560px;max-width:820px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+                <title id="fg12a-title">SD-WAN 邏輯架構與封包流向</title>
+                <desc id="fg12a-desc">內部網路的使用者 PC 發送流量到 FortiGate LAN Port,進入 FortiGate SD-WAN 引擎後由 SD-WAN Rules 規則判斷。規則 1 (關鍵應用 ERP/Voice) 先做 SLA 檢查 (延遲 &lt; 50ms?):品質良好走 Member 1 (MPLS),品質低落 (Failover) 改走 Member 2 (Internet VPN),兩者都通往外部網路的總公司伺服器。規則 2 (一般上網) 採負載平衡/成本優先,走 Member 3 (Broadband) 通往 Internet/SaaS。</desc>
+                <defs><linearGradient id="fg12a-pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7e57c2"/><stop offset="1" stop-color="#311b92"/></linearGradient><filter id="fg12a-sh" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#311b92" flood-opacity="0.18"/></filter><marker id="fg12a-arr-g" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5b6278"/></marker><marker id="fg12a-arr-r" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="fg12a-arr-p" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#673ab7"/></marker><marker id="fg12a-arr-c" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#0891b2"/></marker></defs>
+                <rect x="20" y="16" width="780" height="188" rx="16" fill="#effafc" stroke="#67c5d6" stroke-width="1.5" stroke-dasharray="6 5"/>
+                <text x="36" y="40" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#0891b2">內部網路</text>
+                <rect x="20" y="222" width="780" height="380" rx="16" fill="#f6f2fe" stroke="#b39ddb" stroke-width="1.5" stroke-dasharray="6 5"/>
+                <text x="36" y="246" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#673ab7">FortiGate SD-WAN 引擎</text>
+                <rect x="20" y="620" width="780" height="140" rx="16" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="6 5"/>
+                <text x="36" y="750" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#64748b">外部網路</text>
+                <path d="M410 92 V126" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg12a-arr-g)"/>
+                <text x="422" y="113" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#5b6278">發送流量</text>
+                <path d="M410 184 V248" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg12a-arr-g)"/>
+                <path d="M290 290 H230 V370" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg12a-arr-g)"/>
+                <text x="242" y="326" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">規則 1:</text>
+                <text x="242" y="341" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">關鍵應用 (ERP/Voice)</text>
+                <path d="M530 290 H600 V378" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg12a-arr-g)"/>
+                <text x="612" y="336" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">規則 2: 一般上網</text>
+                <path d="M120 420 V518" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg12a-arr-g)"/>
+                <text x="110" y="478" text-anchor="end" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#15803d">品質良好</text>
+                <path d="M340 420 V518" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg12a-arr-g)"/>
+                <text x="350" y="478" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#b45309">品質低落 (Failover)</text>
+                <path d="M600 436 V518" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg12a-arr-g)"/>
+                <path d="M120 576 V650 H210 V678" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg12a-arr-g)"/>
+                <path d="M340 576 V650 H250 V678" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg12a-arr-g)"/>
+                <path d="M600 576 V672" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg12a-arr-g)"/>
+                <g filter="url(#fg12a-sh)"><rect x="315.0" y="40" width="190" height="52" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/></g>
+                <rect x="329.0" y="56.0" width="24" height="16" rx="2" fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2"/><rect x="337.0" y="74.0" width="8" height="3" fill="#0891b2"/>
+                <text x="424" y="70.5" text-anchor="middle" font-size="14" font-weight="700" fill="#1e2235">使用者 PC</text>
+                <g filter="url(#fg12a-sh)"><rect x="310.0" y="128" width="200" height="56" rx="10" fill="url(#fg12a-pg)"/></g>
+                <text x="410" y="151.5" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">FortiGate</text>
+                <text x="410" y="169.5" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#d1c4e9">LAN Port</text>
+                <polygon points="410,250 530,290 410,330 290,290" fill="#e0f7fa" stroke="#0891b2" stroke-width="2"/>
+                <text x="410" y="285.5" text-anchor="middle" font-size="13" font-weight="700" fill="#0e7490">SD-WAN Rules</text>
+                <text x="410" y="303.5" text-anchor="middle" font-size="13" font-weight="700" fill="#0e7490">規則判斷</text>
+                <polygon points="230,372 340,420 230,468 120,420" fill="#e0f7fa" stroke="#0891b2" stroke-width="2"/>
+                <text x="230" y="415.5" text-anchor="middle" font-size="13" font-weight="700" fill="#0e7490">SLA 檢查</text>
+                <text x="230" y="433.5" text-anchor="middle" font-size="13" font-weight="700" fill="#0e7490">延遲 &lt; 50ms?</text>
+                <rect x="510.0" y="380" width="180" height="56" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/>
+                <text x="600" y="403.5" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">負載平衡</text>
+                <text x="600" y="421.5" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="10.5" fill="#5b6278">成本優先</text>
+                <g filter="url(#fg12a-sh)"><rect x="38.0" y="520" width="164" height="56" rx="10" fill="url(#fg12a-pg)"/></g>
+                <text x="120" y="543.5" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">Member 1</text>
+                <text x="120" y="561.5" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#d1c4e9">MPLS</text>
+                <g filter="url(#fg12a-sh)"><rect x="258.0" y="520" width="164" height="56" rx="10" fill="url(#fg12a-pg)"/></g>
+                <text x="340" y="543.5" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">Member 2</text>
+                <text x="340" y="561.5" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#d1c4e9">Internet VPN</text>
+                <g filter="url(#fg12a-sh)"><rect x="518.0" y="520" width="164" height="56" rx="10" fill="url(#fg12a-pg)"/></g>
+                <text x="600" y="543.5" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">Member 3</text>
+                <text x="600" y="561.5" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#d1c4e9">Broadband</text>
+                <g filter="url(#fg12a-sh)"><rect x="125.0" y="680" width="210" height="56" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/></g>
+                <g fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2"><rect x="139.0" y="692.0" width="22" height="9" rx="2"/><rect x="139.0" y="704.0" width="22" height="9" rx="2"/><rect x="139.0" y="716.0" width="22" height="9" rx="2"/></g>
+                <text x="244" y="712.5" text-anchor="middle" font-size="14" font-weight="700" fill="#1e2235">總公司伺服器</text>
+                <path d="M537 742 a26 26 0 0 1 0-52 a34 34 0 0 1 62-14 a30 30 0 0 1 52 18 a24 24 0 0 1 14 48 z" fill="#eef2ff" stroke="#9fa8da" stroke-width="2"/>
+                <text x="602" y="720.5" text-anchor="middle" font-size="14" font-weight="700" fill="#283593">Internet/SaaS</text>
+                </svg>
                 </div>
             </div>
 
             <p class="mb-2 mt-6 font-semibold text-gray-700">圖二：SLA 探測與狀態切換流程 (Sequence Diagram)</p>
             <div class="mermaid-container">
-                <div class="mermaid">
+                <!-- 時序圖 (由 Mermaid 10.9.1 預先轉成靜態 SVG,套用網站配色)。原始 Mermaid 碼:
                     sequenceDiagram
                         participant User as 使用者流量
                         participant Rule as SD-WAN Rule
@@ -311,9 +345,9 @@
 
                         loop 持續背景偵測 (每 500ms)
                             Probe->>WAN1: Ping Check
-                            WAN1-->>Probe: Reply (20ms) - 健康
+                            WAN1--&gt;>Probe: Reply (20ms) - 健康
                             Probe->>WAN2: Ping Check
-                            WAN2-->>Probe: Reply (80ms)
+                            WAN2--&gt;>Probe: Reply (80ms)
                         end
 
                         User->>Rule: 發送 VOIP 封包
@@ -322,13 +356,15 @@
                         Note over WAN1: 發生線路擁塞!
 
                         Probe->>WAN1: Ping Check
-                        WAN1-->>Probe: Reply (250ms) - 違反 SLA 門檻!
+                        WAN1--&gt;>Probe: Reply (250ms) - 違反 SLA 門檻!
                         
                         Note right of Rule: 偵測到品質下降，觸發切換機制
 
                         User->>Rule: 發送下一個 VOIP 封包
                         Rule->>WAN2: 切換路由至 WAN2 (雖然 80ms 但優於 250ms)
-                </div>
+                
+                -->
+                <div style="width:100%;overflow-x:auto"><svg xmlns="http://www.w3.org/2000/svg" aria-roledescription="sequence" role="img" viewBox="-50 -10 1361 898" style="width:100%;min-width:560px;max-width:1361px;height:auto;display:block;margin:0 auto" id="seq-fortigate12-2" aria-labelledby="seq-fortigate12-2-title"><title id="seq-fortigate12-2-title">VISUALS 三、架構視覺化 (Visuals)</title><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="1179" y1="5" x1="1179"/><g><rect class="actor actor-top" ry="3" rx="3" name="Probe" height="65" width="164" stroke="#666" fill="#eaeaea" y="0" x="1097"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="1179"><tspan dy="0" x="1179">SLA Probe (探測器)</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="932" y1="5" x1="932"/><g><rect class="actor actor-top" ry="3" rx="3" name="WAN2" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="857"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="932"><tspan dy="0" x="932">WAN2 (Internet)</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="692" y1="5" x1="692"/><g><rect class="actor actor-top" ry="3" rx="3" name="WAN1" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="617"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="692"><tspan dy="0" x="692">WAN1 (MPLS)</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="340" y1="5" x1="340"/><g><rect class="actor actor-top" ry="3" rx="3" name="Rule" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="265"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="340"><tspan dy="0" x="340">SD-WAN Rule</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="75" y1="5" x1="75"/><g><rect class="actor actor-top" ry="3" rx="3" name="User" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="0"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="75"><tspan dy="0" x="75">使用者流量</tspan></text></g></g><style>#seq-fortigate12-2{font-family:'Noto Sans TC',Roboto,'Microsoft JhengHei',sans-serif;font-size:15px;fill:#1e2235;}#seq-fortigate12-2 .marker{fill:#5b6278;stroke:#5b6278;}#seq-fortigate12-2 .marker.cross{stroke:#5b6278;}#seq-fortigate12-2 .actor{stroke:#673ab7;fill:#f3effc;}#seq-fortigate12-2 text.actor&gt;tspan{fill:#311b92;stroke:none;}#seq-fortigate12-2 .actor-line{stroke:#b39ddb;}#seq-fortigate12-2 .messageLine0{stroke-width:1.5;stroke-dasharray:none;stroke:#5b6278;}#seq-fortigate12-2 .messageLine1{stroke-width:1.5;stroke-dasharray:2,2;stroke:#5b6278;}#seq-fortigate12-2 #seq-fortigate12-2-arrowhead path{fill:#5b6278;stroke:#5b6278;}#seq-fortigate12-2 #sequencenumber{fill:#5b6278;}#seq-fortigate12-2 #crosshead path{fill:#5b6278;stroke:#5b6278;}#seq-fortigate12-2 .messageText{fill:#1e2235;stroke:none;}#seq-fortigate12-2 .labelBox{stroke:#673ab7;fill:#f3effc;}#seq-fortigate12-2 .labelText,#seq-fortigate12-2 .labelText&gt;tspan{fill:#311b92;stroke:none;}#seq-fortigate12-2 .loopText,#seq-fortigate12-2 .loopText&gt;tspan{fill:#311b92;stroke:none;}#seq-fortigate12-2 .loopLine{stroke-width:2px;stroke-dasharray:2,2;stroke:#673ab7;fill:#673ab7;}#seq-fortigate12-2 .note{stroke:#f5b041;fill:#fff8e1;}#seq-fortigate12-2 .noteText,#seq-fortigate12-2 .noteText&gt;tspan{fill:#5d4037;stroke:none;}</style><g/><defs><marker orient="auto" markerHeight="12" markerWidth="12" markerUnits="userSpaceOnUse" refY="5" refX="7.9" id="seq-fortigate12-2-arrowhead"><path d="M 0 0 L 10 5 L 0 10 z"/></marker></defs><g><rect class="note" ry="0" rx="0" height="48" width="330" stroke="#666" fill="#EDF2AE" y="75" x="647"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="81" x="812"><tspan x="812">初始狀態：WAN1 為主要路徑</tspan></text></g><g><line class="loopLine" y2="133" x2="1190" y1="133" x1="681"/><line class="loopLine" y2="414" x2="1190" y1="133" x1="1190"/><line class="loopLine" y2="414" x2="1190" y1="414" x1="681"/><line class="loopLine" y2="414" x2="681" y1="133" x1="681"/><polygon class="labelBox" points="681,133 731,133 731,146 722.6,153 681,153"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" class="labelText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="146" x="706">loop</text><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" class="loopText" text-anchor="middle" y="151" x="960.5"><tspan x="960.5">[持續背景偵測 (每 500ms)]</tspan></text></g><g><rect class="note" ry="0" rx="0" height="48" width="150" stroke="#666" fill="#EDF2AE" y="540" x="617"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="546" x="692"><tspan x="692">發生線路擁塞!</tspan></text></g><g><rect class="note" ry="0" rx="0" height="48" width="248" stroke="#666" fill="#EDF2AE" y="714" x="385"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="720" x="509"><tspan x="509">偵測到品質下降，觸發切換機制</tspan></text></g><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="187" x="937">Ping Check</text><line style="fill: none;" marker-end="url(#seq-fortigate12-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="230" x2="696" y1="230" x1="1178"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="245" x="934">Reply (20ms) - 健康</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-fortigate12-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="288" x2="1175" y1="288" x1="693"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="303" x="1057">Ping Check</text><line style="fill: none;" marker-end="url(#seq-fortigate12-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="346" x2="936" y1="346" x1="1178"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="361" x="1054">Reply (80ms)</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-fortigate12-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="404" x2="1175" y1="404" x1="933"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="429" x="206">發送 VOIP 封包</text><line style="fill: none;" marker-end="url(#seq-fortigate12-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="472" x2="336" y1="472" x1="76"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="487" x="515">轉發流量 (因為 WAN1 優於 WAN2)</text><line style="fill: none;" marker-end="url(#seq-fortigate12-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="530" x2="688" y1="530" x1="341"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="603" x="937">Ping Check</text><line style="fill: none;" marker-end="url(#seq-fortigate12-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="646" x2="696" y1="646" x1="1178"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="661" x="934">Reply (250ms) - 違反 SLA 門檻!</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-fortigate12-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="704" x2="1175" y1="704" x1="693"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="777" x="206">發送下一個 VOIP 封包</text><line style="fill: none;" marker-end="url(#seq-fortigate12-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="820" x2="336" y1="820" x1="76"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="835" x="635">切換路由至 WAN2 (雖然 80ms 但優於 250ms)</text><line style="fill: none;" marker-end="url(#seq-fortigate12-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="878" x2="928" y1="878" x1="341"/></svg></div>
             </div>
         </section>
 
@@ -486,7 +522,7 @@
     <!-- Footer -->
     <footer class="footer-signature">
         <div class="container mx-auto">
-            Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0
+            Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0
         </div>
     </footer>
 

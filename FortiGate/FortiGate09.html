@@ -7,7 +7,7 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Mermaid JS -->
-    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <!-- 架構圖已改為靜態 SVG,不再載入 Mermaid;保留空殼讓頁面上既有的呼叫不出錯 --><script>window.mermaid = { initialize: function () {}, init: function () {}, run: function () { return Promise.resolve(); } };</script>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <!-- Font Awesome -->
@@ -237,6 +237,9 @@
         }
         
     </style>
+    <!-- 教學網站共用外觀 -->
+    <link rel="stylesheet" href="../assets/site-theme.css?v=20261112">
+    <script src="../assets/site-chrome.js?v=20261112" defer></script>
 </head>
 <body>
 
@@ -345,77 +348,55 @@
             
             <!-- 圖表 1: Site-to-Site 拓撲 -->
             <h3 class="text-xl font-bold mb-2 border-l-4 border-green-500 pl-3">1. Site-to-Site VPN 拓撲圖</h3>
-            <p class="text-sm text-gray-500 mb-2">※ 已經強制放大字體，請使用下方卷軸左右滑動檢視完整架構。</p>
+            <p class="text-sm text-gray-500 mb-2">※ 小螢幕可使用下方卷軸左右滑動檢視完整架構。</p>
             <div class="mermaid-container">
-                <div class="mermaid">
-                    %%{init: {'theme': 'base', 'themeVariables': { 'fontSize': '20px', 'fontFamily': 'Noto Sans TC' }}}%%
-                    graph LR
-                        subgraph "HQ (總部)"
-                            HQ_LAN[HQ LAN<br>192.168.10.0/24] --- HQ_FGT[FortiGate HQ<br>WAN: 1.1.1.1]
-                        end
-
-                        subgraph "Internet"
-                            Cloud((Internet))
-                        end
-
-                        subgraph "Branch (分公司)"
-                            BR_FGT[FortiGate Branch<br>WAN: 2.2.2.2] --- BR_LAN[Branch LAN<br>192.168.20.0/24]
-                        end
-
-                        HQ_FGT -- "IPsec Tunnel<br>(Encrypted)" --> Cloud
-                        Cloud -- "ESP Packets" --> BR_FGT
-
-                        classDef fw fill:#fca5a5,stroke:#b91c1c,stroke-width:2px;
-                        classDef net fill:#e5e7eb,stroke:#374151;
-                        class HQ_FGT,BR_FGT fw;
-                        class HQ_LAN,BR_LAN,Cloud net;
+                <!-- 拓撲圖 (手繪 SVG):HQ LAN - FortiGate HQ ==IPsec Tunnel==> Internet ==ESP==> FortiGate Branch - Branch LAN -->
+                <div style="width:100%;overflow-x:auto">
+<svg viewBox="0 0 900 370" role="img" aria-labelledby="fg09a-title fg09a-desc" style="width:100%;min-width:560px;max-width:900px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+<title id="fg09a-title">Site-to-Site VPN 拓撲圖</title>
+<desc id="fg09a-desc">HQ (總部) 的 HQ LAN 192.168.10.0/24 連接 FortiGate HQ (WAN: 1.1.1.1);Branch (分公司) 的 Branch LAN 192.168.20.0/24 連接 FortiGate Branch (WAN: 2.2.2.2)。FortiGate HQ 以 IPsec Tunnel (Encrypted) 經過 Internet,再以 ESP Packets 抵達 FortiGate Branch。</desc>
+<defs><linearGradient id="fg09a-pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7e57c2"/><stop offset="1" stop-color="#311b92"/></linearGradient><linearGradient id="fg09a-cg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1aa0bb"/><stop offset="1" stop-color="#0e6378"/></linearGradient><filter id="fg09a-sh" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#311b92" flood-opacity="0.18"/></filter><marker id="fg09a-arr" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5b6278"/></marker><marker id="fg09a-arr-r" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="fg09a-arr-c" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#0891b2"/></marker><marker id="fg09a-arr-p" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#673ab7"/></marker><marker id="fg09a-arr-a" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#d97706"/></marker></defs>
+<rect x="20" y="20" width="240" height="290" rx="16" fill="#f6f2fe" stroke="#b39ddb" stroke-width="1.5" stroke-dasharray="6 5"/><text x="36" y="44" text-anchor="start" font-size="13" font-family="'JetBrains Mono', Consolas, monospace" font-weight="700" fill="#673ab7">HQ (總部)</text><rect x="640" y="20" width="240" height="290" rx="16" fill="#f6f2fe" stroke="#b39ddb" stroke-width="1.5" stroke-dasharray="6 5"/><text x="864" y="44" text-anchor="end" font-size="13" font-family="'JetBrains Mono', Consolas, monospace" font-weight="700" fill="#673ab7">Branch (分公司)</text><g stroke="#0891b2" stroke-width="4" stroke-linecap="round"><line x1="140" y1="134" x2="140" y2="200"/><line x1="760" y1="134" x2="760" y2="200"/></g><rect x="50" y="70" width="180" height="64" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/><g fill="none" stroke="#0891b2" stroke-width="1.8" stroke-linecap="round"><rect x="62" y="93.0" width="20" height="13" rx="2"/><path d="M66 111.0 H78 M72 106.0 V111.0"/></g><text x="152.0" y="98.0" text-anchor="middle" font-size="14" font-weight="700" fill="#1e2235">HQ LAN</text><text x="152.0" y="117.0" text-anchor="middle" font-size="11.5" font-family="'JetBrains Mono', Consolas, monospace" fill="#5b6278">192.168.10.0/24</text><rect x="670" y="70" width="180" height="64" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/><g fill="none" stroke="#0891b2" stroke-width="1.8" stroke-linecap="round"><rect x="682" y="93.0" width="20" height="13" rx="2"/><path d="M686 111.0 H698 M692 106.0 V111.0"/></g><text x="772.0" y="98.0" text-anchor="middle" font-size="14" font-weight="700" fill="#1e2235">Branch LAN</text><text x="772.0" y="117.0" text-anchor="middle" font-size="11.5" font-family="'JetBrains Mono', Consolas, monospace" fill="#5b6278">192.168.20.0/24</text><rect x="50" y="200" width="180" height="70" rx="10" fill="url(#fg09a-pg)" filter="url(#fg09a-sh)"/><text x="140.0" y="232.0" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">FortiGate HQ</text><text x="140.0" y="251.0" text-anchor="middle" font-size="12" font-family="'JetBrains Mono', Consolas, monospace" fill="#d1c4e9">WAN: 1.1.1.1</text><rect x="670" y="200" width="180" height="70" rx="10" fill="url(#fg09a-pg)" filter="url(#fg09a-sh)"/><text x="760.0" y="232.0" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">FortiGate Branch</text><text x="760.0" y="251.0" text-anchor="middle" font-size="12" font-family="'JetBrains Mono', Consolas, monospace" fill="#d1c4e9">WAN: 2.2.2.2</text><path transform="translate(450 240)" d="M-52 32 H52 A28 28 0 0 0 56 -22 A34 34 0 0 0 -2 -34 A30 30 0 0 0 -50 -14 A23 23 0 0 0 -52 32 Z" fill="#eef2ff" stroke="#9fa8da" stroke-width="2"/><text x="454" y="244" text-anchor="middle" font-size="14" font-weight="700" fill="#3949ab">Internet</text><path d="M230 235 H376" fill="none" stroke="#673ab7" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="12 6" marker-end="url(#fg09a-arr-p)"/><path d="M534 235 H668" fill="none" stroke="#673ab7" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="12 6" marker-end="url(#fg09a-arr-p)"/><rect x="268" y="185" width="100" height="34" rx="10" fill="#fff" stroke="#673ab7"/><text x="318" y="199" text-anchor="middle" font-size="11" font-family="'JetBrains Mono', Consolas, monospace" font-weight="700" fill="#4527a0">IPsec Tunnel</text><text x="318" y="213" text-anchor="middle" font-size="11" font-family="'JetBrains Mono', Consolas, monospace" font-weight="700" fill="#4527a0">(Encrypted)</text><rect x="540" y="202" width="92" height="20" rx="10" fill="#fff" stroke="#673ab7"/><text x="586" y="216" text-anchor="middle" font-size="11" font-family="'JetBrains Mono', Consolas, monospace" font-weight="700" fill="#4527a0">ESP Packets</text><g font-size="12" fill="#5b6278"><line x1="230" y1="342" x2="266" y2="342" stroke="#0891b2" stroke-width="4" stroke-linecap="round"/><text x="274" y="346">LAN 內部連線</text><line x1="420" y1="342" x2="456" y2="342" stroke="#673ab7" stroke-width="4.5" stroke-dasharray="12 6"/><text x="464" y="346">IPsec 加密流量 (ESP)</text></g>
+</svg>
                 </div>
             </div>
 
             <!-- 圖表 2: IKEv2 協商流程 -->
             <h3 class="text-xl font-bold mb-2 border-l-4 border-blue-500 pl-3">2. IKEv2 協商流程 (Sequence Diagram)</h3>
             <div class="mermaid-container">
-                <div class="mermaid">
+                <!-- 時序圖 (由 Mermaid 10.9.1 預先轉成靜態 SVG,套用網站配色)。原始 Mermaid 碼:
                     %%{init: {'theme': 'base', 'themeVariables': { 'fontSize': '9px', 'actorFontSize': '10px', 'noteFontSize': '9px', 'messageFontSize': '9px', 'fontFamily': 'Noto Sans TC' }}}%%
                     sequenceDiagram
                         participant Initiator as HQ FortiGate
                         participant Responder as Branch FortiGate
                         
-                        Note over Initiator, Responder: IKE_SA_INIT<br>(協商加密演算法, Nonces, DH Key)
+                        Note over Initiator, Responder: IKE_SA_INIT(協商加密演算法, Nonces, DH Key)
                         Initiator->>Responder: HDR, SAi1, KEi, Ni
                         Responder->>Initiator: HDR, SAr1, KEr, Nr
                         
-                        Note over Initiator, Responder: IKE_AUTH<br>(驗證身分, 建立第一條 Child SA)
+                        Note over Initiator, Responder: IKE_AUTH(驗證身分, 建立第一條 Child SA)
                         Initiator->>Responder: HDR, SK {IDi, AUTH, SAi2, TSi, TSr}
                         Responder->>Initiator: HDR, SK {IDr, AUTH, SAr2, TSi, TSr}
                         
                         Note over Initiator, Responder: 隧道建立完成，開始傳送加密資料 (ESP)
                         Initiator->>Responder: ESP Encrypted Data
-                </div>
+                
+                -->
+                <div style="width:100%;overflow-x:auto"><svg xmlns="http://www.w3.org/2000/svg" aria-roledescription="sequence" role="img" viewBox="-50 -10 614.5 549" style="width:100%;min-width:560px;max-width:615px;height:auto;display:block;margin:0 auto" id="seq-fortigate09-2" aria-labelledby="seq-fortigate09-2-title"><title id="seq-fortigate09-2-title">2. IKEv2 協商流程 (Sequence Diagram)</title><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="438" y1="5" x1="438"/><g><rect class="actor actor-top" ry="3" rx="3" name="Responder" height="65" width="153" stroke="#666" fill="#eaeaea" y="0" x="361.5"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="438"><tspan dy="0" x="438">Branch FortiGate</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="75" y1="5" x1="75"/><g><rect class="actor actor-top" ry="3" rx="3" name="Initiator" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="0"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="75"><tspan dy="0" x="75">HQ FortiGate</tspan></text></g></g><style>#seq-fortigate09-2{font-family:'Noto Sans TC',Roboto,'Microsoft JhengHei',sans-serif;font-size:15px;fill:#1e2235;}#seq-fortigate09-2 .marker{fill:#5b6278;stroke:#5b6278;}#seq-fortigate09-2 .marker.cross{stroke:#5b6278;}#seq-fortigate09-2 .actor{stroke:#673ab7;fill:#f3effc;}#seq-fortigate09-2 text.actor&gt;tspan{fill:#311b92;stroke:none;}#seq-fortigate09-2 .actor-line{stroke:#b39ddb;}#seq-fortigate09-2 .messageLine0{stroke-width:1.5;stroke-dasharray:none;stroke:#5b6278;}#seq-fortigate09-2 .messageLine1{stroke-width:1.5;stroke-dasharray:2,2;stroke:#5b6278;}#seq-fortigate09-2 #seq-fortigate09-2-arrowhead path{fill:#5b6278;stroke:#5b6278;}#seq-fortigate09-2 #sequencenumber{fill:#5b6278;}#seq-fortigate09-2 #crosshead path{fill:#5b6278;stroke:#5b6278;}#seq-fortigate09-2 .messageText{fill:#1e2235;stroke:none;}#seq-fortigate09-2 .note{stroke:#f5b041;fill:#fff8e1;}#seq-fortigate09-2 .noteText,#seq-fortigate09-2 .noteText&gt;tspan{fill:#5d4037;stroke:none;}</style><g/><defs><marker orient="auto" markerHeight="12" markerWidth="12" markerUnits="userSpaceOnUse" refY="5" refX="7.9" id="seq-fortigate09-2-arrowhead"><path d="M 0 0 L 10 5 L 0 10 z"/></marker></defs><g><rect class="note" ry="0" rx="0" height="48" width="453" stroke="#666" fill="#EDF2AE" y="75" x="30"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="81" x="257"><tspan x="257">IKE_SA_INIT(協商加密演算法, Nonces, DH Key)</tspan></text></g><g><rect class="note" ry="0" rx="0" height="48" width="453" stroke="#666" fill="#EDF2AE" y="249" x="30"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="255" x="257"><tspan x="257">IKE_AUTH(驗證身分, 建立第一條 Child SA)</tspan></text></g><g><rect class="note" ry="0" rx="0" height="48" width="453" stroke="#666" fill="#EDF2AE" y="423" x="30"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="429" x="257"><tspan x="257">隧道建立完成，開始傳送加密資料 (ESP)</tspan></text></g><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="138" x="255">HDR, SAi1, KEi, Ni</text><line style="fill: none;" marker-end="url(#seq-fortigate09-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="181" x2="434" y1="181" x1="76"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="196" x="258">HDR, SAr1, KEr, Nr</text><line style="fill: none;" marker-end="url(#seq-fortigate09-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="239" x2="79" y1="239" x1="437"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="312" x="255">HDR, SK {IDi, AUTH, SAi2, TSi, TSr}</text><line style="fill: none;" marker-end="url(#seq-fortigate09-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="355" x2="434" y1="355" x1="76"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="370" x="258">HDR, SK {IDr, AUTH, SAr2, TSi, TSr}</text><line style="fill: none;" marker-end="url(#seq-fortigate09-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="413" x2="79" y1="413" x1="437"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="486" x="255">ESP Encrypted Data</text><line style="fill: none;" marker-end="url(#seq-fortigate09-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="529" x2="434" y1="529" x1="76"/></svg></div>
             </div>
 
             <!-- 圖表 3: Hub-and-Spoke 邏輯 -->
             <h3 class="text-xl font-bold mb-2 border-l-4 border-purple-500 pl-3">3. Hub-and-Spoke 架構</h3>
             <!-- 加上 hub-spoke-wrapper 以區隔樣式 -->
             <div class="mermaid-container hub-spoke-wrapper">
-                <div class="mermaid">
-                    %%{init: {'theme': 'base', 'themeVariables': { 'fontSize': '10px', 'fontFamily': 'Noto Sans TC' }}}%%
-                    graph TD
-                        Hub[HQ Hub<br>Concentrator]
-                        Spoke1[Store A]
-                        Spoke2[Store B]
-                        Spoke3[Store C]
-
-                        Hub <==> Spoke1
-                        Hub <==> Spoke2
-                        Hub <==> Spoke3
-
-                        Spoke1 -.->|Traffic via Hub| Spoke2
-
-                        style Hub fill:#f87171,stroke:#991b1b,stroke-width:4px
-                        style Spoke1 fill:#93c5fd
-                        style Spoke2 fill:#93c5fd
-                        style Spoke3 fill:#93c5fd
+                <!-- 拓撲圖 (手繪 SVG):HQ Hub 與 Store A/B/C 雙向 VPN 隧道,Spoke 間流量經 Hub 轉送 -->
+                <div style="width:100%;overflow-x:auto">
+<svg viewBox="0 0 760 410" role="img" aria-labelledby="fg09b-title fg09b-desc" style="width:100%;min-width:560px;max-width:760px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+<title id="fg09b-title">Hub-and-Spoke 架構</title>
+<desc id="fg09b-desc">HQ Hub (Concentrator) 位於中心,分別與 Store A、Store B、Store C 三個 Spoke 建立雙向 VPN 隧道。Store A 要到 Store B 的流量不是直接互連,而是經由 Hub 轉送 (Traffic via Hub)。</desc>
+<defs><linearGradient id="fg09b-pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7e57c2"/><stop offset="1" stop-color="#311b92"/></linearGradient><linearGradient id="fg09b-cg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1aa0bb"/><stop offset="1" stop-color="#0e6378"/></linearGradient><filter id="fg09b-sh" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#311b92" flood-opacity="0.18"/></filter><marker id="fg09b-arr" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5b6278"/></marker><marker id="fg09b-arr-r" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker><marker id="fg09b-arr-c" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#0891b2"/></marker><marker id="fg09b-arr-p" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#673ab7"/></marker><marker id="fg09b-arr-a" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#d97706"/></marker></defs>
+<path d="M330 116 L142 288" fill="none" stroke="#673ab7" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg09b-arr-p)" marker-start="url(#fg09b-arr-p)"/><path d="M380 116 V288" fill="none" stroke="#673ab7" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg09b-arr-p)" marker-start="url(#fg09b-arr-p)"/><path d="M430 116 L618 288" fill="none" stroke="#673ab7" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#fg09b-arr-p)" marker-start="url(#fg09b-arr-p)"/><path d="M180 290 L357 122 V286" fill="none" stroke="#0891b2" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="7 5" marker-end="url(#fg09b-arr-c)"/><rect x="241" y="245" width="108" height="20" rx="10" fill="#fff" stroke="#0891b2"/><text x="295" y="259" text-anchor="middle" font-size="11" font-family="'JetBrains Mono', Consolas, monospace" font-weight="700" fill="#0e7490">Traffic via Hub</text><rect x="286" y="36" width="188" height="78" rx="13" fill="none" stroke="#b39ddb" stroke-width="2"/><rect x="290" y="40" width="180" height="70" rx="10" fill="url(#fg09b-pg)" filter="url(#fg09b-sh)"/><text x="380.0" y="72.0" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">HQ Hub</text><text x="380.0" y="91.0" text-anchor="middle" font-size="12" font-family="'JetBrains Mono', Consolas, monospace" fill="#d1c4e9">Concentrator</text><rect x="60" y="290" width="160" height="56" rx="10" fill="url(#fg09b-cg)" filter="url(#fg09b-sh)"/><text x="140.0" y="323.0" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">Store A</text><rect x="300" y="290" width="160" height="56" rx="10" fill="url(#fg09b-cg)" filter="url(#fg09b-sh)"/><text x="380.0" y="323.0" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">Store B</text><rect x="540" y="290" width="160" height="56" rx="10" fill="url(#fg09b-cg)" filter="url(#fg09b-sh)"/><text x="620.0" y="323.0" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">Store C</text><g font-size="12" fill="#5b6278"><line x1="110" y1="384" x2="150" y2="384" stroke="#673ab7" stroke-width="5" marker-start="url(#fg09b-arr-p)" marker-end="url(#fg09b-arr-p)"/><text x="160" y="388">VPN 隧道 (雙向)</text><line x1="300" y1="384" x2="340" y2="384" stroke="#0891b2" stroke-width="2.5" stroke-dasharray="7 5" marker-end="url(#fg09b-arr-c)"/><text x="350" y="388">Spoke 之間流量 (經 Hub 轉送)</text><rect x="540" y="377" width="22" height="14" rx="4" fill="url(#fg09b-cg)"/><text x="570" y="388">Spoke (門市)</text></g>
+</svg>
                 </div>
             </div>
         </div>
@@ -544,7 +525,7 @@ end</pre>
     <!-- Footer -->
     <footer>
         <div class="force-width-container">
-            <p>Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0</p>
+            <p>Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0</p>
         </div>
     </footer>
 
