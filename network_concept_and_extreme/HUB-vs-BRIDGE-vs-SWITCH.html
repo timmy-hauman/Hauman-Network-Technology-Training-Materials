@@ -676,7 +676,7 @@
 
     <!-- Mermaid Initialization Script (Key Fix) -->
     <script type="module">
-        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        const mermaid = { initialize() {}, init() {}, run: async () => {} }; // 架構圖已改為靜態 SVG,不再載入 Mermaid
         
         // 1. Initialize with startOnLoad: false
         mermaid.initialize({ startOnLoad: false, theme: 'neutral' });
