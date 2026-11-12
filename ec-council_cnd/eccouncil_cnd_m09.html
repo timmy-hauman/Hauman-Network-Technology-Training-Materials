@@ -4,429 +4,154 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EC-Council CND Module 09 | Administrative Network Security</title>
-    <style>
-        :root {
-            --bg-color: #f5f7fc;
-            --card-bg: #ffffff;
-            --text-main: #1e2235;
-            --text-muted: #5b6278;
-            --accent-red: #dc2626;
-            --accent-red-dim: #fecaca;
-            --hud-teal: #0e7490;
-            --success-green: #15803d;
-            --border-color: #e3e6f0;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            color: var(--text-main);
-            font-family: 'Roboto', sans-serif;
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
-
-        h1, h2, h3, h4 {
-            letter-spacing: 0.5px;
-        }
-
-        /* Layout */
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        /* Header 橫幅 (深色底, site-chrome 會換成品牌漸層) */
-        header {
-            background: #1e2235;
-            color: #fff;
-            border-radius: 8px;
-            padding: 40px 20px;
-            margin-bottom: 40px;
-            text-align: center;
-            position: relative;
-        }
-
-        h1 {
-            color: #fff;
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-        }
-
-        .subtitle {
-            font-family: 'JetBrains Mono', Consolas, monospace;
-            color: #cffafe;
-            font-size: 1.2rem;
-        }
-
-        /* Module Sections */
-        .module-section {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
-            margin-bottom: 60px;
-        }
-
-        .card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-top: 3px solid var(--accent-red);
-            border-radius: 12px;
-            padding: 25px;
-            position: relative;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 16px rgba(30, 34, 53, 0.06);
-        }
-
-        .card:hover {
-            border-color: #fca5a5;
-            box-shadow: 0 10px 28px rgba(30, 34, 53, 0.10);
-            transform: translateY(-2px);
-        }
-
-        .card h3 {
-            color: var(--hud-teal);
-            margin-bottom: 15px;
-            font-size: 1.3rem;
-            border-bottom: 1px dashed var(--border-color);
-            padding-bottom: 10px;
-        }
-
-        .term {
-            color: #b91c1c;
-            font-weight: bold;
-            font-family: 'JetBrains Mono', Consolas, monospace;
-        }
-
-        .definition {
-            font-size: 0.95rem;
-            color: var(--text-muted);
-            margin-bottom: 15px;
-            text-align: justify;
-        }
-
-        .definition b {
-            color: var(--text-main);
-        }
-
-        .framework-list {
-            list-style: none;
-        }
-
-        .framework-list li {
-            margin-bottom: 10px;
-            padding-left: 15px;
-            border-left: 2px solid var(--accent-red);
-            color: var(--text-main);
-        }
-
-        /* Section Titles */
-        .section-header {
-            border-left: 5px solid var(--accent-red);
-            padding-left: 20px;
-            margin-bottom: 30px;
-            color: var(--text-main);
-            display: flex;
-            align-items: center;
-        }
-
-        .section-header span {
-            margin-left: 10px;
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            font-family: 'JetBrains Mono', Consolas, monospace;
-        }
-
-        /* Quiz Section */
-        #quiz-container {
-            max-width: 900px;
-            margin: 0 auto 60px auto;
-        }
-
-        .quiz-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            margin-bottom: 25px;
-            padding: 25px;
-            position: relative;
-            box-shadow: 0 4px 16px rgba(30, 34, 53, 0.06);
-        }
-
-        .quiz-question {
-            font-size: 1.1rem;
-            margin-bottom: 20px;
-            color: var(--text-main);
-            font-weight: bold;
-        }
-
-        .quiz-options {
-            display: grid;
-            gap: 10px;
-        }
-
-        .option-btn {
-            background: #ffffff;
-            border: 1px solid #d5d9e6;
-            color: var(--text-muted);
-            padding: 15px;
-            border-radius: 8px;
-            text-align: left;
-            cursor: pointer;
-            font-family: 'Roboto', sans-serif;
-            transition: all 0.2s;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .option-btn:hover {
-            background: #ecfeff;
-            border-color: #0891b2;
-            color: var(--text-main);
-        }
-
-        .option-btn.correct {
-            border-color: var(--success-green);
-            background: #f0fdf4;
-            color: var(--success-green);
-        }
-
-        .option-btn.wrong {
-            border-color: var(--accent-red);
-            background: #fef2f2;
-            color: #b91c1c;
-        }
-
-        .explanation {
-            display: none;
-            margin-top: 15px;
-            padding: 15px;
-            border-left: 3px solid #0891b2;
-            border-radius: 0 8px 8px 0;
-            background: #ecfeff;
-            font-size: 0.9rem;
-            color: var(--text-main);
-        }
-
-        .explanation strong {
-            color: var(--hud-teal);
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        /* Footer (底色與字色由 site-theme.css 統一) */
-        footer {
-            padding: 20px 0;
-            margin-top: 60px;
-            text-align: center;
-            font-family: 'JetBrains Mono', Consolas, monospace;
-            font-size: 0.9rem;
-            width: 100%;
-        }
-
-        .footer-content {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 15px;
-        }
-
-        @media (max-width: 768px) {
-            .footer-content {
-                flex-direction: column;
-                gap: 5px;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="cnd.css?v=1">
     <link rel="stylesheet" href="../assets/site-theme.css?v=20261112b">
     <script src="../assets/site-chrome.js?v=20261112b" defer></script>
 </head>
 <body>
-
-    <div class="container">
-        <header>
-            <h1>EC-Council CND 網路防禦課程</h1>
-            <div class="subtitle">MODULE 09: ADMINISTRATIVE NETWORK SECURITY</div>
-        </header>
-
-        <!-- Intro -->
-        <div class="card" style="margin-bottom: 40px;">
-            <h3>模組概述 (Module Overview)</h3>
-            <p class="definition">
-                本模組「行政網路安全」是 CND 防禦架構中的基石。不同於防火牆或 IDS 等技術控制，行政安全側重於<b>政策 (Policy)</b>、<b>合規性 (Compliance)</b> 與 <b>風險管理 (Risk Management)</b>。
-                <br><br>
-                身為網路防禦者 (Network Defender)，您必須理解組織面臨的法律責任與風險，並透過制定正確的 SOP 與規範，建立「第一道防線」。
-            </p>
+    <header class="cnd-hero">
+        <div class="cnd-hero-inner">
+            <p class="cnd-kicker">EC-Council CND 網路防禦課程 · Module 09</p>
+            <h1>Administrative Network Security</h1>
+            <p class="cnd-subtitle">行政網路安全</p>
         </div>
+    </header>
 
-        <!-- Section 1: Regulatory Frameworks -->
-        <div class="section-header">
-            <h2>01. 法規與合規性框架</h2> <span>REGULATORY FRAMEWORKS</span>
-        </div>
-        <div class="module-section">
-            <div class="card">
-                <h3>支付卡產業安全標準 <br><span class="term">PCI-DSS</span></h3>
-                <p class="definition">
-                    (Payment Card Industry Data Security Standard)<br>
-                    專為處理信用卡資料的機構設計。任何儲存、處理或傳輸持卡人資料的商家都必須遵守。
-                </p>
-                <ul class="framework-list">
-                    <li>關鍵要求：安裝防火牆、加密傳輸數據、定期更新防毒軟體。</li>
-                    <li>違規後果：巨額罰款、被禁止處理信用卡交易。</li>
-                </ul>
+    <main class="cnd-main">
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">00</span>模組概述 <span class="cnd-en">Module Overview</span></h2>
+            <div class="cnd-card plain">
+                <p>本模組「行政網路安全」是 CND 防禦架構中的基石。不同於防火牆或 IDS 等技術控制，行政安全側重於<strong>政策 (Policy)</strong>、<strong>合規性 (Compliance)</strong> 與 <strong>風險管理 (Risk Management)</strong>。</p>
+                <p>身為網路防禦者 (Network Defender)，您必須理解組織面臨的法律責任與風險，並透過制定正確的 SOP 與規範，建立「第一道防線」。</p>
             </div>
+        </section>
 
-            <div class="card">
-                <h3>健康保險流通與責任法案 <br><span class="term">HIPAA</span></h3>
-                <p class="definition">
-                    (Health Insurance Portability and Accountability Act)<br>
-                    美國聯邦法律，旨在保護敏感的病患健康資訊 (PHI)。
-                </p>
-                <ul class="framework-list">
-                    <li>適用對象：醫院、保險公司及相關業務夥伴。</li>
-                    <li>重點：病歷資料的機密性 (Confidentiality) 與完整性 (Integrity)。</li>
-                </ul>
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">01</span>法規與合規性框架 <span class="cnd-en">Regulatory Frameworks</span></h2>
+            <div class="cnd-grid cnd-grid-2">
+                <div class="cnd-card">
+                    <span class="cnd-tag">PCI-DSS</span>
+                    <h3>支付卡產業安全標準</h3>
+                    <p>(Payment Card Industry Data Security Standard)<br>專為處理信用卡資料的機構設計。任何儲存、處理或傳輸持卡人資料的商家都必須遵守。</p>
+                    <ul class="cnd-list">
+                        <li>關鍵要求：安裝防火牆、加密傳輸數據、定期更新防毒軟體。</li>
+                        <li>違規後果：巨額罰款、被禁止處理信用卡交易。</li>
+                    </ul>
+                </div>
+                <div class="cnd-card">
+                    <span class="cnd-tag">HIPAA</span>
+                    <h3>健康保險流通與責任法案</h3>
+                    <p>(Health Insurance Portability and Accountability Act)<br>美國聯邦法律，旨在保護敏感的病患健康資訊 (PHI)。</p>
+                    <ul class="cnd-list">
+                        <li>適用對象：醫院、保險公司及相關業務夥伴。</li>
+                        <li>重點：病歷資料的機密性 (Confidentiality) 與完整性 (Integrity)。</li>
+                    </ul>
+                </div>
+                <div class="cnd-card">
+                    <span class="cnd-tag">GDPR</span>
+                    <h3>一般資料保護規則</h3>
+                    <p>(General Data Protection Regulation)<br>歐盟制定的隱私保護法，號稱史上最嚴格個資法。</p>
+                    <ul class="cnd-list">
+                        <li>核心權利：被遺忘權 (Right to be Forgotten)、資料移植權。</li>
+                        <li>適用範圍：任何處理歐盟公民資料的企業（即使公司不在歐盟）。</li>
+                    </ul>
+                </div>
+                <div class="cnd-card">
+                    <span class="cnd-tag">NIST</span>
+                    <h3>美國國家標準技術研究所</h3>
+                    <p>(National Institute of Standards and Technology)<br>提供自願性的資安框架 (NIST CSF) 與指引 (如 SP 800-53)。</p>
+                    <ul class="cnd-list">
+                        <li>NIST CSF 五大核心：Identify(識別), Protect(保護), Detect(偵測), Respond(回應), Recover(復原)。</li>
+                        <li>這是許多政府與企業資安策略的藍本。</li>
+                    </ul>
+                </div>
             </div>
+        </section>
 
-            <div class="card">
-                <h3>一般資料保護規則 <br><span class="term">GDPR</span></h3>
-                <p class="definition">
-                    (General Data Protection Regulation)<br>
-                    歐盟制定的隱私保護法，號稱史上最嚴格個資法。
-                </p>
-                <ul class="framework-list">
-                    <li>核心權利：被遺忘權 (Right to be Forgotten)、資料移植權。</li>
-                    <li>適用範圍：任何處理歐盟公民資料的企業（即使公司不在歐盟）。</li>
-                </ul>
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">02</span>資安政策類型 <span class="cnd-en">Security Policies</span></h2>
+            <div class="cnd-grid cnd-grid-3">
+                <div class="cnd-card">
+                    <span class="cnd-tag">EISP</span>
+                    <h3>企業資訊安全政策</h3>
+                    <p>(Enterprise Information Security Policy)<br>最高層級的政策，由高階管理層制定，定義組織整體的資安哲學與戰略方向。</p>
+                </div>
+                <div class="cnd-card">
+                    <span class="cnd-tag">ISSP</span>
+                    <h3>特定議題安全政策</h3>
+                    <p>(Issue-Specific Security Policy)<br>針對特定功能或議題的規範。</p>
+                    <ul class="cnd-list">
+                        <li>範例：電子郵件使用政策 (Email Policy)、自攜設備政策 (BYOD Policy)、可接受使用政策 (AUP)。</li>
+                    </ul>
+                </div>
+                <div class="cnd-card">
+                    <span class="cnd-tag">SSSP</span>
+                    <h3>特定系統安全政策</h3>
+                    <p>(System-Specific Security Policy)<br>針對特定硬體或軟體的技術規範，通常由系統管理員使用。</p>
+                    <ul class="cnd-list">
+                        <li>範例：防火牆規則集設定、Web 伺服器配置標準。</li>
+                    </ul>
+                </div>
             </div>
+        </section>
 
-            <div class="card">
-                <h3>美國國家標準技術研究所 <br><span class="term">NIST</span></h3>
-                <p class="definition">
-                    (National Institute of Standards and Technology)<br>
-                    提供自願性的資安框架 (NIST CSF) 與指引 (如 SP 800-53)。
-                </p>
-                <ul class="framework-list">
-                    <li>NIST CSF 五大核心：Identify(識別), Protect(保護), Detect(偵測), Respond(回應), Recover(復原)。</li>
-                    <li>這是許多政府與企業資安策略的藍本。</li>
-                </ul>
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">03</span>風險管理 <span class="cnd-en">Risk Management</span></h2>
+            <div class="cnd-grid cnd-grid-3">
+                <div class="cnd-card">
+                    <span class="cnd-tag">Assessment</span>
+                    <h3>風險評估方法</h3>
+                    <p><strong>定量評估 (Quantitative):</strong> 使用具體數字與金錢計算。<br>公式：SLE (單一損失預期) x ARO (年度發生率) = ALE (年度損失預期)。</p>
+                    <p><strong>定性評估 (Qualitative):</strong> 使用「高、中、低」等級距與矩陣圖進行主觀分析。</p>
+                </div>
+                <div class="cnd-card">
+                    <span class="cnd-tag">Treatment</span>
+                    <h3>風險處置策略</h3>
+                    <ul class="cnd-list">
+                        <li><strong>Risk Avoidance (規避):</strong> 停止導致風險的活動（例如：關閉不必要的服務）。</li>
+                        <li><strong>Risk Transference (轉移):</strong> 透過保險或外包，將損失轉嫁給第三方。</li>
+                        <li><strong>Risk Mitigation (緩解):</strong> 實施控制措施以降低衝擊（例如：安裝防火牆）。</li>
+                        <li><strong>Risk Acceptance (接受):</strong> 成本高於潛在損失時，選擇承擔風險。</li>
+                    </ul>
+                </div>
+                <div class="cnd-card">
+                    <span class="cnd-tag">BIA</span>
+                    <h3>業務衝擊分析</h3>
+                    <p>(Business Impact Analysis)<br>識別關鍵業務流程，並預測中斷時的後果。</p>
+                    <ul class="cnd-list">
+                        <li><strong>RTO (Recovery Time Objective):</strong> 系統必須在多久內恢復。</li>
+                        <li><strong>RPO (Recovery Point Objective):</strong> 容許遺失多少資料（備份頻率）。</li>
+                    </ul>
+                </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Section 2: Security Policies -->
-        <div class="section-header">
-            <h2>02. 資安政策類型</h2> <span>SECURITY POLICIES</span>
-        </div>
-        <div class="module-section">
-            <div class="card">
-                <h3>企業資訊安全政策 <br><span class="term">EISP</span></h3>
-                <p class="definition">
-                    (Enterprise Information Security Policy)<br>
-                    最高層級的政策，由高階管理層制定，定義組織整體的資安哲學與戰略方向。
-                </p>
-            </div>
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">04</span>情境模擬測驗 <span class="cnd-en">Simulation Exam</span></h2>
+            <p class="cnd-lead">請選擇最適當的答案,作答後會顯示解析。</p>
+            <div id="cnd-quiz"></div>
+        </section>
+    </main>
 
-            <div class="card">
-                <h3>特定議題安全政策 <br><span class="term">ISSP</span></h3>
-                <p class="definition">
-                    (Issue-Specific Security Policy)<br>
-                    針對特定功能或議題的規範。
-                </p>
-                <ul class="framework-list">
-                    <li>範例：電子郵件使用政策 (Email Policy)、自攜設備政策 (BYOD Policy)、可接受使用政策 (AUP)。</li>
-                </ul>
-            </div>
-
-            <div class="card">
-                <h3>特定系統安全政策 <br><span class="term">SSSP</span></h3>
-                <p class="definition">
-                    (System-Specific Security Policy)<br>
-                    針對特定硬體或軟體的技術規範，通常由系統管理員使用。
-                </p>
-                <ul class="framework-list">
-                    <li>範例：防火牆規則集設定、Web 伺服器配置標準。</li>
-                </ul>
-            </div>
-        </div>
-
-        <!-- Section 3: Risk Management -->
-        <div class="section-header">
-            <h2>03. 風險管理</h2> <span>RISK MANAGEMENT</span>
-        </div>
-        <div class="module-section">
-            <div class="card">
-                <h3>風險評估方法 <br><span class="term">Assessment</span></h3>
-                <p class="definition">
-                    <b>定量評估 (Quantitative):</b> 使用具體數字與金錢計算。<br>
-                    公式：SLE (單一損失預期) x ARO (年度發生率) = ALE (年度損失預期)。
-                    <br><br>
-                    <b>定性評估 (Qualitative):</b> 使用「高、中、低」等級距與矩陣圖進行主觀分析。
-                </p>
-            </div>
-
-            <div class="card">
-                <h3>風險處置策略 <br><span class="term">Treatment</span></h3>
-                <ul class="framework-list">
-                    <li><span class="term">Risk Avoidance (規避):</span> 停止導致風險的活動（例如：關閉不必要的服務）。</li>
-                    <li><span class="term">Risk Transference (轉移):</span> 透過保險或外包，將損失轉嫁給第三方。</li>
-                    <li><span class="term">Risk Mitigation (緩解):</span> 實施控制措施以降低衝擊（例如：安裝防火牆）。</li>
-                    <li><span class="term">Risk Acceptance (接受):</span> 成本高於潛在損失時，選擇承擔風險。</li>
-                </ul>
-            </div>
-
-            <div class="card">
-                <h3>業務衝擊分析 <br><span class="term">BIA</span></h3>
-                <p class="definition">
-                    (Business Impact Analysis)<br>
-                    識別關鍵業務流程，並預測中斷時的後果。
-                </p>
-                <ul class="framework-list">
-                    <li><span class="term">RTO (Recovery Time Objective):</span> 系統必須在多久內恢復。</li>
-                    <li><span class="term">RPO (Recovery Point Objective):</span> 容許遺失多少資料（備份頻率）。</li>
-                </ul>
-            </div>
-        </div>
-
-        <!-- Quiz Section -->
-        <div class="section-header">
-            <h2>04. 戰術模擬測驗 (Simulation Exam)</h2> <span>TEST YOUR KNOWLEDGE</span>
-        </div>
-        
-        <div id="quiz-container">
-            <!-- Questions will be injected here by JS -->
-        </div>
-
-    </div>
-
-    <!-- Footer -->
     <footer>
-        <div class="footer-content">
-            Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0
-        </div>
+        Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0
     </footer>
 
     <script>
-        const questions = [
+        window.CND_QUIZ = [
             {
-                id: 1,
-                q: "一家線上零售公司計畫開始儲存客戶的信用卡資訊以加速結帳流程。身為網路防禦者，您必須建議該公司遵守哪一項合規標準以避免鉅額罰款與法律責任？",
+                question: "一家線上零售公司計畫開始儲存客戶的信用卡資訊以加速結帳流程。身為網路防禦者，您必須建議該公司遵守哪一項合規標準以避免鉅額罰款與法律責任？",
                 options: [
                     "A. HIPAA",
                     "B. PCI-DSS",
                     "C. FISMA",
                     "D. DMCA"
                 ],
-                correct: 1, // Index of correct answer
+                correct: 1,
                 explanation: "PCI-DSS (Payment Card Industry Data Security Standard) 是針對處理、儲存信用卡資料的組織所設計的安全標準。HIPAA 是針對醫療資料，FISMA 是針對美國聯邦政府機構，DMCA 是著作權法。"
             },
             {
-                id: 2,
-                q: "您的組織在進行風險評估時，發現更換老舊伺服器的成本遠高於該伺服器故障所造成的潛在業務損失。管理層決定不更換伺服器，並準備好在故障發生時處理後果。這是屬於哪一種風險處置策略？",
+                question: "您的組織在進行風險評估時，發現更換老舊伺服器的成本遠高於該伺服器故障所造成的潛在業務損失。管理層決定不更換伺服器，並準備好在故障發生時處理後果。這是屬於哪一種風險處置策略？",
                 options: [
                     "A. Risk Mitigation (風險緩解)",
                     "B. Risk Avoidance (風險規避)",
@@ -437,8 +162,7 @@
                 explanation: "Risk Acceptance (風險接受) 是指當防護成本高於資產價值或潛在損失時，組織有意識地決定承擔風險。這通常會伴隨著正式的簽核記錄。"
             },
             {
-                id: 3,
-                q: "身為資安管理員，您正在撰寫一份文件，規定所有員工「不得使用公司電子郵件註冊非公務網站」以及「禁止發送騷擾性內容」。這屬於哪一類型的安全政策？",
+                question: "身為資安管理員，您正在撰寫一份文件，規定所有員工「不得使用公司電子郵件註冊非公務網站」以及「禁止發送騷擾性內容」。這屬於哪一類型的安全政策？",
                 options: [
                     "A. ISSP (Issue-Specific Security Policy)",
                     "B. EISP (Enterprise Information Security Policy)",
@@ -449,8 +173,7 @@
                 explanation: "ISSP (特定議題安全政策) 針對特定功能或議題進行規範，例如電子郵件使用政策 (Email Policy) 或可接受使用政策 (AUP)。EISP 是高層戰略政策，SSSP 是針對硬體配置的技術規範。"
             },
             {
-                id: 4,
-                q: "一家跨國科技公司在歐洲設有分公司，該分公司收集法國公民的個人資料。若發生資料外洩，該公司主要需面對哪項法規的巨額罰款？",
+                question: "一家跨國科技公司在歐洲設有分公司，該分公司收集法國公民的個人資料。若發生資料外洩，該公司主要需面對哪項法規的巨額罰款？",
                 options: [
                     "A. SOX (Sarbanes-Oxley Act)",
                     "B. NIST SP 800-53",
@@ -461,8 +184,7 @@
                 explanation: "GDPR 是歐盟的一般資料保護規則，對未能保護歐盟公民個資的企業設有極為嚴厲的罰則（最高可達全球營業額的 4% 或 2000 萬歐元）。"
             },
             {
-                id: 5,
-                q: "您正在計算資產風險。若一台價值 $10,000 的伺服器預期每年會故障一次 (ARO = 1)，且每次故障會造成 50% 的價值損失 (EF = 0.5)。請問其年度損失預期 (ALE) 是多少？",
+                question: "您正在計算資產風險。若一台價值 $10,000 的伺服器預期每年會故障一次 (ARO = 1)，且每次故障會造成 50% 的價值損失 (EF = 0.5)。請問其年度損失預期 (ALE) 是多少？",
                 options: [
                     "A. $5,000",
                     "B. $10,000",
@@ -473,8 +195,7 @@
                 explanation: "計算公式：SLE (單一損失預期) = Asset Value ($10,000) x Exposure Factor (0.5) = $5,000。接著計算 ALE = SLE ($5,000) x ARO (1) = $5,000。"
             },
             {
-                id: 6,
-                q: "為了應對勒索軟體攻擊，公司購買了高額的網路安全保險 (Cyber Insurance)，以便在遭受攻擊時由保險公司支付贖金或復原費用。這種做法屬於哪種風險管理策略？",
+                question: "為了應對勒索軟體攻擊，公司購買了高額的網路安全保險 (Cyber Insurance)，以便在遭受攻擊時由保險公司支付贖金或復原費用。這種做法屬於哪種風險管理策略？",
                 options: [
                     "A. Risk Mitigation",
                     "B. Risk Transfer",
@@ -485,8 +206,7 @@
                 explanation: "Risk Transfer (風險轉移) 是透過合約或保險，將風險造成的財務損失轉嫁給第三方（如保險公司）。"
             },
             {
-                id: 7,
-                q: "NIST Cybersecurity Framework (CSF) 提供了五大核心功能來協助組織管理資安風險。下列何者不屬於這五大核心？",
+                question: "NIST Cybersecurity Framework (CSF) 提供了五大核心功能來協助組織管理資安風險。下列何者不屬於這五大核心？",
                 options: [
                     "A. Identify (識別)",
                     "B. Protect (保護)",
@@ -497,8 +217,7 @@
                 explanation: "NIST CSF 的五大核心是：Identify (識別)、Protect (保護)、Detect (偵測)、Respond (回應)、Recover (復原)。'Attack' 並非防禦框架的核心功能。"
             },
             {
-                id: 8,
-                q: "在新進員工的入職培訓中，您強調了「不要為他人開門 (Tailgating)」以及「不隨意點擊不明連結」。這是屬於哪一層面的防禦措施？",
+                question: "在新進員工的入職培訓中，您強調了「不要為他人開門 (Tailgating)」以及「不隨意點擊不明連結」。這是屬於哪一層面的防禦措施？",
                 options: [
                     "A. Technical Control (技術控制)",
                     "B. Physical Control (實體控制)",
@@ -509,8 +228,7 @@
                 explanation: "這是使用者資安意識培訓 (Security Awareness Training) 的一部分，旨在強化「人」這道防火牆，防範社交工程攻擊。"
             },
             {
-                id: 9,
-                q: "關於「最小權限原則 (Principle of Least Privilege)」，下列敘述何者正確？",
+                question: "關於「最小權限原則 (Principle of Least Privilege)」，下列敘述何者正確？",
                 options: [
                     "A. 所有員工都應該擁有系統管理員權限以便解決問題。",
                     "B. 使用者僅應被授予完成其工作所需的最低限度存取權限。",
@@ -521,8 +239,7 @@
                 explanation: "最小權限原則強調使用者（或程序）只應擁有完成其當前任務所「絕對必要」的權限，不多也不少，以限制潛在損害。"
             },
             {
-                id: 10,
-                q: "您正在進行業務衝擊分析 (BIA)。若公司的電子商務系統當機，每小時損失 10 萬美元，且管理層要求資料遺失不得超過 15 分鐘前的狀態。請問這裡的 '15分鐘' 代表什麼指標？",
+                question: "您正在進行業務衝擊分析 (BIA)。若公司的電子商務系統當機，每小時損失 10 萬美元，且管理層要求資料遺失不得超過 15 分鐘前的狀態。請問這裡的 '15分鐘' 代表什麼指標？",
                 options: [
                     "A. RTO (Recovery Time Objective)",
                     "B. RPO (Recovery Point Objective)",
@@ -533,63 +250,7 @@
                 explanation: "RPO (Recovery Point Objective) 定義了系統復原時，可容忍的資料遺失量（通常以時間為單位，意即需回復到當機前多久的時間點）。RTO 則是系統必須在多久內修好。"
             }
         ];
-
-        const quizContainer = document.getElementById('quiz-container');
-
-        questions.forEach((q, index) => {
-            // Create Card
-            const card = document.createElement('div');
-            card.className = 'quiz-card';
-
-            // Question Text
-            const title = document.createElement('div');
-            title.className = 'quiz-question';
-            title.innerHTML = `Q${q.id}. ${q.q}`;
-            card.appendChild(title);
-
-            // Options Container
-            const optionsDiv = document.createElement('div');
-            optionsDiv.className = 'quiz-options';
-
-            // Explanation Div (Hidden initially)
-            const explDiv = document.createElement('div');
-            explDiv.className = 'explanation';
-            explDiv.innerHTML = `<strong>解析：</strong>${q.explanation}`;
-
-            // Generate Options
-            q.options.forEach((opt, optIndex) => {
-                const btn = document.createElement('div');
-                btn.className = 'option-btn';
-                btn.innerText = opt;
-                
-                btn.onclick = function() {
-                    // Prevent multiple clicks
-                    if (card.getAttribute('data-answered') === 'true') return;
-                    card.setAttribute('data-answered', 'true');
-
-                    // Check answer
-                    if (optIndex === q.correct) {
-                        btn.classList.add('correct');
-                        btn.innerHTML += ' ✅';
-                    } else {
-                        btn.classList.add('wrong');
-                        btn.innerHTML += ' ❌';
-                        // Highlight correct answer
-                        optionsDiv.children[q.correct].classList.add('correct');
-                        optionsDiv.children[q.correct].innerHTML += ' ✅';
-                    }
-                    
-                    // Show explanation
-                    explDiv.style.display = 'block';
-                };
-                
-                optionsDiv.appendChild(btn);
-            });
-
-            card.appendChild(optionsDiv);
-            card.appendChild(explDiv);
-            quizContainer.appendChild(card);
-        });
     </script>
+    <script src="cnd.js?v=1"></script>
 </body>
 </html>

@@ -4,461 +4,125 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EC-Council CND 網路防禦課程 - Module 06</title>
-    <style>
-        :root {
-            --bg-color: #f5f7fc;
-            --card-bg: #ffffff;
-            --text-main: #1e2235;
-            --text-dim: #5b6278;
-            --accent-red: #dc2626;
-            --accent-dark-red: #fecaca;
-            --hud-grid: rgba(220, 38, 38, 0.06);
-            --border: #e3e6f0;
-            --font-main: 'Segoe UI', 'Roboto', Helvetica, Arial, sans-serif;
-            --font-tech: 'JetBrains Mono', Consolas, monospace;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            color: var(--text-main);
-            font-family: var(--font-main);
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
-
-        /* Header 橫幅 (深色底, site-chrome 會換成品牌漸層) */
-        header {
-            background: #1e2235;
-            color: #fff;
-            padding: 28px 40px;
-            position: relative;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        h1 {
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            font-size: 1.8rem;
-            color: #fff;
-        }
-
-        header h1 span { color: #fecaca !important; }
-
-        .status-bar {
-            font-family: var(--font-tech);
-            color: rgba(255, 255, 255, 0.92);
-            font-size: 0.9rem;
-            font-size: 0.8rem;
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            background: rgba(255, 255, 255, 0.16);
-            padding: 4px 14px;
-            border-radius: 999px;
-        }
-
-        /* Main Container */
-        .container {
-            max-width: 1200px;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
-
-        .section-title {
-            border-left: 5px solid var(--accent-red);
-            padding-left: 15px;
-            margin: 40px 0 20px 0;
-            font-size: 1.5rem;
-            color: var(--text-main);
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-        }
-
-        .section-title::after {
-            content: '';
-            flex-grow: 1;
-            height: 1px;
-            background: linear-gradient(90deg, #fecaca, transparent);
-            margin-left: 20px;
-        }
-
-        /* Cards Grid */
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 25px;
-        }
-
-        .card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 25px;
-            position: relative;
-            transition: all 0.3s ease;
-            overflow: hidden;
-            box-shadow: 0 4px 16px rgba(30, 34, 53, 0.06);
-        }
-
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background: var(--accent-red);
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: transform 0.3s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(30, 34, 53, 0.12);
-            border-color: #fca5a5;
-        }
-
-        .card:hover::before {
-            transform: scaleX(1);
-        }
-
-        .card h3 {
-            color: #b91c1c;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-        }
-
-        .card h3 i {
-            margin-right: 10px;
-        }
-
-        .card p {
-            color: var(--text-dim);
-            font-size: 0.95rem;
-            margin-bottom: 15px;
-        }
-
-        .card ul {
-            color: var(--text-dim);
-            padding-left: 20px;
-        }
-
-        .key-term {
-            color: #b91c1c;
-            font-weight: bold;
-            background: #fef2f2;
-            padding: 2px 5px;
-            border-radius: 3px;
-        }
-
-        /* 指令區塊維持深色終端機樣式 */
-        .code-block {
-            background: #1e2235;
-            border: 1px solid #1e2235;
-            color: #86efac;
-            padding: 10px;
-            font-family: var(--font-tech);
-            font-size: 0.85rem;
-            margin-top: 10px;
-            border-left: 3px solid var(--accent-red);
-            border-radius: 8px;
-        }
-
-        /* Quiz Section */
-        .quiz-container {
-            background-color: var(--card-bg);
-            border: 1px solid var(--accent-dark-red);
-            padding: 30px;
-            margin-top: 50px;
-            border-radius: 12px;
-            box-shadow: 0 4px 16px rgba(30, 34, 53, 0.06);
-        }
-
-        .quiz-header {
-            text-align: center;
-            margin-bottom: 30px;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 20px;
-            color: var(--text-main);
-        }
-
-        .quiz-header p {
-            color: var(--text-dim);
-        }
-
-        .question-block {
-            margin-bottom: 40px;
-            padding: 20px;
-            background: #f8f9fc;
-            border-left: 3px solid var(--border);
-            border-radius: 8px;
-            transition: all 0.3s;
-        }
-
-        .question-block.active {
-            border-left-color: var(--accent-red);
-        }
-
-        .question-text {
-            font-size: 1.1rem;
-            font-weight: bold;
-            margin-bottom: 15px;
-            color: var(--text-main);
-        }
-
-        .options {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .option-btn {
-            background: #ffffff;
-            border: 1px solid #d5d9e6;
-            color: var(--text-dim);
-            padding: 12px 15px;
-            border-radius: 8px;
-            text-align: left;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-family: var(--font-main);
-            position: relative;
-            padding-left: 40px;
-        }
-
-        .option-btn::before {
-            content: '';
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 12px;
-            height: 12px;
-            border: 1px solid #8a90a6;
-            border-radius: 50%;
-        }
-
-        .option-btn:hover {
-            background: #fef2f2;
-            border-color: #fca5a5;
-            color: var(--text-main);
-        }
-
-        .option-btn.selected {
-            border-color: var(--accent-red);
-            color: var(--text-main);
-        }
-
-        .option-btn.correct {
-            border-color: #15803d;
-            background: #f0fdf4;
-            color: #15803d;
-        }
-
-        .option-btn.correct::before {
-            background: #15803d;
-            border-color: #15803d;
-        }
-
-        .option-btn.incorrect {
-            border-color: var(--accent-red);
-            background: #fef2f2;
-            color: #b91c1c;
-        }
-
-        .option-btn.incorrect::before {
-            background: var(--accent-red);
-            border-color: var(--accent-red);
-        }
-
-        .feedback {
-            margin-top: 15px;
-            padding: 15px;
-            background: #ffffff;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--text-main);
-            display: none;
-            font-size: 0.9rem;
-        }
-
-        .feedback.show {
-            display: block;
-            animation: fadeIn 0.5s;
-        }
-
-        .feedback-title {
-            font-weight: bold;
-            margin-bottom: 5px;
-            display: block;
-            font-family: var(--font-tech);
-        }
-
-        .text-success { color: #15803d; }
-        .text-danger { color: #b91c1c; }
-
-        /* Footer (底色與字色由 site-theme.css 統一) */
-        footer {
-            margin-top: 60px;
-            padding: 20px;
-            text-align: center;
-            font-family: var(--font-tech);
-            font-size: 0.8rem;
-            letter-spacing: 1px;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            header { padding: 15px; flex-direction: column; gap: 10px; }
-            .grid { grid-template-columns: 1fr; }
-        }
-    </style>
+    <link rel="stylesheet" href="cnd.css?v=1">
     <link rel="stylesheet" href="../assets/site-theme.css?v=20261112b">
     <script src="../assets/site-chrome.js?v=20261112b" defer></script>
 </head>
 <body>
-
-    <header>
-        <h1>CND V2 <span style="color:var(--accent-red)">//</span> 網路防禦課程</h1>
-        <div class="status-bar">SYSTEM: ONLINE | MODULE: 06 (LINUX ENDPOINT)</div>
+    <header class="cnd-hero">
+        <div class="cnd-hero-inner">
+            <p class="cnd-kicker">EC-Council CND 網路防禦課程 · Module 06</p>
+            <h1>Endpoint Security: Linux Systems</h1>
+            <p class="cnd-subtitle">端點安全：Linux 系統</p>
+        </div>
     </header>
 
-    <div class="container">
-        
-        <!-- Introduction -->
-        <div class="card" style="margin-bottom: 30px; border-left: 5px solid var(--accent-red);">
-            <h3><span style="font-size:1.5em; margin-right:10px;">🛡️</span> Module 06: Endpoint Security - Linux Systems</h3>
-            <p>本模組專注於 Linux 系統的防禦策略。作為網路防禦者 (Blue Team)，了解 Linux 架構至關重要，因為大多數的伺服器、雲端基礎設施 (Cloud Infrastructure) 以及 IoT 設備皆運行於 Linux 核心之上。我們不談攻擊，我們談如何讓系統堅不可摧。</p>
-            <p><strong>核心目標：</strong>掌握 OS 強化 (Hardening)、最小權限原則 (Least Privilege) 與日誌監控 (Log Monitoring)。</p>
-        </div>
+    <main class="cnd-main">
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">00</span>模組概述 <span class="cnd-en">Module Overview</span></h2>
+            <div class="cnd-card plain">
+                <h3>🛡️ Module 06: Endpoint Security - Linux Systems</h3>
+                <p>本模組專注於 Linux 系統的防禦策略。作為網路防禦者 (Blue Team)，了解 Linux 架構至關重要，因為大多數的伺服器、雲端基礎設施 (Cloud Infrastructure) 以及 IoT 設備皆運行於 Linux 核心之上。我們不談攻擊，我們談如何讓系統堅不可摧。</p>
+                <div class="cnd-callout info"><span class="cnd-callout-title">核心目標：</span><p>掌握 OS 強化 (Hardening)、最小權限原則 (Least Privilege) 與日誌監控 (Log Monitoring)。</p></div>
+            </div>
+        </section>
 
-        <!-- Section 1: Core Security Concepts -->
-        <div class="section-title">01 // Linux 安全核心架構</div>
-        <div class="grid">
-            <div class="card">
-                <h3>權限與使用者管理 (User & Permission)</h3>
-                <p>Linux 安全的核心在於權限控制。所有的檔案與程序都歸屬於特定的 <span class="key-term">User</span> 與 <span class="key-term">Group</span>。</p>
-                <p><strong>防禦重點：</strong></p>
-                <ul>
-                    <li>禁止 Root 直接遠端登入 (SSH)。</li>
-                    <li>使用 sudo 進行特權操作，並限制 sudoers 檔案。</li>
-                    <li>理解 <span class="key-term">rwx</span> (Read/Write/Execute) 權限模型。</li>
-                </ul>
-                <div class="code-block">
-                    $ chmod 755 script.sh<br>
-                    # 擁有者: rwx (7)<br>
-                    # 群組: r-x (5)<br>
-                    # 其他人: r-x (5)
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">01</span>Linux 安全核心架構 <span class="cnd-en">Core Security Concepts</span></h2>
+            <div class="cnd-grid cnd-grid-2">
+                <div class="cnd-card">
+                    <h3>權限與使用者管理 (User &amp; Permission)</h3>
+                    <p>Linux 安全的核心在於權限控制。所有的檔案與程序都歸屬於特定的 <span class="cnd-hl">User</span> 與 <span class="cnd-hl">Group</span>。</p>
+                    <h4>防禦重點：</h4>
+                    <ul class="cnd-list">
+                        <li>禁止 Root 直接遠端登入 (SSH)。</li>
+                        <li>使用 sudo 進行特權操作，並限制 sudoers 檔案。</li>
+                        <li>理解 <span class="cnd-hl">rwx</span> (Read/Write/Execute) 權限模型。</li>
+                    </ul>
+                    <pre class="cnd-code">$ chmod 755 script.sh
+<span class="dim"># 擁有者: rwx (7)</span>
+<span class="dim"># 群組: r-x (5)</span>
+<span class="dim"># 其他人: r-x (5)</span></pre>
+                </div>
+                <div class="cnd-card">
+                    <h3>最小化服務 (Minimize Footprint)</h3>
+                    <p>攻擊面 (Attack Surface) 與運行的服務數量成正比。不必要的服務就是潛在的漏洞。</p>
+                    <h4>防禦策略：</h4>
+                    <ul class="cnd-list">
+                        <li>使用 <code>systemctl</code> 停用未使用的服務。</li>
+                        <li>移除不必要的軟體包 (Packages)。</li>
+                        <li>關閉不必要的網路埠口 (Ports)。</li>
+                    </ul>
+                    <pre class="cnd-code">$ systemctl stop postfix
+$ systemctl disable postfix
+$ netstat -tulpn <span class="dim"># 檢查聆聽埠口</span></pre>
                 </div>
             </div>
+        </section>
 
-            <div class="card">
-                <h3>最小化服務 (Minimize Footprint)</h3>
-                <p>攻擊面 (Attack Surface) 與運行的服務數量成正比。不必要的服務就是潛在的漏洞。</p>
-                <p><strong>防禦策略：</strong></p>
-                <ul>
-                    <li>使用 `systemctl` 停用未使用的服務。</li>
-                    <li>移除不必要的軟體包 (Packages)。</li>
-                    <li>關閉不必要的網路埠口 (Ports)。</li>
-                </ul>
-                <div class="code-block">
-                    $ systemctl stop postfix<br>
-                    $ systemctl disable postfix<br>
-                    $ netstat -tulpn # 檢查聆聽埠口
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">02</span>技術控制與工具 <span class="cnd-en">Technical Controls</span></h2>
+            <div class="cnd-grid cnd-grid-2">
+                <div class="cnd-card">
+                    <h3>SSH 強化 (SSH Hardening)</h3>
+                    <p>SSH 是 Linux 最重要的管理通道，也是暴力破解的主要目標。</p>
+                    <h4>關鍵配置 (/etc/ssh/sshd_config)：</h4>
+                    <ul class="cnd-list">
+                        <li><code>PermitRootLogin no</code>：禁止 Root 登入。</li>
+                        <li><code>PasswordAuthentication no</code>：強制使用金鑰認證。</li>
+                        <li><code>Port 2222</code>：更改預設埠口 (Security by Obscurity，輔助用)。</li>
+                    </ul>
+                </div>
+                <div class="cnd-card">
+                    <h3>防火牆配置 (Iptables / Firewalld)</h3>
+                    <p>Linux 核心內建 Netfilter 防火牆。管理員需配置規則以過濾流量。</p>
+                    <h4>Iptables 概念：</h4>
+                    <ul class="cnd-list">
+                        <li>INPUT Chain：進入本機的流量。</li>
+                        <li>OUTPUT Chain：本機發出的流量。</li>
+                        <li>FORWARD Chain：路由轉發的流量。</li>
+                    </ul>
+                    <pre class="cnd-code"><span class="dim"># 允許 SSH, HTTP 並拒絕其他進入流量</span>
+iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+iptables -P INPUT DROP</pre>
+                </div>
+                <div class="cnd-card">
+                    <h3>日誌監控 (Log Monitoring)</h3>
+                    <p>日誌是偵測入侵的最後一道防線。必須確保日誌的完整性與可追溯性。</p>
+                    <h4>關鍵日誌檔：</h4>
+                    <ul class="cnd-list">
+                        <li><code>/var/log/auth.log</code> (或 secure)：認證與授權紀錄 (sudo, ssh)。</li>
+                        <li><code>/var/log/syslog</code> (或 messages)：系統一般訊息。</li>
+                        <li><code>dmesg</code>：核心緩衝區訊息 (硬體/驅動)。</li>
+                    </ul>
+                </div>
+                <div class="cnd-card">
+                    <h3>Mandatory Access Control (MAC)</h3>
+                    <p>除了傳統的 DAC (擁有者權限)，MAC 提供了更細粒度的控制，限制程序只能存取特定資源。</p>
+                    <h4>主流方案：</h4>
+                    <ul class="cnd-list">
+                        <li><span class="cnd-hl">SELinux</span> (Security Enhanced Linux)：RedHat 系預設。使用 Context 標籤。</li>
+                        <li><span class="cnd-hl">AppArmor</span>：Debian/Ubuntu 系預設。使用 Profile 設定檔。</li>
+                    </ul>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Section 2: Technical Controls -->
-        <div class="section-title">02 // 技術控制與工具</div>
-        <div class="grid">
-            <div class="card">
-                <h3>SSH 強化 (SSH Hardening)</h3>
-                <p>SSH 是 Linux 最重要的管理通道，也是暴力破解的主要目標。</p>
-                <p><strong>關鍵配置 (/etc/ssh/sshd_config)：</strong></p>
-                <ul>
-                    <li><span class="key-term">PermitRootLogin no</span>：禁止 Root 登入。</li>
-                    <li><span class="key-term">PasswordAuthentication no</span>：強制使用金鑰認證。</li>
-                    <li><span class="key-term">Port 2222</span>：更改預設埠口 (Security by Obscurity，輔助用)。</li>
-                </ul>
-            </div>
-
-            <div class="card">
-                <h3>防火牆配置 (Iptables / Firewalld)</h3>
-                <p>Linux 核心內建 Netfilter 防火牆。管理員需配置規則以過濾流量。</p>
-                <p><strong>Iptables 概念：</strong></p>
-                <ul>
-                    <li>INPUT Chain：進入本機的流量。</li>
-                    <li>OUTPUT Chain：本機發出的流量。</li>
-                    <li>FORWARD Chain：路由轉發的流量。</li>
-                </ul>
-                <div class="code-block">
-                    # 允許 SSH, HTTP 並拒絕其他進入流量<br>
-                    iptables -A INPUT -p tcp --dport 22 -j ACCEPT<br>
-                    iptables -A INPUT -p tcp --dport 80 -j ACCEPT<br>
-                    iptables -P INPUT DROP
-                </div>
-            </div>
-
-            <div class="card">
-                <h3>日誌監控 (Log Monitoring)</h3>
-                <p>日誌是偵測入侵的最後一道防線。必須確保日誌的完整性與可追溯性。</p>
-                <p><strong>關鍵日誌檔：</strong></p>
-                <ul>
-                    <li><span class="key-term">/var/log/auth.log</span> (或 secure)：認證與授權紀錄 (sudo, ssh)。</li>
-                    <li><span class="key-term">/var/log/syslog</span> (或 messages)：系統一般訊息。</li>
-                    <li><span class="key-term">dmesg</span>：核心緩衝區訊息 (硬體/驅動)。</li>
-                </ul>
-            </div>
-            
-            <div class="card">
-                <h3>Mandatory Access Control (MAC)</h3>
-                <p>除了傳統的 DAC (擁有者權限)，MAC 提供了更細粒度的控制，限制程序只能存取特定資源。</p>
-                <p><strong>主流方案：</strong></p>
-                <ul>
-                    <li><span class="key-term">SELinux</span> (Security Enhanced Linux)：RedHat 系預設。使用 Context 標籤。</li>
-                    <li><span class="key-term">AppArmor</span>：Debian/Ubuntu 系預設。使用 Profile 設定檔。</li>
-                </ul>
-            </div>
-        </div>
-
-        <!-- Quiz Section -->
-        <div class="section-title">03 // 實戰模擬測驗 (Module 06 Exam)</div>
-        <div class="quiz-container">
-            <div class="quiz-header">
-                <h2>TACTICAL ASSESSMENT</h2>
-                <p>EC-Council CND Style Scenario Questions</p>
-                <div id="score-display" style="font-family: var(--font-tech); font-size: 1.2rem; color: var(--accent-red); margin-top: 10px;">SCORE: 0 / 10</div>
-            </div>
-            
-            <div id="quiz-content">
-                <!-- Questions will be injected here by JS -->
-            </div>
-        </div>
-
-    </div>
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">03</span>情境模擬測驗 <span class="cnd-en">Simulation Exam</span></h2>
+            <p class="cnd-lead">EC-Council CND Style Scenario Questions</p>
+            <div id="cnd-quiz"></div>
+        </section>
+    </main>
 
     <footer>
         Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0
     </footer>
 
     <script>
-        const quizData = [
+        window.CND_QUIZ = [
             {
-                id: 1,
                 question: "情境：作為一名 CND 分析師，你懷疑有一名未授權的攻擊者試圖暴力破解公司的 Linux 檔案伺服器 SSH 登入密碼。你應該檢查哪個日誌檔案來確認大量的 'Failed password' 嘗試紀錄？(假設系統為 Ubuntu/Debian)",
                 options: [
                     "/var/log/messages",
@@ -467,10 +131,9 @@
                     "/var/log/cron.log"
                 ],
                 correct: 1,
-                rationale: "在 Debian/Ubuntu 系統中，與認證相關的日誌 (如 SSH 登入嘗試、sudo 使用) 預設儲存於 <strong>/var/log/auth.log</strong>。如果是 RHEL/CentOS，則通常在 /var/log/secure。"
+                explanation: "在 Debian/Ubuntu 系統中，與認證相關的日誌 (如 SSH 登入嘗試、sudo 使用) 預設儲存於 <strong>/var/log/auth.log</strong>。如果是 RHEL/CentOS，則通常在 /var/log/secure。"
             },
             {
-                id: 2,
                 question: "情境：為了強化 Linux 網頁伺服器的安全性，你決定實施『最小權限原則』。你需要設定一個腳本 `backup.sh` 的權限，使得只有擁有者 (Owner) 可以讀取、寫入和執行，群組 (Group) 和其他人 (Others) 完全沒有任何權限。請問正確的 chmod 指令為何？",
                 options: [
                     "chmod 777 backup.sh",
@@ -479,10 +142,9 @@
                     "chmod 644 backup.sh"
                 ],
                 correct: 2,
-                rationale: "權限數字 7 代表 rwx (4+2+1)。目標是擁有者全權限 (7)，群組無權限 (0)，其他人無權限 (0)。因此正確指令為 <strong>chmod 700</strong>。"
+                explanation: "權限數字 7 代表 rwx (4+2+1)。目標是擁有者全權限 (7)，群組無權限 (0)，其他人無權限 (0)。因此正確指令為 <strong>chmod 700</strong>。"
             },
             {
-                id: 3,
                 question: "情境：你在審核 `/etc/ssh/sshd_config` 檔案以強化 SSH 服務。為了防止攻擊者直接獲取最高權限，哪一項設定是必須啟用/修改的？",
                 options: [
                     "Protocol 1",
@@ -491,10 +153,9 @@
                     "MaxAuthTries 100"
                 ],
                 correct: 1,
-                rationale: "禁止 Root 直接登入 (<strong>PermitRootLogin no</strong>) 是標準的強化措施。這迫使攻擊者必須先破解普通使用者帳號，再嘗試提權，增加了攻擊鏈的長度與被偵測的機會。"
+                explanation: "禁止 Root 直接登入 (<strong>PermitRootLogin no</strong>) 是標準的強化措施。這迫使攻擊者必須先破解普通使用者帳號，再嘗試提權，增加了攻擊鏈的長度與被偵測的機會。"
             },
             {
-                id: 4,
                 question: "情境：公司的網站遭受來自特定 IP (192.168.1.100) 的惡意流量攻擊。你決定使用 iptables 暫時封鎖該 IP 的所有連線。以下哪條指令是正確的？",
                 options: [
                     "iptables -A INPUT -s 192.168.1.100 -j ACCEPT",
@@ -503,10 +164,9 @@
                     "iptables -F INPUT"
                 ],
                 correct: 2,
-                rationale: "我們需要針對『進入 (INPUT)』的流量，來源 IP (`-s`) 為 192.168.1.100，並採取丟棄 (`-j DROP`) 動作。選項 B 是針對流出流量，選項 A 是允許，選項 D 是清除規則。"
+                explanation: "我們需要針對『進入 (INPUT)』的流量，來源 IP (`-s`) 為 192.168.1.100，並採取丟棄 (`-j DROP`) 動作。選項 B 是針對流出流量，選項 A 是允許，選項 D 是清除規則。"
             },
             {
-                id: 5,
                 question: "情境：你正在評估 Linux 系統的安全性，想要檢查是否有任何『SUID』(Set User ID) 的檔案，因為這些檔案執行時會擁有檔案擁有者 (通常是 root) 的權限，可能被用於提權攻擊。你會使用哪個指令？",
                 options: [
                     "find / -perm -4000",
@@ -515,10 +175,9 @@
                     "chmod +s filename"
                 ],
                 correct: 0,
-                rationale: "<strong>find / -perm -4000</strong> 指令用於搜尋整個檔案系統中設定了 SUID 位元 (權限值為 4000) 的檔案。這是尋找潛在提權漏洞的標準程序。"
+                explanation: "<strong>find / -perm -4000</strong> 指令用於搜尋整個檔案系統中設定了 SUID 位元 (權限值為 4000) 的檔案。這是尋找潛在提權漏洞的標準程序。"
             },
             {
-                id: 6,
                 question: "情境：你想要使用開源工具來自動化稽核 Linux 系統的安全性設定 (如密碼策略、防火牆狀態、已安裝軟體)。以下哪一個工具最適合此用途？",
                 options: [
                     "Wireshark",
@@ -527,10 +186,9 @@
                     "Hydra"
                 ],
                 correct: 1,
-                rationale: "<strong>Lynis</strong> 是一款著名的 Linux 安全稽核工具，用於掃描系統配置、安全強化建議與漏洞偵測。Wireshark 是封包分析，John 是密碼破解，Hydra 是暴力破解工具。"
+                explanation: "<strong>Lynis</strong> 是一款著名的 Linux 安全稽核工具，用於掃描系統配置、安全強化建議與漏洞偵測。Wireshark 是封包分析，John 是密碼破解，Hydra 是暴力破解工具。"
             },
             {
-                id: 7,
                 question: "情境：在 Linux 系統中，哪一個檔案負責定義主機名稱解析 (Host Name Resolution) 的順序以及靜態 IP 對應，且常被惡意軟體修改以進行釣魚重導向？",
                 options: [
                     "/etc/passwd",
@@ -539,10 +197,9 @@
                     "/etc/resolv.conf"
                 ],
                 correct: 2,
-                rationale: "<strong>/etc/hosts</strong> 檔案包含靜態的主機名稱到 IP 地址的對應。如果攻擊者修改此檔案，可以將合法域名 (如 bank.com) 重導向到惡意 IP。/etc/resolv.conf 是設定 DNS 伺服器地址。"
+                explanation: "<strong>/etc/hosts</strong> 檔案包含靜態的主機名稱到 IP 地址的對應。如果攻擊者修改此檔案，可以將合法域名 (如 bank.com) 重導向到惡意 IP。/etc/resolv.conf 是設定 DNS 伺服器地址。"
             },
             {
-                id: 8,
                 question: "情境：關於 Linux 的 Mandatory Access Control (MAC) 機制 SELinux，當它處於 'Enforcing' 模式時，下列敘述何者正確？",
                 options: [
                     "它只會記錄違規行為，但不會阻止。",
@@ -551,10 +208,9 @@
                     "它允許 root 使用者繞過所有限制。"
                 ],
                 correct: 1,
-                rationale: "SELinux 有三種模式：Disabled (關閉)、Permissive (僅記錄不阻擋)、<strong>Enforcing (強制執行並阻擋)</strong>。在 MAC 架構下，即便是 root 也受策略限制。"
+                explanation: "SELinux 有三種模式：Disabled (關閉)、Permissive (僅記錄不阻擋)、<strong>Enforcing (強制執行並阻擋)</strong>。在 MAC 架構下，即便是 root 也受策略限制。"
             },
             {
-                id: 9,
                 question: "情境：你需要在不重新啟動伺服器的情況下，查看目前系統開啟了哪些網路連線埠 (Listening Ports) 以及對應的程序。以下哪個指令最合適？",
                 options: [
                     "ifconfig",
@@ -563,10 +219,9 @@
                     "traceroute"
                 ],
                 correct: 2,
-                rationale: "<strong>netstat -tulpn</strong> (或 `ss -tulpn`) 可以顯示 TCP/UDP (tu) 聆聽中 (l) 的埠口，並顯示 PID/程式名稱 (p) 以及數值化地址 (n)。這是檢查後門程式或未授權服務的常用指令。"
+                explanation: "<strong>netstat -tulpn</strong> (或 `ss -tulpn`) 可以顯示 TCP/UDP (tu) 聆聽中 (l) 的埠口，並顯示 PID/程式名稱 (p) 以及數值化地址 (n)。這是檢查後門程式或未授權服務的常用指令。"
             },
             {
-                id: 10,
                 question: "情境：為了確保資料的機密性，你計畫在 Linux 筆記型電腦上加密整個磁碟分區。Linux 核心內建的標準磁碟加密架構是什麼？",
                 options: [
                     "BitLocker",
@@ -575,86 +230,10 @@
                     "EFS"
                 ],
                 correct: 1,
-                rationale: "<strong>LUKS</strong> (基於 dm-crypt) 是 Linux 系統上標準的磁碟加密規範。BitLocker 用於 Windows，FileVault 用於 macOS，EFS 是 Windows 檔案層級加密。"
+                explanation: "<strong>LUKS</strong> (基於 dm-crypt) 是 Linux 系統上標準的磁碟加密規範。BitLocker 用於 Windows，FileVault 用於 macOS，EFS 是 Windows 檔案層級加密。"
             }
         ];
-
-        let currentScore = 0;
-        const quizContainer = document.getElementById('quiz-content');
-        const scoreDisplay = document.getElementById('score-display');
-
-        function renderQuiz() {
-            quizData.forEach((item, index) => {
-                const qBlock = document.createElement('div');
-                qBlock.className = 'question-block';
-                qBlock.id = `q-${index}`;
-
-                const qText = document.createElement('div');
-                qText.className = 'question-text';
-                qText.innerHTML = `<span style="color:var(--accent-red)">Q${index + 1}.</span> ${item.question}`;
-                qBlock.appendChild(qText);
-
-                const optionsDiv = document.createElement('div');
-                optionsDiv.className = 'options';
-
-                item.options.forEach((opt, optIndex) => {
-                    const btn = document.createElement('button');
-                    btn.className = 'option-btn';
-                    btn.textContent = opt;
-                    btn.onclick = () => checkAnswer(index, optIndex, btn);
-                    optionsDiv.appendChild(btn);
-                });
-                qBlock.appendChild(optionsDiv);
-
-                const feedbackDiv = document.createElement('div');
-                feedbackDiv.className = 'feedback';
-                feedbackDiv.id = `feedback-${index}`;
-                qBlock.appendChild(feedbackDiv);
-
-                quizContainer.appendChild(qBlock);
-            });
-        }
-
-        function checkAnswer(qIndex, optIndex, btn) {
-            const qData = quizData[qIndex];
-            const qBlock = document.getElementById(`q-${qIndex}`);
-            const feedbackEl = document.getElementById(`feedback-${qIndex}`);
-            const allBtns = qBlock.querySelectorAll('.option-btn');
-
-            // Prevent multiple clicks
-            if (qBlock.getAttribute('data-answered') === 'true') return;
-            qBlock.setAttribute('data-answered', 'true');
-            qBlock.classList.add('active');
-
-            // Disable all buttons
-            allBtns.forEach(b => b.disabled = true);
-
-            const isCorrect = (optIndex === qData.correct);
-            
-            if (isCorrect) {
-                btn.classList.add('correct');
-                currentScore++;
-                feedbackEl.innerHTML = `<span class="feedback-title text-success">[CORRECT] Access Granted.</span> ${qData.rationale}`;
-            } else {
-                btn.classList.add('incorrect');
-                // Highlight correct answer
-                allBtns[qData.correct].classList.add('correct');
-                feedbackEl.innerHTML = `<span class="feedback-title text-danger">[INCORRECT] Access Denied.</span> ${qData.rationale}`;
-            }
-
-            feedbackEl.classList.add('show');
-            updateScore();
-        }
-
-        function updateScore() {
-            scoreDisplay.textContent = `SCORE: ${currentScore} / 10`;
-            if (currentScore === 10) {
-                scoreDisplay.innerHTML += " <span style='color:#15803d'>[ELITE STATUS]</span>";
-            }
-        }
-
-        // Initialize
-        renderQuiz();
     </script>
+    <script src="cnd.js?v=1"></script>
 </body>
 </html>

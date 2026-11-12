@@ -4,333 +4,139 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EC-Council CND 網路防禦課程 | Module 03</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    
-    <style>
-        :root {
-            --card-bg: #ffffff;
-            --text-main: #1e2235;
-            --text-dim: #5b6278;
-            --accent-red: #dc2626;
-            --accent-dark-red: #b91c1c;
-        }
-
-        body {
-            color: var(--text-main);
-            font-family: inherit;
-            overflow-x: hidden;
-        }
-
-        /* Typography */
-        h1, h2, h3, .brand-font {
-            font-family: inherit;
-        }
-
-        .mono-font {
-            font-family: var(--hm-mono);
-        }
-
-        /* Panels (淺色卡片,紅色頂線) */
-        .hud-border {
-            border-radius: 12px;
-            border: 1px solid #e3e6f0;
-            position: relative;
-            background: #ffffff;
-            box-shadow: 0 4px 16px rgba(30, 34, 53, 0.06);
-            border-top: 3px solid var(--accent-red);
-        }
-
-
-
-        /* 原本的霓虹光暈,淺色主題下不使用 */
-        .glow-text {
-            text-shadow: none;
-        }
-
-        .alert-btn {
-            background: transparent;
-            border: 1px solid var(--accent-red);
-            color: var(--accent-red);
-            transition: all 0.3s ease;
-            font-family: inherit;
-            letter-spacing: 1px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .alert-btn:hover {
-            background: var(--accent-red);
-            color: #fff;
-            box-shadow: 0 4px 14px rgba(220, 38, 38, 0.25);
-        }
-
-        /* Quiz Styles */
-        .option-btn {
-            background: #f8f9fc;
-            border: 1px solid #d6dae6;
-            transition: all 0.2s;
-        }
-        .option-btn:hover {
-            border-color: var(--accent-red);
-            background: #fef2f2;
-        }
-        .option-btn.selected {
-            background: #f1f3f8;
-            border-color: #1e2235;
-        }
-        .option-btn.correct {
-            background: #f0fdf4;
-            border-color: #15803d;
-            color: #15803d;
-        }
-        .option-btn.wrong {
-            background: #fef2f2;
-            border-color: #dc2626;
-            color: #b91c1c;
-        }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f3f8;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #c5cad8;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--accent-red);
-        }
-    </style>
+    <link rel="stylesheet" href="cnd.css?v=1">
     <link rel="stylesheet" href="../assets/site-theme.css?v=20261112b">
     <script src="../assets/site-chrome.js?v=20261112b" defer></script>
 </head>
-<body class="antialiased min-h-screen flex flex-col">
-
-    <!-- Header -->
-    <header class="border-b border-red-900 bg-black/90 backdrop-blur-md sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-            <div class="flex items-center gap-4">
-                <i class="fas fa-shield-alt text-3xl text-red-600 animate-pulse"></i>
-                <div>
-                    <h1 class="text-2xl font-bold text-white glow-text">EC-Council CND</h1>
-                    <p class="text-xs text-red-500 mono-font tracking-widest">CERTIFIED NETWORK DEFENDER v2 // MODULE 03</p>
-                </div>
-            </div>
-            <div class="hidden md:flex items-center gap-6 mono-font text-sm">
-                <span class="text-gray-200">STATUS: <span class="text-green-300">ONLINE</span></span>
-                <span class="text-gray-200">DEFCON: <span class="text-red-500">3</span></span>
-                <span class="text-gray-200">USER: <span class="text-white">INSTRUCTOR</span></span>
-            </div>
+<body>
+    <header class="cnd-hero">
+        <div class="cnd-hero-inner">
+            <p class="cnd-kicker">EC-Council CND 網路防禦課程 · Module 03</p>
+            <h1>Technical Network Security</h1>
+            <p class="cnd-subtitle">技術網路安全</p>
         </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="flex-grow max-w-7xl mx-auto px-4 py-8 w-full">
-        
-        <!-- Module Title Section -->
-        <div class="mb-12 text-center relative py-10 border-y border-red-200 bg-gradient-to-r from-transparent via-red-50 to-transparent">
-            <h2 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4 glow-text">Technical Network Security</h2>
-            <p class="text-xl text-gray-600 max-w-3xl mx-auto font-light">
-                技術層面的網路安全控制是防禦體系的核心。本模組將深入探討存取控制模型 (Access Control)、身份識別 (IAM)、密碼學 (Cryptography) 以及零信任架構 (Zero Trust)，建立藍隊防禦的堅實基礎。
-            </p>
-            <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 px-4 bg-white border border-red-200 text-red-600 text-xs mono-font">
-                SYSTEM_READY // INITIATE_PROTOCOL
+    <main class="cnd-main">
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">00</span>模組概述 <span class="cnd-en">Module Overview</span></h2>
+            <div class="cnd-card plain">
+                <p>技術層面的網路安全控制是防禦體系的核心。本模組將深入探討存取控制模型 (Access Control)、身份識別 (IAM)、密碼學 (Cryptography) 以及零信任架構 (Zero Trust)，建立藍隊防禦的堅實基礎。</p>
             </div>
-        </div>
+        </section>
 
-        <!-- Content Grid -->
-        <div class="grid grid-cols-1 gap-12">
-
-            <!-- Section 1: Access Control Models -->
-            <section class="hud-border p-8">
-                <div class="flex items-center gap-3 mb-6 border-b border-gray-200 pb-2">
-                    <i class="fas fa-lock text-red-600 text-xl"></i>
-                    <h3 class="text-2xl text-gray-900">1. Access Control Models (存取控制模型)</h3>
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">01</span>存取控制模型 <span class="cnd-en">Access Control Models</span></h2>
+            <p class="cnd-lead">作為網路防禦者，理解不同的存取控制模型對於實施「最小權限原則 (Principle of Least Privilege)」至關重要。</p>
+            <div class="cnd-grid cnd-grid-2">
+                <div class="cnd-card">
+                    <h3>DAC (Discretionary Access Control)</h3>
+                    <p><span class="cnd-hl">自主式存取控制。</span>資源擁有者(Owner)決定誰可以存取。</p>
+                    <ul class="cnd-list">
+                        <li><strong>優點：</strong> 靈活，適用於小型或低安全性環境。</li>
+                        <li><strong>缺點：</strong> 安全性較低，容易受到木馬攻擊 (Trojan horses) 竊取權限。</li>
+                        <li><strong>範例：</strong> Windows NTFS 檔案權限 (User 建立檔案後可分享給他人)。</li>
+                    </ul>
                 </div>
-                
-                <div class="space-y-6 text-gray-700">
-                    <p>作為網路防禦者，理解不同的存取控制模型對於實施「最小權限原則 (Principle of Least Privilege)」至關重要。</p>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="bg-gray-50 p-5 border-l-2 border-red-600">
-                            <h4 class="text-gray-900 font-bold mb-2">DAC (Discretionary Access Control)</h4>
-                            <p class="text-sm mb-2"><span class="text-red-700">自主式存取控制。</span>資源擁有者(Owner)決定誰可以存取。</p>
-                            <ul class="text-xs text-gray-600 list-disc ml-4 space-y-1">
-                                <li><strong>優點：</strong> 靈活，適用於小型或低安全性環境。</li>
-                                <li><strong>缺點：</strong> 安全性較低，容易受到木馬攻擊 (Trojan horses) 竊取權限。</li>
-                                <li><strong>範例：</strong> Windows NTFS 檔案權限 (User 建立檔案後可分享給他人)。</li>
-                            </ul>
-                        </div>
-
-                        <div class="bg-gray-50 p-5 border-l-2 border-red-600">
-                            <h4 class="text-gray-900 font-bold mb-2">MAC (Mandatory Access Control)</h4>
-                            <p class="text-sm mb-2"><span class="text-red-700">強制式存取控制。</span>系統根據安全標籤 (Security Labels) 和使用者等級 (Clearance) 決定存取權。</p>
-                            <ul class="text-xs text-gray-600 list-disc ml-4 space-y-1">
-                                <li><strong>優點：</strong> 極高安全性，嚴格的單向資訊流。</li>
-                                <li><strong>缺點：</strong> 缺乏靈活度，管理成本高。</li>
-                                <li><strong>範例：</strong> SEAndroid, SELinux, 軍方系統 (Top Secret > Secret)。</li>
-                            </ul>
-                        </div>
-
-                        <div class="bg-gray-50 p-5 border-l-2 border-red-600">
-                            <h4 class="text-gray-900 font-bold mb-2">RBAC (Role-Based Access Control)</h4>
-                            <p class="text-sm mb-2"><span class="text-red-700">角色式存取控制。</span>權限綁定「角色」(Role)，而非個人。使用者被分配角色。</p>
-                            <ul class="text-xs text-gray-600 list-disc ml-4 space-y-1">
-                                <li><strong>優點：</strong> 適合大型企業，簡化離職/入職管理。</li>
-                                <li><strong>藍隊觀點：</strong> 這是企業環境中最推薦的模型，能有效減少權限蔓延 (Privilege Creep)。</li>
-                            </ul>
-                        </div>
-
-                        <div class="bg-gray-50 p-5 border-l-2 border-red-600">
-                            <h4 class="text-gray-900 font-bold mb-2">ABAC (Attribute-Based Access Control)</h4>
-                            <p class="text-sm mb-2"><span class="text-red-700">屬性式存取控制。</span>基於多重屬性 (Who, What, Where, When) 動態決定。</p>
-                            <ul class="text-xs text-gray-600 list-disc ml-4 space-y-1">
-                                <li><strong>邏輯：</strong> IF (User=Manager) AND (Location=Office) AND (Time=9am-5pm) THEN Allow。</li>
-                                <li><strong>優點：</strong> 最細緻 (Granular) 的控制，符合 Zero Trust 架構需求。</li>
-                            </ul>
-                        </div>
-                    </div>
+                <div class="cnd-card">
+                    <h3>MAC (Mandatory Access Control)</h3>
+                    <p><span class="cnd-hl">強制式存取控制。</span>系統根據安全標籤 (Security Labels) 和使用者等級 (Clearance) 決定存取權。</p>
+                    <ul class="cnd-list">
+                        <li><strong>優點：</strong> 極高安全性，嚴格的單向資訊流。</li>
+                        <li><strong>缺點：</strong> 缺乏靈活度，管理成本高。</li>
+                        <li><strong>範例：</strong> SEAndroid, SELinux, 軍方系統 (Top Secret &gt; Secret)。</li>
+                    </ul>
                 </div>
-            </section>
-
-            <!-- Section 2: IAM & AAA -->
-            <section class="hud-border p-8">
-                <div class="flex items-center gap-3 mb-6 border-b border-gray-200 pb-2">
-                    <i class="fas fa-id-card text-red-600 text-xl"></i>
-                    <h3 class="text-2xl text-gray-900">2. AAA Framework & IAM</h3>
+                <div class="cnd-card">
+                    <h3>RBAC (Role-Based Access Control)</h3>
+                    <p><span class="cnd-hl">角色式存取控制。</span>權限綁定「角色」(Role)，而非個人。使用者被分配角色。</p>
+                    <ul class="cnd-list">
+                        <li><strong>優點：</strong> 適合大型企業，簡化離職/入職管理。</li>
+                        <li><strong>藍隊觀點：</strong> 這是企業環境中最推薦的模型，能有效減少權限蔓延 (Privilege Creep)。</li>
+                    </ul>
                 </div>
-                
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div class="col-span-1 lg:col-span-2 space-y-4 text-gray-700">
-                        <p>AAA 是網路安全管理的基石，防禦者必須確保這三個環節都有對應的控制措施。</p>
-                        
-                        <div class="space-y-4">
-                            <div class="flex gap-4">
-                                <div class="w-12 h-12 bg-red-50 flex items-center justify-center border border-red-200 text-red-600 font-bold mono-font">01</div>
-                                <div>
-                                    <h4 class="text-gray-900 font-bold">Authentication (驗證)</h4>
-                                    <p class="text-sm text-gray-600">確認「你是誰」。</p>
-                                    <p class="text-xs text-gray-500 mt-1">Multi-Factor Authentication (MFA) 是防禦釣魚與憑證竊取最有效手段。</p>
-                                </div>
-                            </div>
-                            <div class="flex gap-4">
-                                <div class="w-12 h-12 bg-red-50 flex items-center justify-center border border-red-200 text-red-600 font-bold mono-font">02</div>
-                                <div>
-                                    <h4 class="text-gray-900 font-bold">Authorization (授權)</h4>
-                                    <p class="text-sm text-gray-600">確認「你能做什麼」。</p>
-                                    <p class="text-xs text-gray-500 mt-1">發生在驗證之後。應遵循 NIST 800-53 的最小權限原則。</p>
-                                </div>
-                            </div>
-                            <div class="flex gap-4">
-                                <div class="w-12 h-12 bg-red-50 flex items-center justify-center border border-red-200 text-red-600 font-bold mono-font">03</div>
-                                <div>
-                                    <h4 class="text-gray-900 font-bold">Accounting (稽核/計費)</h4>
-                                    <p class="text-sm text-gray-600">記錄「你做了什麼」。</p>
-                                    <p class="text-xs text-gray-500 mt-1">關鍵在於 Log 收集 (SIEM)。這是數位鑑識 (Forensics) 的依據。</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Side Card for Auth Factors -->
-                    <div class="bg-gray-50 p-6 border border-gray-200">
-                        <h4 class="text-red-600 font-bold mb-4 mono-font text-sm">AUTHENTICATION FACTORS</h4>
-                        <ul class="space-y-3 text-sm text-gray-700">
-                            <li><i class="fas fa-circle text-[8px] text-red-600 mr-2"></i><strong>Type 1: Something you know</strong><br><span class="text-xs text-gray-500">密碼, PIN, 安全問題 (最弱)</span></li>
-                            <li><i class="fas fa-circle text-[8px] text-red-600 mr-2"></i><strong>Type 2: Something you have</strong><br><span class="text-xs text-gray-500">智慧卡, 手機 OTP, 硬體 Token</span></li>
-                            <li><i class="fas fa-circle text-[8px] text-red-600 mr-2"></i><strong>Type 3: Something you are</strong><br><span class="text-xs text-gray-500">指紋, 虹膜, 臉部辨識 (生物特徵)</span></li>
-                            <li class="border-t border-gray-200 pt-2"><i class="fas fa-check text-[8px] text-green-700 mr-2"></i><strong>MFA</strong> = 必須結合上述至少兩種不同類型的因子。</li>
-                        </ul>
-                    </div>
+                <div class="cnd-card">
+                    <h3>ABAC (Attribute-Based Access Control)</h3>
+                    <p><span class="cnd-hl">屬性式存取控制。</span>基於多重屬性 (Who, What, Where, When) 動態決定。</p>
+                    <ul class="cnd-list">
+                        <li><strong>邏輯：</strong> <code>IF (User=Manager) AND (Location=Office) AND (Time=9am-5pm) THEN Allow</code>。</li>
+                        <li><strong>優點：</strong> 最細緻 (Granular) 的控制，符合 Zero Trust 架構需求。</li>
+                    </ul>
                 </div>
-            </section>
-
-            <!-- Section 3: Cryptography -->
-            <section class="hud-border p-8">
-                <div class="flex items-center gap-3 mb-6 border-b border-gray-200 pb-2">
-                    <i class="fas fa-key text-red-600 text-xl"></i>
-                    <h3 class="text-2xl text-gray-900">3. Cryptography Essentials (密碼學基礎)</h3>
-                </div>
-
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="text-red-600 text-sm font-bold border-b border-red-200">
-                                <th class="p-3">類型</th>
-                                <th class="p-3">金鑰特性</th>
-                                <th class="p-3">主要功能</th>
-                                <th class="p-3">常見演算法 (CND 重點)</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-gray-700 text-sm">
-                            <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
-                                <td class="p-3 font-bold text-gray-900">Symmetric (對稱式)</td>
-                                <td class="p-3">加密與解密使用<span class="text-red-700">同一把</span>金鑰 (Secret Key)。</td>
-                                <td class="p-3">速度快，適合大量資料加密 (Confidentiality)。但有金鑰交換問題。</td>
-                                <td class="p-3 mono-font">AES (WPA2/3 標準), DES/3DES (已淘汰), RC4 (不安全)</td>
-                            </tr>
-                            <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
-                                <td class="p-3 font-bold text-gray-900">Asymmetric (非對稱式)</td>
-                                <td class="p-3">使用一對金鑰：<span class="text-green-700">Public Key</span> 加密，<span class="text-red-700">Private Key</span> 解密。</td>
-                                <td class="p-3">解決金鑰交換問題，支援數位簽章 (Non-repudiation)。速度慢。</td>
-                                <td class="p-3 mono-font">RSA, ECC (行動裝置愛用), Diffie-Hellman (僅交換金鑰)</td>
-                            </tr>
-                            <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
-                                <td class="p-3 font-bold text-gray-900">Hashing (雜湊)</td>
-                                <td class="p-3">無金鑰，單向函數 (不可逆)。</td>
-                                <td class="p-3">確保資料<span class="text-amber-700">完整性 (Integrity)</span>。驗證檔案未被竄改。</td>
-                                <td class="p-3 mono-font">SHA-256, SHA-3, MD5 (碰撞風險大，僅用於校驗)</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="mt-4 bg-red-50 p-4 border border-red-200 rounded">
-                    <p class="text-xs text-gray-700">
-                        <strong class="text-red-600">PKI (Public Key Infrastructure) 核心概念：</strong> 
-                        數位憑證 (Digital Certificate) 就像網路身分證，由 CA (Certificate Authority) 發放。
-                        當瀏覽 HTTPS 網站時，瀏覽器會驗證伺服器憑證的「簽發者信任鏈」與「有效期限」。
-                        <br>
-                        <span class="text-gray-500">攻擊場景：MITM 攻擊者試圖偽造憑證，若 CA 根憑證不受信任，瀏覽器會發出警告。</span>
-                    </p>
-                </div>
-            </section>
-
-        </div>
-
-        <!-- Quiz Section -->
-        <div class="mt-16 pt-10 border-t-2 border-red-200 relative">
-            <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white px-6 py-2 border border-red-200 rounded-full">
-                <span class="text-red-600 font-bold tracking-widest text-lg">TACTICAL SIMULATION</span>
             </div>
+        </section>
 
-            <div class="max-w-4xl mx-auto" id="quiz-container">
-                <!-- JS will inject questions here -->
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">02</span>AAA 架構與身分管理 <span class="cnd-en">AAA Framework &amp; IAM</span></h2>
+            <p class="cnd-lead">AAA 是網路安全管理的基石，防禦者必須確保這三個環節都有對應的控制措施。</p>
+            <div class="cnd-grid cnd-grid-2">
+                <div class="cnd-card">
+                    <h3>AAA Framework</h3>
+                    <ol class="cnd-steps">
+                        <li><strong>Authentication (驗證)</strong><br>確認「你是誰」。<br>Multi-Factor Authentication (MFA) 是防禦釣魚與憑證竊取最有效手段。</li>
+                        <li><strong>Authorization (授權)</strong><br>確認「你能做什麼」。<br>發生在驗證之後。應遵循 NIST 800-53 的最小權限原則。</li>
+                        <li><strong>Accounting (稽核/計費)</strong><br>記錄「你做了什麼」。<br>關鍵在於 Log 收集 (SIEM)。這是數位鑑識 (Forensics) 的依據。</li>
+                    </ol>
+                </div>
+                <div class="cnd-card">
+                    <h3>AUTHENTICATION FACTORS</h3>
+                    <ul class="cnd-list">
+                        <li><strong>Type 1: Something you know</strong><br>密碼, PIN, 安全問題 (最弱)</li>
+                        <li><strong>Type 2: Something you have</strong><br>智慧卡, 手機 OTP, 硬體 Token</li>
+                        <li><strong>Type 3: Something you are</strong><br>指紋, 虹膜, 臉部辨識 (生物特徵)</li>
+                    </ul>
+                    <div class="cnd-callout tip"><p><strong>MFA</strong> = 必須結合上述至少兩種不同類型的因子。</p></div>
+                </div>
             </div>
-            
-            <div class="text-center mt-8">
-                <button onclick="resetQuiz()" class="alert-btn px-8 py-3 rounded text-sm font-bold">
-                    <i class="fas fa-redo mr-2"></i> Restart Simulation
-                </button>
-            </div>
-        </div>
+        </section>
 
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">03</span>密碼學基礎 <span class="cnd-en">Cryptography Essentials</span></h2>
+            <div class="cnd-table-wrap">
+                <table class="cnd-table">
+                    <thead>
+                        <tr><th>類型</th><th>金鑰特性</th><th>主要功能</th><th>常見演算法 (CND 重點)</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Symmetric (對稱式)</td>
+                            <td>加密與解密使用<span class="cnd-hl">同一把</span>金鑰 (Secret Key)。</td>
+                            <td>速度快，適合大量資料加密 (Confidentiality)。但有金鑰交換問題。</td>
+                            <td>AES (WPA2/3 標準), DES/3DES (已淘汰), RC4 (不安全)</td>
+                        </tr>
+                        <tr>
+                            <td>Asymmetric (非對稱式)</td>
+                            <td>使用一對金鑰：<strong>Public Key</strong> 加密，<span class="cnd-hl">Private Key</span> 解密。</td>
+                            <td>解決金鑰交換問題，支援數位簽章 (Non-repudiation)。速度慢。</td>
+                            <td>RSA, ECC (行動裝置愛用), Diffie-Hellman (僅交換金鑰)</td>
+                        </tr>
+                        <tr>
+                            <td>Hashing (雜湊)</td>
+                            <td>無金鑰，單向函數 (不可逆)。</td>
+                            <td>確保資料<span class="cnd-hl">完整性 (Integrity)</span>。驗證檔案未被竄改。</td>
+                            <td>SHA-256, SHA-3, MD5 (碰撞風險大，僅用於校驗)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="cnd-callout info">
+                <span class="cnd-callout-title">PKI (Public Key Infrastructure) 核心概念：</span>
+                <p>數位憑證 (Digital Certificate) 就像網路身分證，由 CA (Certificate Authority) 發放。當瀏覽 HTTPS 網站時，瀏覽器會驗證伺服器憑證的「簽發者信任鏈」與「有效期限」。</p>
+                <p>攻擊場景：MITM 攻擊者試圖偽造憑證，若 CA 根憑證不受信任，瀏覽器會發出警告。</p>
+            </div>
+        </section>
+
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">04</span>情境模擬測驗 <span class="cnd-en">Simulation Exam</span></h2>
+            <p class="cnd-lead">請選擇最適當的答案,作答後會顯示解析。</p>
+            <div id="cnd-quiz"></div>
+        </section>
     </main>
 
-    <!-- Footer -->
-    <footer class="border-t border-gray-800 bg-black py-6 mt-12">
-        <div class="max-w-7xl mx-auto px-4 text-center">
-            <p class="text-gray-500 text-xs md:text-sm tracking-wide mono-font">
-                Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0
-            </p>
-        </div>
-    </footer>
+    <footer>Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0</footer>
 
-    <!-- JavaScript for Quiz -->
     <script>
-        const quizData = [
+        window.CND_QUIZ = [
             {
                 question: "情境：一家大型跨國銀行擁有數萬名員工，人員流動率高。管理層希望實施一種存取控制系統，能夠根據員工的職位（如出納員、經理、審計員）自動分配權限，而不是針對每個人單獨設定。身為 CND，你應建議哪種模型？",
                 options: [
@@ -442,74 +248,7 @@
                 explanation: "在 TLS 握手過程中，伺服器會發送包含其「公鑰」的「數位憑證」給客戶端。客戶端會驗證該憑證是否由受信任的 CA 簽發，且未過期、未被撤銷，以此確認伺服器身份。"
             }
         ];
-
-        function renderQuiz() {
-            const container = document.getElementById('quiz-container');
-            container.innerHTML = '';
-
-            quizData.forEach((q, index) => {
-                const qEl = document.createElement('div');
-                qEl.className = 'mb-8 p-6 bg-white border border-gray-200 rounded-lg shadow-sm relative overflow-hidden';
-                qEl.innerHTML = `
-                    <div class="flex items-start gap-4">
-                        <div class="text-red-600 font-bold text-xl mono-font">Q${index + 1}</div>
-                        <div class="flex-1">
-                            <p class="text-gray-900 text-lg font-medium mb-4 leading-relaxed">${q.question}</p>
-                            <div class="grid grid-cols-1 gap-3">
-                                ${q.options.map((opt, i) => `
-                                    <button onclick="checkAnswer(${index}, ${i}, this)" 
-                                            class="option-btn text-left px-4 py-3 text-gray-700 text-sm rounded transition-all">
-                                        ${opt}
-                                    </button>
-                                `).join('')}
-                            </div>
-                            <div id="result-${index}" class="hidden mt-4 p-4 border-l-4 bg-gray-50 text-sm"></div>
-                        </div>
-                    </div>
-                `;
-                container.appendChild(qEl);
-            });
-        }
-
-        function checkAnswer(qIndex, optIndex, btn) {
-            const q = quizData[qIndex];
-            const resultDiv = document.getElementById(`result-${qIndex}`);
-            const allBtns = btn.parentElement.children;
-
-            // Disable all buttons for this question
-            for(let b of allBtns) {
-                b.disabled = true;
-                b.classList.add('opacity-50', 'cursor-not-allowed');
-            }
-
-            // Remove opacity from selected for clarity
-            btn.classList.remove('opacity-50');
-
-            if (optIndex === q.correct) {
-                btn.classList.add('correct');
-                resultDiv.className = 'block mt-4 p-4 border-l-4 border-green-600 bg-green-50 text-gray-700';
-                resultDiv.innerHTML = `<strong class="text-green-700 block mb-1">CORRECT // ACCESS GRANTED</strong> ${q.explanation}`;
-            } else {
-                btn.classList.add('wrong');
-                // Highlight correct answer
-                allBtns[q.correct].classList.remove('opacity-50');
-                allBtns[q.correct].classList.add('correct');
-                
-                resultDiv.className = 'block mt-4 p-4 border-l-4 border-red-500 bg-red-50 text-gray-700';
-                resultDiv.innerHTML = `<strong class="text-red-700 block mb-1">INCORRECT // SECURITY ALERT</strong> ${q.explanation}`;
-            }
-        }
-
-        function resetQuiz() {
-            renderQuiz();
-            window.scrollTo({
-                top: document.getElementById('quiz-container').offsetTop - 100,
-                behavior: 'smooth'
-            });
-        }
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', renderQuiz);
     </script>
+    <script src="cnd.js?v=1"></script>
 </body>
 </html>

@@ -4,400 +4,158 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EC-Council CND 網路防禦課程 - Module 13</title>
-    <!-- Google Fonts for Tech/Cyberpunk look -->
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Roboto+Mono:wght@400;700&family=Teko:wght@400;600&display=swap" rel="stylesheet">
-    <!-- Tailwind CSS for Grid System -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        :root {
-            --bg-dark: transparent;
-            --bg-panel: #ffffff;
-            --text-main: #1e2235;
-            --text-muted: #5b6278;
-            --accent-red: #dc2626;
-            --accent-dark-red: #b91c1c;
-            --accent-dim: #fecaca;
-            --accent-tint: #fef2f2;
-            --tech-blue: #0891b2;
-            --border-color: #e3e6f0;
-            --card-shadow: 0 4px 16px rgba(30, 34, 53, .06);
-        }
-
-        body {
-            color: var(--text-main);
-            overflow-x: hidden;
-        }
-
-        h1, h2, h3, h4, h5 {
-            font-weight: 700;
-            line-height: 1.4;
-        }
-
-        .mono-font {
-            font-family: 'JetBrains Mono', Consolas, monospace;
-        }
-
-        /* Cards */
-        .cyber-card {
-            background-color: var(--bg-panel);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            position: relative;
-            transition: all 0.3s ease;
-            box-shadow: var(--card-shadow);
-        }
-
-        .cyber-card:hover {
-            box-shadow: 0 8px 22px rgba(30, 34, 53, 0.10);
-            border-color: var(--accent-dim);
-            transform: translateY(-2px);
-        }
-
-        .section-header {
-            border-left: 5px solid var(--accent-red);
-            padding-left: 1rem;
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-        }
-
-        .section-header::after {
-            content: '';
-            flex-grow: 1;
-            height: 1px;
-            background: linear-gradient(90deg, var(--accent-red), transparent);
-            margin-left: 1rem;
-        }
-
-        /* Buttons */
-        .btn-cyber {
-            background: #ffffff;
-            border: 1px solid var(--accent-red);
-            color: var(--accent-dark-red);
-            padding: 0.5rem 1.5rem;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn-cyber:hover {
-            background: var(--accent-red);
-            color: #ffffff;
-            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
-        }
-
-        .btn-option {
-            width: 100%;
-            text-align: left;
-            padding: 1rem;
-            margin-bottom: 0.5rem;
-            background: #f8f9fc;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            color: var(--text-main);
-            transition: all 0.2s;
-            display: flex;
-            align-items: flex-start;
-        }
-
-        .btn-option:hover {
-            border-color: var(--accent-red);
-            background: var(--accent-tint);
-        }
-
-        .btn-option.selected-correct {
-            border-color: #15803d;
-            background: #f0fdf4;
-            color: #15803d;
-        }
-
-        .btn-option.selected-wrong {
-            border-color: var(--accent-red);
-            background: var(--accent-tint);
-            color: var(--accent-dark-red);
-        }
-
-        /* Grid specific */
-        .data-grid {
-            display: grid;
-            gap: 1rem;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        }
-
-        .hud-line {
-            height: 1px;
-            background: var(--accent-dim);
-            width: 100%;
-            margin: 2rem 0;
-        }
-
-        .glowing-text {
-            color: var(--accent-dark-red);
-        }
-
-        /* Footer */
-        footer {
-            font-size: 0.8rem;
-            text-align: center;
-            padding: 1rem;
-            margin-top: 4rem;
-        }
-
-        .answer-box {
-            display: none;
-            margin-top: 1rem;
-            padding: 1rem;
-            border: 1px solid var(--accent-red);
-            border-radius: 8px;
-            background: #f8f9fc;
-        }
-
-        .raid-box {
-            display: flex;
-            gap: 5px;
-            margin-top: 10px;
-        }
-        .disk {
-            width: 30px;
-            height: 40px;
-            background: #f1f3f9;
-            border: 1px solid #c5cad8;
-            border-radius: 4px;
-            display: grid;
-            place-items: center;
-            font-size: 0.7rem;
-            color: var(--text-main);
-        }
-        .disk.parity { border-color: var(--tech-blue); color: #0e7490; background: #ecfeff; }
-        .disk.mirror { border-color: #15803d; color: #15803d; background: #f0fdf4; }
-    </style>
+    <link rel="stylesheet" href="cnd.css?v=1">
     <link rel="stylesheet" href="../assets/site-theme.css?v=20261112b">
     <script src="../assets/site-chrome.js?v=20261112b" defer></script>
 </head>
-<body class="antialiased">
-
-    <!-- HUD Header -->
-    <header class="sticky top-0 w-full z-50 bg-[#1e2235] border-b border-red-900/50">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <svg class="w-8 h-8 text-red-600 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-                <div class="leading-tight">
-                    <h1 class="text-xl font-bold text-white tracking-widest">EC-COUNCIL <span class="text-red-300">CND</span></h1>
-                    <p class="text-xs text-white/70 font-mono tracking-wider">CERTIFIED NETWORK DEFENDER v2</p>
-                </div>
-            </div>
-            <div class="hidden md:block">
-                <span class="hud-text text-red-600 text-lg">MODULE 13: SYSTEM STATUS [ACTIVE]</span>
-            </div>
+<body>
+    <header class="cnd-hero">
+        <div class="cnd-hero-inner">
+            <p class="cnd-kicker">EC-Council CND 網路防禦課程 · Module 13</p>
+            <h1>Data Backup &amp; Recovery</h1>
+            <p class="cnd-subtitle">資料備份與復原</p>
         </div>
     </header>
 
-    <!-- Main Container -->
-    <main class="max-w-7xl mx-auto px-4 pt-10 pb-12">
-
-        <!-- Module Intro -->
-        <section class="mb-16">
-            <div class="bg-white border border-red-200 bg-gradient-to-r from-red-50 to-white shadow-sm p-8 rounded-sm">
-                <h2 class="text-4xl mb-4 text-gray-900"><span class="text-red-600">MODULE 13</span> Data Backup & Recovery</h2>
-                <p class="text-lg text-gray-700 max-w-4xl font-light">
-                    作為網路防禦者 (Network Defender)，我們的職責不僅是防止攻擊，還必須確保在攻擊發生後（如 Ransomware 勒索軟體事件）或硬體故障時，組織能夠存活並恢復運作。本模組聚焦於 CIA 三角中的 <span class="text-red-600 font-bold">可用性 (Availability)</span>。
-                </p>
+    <main class="cnd-main">
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">00</span>模組概述 <span class="cnd-en">Module Overview</span></h2>
+            <div class="cnd-card plain">
+                <p>作為網路防禦者 (Network Defender)，我們的職責不僅是防止攻擊，還必須確保在攻擊發生後（如 Ransomware 勒索軟體事件）或硬體故障時，組織能夠存活並恢復運作。本模組聚焦於 CIA 三角中的 <span class="cnd-hl">可用性 (Availability)</span>。</p>
             </div>
         </section>
 
-        <!-- Topic 1: Backup Strategy -->
-        <section class="mb-16">
-            <h3 class="section-header text-2xl text-gray-900">1. 資料備份策略 (Backup Strategies)</h3>
-            <div class="grid md:grid-cols-3 gap-6">
-                <!-- Full Backup -->
-                <article class="cyber-card p-6">
-                    <h4 class="text-xl text-red-600 mb-2 font-bold">Full Backup (完整備份)</h4>
-                    <p class="text-sm text-gray-600 mb-4">備份所有選定的資料。</p>
-                    <ul class="text-sm space-y-2 text-gray-700 list-disc list-inside">
-                        <li><strong class="text-gray-900">優點：</strong> 復原速度最快 (只需載入最近一次備份)。</li>
-                        <li><strong class="text-gray-900">缺點：</strong> 備份時間最久，佔用最多儲存空間。</li>
-                        <li><strong class="text-gray-900">重設 Archive Bit：</strong> 是 (Yes)。</li>
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">01</span>資料備份策略 <span class="cnd-en">Backup Strategies</span></h2>
+            <div class="cnd-grid cnd-grid-3">
+                <div class="cnd-card">
+                    <h3>Full Backup (完整備份)</h3>
+                    <p>備份所有選定的資料。</p>
+                    <ul class="cnd-list">
+                        <li><strong>優點：</strong> 復原速度最快 (只需載入最近一次備份)。</li>
+                        <li><strong>缺點：</strong> 備份時間最久，佔用最多儲存空間。</li>
+                        <li><strong>重設 Archive Bit：</strong> 是 (Yes)。</li>
                     </ul>
-                </article>
-
-                <!-- Differential Backup -->
-                <article class="cyber-card p-6">
-                    <h4 class="text-xl text-red-600 mb-2 font-bold">Differential Backup (差異備份)</h4>
-                    <p class="text-sm text-gray-600 mb-4">備份自「上一次完整備份」後變更的資料。</p>
-                    <ul class="text-sm space-y-2 text-gray-700 list-disc list-inside">
-                        <li><strong class="text-gray-900">優點：</strong> 復原速度中等 (需要 Full + 最近一次 Diff)。</li>
-                        <li><strong class="text-gray-900">缺點：</strong> 隨著時間推移，備份檔會越來越大。</li>
-                        <li><strong class="text-gray-900">重設 Archive Bit：</strong> 否 (No)。</li>
+                </div>
+                <div class="cnd-card">
+                    <h3>Differential Backup (差異備份)</h3>
+                    <p>備份自「上一次完整備份」後變更的資料。</p>
+                    <ul class="cnd-list">
+                        <li><strong>優點：</strong> 復原速度中等 (需要 Full + 最近一次 Diff)。</li>
+                        <li><strong>缺點：</strong> 隨著時間推移，備份檔會越來越大。</li>
+                        <li><strong>重設 Archive Bit：</strong> 否 (No)。</li>
                     </ul>
-                </article>
-
-                <!-- Incremental Backup -->
-                <article class="cyber-card p-6">
-                    <h4 class="text-xl text-red-600 mb-2 font-bold">Incremental Backup (增量備份)</h4>
-                    <p class="text-sm text-gray-600 mb-4">備份自「上一次備份 (無論全備或增量)」後變更的資料。</p>
-                    <ul class="text-sm space-y-2 text-gray-700 list-disc list-inside">
-                        <li><strong class="text-gray-900">優點：</strong> 備份最快，空間最省。</li>
-                        <li><strong class="text-gray-900">缺點：</strong> 復原最慢 (需要 Full + 每一份 Inc)。</li>
-                        <li><strong class="text-gray-900">重設 Archive Bit：</strong> 是 (Yes)。</li>
+                </div>
+                <div class="cnd-card">
+                    <h3>Incremental Backup (增量備份)</h3>
+                    <p>備份自「上一次備份 (無論全備或增量)」後變更的資料。</p>
+                    <ul class="cnd-list">
+                        <li><strong>優點：</strong> 備份最快，空間最省。</li>
+                        <li><strong>缺點：</strong> 復原最慢 (需要 Full + 每一份 Inc)。</li>
+                        <li><strong>重設 Archive Bit：</strong> 是 (Yes)。</li>
                     </ul>
-                </article>
+                </div>
             </div>
-            
-            <div class="mt-6 bg-white p-4 border border-gray-200">
-                <h4 class="text-gray-900 font-bold mb-2">🛡️ CND 實戰準則：3-2-1 備份原則</h4>
-                <p class="text-gray-600 text-sm font-mono">
-                    <span class="text-red-600">3</span> Copies of Data (3 份資料副本：原件+2備份)<br>
-                    <span class="text-red-600">2</span> Different Media (2 種不同介質：如 NAS + Tape/Cloud)<br>
-                    <span class="text-red-600">1</span> Offsite (1 份異地保存：防止火災或物理破壞)<br>
-                    <span class="text-cyan-700 block mt-1">* 針對 Ransomware，建議增加 "1 Offline" (離線冷備份)。</span>
-                </p>
+            <div class="cnd-callout tip">
+                <span class="cnd-callout-title">🛡️ CND 實戰準則：3-2-1 備份原則</span>
+                <ul class="cnd-list">
+                    <li><span class="cnd-hl">3</span> Copies of Data (3 份資料副本：原件+2備份)</li>
+                    <li><span class="cnd-hl">2</span> Different Media (2 種不同介質：如 NAS + Tape/Cloud)</li>
+                    <li><span class="cnd-hl">1</span> Offsite (1 份異地保存：防止火災或物理破壞)</li>
+                </ul>
+                <p>* 針對 Ransomware，建議增加 "1 Offline" (離線冷備份)。</p>
             </div>
         </section>
 
-        <!-- Topic 2: RAID -->
-        <section class="mb-16">
-            <h3 class="section-header text-2xl text-gray-900">2. RAID (Redundant Array of Independent Disks)</h3>
-            <p class="text-gray-600 mb-6">RAID 不是備份，而是<span class="text-gray-900 font-bold">容錯 (Fault Tolerance)</span>機制。它保證硬碟損壞時服務不中斷。</p>
-            
-            <div class="data-grid">
-                <!-- RAID 0 -->
-                <div class="cyber-card p-5">
-                    <div class="flex justify-between items-center mb-2">
-                        <h4 class="font-bold text-lg">RAID 0 (Striping)</h4>
-                        <span class="text-xs bg-red-700 text-white px-2 py-1">無容錯</span>
-                    </div>
-                    <div class="raid-box mb-4 justify-center">
-                        <div class="disk">D1</div><div class="disk">D2</div>
-                    </div>
-                    <p class="text-sm text-gray-600">資料分散寫入。效能最高，但任一顆壞掉則資料全毀。</p>
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">02</span>RAID <span class="cnd-en">Redundant Array of Independent Disks</span></h2>
+            <p class="cnd-lead">RAID 不是備份，而是<strong>容錯 (Fault Tolerance)</strong>機制。它保證硬碟損壞時服務不中斷。</p>
+            <div class="cnd-grid cnd-grid-4">
+                <div class="cnd-card">
+                    <span class="cnd-tag">無容錯</span>
+                    <h3>RAID 0 (Striping)</h3>
+                    <p><span class="cnd-tag cyan">D1</span><span class="cnd-tag cyan">D2</span></p>
+                    <p>資料分散寫入。效能最高，但任一顆壞掉則資料全毀。</p>
                 </div>
-
-                <!-- RAID 1 -->
-                <div class="cyber-card p-5">
-                    <div class="flex justify-between items-center mb-2">
-                        <h4 class="font-bold text-lg">RAID 1 (Mirroring)</h4>
-                        <span class="text-xs bg-green-700 text-white px-2 py-1">高容錯</span>
-                    </div>
-                    <div class="raid-box mb-4 justify-center">
-                        <div class="disk mirror">D1</div><div class="disk mirror">D1</div>
-                    </div>
-                    <p class="text-sm text-gray-600">資料鏡像複製。成本高 (50% 空間利用率)，讀取快，寫入稍慢。</p>
+                <div class="cnd-card">
+                    <span class="cnd-tag green">高容錯</span>
+                    <h3>RAID 1 (Mirroring)</h3>
+                    <p><span class="cnd-tag cyan">D1</span><span class="cnd-tag green">D1</span></p>
+                    <p>資料鏡像複製。成本高 (50% 空間利用率)，讀取快，寫入稍慢。</p>
                 </div>
-
-                <!-- RAID 5 -->
-                <div class="cyber-card p-5">
-                    <div class="flex justify-between items-center mb-2">
-                        <h4 class="font-bold text-lg">RAID 5 (Parity)</h4>
-                        <span class="text-xs bg-blue-700 text-white px-2 py-1">最常用</span>
-                    </div>
-                    <div class="raid-box mb-4 justify-center">
-                        <div class="disk">D1</div><div class="disk">D2</div><div class="disk parity">P</div>
-                    </div>
-                    <p class="text-sm text-gray-600">分散同位元檢查 (Distributed Parity)。至少 3 顆硬碟，容許壞 1 顆。</p>
+                <div class="cnd-card">
+                    <span class="cnd-tag cyan">最常用</span>
+                    <h3>RAID 5 (Parity)</h3>
+                    <p><span class="cnd-tag cyan">D1</span><span class="cnd-tag cyan">D2</span><span class="cnd-tag amber">P</span></p>
+                    <p>分散同位元檢查 (Distributed Parity)。至少 3 顆硬碟，容許壞 1 顆。</p>
                 </div>
-
-                <!-- RAID 10 -->
-                <div class="cyber-card p-5">
-                    <div class="flex justify-between items-center mb-2">
-                        <h4 class="font-bold text-lg">RAID 10 (1+0)</h4>
-                        <span class="text-xs bg-purple-700 text-white px-2 py-1">高效能+高容錯</span>
-                    </div>
-                    <div class="raid-box mb-4 justify-center">
-                        <div class="p-1 border border-gray-300 flex gap-1"><div class="disk">A</div><div class="disk mirror">A</div></div>
-                        <div class="p-1 border border-gray-300 flex gap-1"><div class="disk">B</div><div class="disk mirror">B</div></div>
-                    </div>
-                    <p class="text-sm text-gray-600">先鏡像再分條。至少 4 顆硬碟，成本最高但效能與安全性最佳。</p>
+                <div class="cnd-card">
+                    <span class="cnd-tag amber">高效能+高容錯</span>
+                    <h3>RAID 10 (1+0)</h3>
+                    <p><span class="cnd-tag cyan">A</span><span class="cnd-tag green">A</span> <span class="cnd-tag cyan">B</span><span class="cnd-tag green">B</span></p>
+                    <p>先鏡像再分條。至少 4 顆硬碟，成本最高但效能與安全性最佳。</p>
                 </div>
             </div>
         </section>
 
-        <!-- Topic 3: Storage & DR -->
-        <section class="mb-16">
-            <div class="grid md:grid-cols-2 gap-8">
-                <!-- Storage Types -->
-                <div>
-                    <h3 class="section-header text-2xl text-gray-900">3. 儲存架構 (Storage Types)</h3>
-                    <div class="space-y-4">
-                        <div class="cyber-card p-4">
-                            <h5 class="text-red-600 font-bold">DAS (Direct Attached Storage)</h5>
-                            <p class="text-sm text-gray-600">直接連接主機 (如 USB 硬碟、伺服器內接硬碟)。成本低，難以共享。</p>
-                        </div>
-                        <div class="cyber-card p-4">
-                            <h5 class="text-red-600 font-bold">NAS (Network Attached Storage)</h5>
-                            <p class="text-sm text-gray-600">檔案層級 (File-level) 存取。透過 IP 網路 (TCP/IP)。<br>協議：<span class="text-gray-900">NFS (Linux), CIFS/SMB (Windows)</span>。</p>
-                        </div>
-                        <div class="cyber-card p-4">
-                            <h5 class="text-red-600 font-bold">SAN (Storage Area Network)</h5>
-                            <p class="text-sm text-gray-600">區塊層級 (Block-level) 存取。高效能專用網路。<br>協議：<span class="text-gray-900">Fibre Channel (FC), iSCSI</span>。</p>
-                        </div>
-                    </div>
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">03</span>儲存架構 <span class="cnd-en">Storage Types</span></h2>
+            <div class="cnd-grid cnd-grid-3">
+                <div class="cnd-card">
+                    <h3>DAS (Direct Attached Storage)</h3>
+                    <p>直接連接主機 (如 USB 硬碟、伺服器內接硬碟)。成本低，難以共享。</p>
                 </div>
-
-                <!-- BC/DR Concepts -->
-                <div>
-                    <h3 class="section-header text-2xl text-gray-900">4. 災難復原指標 (BC/DR Metrics)</h3>
-                    <div class="bg-white border border-gray-200 p-6 h-full relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-red-100/60 rounded-full blur-3xl"></div>
-                        
-                        <div class="mb-6">
-                            <h5 class="text-gray-900 text-xl font-bold mb-1">RPO (Recovery Point Objective)</h5>
-                            <p class="text-xs text-red-600 uppercase tracking-wider mb-2">資料遺失容忍度</p>
-                            <p class="text-sm text-gray-600">"我們能容忍遺失多少資料？" 決定了<span class="text-gray-900">備份的頻率</span>。如果 RPO 是 1 小時，你必須每小時備份一次。</p>
-                        </div>
-
-                        <div class="mb-6">
-                            <h5 class="text-gray-900 text-xl font-bold mb-1">RTO (Recovery Time Objective)</h5>
-                            <p class="text-xs text-red-600 uppercase tracking-wider mb-2">停機時間容忍度</p>
-                            <p class="text-sm text-gray-600">"系統崩潰後，多久必須恢復運作？" 決定了<span class="text-gray-900">復原方案的成本</span> (如 Hot Site vs Cold Site)。</p>
-                        </div>
-
-                        <div class="border-t border-gray-200 pt-4">
-                            <h5 class="text-gray-900 font-bold mb-2">備援站點 (Recovery Sites)</h5>
-                            <ul class="text-sm text-gray-600 space-y-2">
-                                <li><span class="text-red-700">Hot Site:</span> 設備齊全，資料即時同步，可立即切換 (最貴)。</li>
-                                <li><span class="text-amber-700">Warm Site:</span> 有設備，但資料需要時間回存 (數小時至一天)。</li>
-                                <li><span class="text-cyan-700">Cold Site:</span> 只有空間與電源，需自行架設設備 (最便宜，復原最慢)。</li>
-                            </ul>
-                        </div>
-                    </div>
+                <div class="cnd-card">
+                    <h3>NAS (Network Attached Storage)</h3>
+                    <p>檔案層級 (File-level) 存取。透過 IP 網路 (TCP/IP)。</p>
+                    <p>協議：<strong>NFS (Linux), CIFS/SMB (Windows)</strong>。</p>
+                </div>
+                <div class="cnd-card">
+                    <h3>SAN (Storage Area Network)</h3>
+                    <p>區塊層級 (Block-level) 存取。高效能專用網路。</p>
+                    <p>協議：<strong>Fibre Channel (FC), iSCSI</strong>。</p>
                 </div>
             </div>
         </section>
 
-        <!-- QUIZ SECTION -->
-        <section id="quiz-section" class="mt-20">
-            <div class="flex items-center gap-4 mb-8">
-                <div class="h-1 bg-red-600 w-12"></div>
-                <h2 class="text-3xl text-gray-900">TACTICAL SIMULATION <span class="text-gray-600 text-xl block md:inline font-mono">// 實戰模擬測驗</span></h2>
-            </div>
-
-            <div class="space-y-8" id="quiz-container">
-                <!-- Questions will be inserted here by JS -->
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">04</span>災難復原指標 <span class="cnd-en">BC/DR Metrics</span></h2>
+            <div class="cnd-grid cnd-grid-3">
+                <div class="cnd-card">
+                    <span class="cnd-tag">資料遺失容忍度</span>
+                    <h3>RPO (Recovery Point Objective)</h3>
+                    <p>"我們能容忍遺失多少資料？" 決定了<strong>備份的頻率</strong>。如果 RPO 是 1 小時，你必須每小時備份一次。</p>
+                </div>
+                <div class="cnd-card">
+                    <span class="cnd-tag">停機時間容忍度</span>
+                    <h3>RTO (Recovery Time Objective)</h3>
+                    <p>"系統崩潰後，多久必須恢復運作？" 決定了<strong>復原方案的成本</strong> (如 Hot Site vs Cold Site)。</p>
+                </div>
+                <div class="cnd-card">
+                    <h3>備援站點 (Recovery Sites)</h3>
+                    <ul class="cnd-list">
+                        <li><strong>Hot Site:</strong> 設備齊全，資料即時同步，可立即切換 (最貴)。</li>
+                        <li><strong>Warm Site:</strong> 有設備，但資料需要時間回存 (數小時至一天)。</li>
+                        <li><strong>Cold Site:</strong> 只有空間與電源，需自行架設設備 (最便宜，復原最慢)。</li>
+                    </ul>
+                </div>
             </div>
         </section>
 
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">05</span>情境模擬測驗 <span class="cnd-en">Simulation Exam</span></h2>
+            <p class="cnd-lead">請選擇最適當的答案,作答後會顯示解析。</p>
+            <div id="cnd-quiz"></div>
+        </section>
     </main>
 
-    <!-- Footer with Signature -->
     <footer>
-        <div class="container mx-auto flex justify-center items-center gap-4 text-xs md:text-sm tracking-wide">
-            <span>Planning & Design by Timmy(timmyc@hauman.com.tw)</span>
-            <span class="text-red-600">|</span>
-            <span>豪勉科技 Hauman Technologies Corporation</span>
-            <span class="text-red-600">|</span>
-            <span>Ver 2.0</span>
-        </div>
+        Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0
     </footer>
 
-    <!-- Script -->
     <script>
-        const quizData = [
+        window.CND_QUIZ = [
             {
-                id: 1,
                 question: "一家金融公司最近遭受了勒索軟體攻擊，所有連網的備份資料都被加密。為了防止這種情況再次發生，作為網路管理員，您應該在備份策略中加入哪項措施？",
                 options: [
                     "A. 增加 RAID 5 磁碟陣列以提高容錯率",
@@ -409,7 +167,6 @@
                 explanation: "C 是正確答案。勒索軟體通常會掃描網路並加密所有可存取的檔案，包括連線中的 NAS 備份。唯有離線 (Offline) 或實體隔離 (Air-gapped) 的備份（如磁帶或未掛載的硬碟）才能確保資料在攻擊中倖存。RAID (A, B) 是容錯機制，無法防止資料被惡意加密。增量備份 (D) 僅影響速度，不影響安全性。"
             },
             {
-                id: 2,
                 question: "您的組織要求若發生伺服器故障，必須在最短時間內完成資料復原 (Lowest Recovery Time)。您應該選擇哪種備份策略組合？",
                 options: [
                     "A. 每週完整備份 + 每日增量備份 (Full + Incremental)",
@@ -421,7 +178,6 @@
                 explanation: "B 是正確答案。差異備份 (Differential) 記錄自上次完整備份後的所有變更。復原時，只需要還原「最後一次完整備份」+「最後一次差異備份」這兩份檔案即可。相比之下，增量備份 (A) 雖然備份快，但復原時需要還原完整備份 + 所有的增量備份檔，復原時間較長。"
             },
             {
-                id: 3,
                 question: "在定義災難復原計畫 (DRP) 時，管理層表示該業務流程最多只能容忍遺失 4 小時的資料。這定義了哪項指標？",
                 options: [
                     "A. RTO (Recovery Time Objective)",
@@ -433,7 +189,6 @@
                 explanation: "C 是正確答案。RPO (復原點目標) 定義了組織能容忍的資料遺失量 (以時間為單位)。這直接決定了備份的頻率（至少每 4 小時備份一次）。RTO (A) 是指系統從故障到恢復服務所需的時間 (停機時間)。"
             },
             {
-                id: 4,
                 question: "您正在為公司的檔案伺服器配置儲存空間。該伺服器需要容忍至少一顆硬碟故障，且注重讀取效能與儲存空間利用率 (高於 50%)。最適合的 RAID 等級為何？",
                 options: [
                     "A. RAID 0",
@@ -445,7 +200,6 @@
                 explanation: "C 是正確答案。RAID 5 使用分散同位元檢查 (Parity)，容許一顆硬碟損壞。其空間利用率為 (N-1)/N，高於 RAID 1 的 50%。RAID 0 (A) 無容錯。RAID 1 (B) 空間利用率僅 50%。"
             },
             {
-                id: 5,
                 question: "一家跨國企業需要在其總部 (HQ) 和分支機構之間建立一個災難復原站點。要求是當總部發生災難時，備援站點必須能在幾分鐘內接手運作，且資料幾乎同步。這屬於哪種類型的站點？",
                 options: [
                     "A. Cold Site (冷站點)",
@@ -457,7 +211,6 @@
                 explanation: "C 是正確答案。Hot Site 配備了所有必要的硬體、軟體和即時 (Real-time) 或近乎即時的資料複製，能夠在極短時間內 (分鐘級) 接管業務。Cold Site (A) 只有設施無設備；Warm Site (B) 有設備但資料需回存，耗時較長。"
             },
             {
-                id: 6,
                 question: "關於 SAN (Storage Area Network) 與 NAS (Network Attached Storage) 的區別，下列何者正確？",
                 options: [
                     "A. NAS 提供區塊層級 (Block-level) 存取，適合資料庫",
@@ -469,7 +222,6 @@
                 explanation: "C 是正確答案。SAN 透過光纖通道 (FC) 或 iSCSI 提供 Block-level 存取，作業系統將其視為本機未格式化的磁碟，適合高效能資料庫。NAS (A, B) 提供檔案層級 (File-level) 存取，使用 TCP/IP (CIFS/NFS)，適合檔案分享。"
             },
             {
-                id: 7,
                 question: "在 Windows Server 中，您注意到某個備份作業並沒有清除檔案的 Archive Bit (封存位元)。這最可能是哪種備份類型？",
                 options: [
                     "A. Full Backup",
@@ -481,7 +233,6 @@
                 explanation: "C 是正確答案。差異備份 (Differential Backup) 會備份自上次完整備份後變更的檔案，但「不會」清除 Archive Bit。這使得下一次差異備份仍包含這些檔案。完整備份 (A) 和增量備份 (B) 完成後通常會清除 Archive Bit，表示已備份。"
             },
             {
-                id: 8,
                 question: "您發現公司內部的 IoT 設備正在被用來發動 DDoS 攻擊。作為防禦措施，您希望分析流量但不想影響網路效能。您應該在 Switch 上設定什麼？",
                 options: [
                     "A. Port Blocking",
@@ -493,7 +244,6 @@
                 explanation: "B 是正確答案 (雖然這是網路監控題，但常出現在 CND 綜合考題)。Port Mirroring (SPAN port) 允許將流量複製到另一個連接 IDS 或分析工具的連接埠，這屬於被動監控，不會干擾原始流量傳輸。這是檢測異常流量的關鍵步驟。"
             },
             {
-                id: 9,
                 question: "為了確保備份資料在傳輸到雲端儲存 (Cloud Storage) 過程中的機密性，最關鍵的控制措施是什麼？",
                 options: [
                     "A. 使用 RAID 6",
@@ -505,7 +255,6 @@
                 explanation: "B 是正確答案。當備份資料離開內部網路傳輸至第三方雲端時，必須防止中間人攻擊 (MitM) 或雲端提供商的未授權存取。加密 (Encryption) 是保護機密性的唯一手段。RAID (A) 保護可用性；Deduplication (C) 節省空間。"
             },
             {
-                id: 10,
                 question: "在進行虛擬機 (VM) 備份時，為了確保能夠快速恢復整個系統狀態 (包含記憶體內容與執行中的應用程式狀態)，應該使用哪種功能？",
                 options: [
                     "A. File-level Backup",
@@ -517,62 +266,7 @@
                 explanation: "B 是正確答案。Snapshot (快照) 能夠捕捉虛擬機在特定時間點的完整狀態（包括磁碟、記憶體、CPU 狀態）。雖然快照不應完全取代傳統備份，但它是快速回復系統狀態（例如在進行 Patch 更新前）的最佳機制。"
             }
         ];
-
-        const quizContainer = document.getElementById('quiz-container');
-
-        quizData.forEach((q, index) => {
-            const questionCard = document.createElement('div');
-            questionCard.className = 'cyber-card p-6';
-            questionCard.innerHTML = `
-                <div class="flex justify-between mb-4 border-b border-gray-200 pb-2">
-                    <span class="text-red-600 font-bold text-xl">QUESTION ${q.id}</span>
-                    <span class="text-xs text-gray-500 font-mono">SCENARIO MODE</span>
-                </div>
-                <p class="text-lg text-gray-900 mb-6 font-medium">${q.question}</p>
-                <div class="space-y-2">
-                    ${q.options.map((opt, i) => `
-                        <button class="btn-option font-mono text-sm" onclick="checkAnswer(${q.id}, ${i}, this)">
-                            ${opt}
-                        </button>
-                    `).join('')}
-                </div>
-                <div id="feedback-${q.id}" class="answer-box">
-                    <h5 class="text-gray-900 font-bold mb-1 status-text"></h5>
-                    <p class="text-gray-700 text-sm leading-relaxed">${q.explanation}</p>
-                </div>
-            `;
-            quizContainer.appendChild(questionCard);
-        });
-
-        function checkAnswer(questionId, selectedIndex, btnElement) {
-            const question = quizData.find(q => q.id === questionId);
-            const feedbackBox = document.getElementById(`feedback-${questionId}`);
-            const parent = btnElement.parentElement;
-            const allBtns = parent.querySelectorAll('.btn-option');
-            const statusText = feedbackBox.querySelector('.status-text');
-
-            // Disable all buttons for this question
-            allBtns.forEach(btn => {
-                btn.disabled = true;
-                btn.style.cursor = 'default';
-            });
-
-            feedbackBox.style.display = 'block';
-
-            if (selectedIndex === question.correct) {
-                // Correct
-                btnElement.classList.add('selected-correct');
-                statusText.innerHTML = '<span class="text-green-700">✅ CORRECT [存取授權允許]</span>';
-                feedbackBox.style.borderColor = '#15803d';
-            } else {
-                // Wrong
-                btnElement.classList.add('selected-wrong');
-                // Highlight the correct one
-                allBtns[question.correct].classList.add('selected-correct');
-                statusText.innerHTML = '<span class="text-red-600">❌ INCORRECT [存取被拒絕]</span>';
-                feedbackBox.style.borderColor = '#dc2626';
-            }
-        }
     </script>
+    <script src="cnd.js?v=1"></script>
 </body>
 </html>

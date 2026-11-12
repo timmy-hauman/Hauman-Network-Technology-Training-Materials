@@ -4,658 +4,222 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EC-Council CND 網路防禦課程 - Module 11</title>
-    <style>
-        /* --- CORE VARIABLES & RESET --- */
-        :root {
-            --bg-color: transparent;
-            --card-bg: #ffffff;
-            --text-main: #1e2235;
-            --text-muted: #5b6278;
-            --text-faint: #8a90a6;
-            --accent-red: #dc2626;
-            --accent-red-dark: #b91c1c;
-            --accent-dim: #fecaca;
-            --accent-tint: #fef2f2;
-            --border-color: #e3e6f0;
-            --card-shadow: 0 4px 16px rgba(30, 34, 53, .06);
-            --banner-bg: #1e2235;
-            --font-main: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            --font-header: inherit;
-            --font-mono: 'JetBrains Mono', Consolas, monospace;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            color: var(--text-main);
-            font-family: var(--font-main);
-            line-height: 1.6;
-        }
-
-        /* --- TYPOGRAPHY --- */
-        h1, h2, h3, h4 {
-            color: var(--text-main);
-            font-weight: 700;
-        }
-
-        h1 {
-            font-family: var(--font-header);
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-        }
-
-        h2 {
-            font-size: 1.5rem;
-            border-left: 5px solid var(--accent-red);
-            padding-left: 14px;
-            margin-top: 40px;
-            margin-bottom: 20px;
-            line-height: 1.4;
-        }
-
-        strong.highlight {
-            color: var(--accent-red-dark);
-        }
-
-        code {
-            background-color: var(--accent-tint);
-            color: var(--accent-red-dark);
-            padding: 2px 5px;
-            font-family: var(--font-mono);
-            border: 1px solid var(--accent-dim);
-            border-radius: 4px;
-        }
-
-        /* --- LAYOUT --- */
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        header {
-            text-align: center;
-            padding: 60px 0;
-            background-color: var(--banner-bg);
-            color: #ffffff;
-            position: relative;
-        }
-
-        header h1 {
-            color: #ffffff;
-        }
-
-        /* --- CARDS & SECTIONS --- */
-        .module-section {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 25px;
-            margin-bottom: 40px;
-        }
-
-        .card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-left: 4px solid var(--accent-red);
-            border-radius: 12px;
-            box-shadow: var(--card-shadow);
-            padding: 25px;
-            position: relative;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            overflow: hidden;
-        }
-
-        .card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 24px rgba(30, 34, 53, 0.10);
-            border-color: var(--accent-dim);
-            border-left-color: var(--accent-red);
-        }
-
-        .card h3 {
-            font-size: 1.2rem;
-            margin-bottom: 15px;
-            color: var(--text-main);
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 10px;
-        }
-
-        .term-box {
-            margin-bottom: 15px;
-        }
-
-        .term-title {
-            font-weight: bold;
-            color: var(--accent-red-dark);
-            font-family: var(--font-mono);
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        .defense-tip {
-            margin-top: 15px;
-            background-color: var(--accent-tint);
-            border: 1px solid var(--accent-dim);
-            border-radius: 8px;
-            padding: 12px 14px;
-            font-size: 0.9rem;
-            color: var(--text-main);
-        }
-
-        .defense-tip::before {
-            content: "[ DEFENSE STRATEGY ]";
-            display: block;
-            font-family: var(--font-mono);
-            font-size: 0.7rem;
-            color: var(--accent-red-dark);
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-
-        /* --- COMPARISON TABLE --- */
-        .cyber-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            box-shadow: var(--card-shadow);
-        }
-
-        .cyber-table th, .cyber-table td {
-            border: 1px solid var(--border-color);
-            padding: 15px;
-            text-align: left;
-        }
-
-        .cyber-table th {
-            background-color: var(--accent-tint);
-            color: var(--accent-red-dark);
-            font-size: 0.9rem;
-        }
-
-        .cyber-table tr:hover {
-            background-color: #fafbfe;
-        }
-
-        /* --- QUIZ SECTION --- */
-        #quiz-container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .question-card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            box-shadow: var(--card-shadow);
-            padding: 30px;
-            margin-bottom: 30px;
-            position: relative;
-        }
-
-        .question-header {
-            font-family: var(--font-mono);
-            color: var(--accent-red-dark);
-            margin-bottom: 15px;
-            font-size: 0.9rem;
-        }
-
-        .question-text {
-            font-size: 1.1rem;
-            font-weight: bold;
-            margin-bottom: 25px;
-            color: var(--text-main);
-        }
-
-        .options-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .option-btn {
-            background: #ffffff;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            color: var(--text-main);
-            padding: 14px 16px;
-            text-align: left;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-family: inherit;
-            font-size: 0.95rem;
-            position: relative;
-        }
-
-        .option-btn:hover {
-            border-color: var(--accent-red);
-            color: var(--text-main);
-            background-color: var(--accent-tint);
-        }
-
-        .option-btn.correct {
-            border-color: #15803d;
-            color: #15803d;
-            background-color: #f0fdf4;
-        }
-
-        .option-btn.wrong {
-            border-color: var(--accent-red);
-            color: var(--accent-red-dark);
-            background-color: var(--accent-tint);
-        }
-
-        .explanation {
-            margin-top: 20px;
-            padding: 20px;
-            background-color: #f8f9fc;
-            border-left: 4px solid var(--accent-red);
-            border-radius: 0 8px 8px 0;
-            color: var(--text-main);
-            display: none;
-            animation: fadeIn 0.5s ease;
-        }
-
-        .explanation.visible {
-            display: block;
-        }
-
-        .explanation-title {
-            color: var(--text-main);
-            font-weight: bold;
-            margin-bottom: 5px;
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* --- FOOTER --- */
-        footer {
-            margin-top: 80px;
-            padding: 20px 0;
-            text-align: center;
-        }
-
-        .footer-content {
-            font-family: var(--font-mono);
-            font-size: 0.8rem;
-            display: inline-block;
-            width: 100%;
-        }
-
-        /* --- RESPONSIVE --- */
-        @media (max-width: 768px) {
-            h1 { font-size: 1.8rem; }
-            .module-section { grid-template-columns: 1fr; }
-        }
-
-        /* HUD DECORATION */
-        .hud-line {
-            height: 1px;
-            background: var(--accent-red);
-            width: 50px;
-            display: inline-block;
-            vertical-align: middle;
-            margin: 0 10px;
-        }
-
-        header .hud-line {
-            background: rgba(255, 255, 255, 0.6);
-        }
-    </style>
+    <link rel="stylesheet" href="cnd.css?v=1">
     <link rel="stylesheet" href="../assets/site-theme.css?v=20261112b">
     <script src="../assets/site-chrome.js?v=20261112b" defer></script>
 </head>
 <body>
-
-    <header>
-        <div class="container">
-            <span class="hud-line"></span>
-            <span style="font-family: var(--font-mono); letter-spacing: 5px; color: rgba(255, 255, 255, 0.75);">SECURE CONNECTION ESTABLISHED</span>
-            <span class="hud-line"></span>
-            <h1>EC-Council CND 網路防禦課程</h1>
-            <p style="color: rgba(255, 255, 255, 0.85); text-transform: uppercase;">Module 11: Enterprise Virtual Network Security</p>
+    <header class="cnd-hero">
+        <div class="cnd-hero-inner">
+            <p class="cnd-kicker">EC-Council CND 網路防禦課程 · Module 11</p>
+            <h1>Enterprise Virtual Network Security</h1>
+            <p class="cnd-subtitle">企業虛擬網路安全</p>
         </div>
     </header>
 
-    <div class="container">
-
-        <!-- INTRO -->
-        <section style="margin-bottom: 50px;">
-            <h2><i class="icon"></i> 模組概述 (Module Overview)</h2>
-            <p>
-                歡迎來到 CND 模組 11。作為網路防禦者 (Network Defender)，我們不再僅僅守護實體的路由器與交換機。現代企業網路高度依賴<strong>虛擬化 (Virtualization)</strong>、<strong>軟體定義網路 (SDN)</strong> 與 <strong>雲端容器 (Containers)</strong>。這些技術帶來了靈活性，但也引入了全新的攻擊面 (Attack Surface)。本模組將深入探討如何保護這些虛擬資產。
-            </p>
+    <main class="cnd-main">
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">00</span>模組概述 <span class="cnd-en">Module Overview</span></h2>
+            <div class="cnd-card plain">
+                <p>歡迎來到 CND 模組 11。作為網路防禦者 (Network Defender)，我們不再僅僅守護實體的路由器與交換機。現代企業網路高度依賴<strong>虛擬化 (Virtualization)</strong>、<strong>軟體定義網路 (SDN)</strong> 與 <strong>雲端容器 (Containers)</strong>。這些技術帶來了靈活性，但也引入了全新的攻擊面 (Attack Surface)。本模組將深入探討如何保護這些虛擬資產。</p>
+            </div>
         </section>
 
-        <!-- TOPIC 1: VIRTUALIZATION -->
-        <section>
-            <h2>01. 虛擬化核心與威脅 (Virtualization Fundamentals)</h2>
-            <div class="module-section">
-                <!-- Concept Card 1 -->
-                <div class="card">
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">01</span>虛擬化核心與威脅 <span class="cnd-en">Virtualization Fundamentals</span></h2>
+            <div class="cnd-grid cnd-grid-2">
+                <div class="cnd-card">
                     <h3>虛擬化類型 (Hypervisor Types)</h3>
-                    <div class="term-box">
-                        <span class="term-title">Type 1: Native / Bare Metal</span>
-                        直接安裝在硬體上 (如 VMware ESXi, Microsoft Hyper-V)。效能高，安全性較高，因為沒有底層 OS 的漏洞風險。
-                    </div>
-                    <div class="term-box">
-                        <span class="term-title">Type 2: Hosted</span>
-                        安裝在宿主作業系統 (Host OS) 之上 (如 VMware Workstation, Oracle VirtualBox)。主要用於開發測試。若 Host OS 被攻破，所有 VM 都危險。
-                    </div>
-                    <div class="defense-tip">
-                        企業生產環境應強制使用 <strong>Type 1 Hypervisor</strong> 以減少攻擊面。
-                    </div>
+                    <h4>Type 1: Native / Bare Metal</h4>
+                    <p>直接安裝在硬體上 (如 VMware ESXi, Microsoft Hyper-V)。效能高，安全性較高，因為沒有底層 OS 的漏洞風險。</p>
+                    <h4>Type 2: Hosted</h4>
+                    <p>安裝在宿主作業系統 (Host OS) 之上 (如 VMware Workstation, Oracle VirtualBox)。主要用於開發測試。若 Host OS 被攻破，所有 VM 都危險。</p>
+                    <div class="cnd-callout tip"><span class="cnd-callout-title">防禦策略 (Defense Strategy)</span><p>企業生產環境應強制使用 <strong>Type 1 Hypervisor</strong> 以減少攻擊面。</p></div>
                 </div>
-
-                <!-- Concept Card 2 -->
-                <div class="card">
+                <div class="cnd-card">
                     <h3>關鍵攻擊手法 (Key Threats)</h3>
-                    <div class="term-box">
-                        <span class="term-title">VM Escape (虛擬機逃逸)</span>
-                        攻擊者從 Guest OS 突破隔離層，存取 Host OS 或其他 VM。這是虛擬化最嚴重的漏洞。
-                    </div>
-                    <div class="term-box">
-                        <span class="term-title">VM Sprawl (虛擬機蔓延)</span>
-                        由於建立 VM 太容易，導致產生大量無人管理的 VM，這些「殭屍 VM」未更新補丁，成為滲透入口。
-                    </div>
-                    <div class="defense-tip">
-                        實施嚴格的 <strong>生命週期管理 (Lifecycle Management)</strong> 與定期審計來對抗 VM Sprawl。
-                    </div>
+                    <h4>VM Escape (虛擬機逃逸)</h4>
+                    <p>攻擊者從 Guest OS 突破隔離層，存取 Host OS 或其他 VM。這是虛擬化最嚴重的漏洞。</p>
+                    <h4>VM Sprawl (虛擬機蔓延)</h4>
+                    <p>由於建立 VM 太容易，導致產生大量無人管理的 VM，這些「殭屍 VM」未更新補丁，成為滲透入口。</p>
+                    <div class="cnd-callout tip"><span class="cnd-callout-title">防禦策略 (Defense Strategy)</span><p>實施嚴格的 <strong>生命週期管理 (Lifecycle Management)</strong> 與定期審計來對抗 VM Sprawl。</p></div>
                 </div>
             </div>
         </section>
 
-        <!-- TOPIC 2: SDN & NFV -->
-        <section>
-            <h2>02. 軟體定義網路 (SDN & NFV)</h2>
-            <p style="margin-bottom: 20px;">SDN 將網路架構解構為三個平面，防禦重點在於保護控制層。</p>
-            
-            <table class="cyber-table">
-                <thead>
-                    <tr>
-                        <th width="20%">架構平面 (Plane)</th>
-                        <th width="40%">功能描述</th>
-                        <th width="40%">防禦重點 (Blue Team Focus)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><strong>Application Plane</strong></td>
-                        <td>網路應用程式與服務 (如 Load Balancer, Firewall Apps)。</td>
-                        <td>驗證應用程式來源，防止惡意 App 注入指令。</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Control Plane</strong></td>
-                        <td><span style="color:var(--accent-red)">SDN Controller (大腦)</span>。負責決定封包路徑與策略。</td>
-                        <td>這是<strong>單點故障 (SPOF)</strong> 與高價值目標。必須實施嚴格的存取控制 (ACL) 與備援機制。</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Data Plane</strong></td>
-                        <td>負責實際轉送封包的網路設備 (Switches, Routers)。</td>
-                        <td>確保設備僅接收來自授權 Controller 的指令 (TLS 加密通道)。</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <div class="module-section">
-                <div class="card">
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">02</span>軟體定義網路 <span class="cnd-en">SDN &amp; NFV</span></h2>
+            <p class="cnd-lead">SDN 將網路架構解構為三個平面，防禦重點在於保護控制層。</p>
+            <div class="cnd-table-wrap">
+                <table class="cnd-table">
+                    <thead><tr><th>架構平面 (Plane)</th><th>功能描述</th><th>防禦重點 (Blue Team Focus)</th></tr></thead>
+                    <tbody>
+                        <tr><td>Application Plane</td><td>網路應用程式與服務 (如 Load Balancer, Firewall Apps)。</td><td>驗證應用程式來源，防止惡意 App 注入指令。</td></tr>
+                        <tr><td>Control Plane</td><td><span class="cnd-hl">SDN Controller (大腦)</span>。負責決定封包路徑與策略。</td><td>這是<strong>單點故障 (SPOF)</strong> 與高價值目標。必須實施嚴格的存取控制 (ACL) 與備援機制。</td></tr>
+                        <tr><td>Data Plane</td><td>負責實際轉送封包的網路設備 (Switches, Routers)。</td><td>確保設備僅接收來自授權 Controller 的指令 (TLS 加密通道)。</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="cnd-grid cnd-grid-2">
+                <div class="cnd-card">
                     <h3>NFV (Network Function Virtualization)</h3>
                     <p>將專用硬體 (如 防火牆設備、路由器) 轉化為在虛擬機上運行的軟體功能。</p>
-                    <div class="defense-tip">
-                        優點是靈活，缺點是若 Hypervisor 被攻破，所有的網路安全設備 (Firewall, IDS) 也同時失效。必須強化 <strong>Hypervisor Hardening</strong>。
-                    </div>
+                    <div class="cnd-callout tip"><span class="cnd-callout-title">防禦策略 (Defense Strategy)</span><p>優點是靈活，缺點是若 Hypervisor 被攻破，所有的網路安全設備 (Firewall, IDS) 也同時失效。必須強化 <strong>Hypervisor Hardening</strong>。</p></div>
                 </div>
-                <div class="card">
+                <div class="cnd-card">
                     <h3>East-West Traffic Monitoring</h3>
                     <p>傳統防禦重在 North-South (進出網際網路)。虛擬化環境中，VM 之間的流量 (East-West) 不經過實體防火牆。</p>
-                    <div class="defense-tip">
-                        必須使用 <strong>微分段 (Micro-segmentation)</strong> 與虛擬防火牆來監控並限制 VM 之間的橫向移動。
-                    </div>
+                    <div class="cnd-callout tip"><span class="cnd-callout-title">防禦策略 (Defense Strategy)</span><p>必須使用 <strong>微分段 (Micro-segmentation)</strong> 與虛擬防火牆來監控並限制 VM 之間的橫向移動。</p></div>
                 </div>
             </div>
         </section>
 
-        <!-- TOPIC 3: CONTAINERS -->
-        <section>
-            <h2>03. 容器與編排安全 (Container & Kubernetes)</h2>
-            <div class="module-section">
-                <div class="card">
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">03</span>容器與編排安全 <span class="cnd-en">Container &amp; Kubernetes</span></h2>
+            <div class="cnd-grid cnd-grid-2">
+                <div class="cnd-card">
                     <h3>VM vs. Containers</h3>
-                    <div class="term-box">
-                        <span class="term-title">VM (Virtual Machine)</span>
-                        每個 VM 都有完整的 Guest OS。隔離性強，但笨重。
-                    </div>
-                    <div class="term-box">
-                        <span class="term-title">Container (Docker)</span>
-                        共享 Host OS 的 Kernel。輕量，但<strong>隔離性較弱</strong>。若 Kernel 漏洞被利用，所有容器皆受害。
-                    </div>
+                    <h4>VM (Virtual Machine)</h4>
+                    <p>每個 VM 都有完整的 Guest OS。隔離性強，但笨重。</p>
+                    <h4>Container (Docker)</h4>
+                    <p>共享 Host OS 的 Kernel。輕量，但<strong>隔離性較弱</strong>。若 Kernel 漏洞被利用，所有容器皆受害。</p>
                 </div>
-
-                <div class="card">
-                    <h3>Docker & Kubernetes Defense</h3>
-                    <ul style="list-style-type: none; padding-left: 0;">
-                        <li style="margin-bottom: 10px;">
-                            <span style="color:var(--accent-red)">></span> <strong>Do not run as Root:</strong> 永遠不要以 Root 權限運行容器。
-                        </li>
-                        <li style="margin-bottom: 10px;">
-                            <span style="color:var(--accent-red)">></span> <strong>Image Scanning:</strong> 在部署前掃描映像檔 (Images) 是否含漏洞。
-                        </li>
-                        <li style="margin-bottom: 10px;">
-                            <span style="color:var(--accent-red)">></span> <strong>Pod Security:</strong> 在 K8s 中限制 Pod 的通訊範圍 (Network Policies)。
-                        </li>
+                <div class="cnd-card">
+                    <h3>Docker &amp; Kubernetes Defense</h3>
+                    <ul class="cnd-list">
+                        <li><strong>Do not run as Root:</strong> 永遠不要以 Root 權限運行容器。</li>
+                        <li><strong>Image Scanning:</strong> 在部署前掃描映像檔 (Images) 是否含漏洞。</li>
+                        <li><strong>Pod Security:</strong> 在 K8s 中限制 Pod 的通訊範圍 (Network Policies)。</li>
                     </ul>
                 </div>
             </div>
         </section>
 
-        <!-- QUIZ SECTION -->
-        <section id="quiz-section">
-            <h2>04. 戰術模擬測驗 (Tactical Simulation)</h2>
-            <p style="margin-bottom: 30px;">以下為 10 題情境模擬題，請選擇最佳的防禦策略或解釋。</p>
-            
-            <div id="quiz-container">
-                <!-- Questions will be injected here by JS -->
-            </div>
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">04</span>情境模擬測驗 <span class="cnd-en">Simulation Exam</span></h2>
+            <p class="cnd-lead">以下為 10 題情境模擬題，請選擇最佳的防禦策略或解釋。</p>
+            <div id="cnd-quiz"></div>
         </section>
-
-    </div>
+    </main>
 
     <footer>
-        <span class="footer-content">Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0</span>
+        Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0
     </footer>
 
     <script>
-        // CND Module 11 Question Bank
-        const questions = [
+        window.CND_QUIZ = [
             {
-                id: 1,
-                text: "你是某科技公司的 CND 分析師。監控系統顯示，一台實體伺服器崩潰了，導致其上運行的所有 20 台虛擬機 (VM) 全部離線。調查發現，其中一台 VM 遭受到大量的資源請求攻擊，耗盡了實體 CPU 與記憶體資源。這是屬於哪種類型的攻擊？",
+                question: "你是某科技公司的 CND 分析師。監控系統顯示，一台實體伺服器崩潰了，導致其上運行的所有 20 台虛擬機 (VM) 全部離線。調查發現，其中一台 VM 遭受到大量的資源請求攻擊，耗盡了實體 CPU 與記憶體資源。這是屬於哪種類型的攻擊？",
                 options: [
-                    "VM Escape (虛擬機逃逸)",
-                    "Hyperjacking (Hypervisor 劫持)",
-                    "Resource Exhaustion / Starvation (資源耗盡)",
-                    "VM Migration Attack (虛擬機遷移攻擊)"
+                    "A. VM Escape (虛擬機逃逸)",
+                    "B. Hyperjacking (Hypervisor 劫持)",
+                    "C. Resource Exhaustion / Starvation (資源耗盡)",
+                    "D. VM Migration Attack (虛擬機遷移攻擊)"
                 ],
                 correct: 2,
                 explanation: "<strong>正確答案：Resource Exhaustion / Starvation</strong><br>當一台 VM 消耗過多實體資源 (CPU/RAM/Disk I/O)，導致其他 VM 或 Hypervisor 本身無法運作，稱為資源耗盡。防禦方式是設定 Resource Limits (資源配額)。"
             },
             {
-                id: 2,
-                text: "公司計畫建立一個高安全性的伺服器虛擬化環境。作為資安顧問，你需要建議選擇 Hypervisor 的類型。為了最小化攻擊面並提高效能，你應該建議哪一種？",
+                question: "公司計畫建立一個高安全性的伺服器虛擬化環境。作為資安顧問，你需要建議選擇 Hypervisor 的類型。為了最小化攻擊面並提高效能，你應該建議哪一種？",
                 options: [
-                    "Type 2 Hypervisor (Hosted)",
-                    "Type 1 Hypervisor (Bare Metal)",
-                    "Containerization with Docker",
-                    "Emulation Mode Hypervisor"
+                    "A. Type 2 Hypervisor (Hosted)",
+                    "B. Type 1 Hypervisor (Bare Metal)",
+                    "C. Containerization with Docker",
+                    "D. Emulation Mode Hypervisor"
                 ],
                 correct: 1,
                 explanation: "<strong>正確答案：Type 1 Hypervisor (Bare Metal)</strong><br>Type 1 (如 ESXi, Hyper-V) 直接運行在硬體上，沒有底層 Host OS，因此減少了 Host OS 的漏洞風險，適合企業生產環境。"
             },
             {
-                id: 3,
-                text: "在軟體定義網路 (SDN) 架構中，攻擊者試圖針對「SDN Controller」發動 DDoS 攻擊。如果攻擊成功，對網路造成的最大衝擊是什麼？",
+                question: "在軟體定義網路 (SDN) 架構中，攻擊者試圖針對「SDN Controller」發動 DDoS 攻擊。如果攻擊成功，對網路造成的最大衝擊是什麼？",
                 options: [
-                    "只有應用層 (Application Plane) 會受到影響",
-                    "資料層 (Data Plane) 的封包轉發雖然變慢但仍能運作",
-                    "整個網路的大腦癱瘓，無法下達新的流量規則，導致網路中斷或失控",
-                    "只有東西向流量 (East-West Traffic) 會被阻斷"
+                    "A. 只有應用層 (Application Plane) 會受到影響",
+                    "B. 資料層 (Data Plane) 的封包轉發雖然變慢但仍能運作",
+                    "C. 整個網路的大腦癱瘓，無法下達新的流量規則，導致網路中斷或失控",
+                    "D. 只有東西向流量 (East-West Traffic) 會被阻斷"
                 ],
                 correct: 2,
                 explanation: "<strong>正確答案：整個網路的大腦癱瘓...</strong><br>SDN Controller 是控制平面 (Control Plane) 的核心，若失效，資料平面設備將無法接收新的轉發表 (Flow Tables)，導致網路全面癱瘓。這是 SDN 的單點故障風險。"
             },
             {
-                id: 4,
-                text: "你正在審計公司的虛擬化環境，發現許多 VM 已經數個月沒有人登入，且未安裝最新的安全補丁。經詢問，這些是開發團隊測試完後忘記刪除的機器。這種現象在資安術語中稱為什麼？",
+                question: "你正在審計公司的虛擬化環境，發現許多 VM 已經數個月沒有人登入，且未安裝最新的安全補丁。經詢問，這些是開發團隊測試完後忘記刪除的機器。這種現象在資安術語中稱為什麼？",
                 options: [
-                    "VM Escape (虛擬機逃逸)",
-                    "VM Sprawl (虛擬機蔓延)",
-                    "Shadow IT (影子 IT)",
-                    "Bluejacking"
+                    "A. VM Escape (虛擬機逃逸)",
+                    "B. VM Sprawl (虛擬機蔓延)",
+                    "C. Shadow IT (影子 IT)",
+                    "D. Bluejacking"
                 ],
                 correct: 1,
                 explanation: "<strong>正確答案：VM Sprawl (虛擬機蔓延)</strong><br>VM Sprawl 指的是虛擬機數量失控且缺乏管理。這些被遺忘的 VM 通常缺乏維護，容易成為攻擊者潛伏的跳板。"
             },
             {
-                id: 5,
-                text: "關於「容器 (Container)」與「虛擬機 (VM)」的安全性比較，下列哪項敘述是正確的？",
+                question: "關於「容器 (Container)」與「虛擬機 (VM)」的安全性比較，下列哪項敘述是正確的？",
                 options: [
-                    "容器比 VM 更安全，因為它們擁有獨立的硬體抽象層",
-                    "容器的隔離性較弱，因為它們共享宿主機的作業系統核心 (Kernel)",
-                    "VM 的啟動速度比容器快，因此更適合遭受攻擊時快速重啟",
-                    "容器無法遭受勒索軟體攻擊"
+                    "A. 容器比 VM 更安全，因為它們擁有獨立的硬體抽象層",
+                    "B. 容器的隔離性較弱，因為它們共享宿主機的作業系統核心 (Kernel)",
+                    "C. VM 的啟動速度比容器快，因此更適合遭受攻擊時快速重啟",
+                    "D. 容器無法遭受勒索軟體攻擊"
                 ],
                 correct: 1,
                 explanation: "<strong>正確答案：容器的隔離性較弱...</strong><br>容器 (如 Docker) 共享 Host OS Kernel。如果 Kernel 有漏洞，攻擊者可能攻破所有容器。相比之下，VM 有獨立的 OS，隔離性較強。"
             },
             {
-                id: 6,
-                text: "為了保護虛擬化環境中的「東西向流量 (East-West Traffic)」，傳統的邊界防火牆往往效果不彰。你應該採用什麼技術來解決此問題？",
+                question: "為了保護虛擬化環境中的「東西向流量 (East-West Traffic)」，傳統的邊界防火牆往往效果不彰。你應該採用什麼技術來解決此問題？",
                 options: [
-                    "增加更多的實體防火牆在網路出口",
-                    "實施微分段 (Micro-segmentation) 並配置虛擬防火牆策略",
-                    "將所有 VM 配置在同一個 VLAN 中以簡化管理",
-                    "使用 VPN 加密所有流量"
+                    "A. 增加更多的實體防火牆在網路出口",
+                    "B. 實施微分段 (Micro-segmentation) 並配置虛擬防火牆策略",
+                    "C. 將所有 VM 配置在同一個 VLAN 中以簡化管理",
+                    "D. 使用 VPN 加密所有流量"
                 ],
                 correct: 1,
                 explanation: "<strong>正確答案：實施微分段 (Micro-segmentation)...</strong><br>東西向流量是指 VM 之間的通訊，不經過實體邊界。微分段技術利用虛擬防火牆 (如 NSX) 在每個 VM 的網卡層級進行過濾，實現零信任架構。"
             },
             {
-                id: 7,
-                text: "攻擊者成功利用虛擬化軟體的漏洞，從 Guest OS (虛擬機) 突破隔離層，獲得了 Host OS (宿主機) 的控制權。這種攻擊手法稱為：",
+                question: "攻擊者成功利用虛擬化軟體的漏洞，從 Guest OS (虛擬機) 突破隔離層，獲得了 Host OS (宿主機) 的控制權。這種攻擊手法稱為：",
                 options: [
-                    "VLAN Hopping",
-                    "VM Migration",
-                    "VM Escape",
-                    "Hyperjacking"
+                    "A. VLAN Hopping",
+                    "B. VM Migration",
+                    "C. VM Escape",
+                    "D. Hyperjacking"
                 ],
                 correct: 2,
                 explanation: "<strong>正確答案：VM Escape</strong><br>VM Escape 是虛擬化環境中最嚴重的攻擊之一，允許攻擊者從隔離的環境跳脫出來，直接控制底層系統。"
             },
             {
-                id: 8,
-                text: "在 Kubernetes (K8s) 環境中，為了防止單一 Pod 被攻陷後影響其他服務，下列哪項是最佳實踐？",
+                question: "在 Kubernetes (K8s) 環境中，為了防止單一 Pod 被攻陷後影響其他服務，下列哪項是最佳實踐？",
                 options: [
-                    "給予所有 Pod Root 權限以便於除錯",
-                    "使用 Network Policies 限制 Pod 之間的通訊",
-                    "關閉 K8s 的 API Server",
-                    "將所有 Pod 部署在同一個 Namespace"
+                    "A. 給予所有 Pod Root 權限以便於除錯",
+                    "B. 使用 Network Policies 限制 Pod 之間的通訊",
+                    "C. 關閉 K8s 的 API Server",
+                    "D. 將所有 Pod 部署在同一個 Namespace"
                 ],
                 correct: 1,
                 explanation: "<strong>正確答案：使用 Network Policies 限制 Pod 之間的通訊</strong><br>預設情況下，K8s 允許所有 Pod 互通。應配置 Network Policies (類似防火牆規則) 來實施最小權限原則，限制橫向移動。"
             },
             {
-                id: 9,
-                text: "企業採用 NFV (網路功能虛擬化) 將實體防火牆替換為虛擬設備。從安全角度來看，NFV 的主要風險之一是什麼？",
+                question: "企業採用 NFV (網路功能虛擬化) 將實體防火牆替換為虛擬設備。從安全角度來看，NFV 的主要風險之一是什麼？",
                 options: [
-                    "NFV 無法處理加密流量",
-                    "如果底層 Hypervisor 被攻陷，所有的虛擬網路功能 (防火牆、IDS) 也會同時失效",
-                    "NFV 設備比實體設備更耗電",
-                    "NFV 不支援 IPv6"
+                    "A. NFV 無法處理加密流量",
+                    "B. 如果底層 Hypervisor 被攻陷，所有的虛擬網路功能 (防火牆、IDS) 也會同時失效",
+                    "C. NFV 設備比實體設備更耗電",
+                    "D. NFV 不支援 IPv6"
                 ],
                 correct: 1,
                 explanation: "<strong>正確答案：如果底層 Hypervisor 被攻陷...</strong><br>NFV 將安全功能軟體化。這意味著安全性高度依賴於底層虛擬化平台的完整性。若平台崩潰或被駭，所有防禦機制亦隨之瓦解。"
             },
             {
-                id: 10,
-                text: "攻擊者在虛擬網路中截取了 VM 遷移 (Live Migration) 的流量，試圖竊取記憶體中的敏感數據。這種攻擊之所以可能發生，通常是因為：",
+                question: "攻擊者在虛擬網路中截取了 VM 遷移 (Live Migration) 的流量，試圖竊取記憶體中的敏感數據。這種攻擊之所以可能發生，通常是因為：",
                 options: [
-                    "VM 遷移流量在傳輸過程中未被加密 (Clear Text)",
-                    "使用了 Type 1 Hypervisor",
-                    "虛擬機磁碟已加密",
-                    "使用了 Docker 而非 VM"
+                    "A. VM 遷移流量在傳輸過程中未被加密 (Clear Text)",
+                    "B. 使用了 Type 1 Hypervisor",
+                    "C. 虛擬機磁碟已加密",
+                    "D. 使用了 Docker 而非 VM"
                 ],
                 correct: 0,
                 explanation: "<strong>正確答案：VM 遷移流量在傳輸過程中未被加密</strong><br>許多虛擬化平台預設的 Live Migration (如 vMotion) 流量是明文傳輸的。防禦者必須啟用遷移流量加密或使用專用的隔離管理網路。"
             }
         ];
-
-        function renderQuiz() {
-            const container = document.getElementById('quiz-container');
-            
-            questions.forEach((q, index) => {
-                const card = document.createElement('div');
-                card.className = 'question-card';
-                
-                let optionsHtml = '';
-                q.options.forEach((opt, optIndex) => {
-                    optionsHtml += `<button class="option-btn" onclick="checkAnswer(this, ${q.id}, ${optIndex})">${String.fromCharCode(65 + optIndex)}. ${opt}</button>`;
-                });
-
-                card.innerHTML = `
-                    <div class="question-header">QUESTION ${index + 1} // SCENARIO MODE</div>
-                    <div class="question-text">${q.text}</div>
-                    <div class="options-grid" id="q${q.id}-options">
-                        ${optionsHtml}
-                    </div>
-                    <div class="explanation" id="q${q.id}-explanation">
-                        <span class="explanation-title">TACTICAL ANALYSIS:</span>
-                        ${q.explanation}
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        function checkAnswer(btn, questionId, selectedIndex) {
-            const questionData = questions.find(q => q.id === questionId);
-            const parentGrid = document.getElementById(`q${questionId}-options`);
-            const allButtons = parentGrid.querySelectorAll('.option-btn');
-            const explanationPanel = document.getElementById(`q${questionId}-explanation`);
-
-            // Disable all buttons to prevent re-guessing
-            allButtons.forEach(b => {
-                b.disabled = true;
-                b.style.cursor = 'default';
-            });
-
-            // Mark Selected
-            if (selectedIndex === questionData.correct) {
-                btn.classList.add('correct');
-                btn.innerHTML += ' [CORRECT]';
-            } else {
-                btn.classList.add('wrong');
-                btn.innerHTML += ' [INCORRECT]';
-                // Highlight the correct one
-                allButtons[questionData.correct].classList.add('correct');
-                allButtons[questionData.correct].innerHTML += ' [CORRECT]';
-            }
-
-            // Show explanation
-            explanationPanel.classList.add('visible');
-        }
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', renderQuiz);
-
     </script>
+    <script src="cnd.js?v=1"></script>
 </body>
 </html>

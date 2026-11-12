@@ -1,627 +1,216 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EC-Council CND | Module 08: Endpoint Security - IoT Devices</title>
-    <style>
-        :root {
-            --bg-color: #f5f7fc;
-            --card-bg: #ffffff;
-            --text-main: #1e2235;
-            --text-muted: #5b6278;
-            --accent-red: #dc2626;
-            --accent-dark-red: #b91c1c;
-            --tech-blue: #0891b2; /* Subtle secondary accent for HUD elements */
-            --border-color: #e3e6f0;
-            --success-green: #15803d;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            color: var(--text-main);
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
-
-        /* Typography */
-        h1, h2, h3, h4 {
-            letter-spacing: 0.5px;
-            font-weight: 700;
-        }
-
-        h1 {
-            color: #fff;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.35);
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-        }
-
-        h2 {
-            color: var(--accent-dark-red);
-            border-left: 5px solid var(--accent-red);
-            padding-left: 15px;
-            margin-top: 40px;
-            margin-bottom: 20px;
-            border-radius: 0 6px 6px 0;
-            background: linear-gradient(90deg, #fef2f2, transparent);
-        }
-
-        h3 {
-            color: var(--text-main);
-            margin-top: 25px;
-            margin-bottom: 15px;
-            font-size: 1.2rem;
-        }
-
-        p {
-            margin-bottom: 15px;
-            color: var(--text-muted);
-        }
-
-        strong {
-            color: var(--text-main);
-        }
-
-        /* Layout */
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 20px;
-            position: relative;
-        }
-
-        /* Header 橫幅:加上 hm-hero,由 site-theme.css 套用品牌漸層 */
-        .header-hud {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 20px;
-            background: #1e2235;
-            color: #fff;
-            border-radius: 8px;
-            padding: 28px 30px;
-            margin-bottom: 40px;
-            position: relative;
-        }
-
-        .system-status {
-            font-family: 'JetBrains Mono', Consolas, monospace;
-            font-size: 0.75rem;
-            color: rgba(255, 255, 255, 0.92);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            background: rgba(255, 255, 255, 0.16);
-            border-radius: 10px;
-            padding: 8px 14px;
-            flex-shrink: 0;
-        }
-
-        /* Cards */
-        .card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 25px;
-            margin-bottom: 30px;
-            position: relative;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            box-shadow: 0 4px 16px rgba(30, 34, 53, 0.06);
-        }
-
-        .card:hover {
-            box-shadow: 0 10px 28px rgba(30, 34, 53, 0.10);
-            border-color: #fca5a5;
-        }
-
-        /* Concepts Section */
-        .concept-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 20px;
-        }
-
-        @media (min-width: 768px) {
-            .concept-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-
-        .concept-item {
-            background: #f8f9fc;
-            padding: 15px;
-            border-left: 3px solid var(--border-color);
-            border-radius: 0 8px 8px 0;
-        }
-
-        .concept-item:hover {
-            border-left-color: var(--accent-red);
-        }
-
-        /* Lists */
-        ul {
-            list-style: none;
-            padding-left: 0;
-        }
-
-        li {
-            position: relative;
-            padding-left: 20px;
-            margin-bottom: 10px;
-            color: var(--text-muted);
-        }
-
-        li::before {
-            content: '\2022';
-            position: absolute;
-            left: 0;
-            color: var(--accent-red);
-            font-weight: bold;
-        }
-
-        /* Table Style */
-        .tech-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-            font-size: 0.95rem;
-            background: #ffffff;
-        }
-
-        .tech-table th, .tech-table td {
-            border: 1px solid var(--border-color);
-            padding: 12px;
-            text-align: left;
-        }
-
-        .tech-table td {
-            color: var(--text-muted);
-        }
-
-        .tech-table th {
-            background-color: #fef2f2;
-            color: var(--accent-dark-red);
-            text-transform: uppercase;
-            font-size: 0.85rem;
-        }
-
-        .tech-table tr:hover td {
-            background-color: #fafbfe;
-        }
-
-        /* Quiz Section */
-        .quiz-container {
-            margin-top: 50px;
-        }
-
-        .question-card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 25px;
-            margin-bottom: 30px;
-            position: relative;
-            box-shadow: 0 4px 16px rgba(30, 34, 53, 0.06);
-        }
-
-        .question-header {
-            display: flex;
-            align-items: flex-start;
-            margin-bottom: 20px;
-        }
-
-        .q-number {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--accent-red);
-            margin-right: 15px;
-            font-family: 'JetBrains Mono', Consolas, monospace;
-        }
-
-        .q-text {
-            font-size: 1.1rem;
-            color: var(--text-main);
-        }
-
-        .options-grid {
-            display: grid;
-            gap: 10px;
-        }
-
-        .option-btn {
-            background: #ffffff;
-            border: 1px solid #d5d9e6;
-            color: var(--text-muted);
-            padding: 15px;
-            border-radius: 8px;
-            text-align: left;
-            cursor: pointer;
-            transition: all 0.2s;
-            position: relative;
-            font-family: inherit;
-            font-size: 1rem;
-        }
-
-        .option-btn:hover {
-            border-color: var(--accent-red);
-            color: var(--text-main);
-            background: #fef2f2;
-        }
-
-        .option-btn.selected-correct {
-            border-color: var(--success-green);
-            background: #f0fdf4;
-            color: var(--success-green);
-        }
-
-        .option-btn.selected-wrong {
-            border-color: var(--accent-red);
-            background: #fef2f2;
-            color: var(--accent-dark-red);
-        }
-
-        .explanation-box {
-            margin-top: 20px;
-            padding: 15px;
-            background: #f8f9fc;
-            border-left: 4px solid var(--accent-red);
-            border-radius: 0 8px 8px 0;
-            color: var(--text-main);
-            display: none;
-            animation: fadeIn 0.5s;
-        }
-
-        .explanation-box.correct {
-            border-left-color: var(--success-green);
-        }
-
-        .explanation-title {
-            font-weight: bold;
-            margin-bottom: 5px;
-            display: block;
-            text-transform: uppercase;
-            font-size: 0.85rem;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Footer (底色與字色由 site-theme.css 統一) */
-        .footer {
-            margin-top: 60px;
-            padding: 20px 0;
-            text-align: center;
-            font-size: 0.85rem;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        /* Icon placeholders */
-        .icon {
-            display: inline-block;
-            width: 24px;
-            height: 24px;
-            vertical-align: middle;
-            margin-right: 10px;
-            fill: var(--accent-red);
-        }
-
-        @media (max-width: 640px) {
-            .header-hud { flex-direction: column; align-items: flex-start; }
-        }
-    </style>
+    <link rel="stylesheet" href="cnd.css?v=1">
     <link rel="stylesheet" href="../assets/site-theme.css?v=20261112b">
     <script src="../assets/site-chrome.js?v=20261112b" defer></script>
 </head>
 <body>
-
-<div class="container">
-    <div class="header-hud hm-hero">
-        <div>
-            <h1>EC-Council CND 網路防禦課程</h1>
-            <div style="color: #fecaca; letter-spacing: 1px;">MODULE 08: ENDPOINT SECURITY - IOT DEVICES</div>
+    <header class="cnd-hero">
+        <div class="cnd-hero-inner">
+            <p class="cnd-kicker">EC-Council CND 網路防禦課程 · Module 08</p>
+            <h1>Endpoint Security: IoT Devices</h1>
+            <p class="cnd-subtitle">端點安全：物聯網設備</p>
         </div>
-        <div class="system-status">
-            SYSTEM: ONLINE<br>
-            THREAT LEVEL: HIGH<br>
-            MODE: DEFENSE
-        </div>
-    </div>
+    </header>
 
-    <!-- Intro Section -->
-    <div class="card">
-        <h2><span class="icon">🛡️</span>模組概述 (Module Overview)</h2>
-        <p>在 Module 08 中，我們探討物聯網 (IoT) 設備對企業網路邊界帶來的巨大挑戰。IoT 設備通常缺乏內建的安全機制，且往往直接連接到網際網路，成為攻擊者進入內部網路的跳板 (Pivot Point)。作為網路防禦者 (CND)，必須理解 IoT 架構、通訊模型、常見威脅以及防禦策略。</p>
-        <p style="color: #b91c1c; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 10px; display: inline-block;">
-            <strong>核心目標：</strong> 識別 IoT 弱點、監控異常流量、實施網段隔離。
-        </p>
-    </div>
+    <main class="cnd-main">
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">00</span>模組概述 <span class="cnd-en">Module Overview</span></h2>
+            <div class="cnd-card plain">
+                <p>在 Module 08 中，我們探討物聯網 (IoT) 設備對企業網路邊界帶來的巨大挑戰。IoT 設備通常缺乏內建的安全機制，且往往直接連接到網際網路，成為攻擊者進入內部網路的跳板 (Pivot Point)。作為網路防禦者 (CND)，必須理解 IoT 架構、通訊模型、常見威脅以及防禦策略。</p>
+                <div class="cnd-callout info"><span class="cnd-callout-title">核心目標：</span><p>識別 IoT 弱點、監控異常流量、實施網段隔離。</p></div>
+            </div>
+        </section>
 
-    <!-- IoT Architecture -->
-    <div class="card">
-        <h2><span class="icon">🏗️</span>IoT 架構與弱點 (Architecture & Vulnerabilities)</h2>
-        <p>理解 IoT 架構對於識別攻擊面至關重要。EC-Council 將 IoT 分為四層架構，每一層都有其特定的安全風險。</p>
-        
-        <table class="tech-table">
-            <thead>
-                <tr>
-                    <th>層級 (Layer)</th>
-                    <th>功能描述</th>
-                    <th>主要安全風險 (Risks)</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><strong>Perception Layer</strong><br>(感知層)</td>
-                    <td>包含感測器 (Sensors)、執行器 (Actuators)、邊緣設備。負責數據收集與物理控制。</td>
-                    <td>物理破壞、竊取設備、旁路攻擊 (Side-channel attacks)、偽造節點 (Fake Node)。</td>
-                </tr>
-                <tr>
-                    <td><strong>Network Layer</strong><br>(網路層)</td>
-                    <td>包含閘道器 (Gateways)、WiFi、BLE、Zigbee。負責數據傳輸。</td>
-                    <td>中間人攻擊 (MitM)、嗅探 (Sniffing)、DDoS 攻擊、Sybil 攻擊。</td>
-                </tr>
-                <tr>
-                    <td><strong>Middleware Layer</strong><br>(中介軟體/支援層)</td>
-                    <td>負責數據處理、儲存、雲端運算。</td>
-                    <td>雲端 API 漏洞、資料庫注入、未經授權的存取。</td>
-                </tr>
-                <tr>
-                    <td><strong>Application Layer</strong><br>(應用層)</td>
-                    <td>使用者介面、儀表板、手機 App。</td>
-                    <td>XSS 跨站腳本攻擊、弱密碼、身分驗證繞過。</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">01</span>IoT 架構與弱點 <span class="cnd-en">Architecture &amp; Vulnerabilities</span></h2>
+            <p class="cnd-lead">理解 IoT 架構對於識別攻擊面至關重要。EC-Council 將 IoT 分為四層架構，每一層都有其特定的安全風險。</p>
+            <div class="cnd-table-wrap">
+                <table class="cnd-table">
+                    <thead><tr><th>層級 (Layer)</th><th>功能描述</th><th>主要安全風險 (Risks)</th></tr></thead>
+                    <tbody>
+                        <tr><td>Perception Layer<br>(感知層)</td><td>包含感測器 (Sensors)、執行器 (Actuators)、邊緣設備。負責數據收集與物理控制。</td><td>物理破壞、竊取設備、旁路攻擊 (Side-channel attacks)、偽造節點 (Fake Node)。</td></tr>
+                        <tr><td>Network Layer<br>(網路層)</td><td>包含閘道器 (Gateways)、WiFi、BLE、Zigbee。負責數據傳輸。</td><td>中間人攻擊 (MitM)、嗅探 (Sniffing)、DDoS 攻擊、Sybil 攻擊。</td></tr>
+                        <tr><td>Middleware Layer<br>(中介軟體/支援層)</td><td>負責數據處理、儲存、雲端運算。</td><td>雲端 API 漏洞、資料庫注入、未經授權的存取。</td></tr>
+                        <tr><td>Application Layer<br>(應用層)</td><td>使用者介面、儀表板、手機 App。</td><td>XSS 跨站腳本攻擊、弱密碼、身分驗證繞過。</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
-    <!-- Key Concepts & Threats -->
-    <div class="card">
-        <h2><span class="icon">⚠️</span>關鍵威脅與術語解析 (Threats & Terminology)</h2>
-        <div class="concept-grid">
-            <div class="concept-item">
-                <h3>Shadow IoT (影子物聯網)</h3>
-                <p>指員工在未經 IT 部門核准或知情的情況下，私自將 IoT 設備（如智慧手錶、智慧音箱、個人無線基地台）連接到企業網路。這繞過了安全管控，創造了不可見的攻擊面。</p>
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">02</span>關鍵威脅與術語解析 <span class="cnd-en">Threats &amp; Terminology</span></h2>
+            <div class="cnd-grid cnd-grid-3">
+                <div class="cnd-card">
+                    <h3>Shadow IoT (影子物聯網)</h3>
+                    <p>指員工在未經 IT 部門核准或知情的情況下，私自將 IoT 設備（如智慧手錶、智慧音箱、個人無線基地台）連接到企業網路。這繞過了安全管控，創造了不可見的攻擊面。</p>
+                </div>
+                <div class="cnd-card">
+                    <h3>Botnet (IoT 殭屍網路)</h3>
+                    <p>攻擊者利用預設密碼 (Default Credentials) 大規模感染 IoT 設備（如 Mirai 病毒）。這些設備被控制後組成殭屍網路，主要用於發動大規模 <strong>DDoS 攻擊</strong>。</p>
+                </div>
+                <div class="cnd-card">
+                    <h3>Rolling Code Attack (滾動碼攻擊)</h3>
+                    <p>針對車鑰匙或車庫門的攻擊。攻擊者攔截並記錄訊號，並試圖重放 (Replay) 以解鎖。防禦機制是確保每次訊號加密且單次有效，但如果同步機制失效，仍可能被破解。</p>
+                </div>
+                <div class="cnd-card">
+                    <h3>Side-Channel Attack (旁路攻擊)</h3>
+                    <p>不直接破解加密演算法，而是分析設備的物理特徵（如功耗、電磁輻射、聲音、執行時間）來推斷密鑰或數據。</p>
+                </div>
+                <div class="cnd-card">
+                    <h3>DNS Rebinding (DNS 重綁定)</h3>
+                    <p>攻擊者利用惡意網頁，誘使受害者的瀏覽器成為代理，繞過同源政策 (SOP)，去存取受害者內部網路中的 IoT 設備（這些設備通常沒有設防）。</p>
+                </div>
+                <div class="cnd-card">
+                    <h3>BlueBorne</h3>
+                    <p>一種藍牙漏洞，允許攻擊者在不需配對的情況下控制設備。這強調了在企業環境中關閉不必要的無線通訊協定的重要性。</p>
+                </div>
             </div>
-            <div class="concept-item">
-                <h3>Botnet (IoT 殭屍網路)</h3>
-                <p>攻擊者利用預設密碼 (Default Credentials) 大規模感染 IoT 設備（如 Mirai 病毒）。這些設備被控制後組成殭屍網路，主要用於發動大規模 <strong>DDoS 攻擊</strong>。</p>
-            </div>
-            <div class="concept-item">
-                <h3>Rolling Code Attack (滾動碼攻擊)</h3>
-                <p>針對車鑰匙或車庫門的攻擊。攻擊者攔截並記錄訊號，並試圖重放 (Replay) 以解鎖。防禦機制是確保每次訊號加密且單次有效，但如果同步機制失效，仍可能被破解。</p>
-            </div>
-            <div class="concept-item">
-                <h3>Side-Channel Attack (旁路攻擊)</h3>
-                <p>不直接破解加密演算法，而是分析設備的物理特徵（如功耗、電磁輻射、聲音、執行時間）來推斷密鑰或數據。</p>
-            </div>
-            <div class="concept-item">
-                <h3>DNS Rebinding (DNS 重綁定)</h3>
-                <p>攻擊者利用惡意網頁，誘使受害者的瀏覽器成為代理，繞過同源政策 (SOP)，去存取受害者內部網路中的 IoT 設備（這些設備通常沒有設防）。</p>
-            </div>
-            <div class="concept-item">
-                <h3>BlueBorne</h3>
-                <p>一種藍牙漏洞，允許攻擊者在不需配對的情況下控制設備。這強調了在企業環境中關閉不必要的無線通訊協定的重要性。</p>
-            </div>
-        </div>
-    </div>
+        </section>
 
-    <!-- Defense Strategies -->
-    <div class="card">
-        <h2><span class="icon">🛡️</span>防禦策略 (Defense Strategies)</h2>
-        <p>作為藍隊 (Blue Team)，我們必須採取主動防禦措施。</p>
-        
-        <ul>
-            <li><strong>網路分段 (Network Segmentation)：</strong> 這是最關鍵的防禦。將 IoT 設備隔離在獨立的 VLAN 中，禁止它們直接存取核心業務網路。即使 IoT 設備被駭，損害也被限制在該 VLAN 內。</li>
-            <li><strong>韌體管理 (Firmware Management)：</strong> 建立流程定期檢查並更新 IoT 設備韌體。確保韌體具有簽章機制 (Code Signing) 以防竄改。</li>
-            <li><strong>強身分驗證 (Strong Authentication)：</strong> 更改所有設備的預設密碼。如果可能，實施多因素驗證 (MFA)。</li>
-            <li><strong>關閉不必要服務：</strong> 禁用 UPnP (Universal Plug and Play)、Telnet (Port 23) 等不安全的服務。</li>
-            <li><strong>流量監控 (Traffic Monitoring)：</strong> IoT 設備的流量模式通常很固定。利用 IDS/IPS 監控異常流量（例如：攝影機突然嘗試連接外部未知的 IP）。</li>
-        </ul>
-    </div>
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">03</span>防禦策略 <span class="cnd-en">Defense Strategies</span></h2>
+            <p class="cnd-lead">作為藍隊 (Blue Team)，我們必須採取主動防禦措施。</p>
+            <div class="cnd-card">
+                <ul class="cnd-list">
+                    <li><strong>網路分段 (Network Segmentation)：</strong> 這是最關鍵的防禦。將 IoT 設備隔離在獨立的 VLAN 中，禁止它們直接存取核心業務網路。即使 IoT 設備被駭，損害也被限制在該 VLAN 內。</li>
+                    <li><strong>韌體管理 (Firmware Management)：</strong> 建立流程定期檢查並更新 IoT 設備韌體。確保韌體具有簽章機制 (Code Signing) 以防竄改。</li>
+                    <li><strong>強身分驗證 (Strong Authentication)：</strong> 更改所有設備的預設密碼。如果可能，實施多因素驗證 (MFA)。</li>
+                    <li><strong>關閉不必要服務：</strong> 禁用 UPnP (Universal Plug and Play)、Telnet (Port 23) 等不安全的服務。</li>
+                    <li><strong>流量監控 (Traffic Monitoring)：</strong> IoT 設備的流量模式通常很固定。利用 IDS/IPS 監控異常流量（例如：攝影機突然嘗試連接外部未知的 IP）。</li>
+                </ul>
+            </div>
+        </section>
 
-    <!-- Quiz Section -->
-    <div class="quiz-container" id="quiz-section">
-        <h2 style="border-left-color: #1e2235; color: #1e2235;">⚡ CND 實戰模擬測驗 (Module 08)</h2>
-        <p>請完成以下 10 題情境模擬題。選擇您認為最佳的答案。</p>
-        
-        <div id="questions-wrapper">
-            <!-- Questions will be injected here via JavaScript -->
-        </div>
-    </div>
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">04</span>情境模擬測驗 <span class="cnd-en">Simulation Exam</span></h2>
+            <p class="cnd-lead">請完成以下 10 題情境模擬題。選擇您認為最佳的答案。</p>
+            <div id="cnd-quiz"></div>
+        </section>
+    </main>
 
-    <footer class="footer">
+    <footer>
         Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0
     </footer>
-</div>
 
-<script>
-    const questions = [
-        {
-            id: 1,
-            question: "你是一家製造業的網路管理員。最近你發現網路效能急劇下降，經由 Wireshark 分析封包，發現大量的 TCP SYN 封包從內部的監視器攝影機發送到外部的一個特定 IP。這些攝影機仍然使用原廠預設的帳號密碼。請問這最可能遭受了什麼攻擊？",
-            options: [
-                "A. SQL Injection (SQL 注入)",
-                "B. IoT Botnet / Mirai Attack (物聯網殭屍網路攻擊)",
-                "C. Side-channel Attack (旁路攻擊)",
-                "D. BlueBorne Attack (藍牙攻擊)"
-            ],
-            correct: 1, // Index of correct option (B)
-            explanation: "<strong>正確答案：B</strong><br>解析：大量的異常流量且源自使用「預設密碼」的 IoT 設備，是典型的 Mirai 等級 IoT Botnet 攻擊特徵。攻擊者利用弱密碼控制大量設備發動 DDoS (如 TCP SYN Flood)。<br>錯誤選項分析：SQL Injection 針對資料庫；Side-channel 針對物理特徵竊取密鑰；BlueBorne 針對藍牙。"
-        },
-        {
-            id: 2,
-            question: "為了加強企業內部的 IoT 安全，你決定實施防禦縱深 (Defense-in-Depth) 策略。針對無法安裝防毒軟體的傳統 IoT 感測器，下列哪一項措施能最有效地限制其潛在危害擴散到核心伺服器？",
-            options: [
-                "A. 實施網路分段 (Network Segmentation/VLAN)",
-                "B. 定期更換 Wi-Fi 密碼",
-                "C. 在所有 IoT 設備上啟用全磁碟加密",
-                "D. 增加網際網路頻寬"
-            ],
-            correct: 0,
-            explanation: "<strong>正確答案：A</strong><br>解析：網路分段 (Network Segmentation) 將 IoT 設備隔離在獨立的 VLAN 中，這是針對無法安裝代理程式 (Agentless) 的 IoT 設備最有效的補償性控制措施 (Compensating Control)。<br>錯誤選項分析：更換 Wi-Fi 密碼無法防止內部橫向移動；許多低階 IoT 不支援全磁碟加密；增加頻寬無助於安全。"
-        },
-        {
-            id: 3,
-            question: "攻擊者利用特殊的無線電設備攔截了總經理車鑰匙發出的解鎖訊號。雖然車鑰匙使用了滾動碼 (Rolling Code) 技術，但攻擊者使用了「干擾並重放」(Jam and Replay) 的技術成功解鎖了車輛。這屬於哪一種類型的 IoT 攻擊？",
-            options: [
-                "A. Sybil Attack",
-                "B. Replay Attack (重放攻擊)",
-                "C. Ransomware",
-                "D. Cryptanalysis"
-            ],
-            correct: 1,
-            explanation: "<strong>正確答案：B</strong><br>解析：攔截有效訊號並在稍後重新發送以欺騙接收端，是典型的重放攻擊 (Replay Attack)。針對滾動碼的變種攻擊 (如 RollJam) 也是重放攻擊的一種形式。<br>錯誤選項分析：Sybil 攻擊是指偽造多個身分影響網路聲譽；Ransomware 是勒索軟體。"
-        },
-        {
-            id: 4,
-            question: "公司的研發部門購買了一批智慧燈泡並自行安裝在辦公室，連接到公司的企業 Wi-Fi 網路，但未通知 IT 部門。這造成了什麼樣的安全風險？",
-            options: [
-                "A. Shadow IoT (影子物聯網)",
-                "B. Industrial Espionage (工業間諜)",
-                "C. Fog Computing (霧運算)",
-                "D. HVAC Exploitation"
-            ],
-            correct: 0,
-            explanation: "<strong>正確答案：A</strong><br>解析：未經 IT 部門授權或知情而連接到網路的設備稱為「影子物聯網 (Shadow IoT)」。它們通常缺乏安全配置，成為攻擊者進入企業網路的隱蔽入口。<br>錯誤選項分析：霧運算是架構模式而非風險名稱。"
-        },
-        {
-            id: 5,
-            question: "攻擊者設置了一個惡意網站，當內部員工瀏覽該網站時，惡意腳本利用員工的瀏覽器作為代理，繞過防火牆對內部網段中的 IoT 恒溫器進行 HTTP 請求並更改設定。這是哪種攻擊手法？",
-            options: [
-                "A. Cross-Site Scripting (XSS)",
-                "B. DNS Rebinding (DNS 重綁定)",
-                "C. Man-in-the-Middle (MitM)",
-                "D. Session Hijacking"
-            ],
-            correct: 1,
-            explanation: "<strong>正確答案：B</strong><br>解析：DNS Rebinding 利用瀏覽器對 DNS TTL 的處理機制，將惡意域名的 IP 在短時間內切換為受害者內網 IP (如 192.168.1.x)，從而繞過同源政策 (Same-Origin Policy) 存取內網設備。<br>錯誤選項分析：雖然這涉及腳本，但核心機制是 DNS 解析的操弄以突破內網邊界。"
-        },
-        {
-            id: 6,
-            question: "在 IoT 架構中，哪一層負責將感測器收集的數據傳輸到處理系統，並且最容易受到中間人攻擊 (MitM) 與訊號干擾 (Jamming)？",
-            options: [
-                "A. Perception Layer (感知層)",
-                "B. Network Layer (網路層)",
-                "C. Application Layer (應用層)",
-                "D. Middleware Layer (支援層)"
-            ],
-            correct: 1,
-            explanation: "<strong>正確答案：B</strong><br>解析：網路層 (Network Layer) 負責數據的路由與傳輸 (透過 WiFi, Zigbee, 5G 等)。傳輸過程是 MitM 攻擊的高風險區。<br>錯誤選項分析：感知層負責數據收集 (物理端)；應用層負責介面呈現。"
-        },
-        {
-            id: 7,
-            question: "某醫院的 IoT 心律調節器被發現存在漏洞，駭客可以透過無線方式修改參數。為了修復此問題，廠商釋出了更新檔。作為 CND 人員，在部署此韌體更新前，最關鍵的驗證步驟是什麼？",
-            options: [
-                "A. 檢查檔案大小是否正確",
-                "B. 驗證韌體的數位簽章 (Digital Signature)",
-                "C. 確保下載速度夠快",
-                "D. 在午夜時段進行更新"
-            ],
-            correct: 1,
-            explanation: "<strong>正確答案：B</strong><br>解析：驗證數位簽章 (Digital Signature) 或雜湊值 (Hash) 是確保韌體來源合法且未在傳輸過程中被篡改 (Integrity) 的唯一方法。惡意韌體是 IoT 供應鏈攻擊的常見手法。<br>錯誤選項分析：檔案大小和下載速度無法保證檔案的真實性與完整性。"
-        },
-        {
-            id: 8,
-            question: "下列哪一種 IoT 通訊模型中，設備直接與另一個設備通訊，而不透過中介的應用程式伺服器或雲端？(例如：電燈開關直接控制燈泡)",
-            options: [
-                "A. Device-to-Cloud (D2C)",
-                "B. Device-to-Gateway (D2G)",
-                "C. Device-to-Device (D2D)",
-                "D. Back-End Data-Sharing"
-            ],
-            correct: 2,
-            explanation: "<strong>正確答案：C</strong><br>解析：Device-to-Device (D2D) 模型允許設備之間直接互連與溝通，通常使用 Zigbee、Z-Wave 或藍牙等協議。<br>錯誤選項分析：D2C 連接雲端；D2G 透過閘道器。"
-        },
-        {
-            id: 9,
-            question: "為了防止攻擊者利用 Shodan 等搜尋引擎掃描到公司的 IoT 設備，下列哪項措施是針對「網路邊界 (Perimeter)」最直接的防禦？",
-            options: [
-                "A. 在設備上安裝防毒軟體",
-                "B. 關閉 UPnP (Universal Plug and Play) 並限制 Port Forwarding",
-                "C. 定期備份數據",
-                "D. 實施生物特徵辨識"
-            ],
-            correct: 1,
-            explanation: "<strong>正確答案：B</strong><br>解析：Shodan 透過掃描公開 IP 的連接埠來發現設備。UPnP 會自動在路由器上開啟連接埠，使內網設備暴露於網際網路。關閉 UPnP 是減少對外攻擊面的關鍵。<br>錯誤選項分析：防毒軟體是端點防護；備份是復原策略。"
-        },
-        {
-            id: 10,
-            question: "攻擊者透過分析智慧電表的功耗變化，推測出屋主何時不在家。這屬於哪一類型的攻擊，且破壞了 CIA 三角中的哪一項屬性？",
-            options: [
-                "A. DoS Attack; Availability (可用性)",
-                "B. Side-channel Attack; Confidentiality (機密性/隱私)",
-                "C. Injection Attack; Integrity (完整性)",
-                "D. Phishing Attack; Authentication (認證)"
-            ],
-            correct: 1,
-            explanation: "<strong>正確答案：B</strong><br>解析：這是旁路攻擊 (Side-channel Attack) 的一種應用，透過非直接的資訊（功耗）洩漏了使用者的隱私資訊（生活作息），這破壞了機密性 (Confidentiality/Privacy)。"
-        }
-    ];
-
-    const quizWrapper = document.getElementById('questions-wrapper');
-
-    questions.forEach((q, index) => {
-        const questionCard = document.createElement('div');
-        questionCard.className = 'question-card';
-        
-        let optionsHtml = '';
-        q.options.forEach((opt, optIndex) => {
-            optionsHtml += `<button class="option-btn" onclick="checkAnswer(${index}, ${optIndex}, this)">${opt}</button>`;
-        });
-
-        questionCard.innerHTML = `
-            <div class="question-header">
-                <div class="q-number">Q${q.id}</div>
-                <div class="q-text">${q.question}</div>
-            </div>
-            <div class="options-grid" id="options-${index}">
-                ${optionsHtml}
-            </div>
-            <div class="explanation-box" id="explanation-${index}">
-                <span class="explanation-title">TACTICAL ANALYSIS:</span>
-                ${q.explanation}
-            </div>
-        `;
-        quizWrapper.appendChild(questionCard);
-    });
-
-    function checkAnswer(questionIndex, selectedOptionIndex, btnElement) {
-        const question = questions[questionIndex];
-        const optionsContainer = document.getElementById(`options-${questionIndex}`);
-        const explanationBox = document.getElementById(`explanation-${questionIndex}`);
-        const buttons = optionsContainer.getElementsByClassName('option-btn');
-
-        // Disable all buttons for this question
-        for (let btn of buttons) {
-            btn.disabled = true;
-            btn.style.cursor = 'default';
-        }
-
-        // Highlight selected
-        if (selectedOptionIndex === question.correct) {
-            btnElement.classList.add('selected-correct');
-            explanationBox.classList.add('correct');
-            explanationBox.innerHTML = `<span class="explanation-title" style="color: var(--success-green)">ACCESS GRANTED / ANSWER CORRECT</span>` + question.explanation;
-        } else {
-            btnElement.classList.add('selected-wrong');
-            // Highlight the correct one as well
-            buttons[question.correct].classList.add('selected-correct');
-            explanationBox.innerHTML = `<span class="explanation-title" style="color: var(--accent-red)">ACCESS DENIED / ANSWER INCORRECT</span>` + question.explanation;
-        }
-
-        // Show explanation
-        explanationBox.style.display = 'block';
-    }
-</script>
-
+    <script>
+        window.CND_QUIZ = [
+            {
+                question: "你是一家製造業的網路管理員。最近你發現網路效能急劇下降，經由 Wireshark 分析封包，發現大量的 TCP SYN 封包從內部的監視器攝影機發送到外部的一個特定 IP。這些攝影機仍然使用原廠預設的帳號密碼。請問這最可能遭受了什麼攻擊？",
+                options: [
+                    "A. SQL Injection (SQL 注入)",
+                    "B. IoT Botnet / Mirai Attack (物聯網殭屍網路攻擊)",
+                    "C. Side-channel Attack (旁路攻擊)",
+                    "D. BlueBorne Attack (藍牙攻擊)"
+                ],
+                correct: 1,
+                explanation: "<strong>正確答案：B</strong><br>解析：大量的異常流量且源自使用「預設密碼」的 IoT 設備，是典型的 Mirai 等級 IoT Botnet 攻擊特徵。攻擊者利用弱密碼控制大量設備發動 DDoS (如 TCP SYN Flood)。<br>錯誤選項分析：SQL Injection 針對資料庫；Side-channel 針對物理特徵竊取密鑰；BlueBorne 針對藍牙。"
+            },
+            {
+                question: "為了加強企業內部的 IoT 安全，你決定實施防禦縱深 (Defense-in-Depth) 策略。針對無法安裝防毒軟體的傳統 IoT 感測器，下列哪一項措施能最有效地限制其潛在危害擴散到核心伺服器？",
+                options: [
+                    "A. 實施網路分段 (Network Segmentation/VLAN)",
+                    "B. 定期更換 Wi-Fi 密碼",
+                    "C. 在所有 IoT 設備上啟用全磁碟加密",
+                    "D. 增加網際網路頻寬"
+                ],
+                correct: 0,
+                explanation: "<strong>正確答案：A</strong><br>解析：網路分段 (Network Segmentation) 將 IoT 設備隔離在獨立的 VLAN 中，這是針對無法安裝代理程式 (Agentless) 的 IoT 設備最有效的補償性控制措施 (Compensating Control)。<br>錯誤選項分析：更換 Wi-Fi 密碼無法防止內部橫向移動；許多低階 IoT 不支援全磁碟加密；增加頻寬無助於安全。"
+            },
+            {
+                question: "攻擊者利用特殊的無線電設備攔截了總經理車鑰匙發出的解鎖訊號。雖然車鑰匙使用了滾動碼 (Rolling Code) 技術，但攻擊者使用了「干擾並重放」(Jam and Replay) 的技術成功解鎖了車輛。這屬於哪一種類型的 IoT 攻擊？",
+                options: [
+                    "A. Sybil Attack",
+                    "B. Replay Attack (重放攻擊)",
+                    "C. Ransomware",
+                    "D. Cryptanalysis"
+                ],
+                correct: 1,
+                explanation: "<strong>正確答案：B</strong><br>解析：攔截有效訊號並在稍後重新發送以欺騙接收端，是典型的重放攻擊 (Replay Attack)。針對滾動碼的變種攻擊 (如 RollJam) 也是重放攻擊的一種形式。<br>錯誤選項分析：Sybil 攻擊是指偽造多個身分影響網路聲譽；Ransomware 是勒索軟體。"
+            },
+            {
+                question: "公司的研發部門購買了一批智慧燈泡並自行安裝在辦公室，連接到公司的企業 Wi-Fi 網路，但未通知 IT 部門。這造成了什麼樣的安全風險？",
+                options: [
+                    "A. Shadow IoT (影子物聯網)",
+                    "B. Industrial Espionage (工業間諜)",
+                    "C. Fog Computing (霧運算)",
+                    "D. HVAC Exploitation"
+                ],
+                correct: 0,
+                explanation: "<strong>正確答案：A</strong><br>解析：未經 IT 部門授權或知情而連接到網路的設備稱為「影子物聯網 (Shadow IoT)」。它們通常缺乏安全配置，成為攻擊者進入企業網路的隱蔽入口。<br>錯誤選項分析：霧運算是架構模式而非風險名稱。"
+            },
+            {
+                question: "攻擊者設置了一個惡意網站，當內部員工瀏覽該網站時，惡意腳本利用員工的瀏覽器作為代理，繞過防火牆對內部網段中的 IoT 恒溫器進行 HTTP 請求並更改設定。這是哪種攻擊手法？",
+                options: [
+                    "A. Cross-Site Scripting (XSS)",
+                    "B. DNS Rebinding (DNS 重綁定)",
+                    "C. Man-in-the-Middle (MitM)",
+                    "D. Session Hijacking"
+                ],
+                correct: 1,
+                explanation: "<strong>正確答案：B</strong><br>解析：DNS Rebinding 利用瀏覽器對 DNS TTL 的處理機制，將惡意域名的 IP 在短時間內切換為受害者內網 IP (如 192.168.1.x)，從而繞過同源政策 (Same-Origin Policy) 存取內網設備。<br>錯誤選項分析：雖然這涉及腳本，但核心機制是 DNS 解析的操弄以突破內網邊界。"
+            },
+            {
+                question: "在 IoT 架構中，哪一層負責將感測器收集的數據傳輸到處理系統，並且最容易受到中間人攻擊 (MitM) 與訊號干擾 (Jamming)？",
+                options: [
+                    "A. Perception Layer (感知層)",
+                    "B. Network Layer (網路層)",
+                    "C. Application Layer (應用層)",
+                    "D. Middleware Layer (支援層)"
+                ],
+                correct: 1,
+                explanation: "<strong>正確答案：B</strong><br>解析：網路層 (Network Layer) 負責數據的路由與傳輸 (透過 WiFi, Zigbee, 5G 等)。傳輸過程是 MitM 攻擊的高風險區。<br>錯誤選項分析：感知層負責數據收集 (物理端)；應用層負責介面呈現。"
+            },
+            {
+                question: "某醫院的 IoT 心律調節器被發現存在漏洞，駭客可以透過無線方式修改參數。為了修復此問題，廠商釋出了更新檔。作為 CND 人員，在部署此韌體更新前，最關鍵的驗證步驟是什麼？",
+                options: [
+                    "A. 檢查檔案大小是否正確",
+                    "B. 驗證韌體的數位簽章 (Digital Signature)",
+                    "C. 確保下載速度夠快",
+                    "D. 在午夜時段進行更新"
+                ],
+                correct: 1,
+                explanation: "<strong>正確答案：B</strong><br>解析：驗證數位簽章 (Digital Signature) 或雜湊值 (Hash) 是確保韌體來源合法且未在傳輸過程中被篡改 (Integrity) 的唯一方法。惡意韌體是 IoT 供應鏈攻擊的常見手法。<br>錯誤選項分析：檔案大小和下載速度無法保證檔案的真實性與完整性。"
+            },
+            {
+                question: "下列哪一種 IoT 通訊模型中，設備直接與另一個設備通訊，而不透過中介的應用程式伺服器或雲端？(例如：電燈開關直接控制燈泡)",
+                options: [
+                    "A. Device-to-Cloud (D2C)",
+                    "B. Device-to-Gateway (D2G)",
+                    "C. Device-to-Device (D2D)",
+                    "D. Back-End Data-Sharing"
+                ],
+                correct: 2,
+                explanation: "<strong>正確答案：C</strong><br>解析：Device-to-Device (D2D) 模型允許設備之間直接互連與溝通，通常使用 Zigbee、Z-Wave 或藍牙等協議。<br>錯誤選項分析：D2C 連接雲端；D2G 透過閘道器。"
+            },
+            {
+                question: "為了防止攻擊者利用 Shodan 等搜尋引擎掃描到公司的 IoT 設備，下列哪項措施是針對「網路邊界 (Perimeter)」最直接的防禦？",
+                options: [
+                    "A. 在設備上安裝防毒軟體",
+                    "B. 關閉 UPnP (Universal Plug and Play) 並限制 Port Forwarding",
+                    "C. 定期備份數據",
+                    "D. 實施生物特徵辨識"
+                ],
+                correct: 1,
+                explanation: "<strong>正確答案：B</strong><br>解析：Shodan 透過掃描公開 IP 的連接埠來發現設備。UPnP 會自動在路由器上開啟連接埠，使內網設備暴露於網際網路。關閉 UPnP 是減少對外攻擊面的關鍵。<br>錯誤選項分析：防毒軟體是端點防護；備份是復原策略。"
+            },
+            {
+                question: "攻擊者透過分析智慧電表的功耗變化，推測出屋主何時不在家。這屬於哪一類型的攻擊，且破壞了 CIA 三角中的哪一項屬性？",
+                options: [
+                    "A. DoS Attack; Availability (可用性)",
+                    "B. Side-channel Attack; Confidentiality (機密性/隱私)",
+                    "C. Injection Attack; Integrity (完整性)",
+                    "D. Phishing Attack; Authentication (認證)"
+                ],
+                correct: 1,
+                explanation: "<strong>正確答案：B</strong><br>解析：這是旁路攻擊 (Side-channel Attack) 的一種應用，透過非直接的資訊（功耗）洩漏了使用者的隱私資訊（生活作息），這破壞了機密性 (Confidentiality/Privacy)。"
+            }
+        ];
+    </script>
+    <script src="cnd.js?v=1"></script>
 </body>
 </html>

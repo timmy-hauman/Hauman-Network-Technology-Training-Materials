@@ -4,365 +4,135 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EC-Council CND 網路防禦課程 | Module 01</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <style>
-        /* --- CORE THEME SETTINGS (淺色主題) --- */
-        :root {
-            --bg-panel: #ffffff;
-            --alert-red: #dc2626;
-            --alert-red-dim: #fecaca;
-            --text-main: #1e2235;
-            --text-muted: #8a90a6;
-            --border-tech: #e3e6f0;
-            --glow-red: 0 0 0 3px rgba(220, 38, 38, 0.18);
-        }
-
-        body {
-            color: var(--text-main);
-            font-family: inherit;
-            overflow-x: hidden;
-        }
-
-        /* --- TYPOGRAPHY --- */
-        h1, h2, h3, .hud-text {
-            font-family: inherit;
-        }
-
-        .mono {
-            font-family: var(--hm-mono);
-        }
-
-        /* --- COMPONENTS --- */
-        .cyber-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        /* Panels/Cards */
-        .cyber-card {
-            border-radius: 12px;
-            background: var(--bg-panel);
-            border: 1px solid var(--border-tech);
-            box-shadow: 0 4px 16px rgba(30, 34, 53, 0.06);
-            position: relative;
-            padding: 1.5rem;
-            transition: all 0.3s ease;
-        }
-
-
-
-        .cyber-card:hover {
-            border-color: var(--alert-red-dim);
-            box-shadow: 0 8px 24px rgba(220, 38, 38, 0.10);
-        }
-
-        /* Buttons */
-        .btn-tactical {
-            border-radius: 8px;
-            background: transparent;
-            border: 1px solid var(--alert-red);
-            color: var(--alert-red);
-            padding: 0.5rem 1.5rem;
-            font-family: inherit;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: inline-block;
-        }
-
-        .btn-tactical:hover {
-            background: var(--alert-red);
-            color: #fff;
-            box-shadow: 0 4px 14px rgba(220, 38, 38, 0.25);
-        }
-
-        /* Section Dividers */
-        .divider-line {
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--alert-red), transparent);
-            margin: 2rem 0;
-            opacity: 0.5;
-        }
-
-        /* --- QUIZ STYLES --- */
-        .quiz-option {
-            border-radius: 8px;
-            display: block;
-            width: 100%;
-            padding: 1rem;
-            margin-bottom: 0.5rem;
-            background: #f8f9fc;
-            border: 1px solid #e3e6f0;
-            color: #1e2235;
-            text-align: left;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-family: inherit;
-            font-size: 1.1rem;
-        }
-
-        .quiz-option:hover {
-            background: #f1f3f8;
-            border-color: #b8bfd2;
-        }
-
-        .quiz-option.selected {
-            border-color: var(--alert-red);
-            background: #fef2f2;
-            color: #b91c1c;
-        }
-
-        .quiz-option.correct {
-            border-color: #15803d;
-            background: #f0fdf4;
-            color: #15803d;
-        }
-
-        .quiz-option.incorrect {
-            border-color: var(--alert-red);
-            background: #fef2f2;
-            color: #b91c1c;
-        }
-
-        .explanation-box {
-            border-radius: 0 8px 8px 0;
-            display: none;
-            margin-top: 1rem;
-            padding: 1rem;
-            border-left: 3px solid var(--alert-red);
-            background: #f8f9fc;
-        }
-
-        .explanation-box.visible {
-            display: block;
-            animation: fadeIn 0.5s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Footer (底色與文字顏色由 site-theme.css 統一) */
-        footer {
-            padding: 1rem 0;
-            text-align: center;
-            font-family: var(--hm-mono);
-            font-size: 0.8rem;
-            margin-top: 4rem;
-        }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f3f8;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #c5cad8;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--alert-red);
-        }
-
-        /* HUD Header:深色橫幅 (site-chrome.js 會換成品牌漸層) */
-        .hud-header {
-            background: #1e2235;
-            color: #fff;
-            border-radius: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1.5rem 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .status-dot {
-            height: 10px;
-            width: 10px;
-            background-color: #f87171;
-            border-radius: 50%;
-            display: inline-block;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.4; }
-            100% { opacity: 1; }
-        }
-    </style>
+    <link rel="stylesheet" href="cnd.css?v=1">
     <link rel="stylesheet" href="../assets/site-theme.css?v=20261112b">
     <script src="../assets/site-chrome.js?v=20261112b" defer></script>
 </head>
 <body>
+    <header class="cnd-hero">
+        <div class="cnd-hero-inner">
+            <p class="cnd-kicker">EC-Council CND 網路防禦課程 · Module 01</p>
+            <h1>Network Attacks &amp; Defense Strategies</h1>
+            <p class="cnd-subtitle">網路攻擊與防禦策略</p>
+        </div>
+    </header>
 
-    <!-- NAV / HUD -->
-    <div class="cyber-container">
-        <header class="hud-header">
-            <div>
-                <h1 class="text-3xl text-white"><i class="fas fa-shield-halved text-red-600 mr-3"></i>EC-COUNCIL CND</h1>
-                <p class="mono text-red-500 text-sm tracking-widest">CERTIFIED NETWORK DEFENDER v2/v3</p>
-            </div>
-            <div class="text-right hidden md:block">
-                <div class="mono text-xs text-gray-300">SYSTEM STATUS</div>
-                <div class="text-xl text-white font-bold"><span class="status-dot mr-2"></span>ONLINE</div>
-                <div class="mono text-xs text-red-500">DEFCON 3</div>
-            </div>
-        </header>
-
-        <!-- INTRO MODULE -->
-        <section class="mb-12">
-            <h2 class="text-2xl mb-6 border-l-4 border-red-600 pl-4">Module 01: Network Attacks & Defense Strategies</h2>
-            <div class="cyber-card">
-                <p class="mb-4 leading-relaxed">
-                    歡迎來到 CND 第一模組。作為一名網路防禦者 (Network Defender)，我們的目標不僅是配置防火牆，更是要理解攻擊者的思維並制定全面的防禦策略。本模組將深入探討網路防禦的核心目標、攻擊面分析以及現代防禦架構。
-                </p>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                    <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                        <h3 class="text-red-600 text-sm mb-1">GOAL</h3>
-                        <p class="font-bold text-gray-900">CIA Triad 維護</p>
+    <main class="cnd-main">
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">00</span>模組概述 <span class="cnd-en">Module Overview</span></h2>
+            <div class="cnd-card plain">
+                <p>歡迎來到 CND 第一模組。作為一名網路防禦者 (Network Defender)，我們的目標不僅是配置防火牆，更是要理解攻擊者的思維並制定全面的防禦策略。本模組將深入探討網路防禦的核心目標、攻擊面分析以及現代防禦架構。</p>
+                <div class="cnd-grid cnd-grid-3">
+                    <div class="cnd-card">
+                        <span class="cnd-tag">GOAL</span>
+                        <h3>CIA Triad 維護</h3>
                     </div>
-                    <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                        <h3 class="text-red-600 text-sm mb-1">STRATEGY</h3>
-                        <p class="font-bold text-gray-900">Defense-in-Depth</p>
+                    <div class="cnd-card">
+                        <span class="cnd-tag">STRATEGY</span>
+                        <h3>Defense-in-Depth</h3>
                     </div>
-                    <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                        <h3 class="text-red-600 text-sm mb-1">STANDARD</h3>
-                        <p class="font-bold text-gray-900">NIST / GDPR</p>
+                    <div class="cnd-card">
+                        <span class="cnd-tag">STANDARD</span>
+                        <h3>NIST / GDPR</h3>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- SECTION 1: CORE CONCEPTS -->
-        <div class="divider-line"></div>
-        
-        <section class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-            
-            <!-- Left: CIA Triad -->
-            <div>
-                <h3 class="text-xl text-gray-900 mb-4"><i class="fas fa-tri-ring text-red-600 mr-2"></i>核心防禦目標 (The CIA Triad)</h3>
-                <div class="space-y-4">
-                    <div class="cyber-card">
-                        <h4 class="text-gray-900 font-bold mb-2">Confidentiality (機密性)</h4>
-                        <p class="text-sm text-gray-600 mb-2">確保數據僅能被授權人員訪問。</p>
-                        <p class="mono text-xs text-red-700">Threats: Snooping, Dumpster Diving, Wiretapping.<br>Defense: Encryption (AES/RSA), Access Control (ACLs).</p>
-                    </div>
-                    <div class="cyber-card">
-                        <h4 class="text-gray-900 font-bold mb-2">Integrity (完整性)</h4>
-                        <p class="text-sm text-gray-600 mb-2">確保數據在傳輸或存儲過程中未被未經授權地修改。</p>
-                        <p class="mono text-xs text-red-700">Threats: Salami attacks, Data Diddling.<br>Defense: Hashing (SHA-256), Digital Signatures.</p>
-                    </div>
-                    <div class="cyber-card">
-                        <h4 class="text-gray-900 font-bold mb-2">Availability (可用性)</h4>
-                        <p class="text-sm text-gray-600 mb-2">確保授權用戶在需要時可以訪問系統與數據。</p>
-                        <p class="mono text-xs text-red-700">Threats: DoS/DDoS attacks.<br>Defense: Redundancy, Load Balancing, IPS.</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right: Defense Strategy -->
-            <div>
-                <h3 class="text-xl text-gray-900 mb-4"><i class="fas fa-chess-rook text-red-600 mr-2"></i>防禦策略 (Defense Strategies)</h3>
-                
-                <div class="cyber-card mb-6">
-                    <h4 class="text-lg text-red-600 font-bold mb-2">Defense-in-Depth (縱深防禦)</h4>
-                    <p class="text-sm mb-3">不要依賴單一防禦層。如果防火牆失效，IPS 必須接手；如果 IPS 失效，主機防禦 (HIDS) 必須發揮作用。</p>
-                    <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
-                        <li><strong class="text-gray-900">Physical:</strong> 警衛, 門禁, CCTV</li>
-                        <li><strong class="text-gray-900">Network:</strong> Firewall, VPN, NIDS, VLAN</li>
-                        <li><strong class="text-gray-900">Host:</strong> OS Hardening, Antivirus, Patching</li>
-                        <li><strong class="text-gray-900">Application:</strong> Input Validation, WAF</li>
-                        <li><strong class="text-gray-900">Data:</strong> Encryption, DLP</li>
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">01</span>核心防禦目標 <span class="cnd-en">The CIA Triad</span></h2>
+            <div class="cnd-grid cnd-grid-3">
+                <div class="cnd-card">
+                    <h3>Confidentiality (機密性)</h3>
+                    <p>確保數據僅能被授權人員訪問。</p>
+                    <ul class="cnd-list">
+                        <li><strong>Threats:</strong> Snooping, Dumpster Diving, Wiretapping.</li>
+                        <li><strong>Defense:</strong> Encryption (AES/RSA), Access Control (ACLs).</li>
                     </ul>
                 </div>
-
-                <div class="cyber-card">
-                    <h4 class="text-lg text-gray-900 font-bold mb-2">Adaptive Security Strategy</h4>
-                    <div class="grid grid-cols-2 gap-2 text-center text-sm">
-                        <div class="bg-red-50 rounded-lg p-2 border border-red-200"><span class="text-red-600 block font-bold">PREDICT</span>威脅情資分析</div>
-                        <div class="bg-red-50 rounded-lg p-2 border border-red-200"><span class="text-red-600 block font-bold">PREVENT</span>強化配置與隔離</div>
-                        <div class="bg-red-50 rounded-lg p-2 border border-red-200"><span class="text-red-600 block font-bold">DETECT</span>持續監控 (SIEM)</div>
-                        <div class="bg-red-50 rounded-lg p-2 border border-red-200"><span class="text-red-600 block font-bold">RESPOND</span>事故應變 (IR)</div>
-                    </div>
+                <div class="cnd-card">
+                    <h3>Integrity (完整性)</h3>
+                    <p>確保數據在傳輸或存儲過程中未被未經授權地修改。</p>
+                    <ul class="cnd-list">
+                        <li><strong>Threats:</strong> Salami attacks, Data Diddling.</li>
+                        <li><strong>Defense:</strong> Hashing (SHA-256), Digital Signatures.</li>
+                    </ul>
+                </div>
+                <div class="cnd-card">
+                    <h3>Availability (可用性)</h3>
+                    <p>確保授權用戶在需要時可以訪問系統與數據。</p>
+                    <ul class="cnd-list">
+                        <li><strong>Threats:</strong> DoS/DDoS attacks.</li>
+                        <li><strong>Defense:</strong> Redundancy, Load Balancing, IPS.</li>
+                    </ul>
                 </div>
             </div>
         </section>
 
-        <!-- SECTION 2: ATTACK VECTORS -->
-        <div class="divider-line"></div>
-        <section class="mb-12">
-            <h3 class="text-2xl text-gray-900 mb-6">常見攻擊向量 (Common Attack Vectors)</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                
-                <!-- Card 1 -->
-                <div class="cyber-card">
-                    <div class="text-red-600 text-3xl mb-2"><i class="fas fa-network-wired"></i></div>
-                    <h4 class="text-gray-900 font-bold text-lg">DDoS Attacks</h4>
-                    <p class="text-xs text-gray-600 mt-2">耗盡系統資源。</p>
-                    <hr class="border-gray-200 my-2">
-                    <p class="mono text-xs text-red-700">Defense: Anti-DDoS appliances, Rate Limiting, CDN.</p>
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">02</span>防禦策略 <span class="cnd-en">Defense Strategies</span></h2>
+            <div class="cnd-grid cnd-grid-2">
+                <div class="cnd-card">
+                    <h3>Defense-in-Depth (縱深防禦)</h3>
+                    <p>不要依賴單一防禦層。如果防火牆失效，IPS 必須接手；如果 IPS 失效，主機防禦 (HIDS) 必須發揮作用。</p>
+                    <ul class="cnd-list">
+                        <li><strong>Physical:</strong> 警衛, 門禁, CCTV</li>
+                        <li><strong>Network:</strong> Firewall, VPN, NIDS, VLAN</li>
+                        <li><strong>Host:</strong> OS Hardening, Antivirus, Patching</li>
+                        <li><strong>Application:</strong> Input Validation, WAF</li>
+                        <li><strong>Data:</strong> Encryption, DLP</li>
+                    </ul>
                 </div>
-
-                <!-- Card 2 -->
-                <div class="cyber-card">
-                    <div class="text-red-600 text-3xl mb-2"><i class="fas fa-user-secret"></i></div>
-                    <h4 class="text-gray-900 font-bold text-lg">Social Engineering</h4>
-                    <p class="text-xs text-gray-600 mt-2">Phishing, Vishing, Tailgating.</p>
-                    <hr class="border-gray-200 my-2">
-                    <p class="mono text-xs text-red-700">Defense: Security Awareness Training, MFA.</p>
-                </div>
-
-                <!-- Card 3 -->
-                <div class="cyber-card">
-                    <div class="text-red-600 text-3xl mb-2"><i class="fas fa-bug"></i></div>
-                    <h4 class="text-gray-900 font-bold text-lg">Malware</h4>
-                    <p class="text-xs text-gray-600 mt-2">Ransomware, Trojans, Rootkits.</p>
-                    <hr class="border-gray-200 my-2">
-                    <p class="mono text-xs text-red-700">Defense: EDR, Sandboxing, Backup (3-2-1 rule).</p>
-                </div>
-
-                <!-- Card 4 -->
-                <div class="cyber-card">
-                    <div class="text-red-600 text-3xl mb-2"><i class="fas fa-wifi"></i></div>
-                    <h4 class="text-gray-900 font-bold text-lg">MiTM</h4>
-                    <p class="text-xs text-gray-600 mt-2">ARP Poisoning, DNS Spoofing.</p>
-                    <hr class="border-gray-200 my-2">
-                    <p class="mono text-xs text-red-700">Defense: VPN, HTTPS everywhere, Dynamic ARP Inspection.</p>
+                <div class="cnd-card">
+                    <h3>Adaptive Security Strategy</h3>
+                    <ol class="cnd-steps">
+                        <li><strong>PREDICT</strong><br>威脅情資分析</li>
+                        <li><strong>PREVENT</strong><br>強化配置與隔離</li>
+                        <li><strong>DETECT</strong><br>持續監控 (SIEM)</li>
+                        <li><strong>RESPOND</strong><br>事故應變 (IR)</li>
+                    </ol>
                 </div>
             </div>
         </section>
 
-        <!-- SECTION 3: QUIZ -->
-        <div class="divider-line"></div>
-        <section id="quiz-section">
-            <h2 class="text-3xl mb-2 text-gray-900"><i class="fas fa-crosshairs text-red-600 mr-3"></i>TACTICAL SIMULATION</h2>
-            <p class="mono text-gray-500 mb-8">EC-COUNCIL STYLE EXAM PRACTICE // SELECT THE OPTIMAL DEFENSE STRATEGY</p>
-
-            <div id="quiz-container" class="space-y-8">
-                <!-- Questions will be injected here by JS -->
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">03</span>常見攻擊向量 <span class="cnd-en">Common Attack Vectors</span></h2>
+            <div class="cnd-grid cnd-grid-4">
+                <div class="cnd-card">
+                    <h3>DDoS Attacks</h3>
+                    <p>耗盡系統資源。</p>
+                    <p><strong>Defense:</strong> Anti-DDoS appliances, Rate Limiting, CDN.</p>
+                </div>
+                <div class="cnd-card">
+                    <h3>Social Engineering</h3>
+                    <p>Phishing, Vishing, Tailgating.</p>
+                    <p><strong>Defense:</strong> Security Awareness Training, MFA.</p>
+                </div>
+                <div class="cnd-card">
+                    <h3>Malware</h3>
+                    <p>Ransomware, Trojans, Rootkits.</p>
+                    <p><strong>Defense:</strong> EDR, Sandboxing, Backup (3-2-1 rule).</p>
+                </div>
+                <div class="cnd-card">
+                    <h3>MiTM</h3>
+                    <p>ARP Poisoning, DNS Spoofing.</p>
+                    <p><strong>Defense:</strong> VPN, HTTPS everywhere, Dynamic ARP Inspection.</p>
+                </div>
             </div>
-
         </section>
 
-        <!-- FOOTER -->
-        <footer>
-            Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0
-        </footer>
-    </div>
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">04</span>情境模擬測驗 <span class="cnd-en">Simulation Exam</span></h2>
+            <p class="cnd-lead">EC-COUNCIL STYLE EXAM PRACTICE // SELECT THE OPTIMAL DEFENSE STRATEGY</p>
+            <div id="cnd-quiz"></div>
+        </section>
+    </main>
 
-    <!-- JAVASCRIPT FOR QUIZ LOGIC -->
+    <footer>Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0</footer>
+
     <script>
-        const questions = [
+        window.CND_QUIZ = [
             {
-                id: 1,
                 question: "一家金融機構的網路管理員發現伺服器的 CPU 使用率突然飆升至 100%，且網路流量主要來自全球各地成千上萬個不同的 IP 地址發送的 TCP SYN 封包。這最有可能屬於哪種攻擊，且應採取何種即時緩解措施？",
                 options: [
                     "A. DoS 攻擊；立即封鎖單一來源 IP。",
@@ -370,11 +140,10 @@
                     "C. Man-in-the-Middle 攻擊；檢查 ARP 表。",
                     "D. Phishing 攻擊；重置管理員密碼。"
                 ],
-                correct: 1, // Index of correct answer (B)
-                explanation: "<strong>解析：</strong><br>這是典型的 DDoS (Distributed Denial of Service) 攻擊中的 SYN Flood。由於來源 IP 是偽造且分散的，封鎖單一 IP (選項 A) 無效。<strong>SYN Cookies</strong> 是一種無需在伺服器上分配記憶體即可驗證連線請求的技術，是防禦 SYN Flood 的標準手段。聯繫 ISP 進行流量清洗 (Scrubbing) 是針對飽和攻擊的有效對策。"
+                correct: 1,
+                explanation: "這是典型的 DDoS (Distributed Denial of Service) 攻擊中的 SYN Flood。由於來源 IP 是偽造且分散的，封鎖單一 IP (選項 A) 無效。<strong>SYN Cookies</strong> 是一種無需在伺服器上分配記憶體即可驗證連線請求的技術，是防禦 SYN Flood 的標準手段。聯繫 ISP 進行流量清洗 (Scrubbing) 是針對飽和攻擊的有效對策。"
             },
             {
-                id: 2,
                 question: "在 Defense-in-Depth (縱深防禦) 架構中，如果攻擊者成功繞過了防火牆並利用了 Web 應用程式的漏洞，哪一層防禦最應該作為最後一道防線來保護敏感數據的機密性？",
                 options: [
                     "A. Network Intrusion Detection System (NIDS)",
@@ -382,11 +151,10 @@
                     "C. Data Encryption (Encryption at rest)",
                     "D. VLAN Segmentation"
                 ],
-                correct: 2, // C
-                explanation: "<strong>解析：</strong><br>縱深防禦強調層層保護。當網路層 (防火牆)、應用層 (WAF) 和主機層都被突破時，<strong>數據加密 (Data Encryption)</strong> 是保護數據本身的最後手段。即使攻擊者竊取了資料庫檔案，沒有金鑰也無法讀取內容 (Confidentiality)。"
+                correct: 2,
+                explanation: "縱深防禦強調層層保護。當網路層 (防火牆)、應用層 (WAF) 和主機層都被突破時，<strong>數據加密 (Data Encryption)</strong> 是保護數據本身的最後手段。即使攻擊者竊取了資料庫檔案，沒有金鑰也無法讀取內容 (Confidentiality)。"
             },
             {
-                id: 3,
                 question: "某公司員工收到一封看似來自 CEO 的電子郵件，要求緊急轉帳至一個新的供應商帳戶。郵件地址有些微拼寫錯誤 (ceo@comparny.com)。這是屬於哪種類型的攻擊？",
                 options: [
                     "A. Whaling (捕鯨攻擊)",
@@ -394,11 +162,10 @@
                     "C. Dictionary Attack (字典攻擊)",
                     "D. Watering Hole Attack (水坑攻擊)"
                 ],
-                correct: 0, // A
-                explanation: "<strong>解析：</strong><br>這是一種針對高階主管或特定重要目標的魚叉式網路釣魚 (Spear Phishing)，稱為 <strong>Whaling (捕鯨攻擊)</strong>。攻擊者偽裝成高層管理人員以利用權威性進行詐騙。"
+                correct: 0,
+                explanation: "這是一種針對高階主管或特定重要目標的魚叉式網路釣魚 (Spear Phishing)，稱為 <strong>Whaling (捕鯨攻擊)</strong>。攻擊者偽裝成高層管理人員以利用權威性進行詐騙。"
             },
             {
-                id: 4,
                 question: "為了符合 GDPR 與 HIPAA 法規，網路防禦者在處理舊硬碟報廢時，應採取哪種方法以確保數據無法被恢復？",
                 options: [
                     "A. 格式化 (Formatting)",
@@ -406,11 +173,10 @@
                     "C. 物理銷毀 (Physical Destruction) 或 消磁 (Degaussing)",
                     "D. 重新安裝作業系統"
                 ],
-                correct: 2, // C
-                explanation: "<strong>解析：</strong><br>格式化或刪除分區僅是移除檔案系統的指標，數據仍殘留在磁碟上，可透過鑑識工具恢復。為了確保數據絕對無法恢復 (Data Remanence)，必須採用<strong>物理銷毀 (粉碎)</strong> 或<strong>消磁</strong>。"
+                correct: 2,
+                explanation: "格式化或刪除分區僅是移除檔案系統的指標，數據仍殘留在磁碟上，可透過鑑識工具恢復。為了確保數據絕對無法恢復 (Data Remanence)，必須採用<strong>物理銷毀 (粉碎)</strong> 或<strong>消磁</strong>。"
             },
             {
-                id: 5,
                 question: "一名攻擊者攔截了發送者與接收者之間的通訊，並在雙方不知情的情況下篡改了訊息內容。這破壞了 CIA Triad 中的哪一個要素？",
                 options: [
                     "A. Confidentiality (機密性)",
@@ -418,11 +184,10 @@
                     "C. Availability (可用性)",
                     "D. Non-repudiation (不可否認性)"
                 ],
-                correct: 1, // B
-                explanation: "<strong>解析：</strong><br><strong>Integrity (完整性)</strong> 的定義是確保數據在傳輸或存儲過程中未被未經授權地修改。Man-in-the-Middle (MITM) 攻擊中的篡改行為直接破壞了完整性。"
+                correct: 1,
+                explanation: "<strong>Integrity (完整性)</strong> 的定義是確保數據在傳輸或存儲過程中未被未經授權地修改。Man-in-the-Middle (MITM) 攻擊中的篡改行為直接破壞了完整性。"
             },
             {
-                id: 6,
                 question: "關於「零日攻擊 (Zero-Day Attack)」，下列敘述何者最為準確？",
                 options: [
                     "A. 攻擊發生在漏洞被公開且修補程式發布之後。",
@@ -430,11 +195,10 @@
                     "C. 這是針對第 0 層 (物理層) 的攻擊。",
                     "D. 這是一種只會發生在午夜 (00:00) 的定時攻擊。"
                 ],
-                correct: 1, // B
-                explanation: "<strong>解析：</strong><br><strong>Zero-Day (零日)</strong> 指的是攻擊者利用軟體供應商還不知道，或雖然知道但尚未發布修補程式 (Patch) 的漏洞進行攻擊。因為防禦者只有「零天」的時間來準備防禦。"
+                correct: 1,
+                explanation: "<strong>Zero-Day (零日)</strong> 指的是攻擊者利用軟體供應商還不知道，或雖然知道但尚未發布修補程式 (Patch) 的漏洞進行攻擊。因為防禦者只有「零天」的時間來準備防禦。"
             },
             {
-                id: 7,
                 question: "為了防禦密碼猜測攻擊 (Password Guessing)，網路管理員實施了「帳戶鎖定策略 (Account Lockout Policy)」。這可能會導致哪種副作用，被攻擊者利用來發動 DoS 攻擊？",
                 options: [
                     "A. 攻擊者可以獲得管理員權限。",
@@ -442,11 +206,10 @@
                     "C. 系統會自動刪除用戶數據。",
                     "D. 密碼會變成明文傳輸。"
                 ],
-                correct: 1, // B
-                explanation: "<strong>解析：</strong><br>雖然帳戶鎖定能防止暴力破解，但如果攻擊者知道用戶名稱，他們可以故意輸入錯誤密碼直到帳戶被鎖定，導致合法員工無法工作。這是一種針對特定帳戶的 <strong>Denial of Service (DoS)</strong> 形式。"
+                correct: 1,
+                explanation: "雖然帳戶鎖定能防止暴力破解，但如果攻擊者知道用戶名稱，他們可以故意輸入錯誤密碼直到帳戶被鎖定，導致合法員工無法工作。這是一種針對特定帳戶的 <strong>Denial of Service (DoS)</strong> 形式。"
             },
             {
-                id: 8,
                 question: "哪一種惡意軟體通常會加密受害者的檔案，並要求支付加密貨幣以換取解密金鑰？",
                 options: [
                     "A. Keylogger (鍵盤側錄程式)",
@@ -454,11 +217,10 @@
                     "C. Rootkit",
                     "D. Spyware (間諜軟體)"
                 ],
-                correct: 1, // B
-                explanation: "<strong>解析：</strong><br><strong>Ransomware (勒索軟體)</strong> 的特徵就是加密用戶數據並勒索贖金。Blue Team 的最佳防禦策略是定期離線備份 (Offline Backup)。"
+                correct: 1,
+                explanation: "<strong>Ransomware (勒索軟體)</strong> 的特徵就是加密用戶數據並勒索贖金。Blue Team 的最佳防禦策略是定期離線備份 (Offline Backup)。"
             },
             {
-                id: 9,
                 question: "在網路安全策略中，制定「可接受使用政策 (Acceptable Use Policy, AUP)」屬於哪一類控制措施？",
                 options: [
                     "A. Technical Control (技術性控制)",
@@ -466,11 +228,10 @@
                     "C. Administrative Control (管理性控制)",
                     "D. Logical Control (邏輯控制)"
                 ],
-                correct: 2, // C
-                explanation: "<strong>解析：</strong><br>政策 (Policies)、程序 (Procedures)、培訓 (Training) 與法規遵循皆屬於 <strong>Administrative Controls (管理性控制)</strong>。它們透過規範人員行為來強化安全。"
+                correct: 2,
+                explanation: "政策 (Policies)、程序 (Procedures)、培訓 (Training) 與法規遵循皆屬於 <strong>Administrative Controls (管理性控制)</strong>。它們透過規範人員行為來強化安全。"
             },
             {
-                id: 10,
                 question: "攻擊者利用 Wireshark 監聽網路流量並捕獲了未加密的 Telnet 登入憑證。這屬於哪種類型的攻擊？",
                 options: [
                     "A. Passive Attack (被動攻擊) - Sniffing",
@@ -478,64 +239,11 @@
                     "C. Active Attack (主動攻擊) - Session Hijacking",
                     "D. Insider Threat (內部威脅)"
                 ],
-                correct: 0, // A
-                explanation: "<strong>解析：</strong><br>Sniffing (監聽) 通常被歸類為 <strong>Passive Attack (被動攻擊)</strong>，因為攻擊者只是在「聽」網路上的數據，並沒有改變數據流或與系統進行交互，這使得這類攻擊很難被 IDS 檢測到。"
+                correct: 0,
+                explanation: "Sniffing (監聽) 通常被歸類為 <strong>Passive Attack (被動攻擊)</strong>，因為攻擊者只是在「聽」網路上的數據，並沒有改變數據流或與系統進行交互，這使得這類攻擊很難被 IDS 檢測到。"
             }
         ];
-
-        function renderQuiz() {
-            const container = document.getElementById('quiz-container');
-            
-            questions.forEach((q, index) => {
-                const questionHTML = `
-                    <div class="cyber-card mb-6" id="q-card-${index}">
-                        <h4 class="text-lg font-bold text-gray-900 mb-4">
-                            <span class="text-red-600 mr-2">Q${q.id}.</span> ${q.question}
-                        </h4>
-                        <div class="options-container">
-                            ${q.options.map((opt, i) => `
-                                <div class="quiz-option" onclick="checkAnswer(${index}, ${i}, this)">
-                                    ${opt}
-                                </div>
-                            `).join('')}
-                        </div>
-                        <div class="explanation-box mono text-sm text-gray-700" id="explain-${index}">
-                            ${q.explanation}
-                        </div>
-                    </div>
-                `;
-                container.innerHTML += questionHTML;
-            });
-        }
-
-        function checkAnswer(qIndex, selectedOptIndex, element) {
-            // Prevent re-answering
-            const card = document.getElementById(`q-card-${qIndex}`);
-            if (card.classList.contains('answered')) return;
-            card.classList.add('answered');
-
-            const q = questions[qIndex];
-            const explanation = document.getElementById(`explain-${qIndex}`);
-            const options = card.querySelectorAll('.quiz-option');
-
-            // Highlight selected
-            if (selectedOptIndex === q.correct) {
-                element.classList.add('correct');
-                element.innerHTML += ' <i class="fas fa-check float-right mt-1"></i>';
-            } else {
-                element.classList.add('incorrect');
-                element.innerHTML += ' <i class="fas fa-times float-right mt-1"></i>';
-                // Highlight correct one
-                options[q.correct].classList.add('correct');
-                options[q.correct].innerHTML += ' <i class="fas fa-check float-right mt-1"></i>';
-            }
-
-            // Show explanation
-            explanation.classList.add('visible');
-        }
-
-        // Initialize Quiz on Load
-        window.onload = renderQuiz;
     </script>
+    <script src="cnd.js?v=1"></script>
 </body>
 </html>

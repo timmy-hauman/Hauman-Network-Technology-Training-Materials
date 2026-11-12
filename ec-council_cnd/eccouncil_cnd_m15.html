@@ -4,570 +4,247 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EC-Council CND 網路防禦課程 | Module 15</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    
-    <style>
-        :root {
-            --bg-dark: transparent;
-            --bg-card: #ffffff;
-            --alert-red: #dc2626;
-            --alert-red-dark: #b91c1c;
-            --alert-dim: #fecaca;
-            --alert-tint: #fef2f2;
-            --cyber-gray: #f1f3f9;
-            --text-main: #1e2235;
-            --text-muted: #5b6278;
-            --card-shadow: 0 4px 16px rgba(30, 34, 53, .06);
-            --border-tech: 1px solid #e3e6f0;
-        }
-
-        body {
-            color: var(--text-main);
-        }
-
-        h1, h2, h3, h4, h5 {
-            line-height: 1.35;
-        }
-
-        .code-font {
-            font-family: 'JetBrains Mono', Consolas, monospace;
-        }
-
-        /* Tactical Borders & Cards */
-        .cyber-card {
-            background: var(--bg-card);
-            border: var(--border-tech);
-            border-radius: 12px;
-            box-shadow: var(--card-shadow);
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .cyber-card:hover {
-            border-color: var(--alert-dim);
-            box-shadow: 0 8px 22px rgba(30, 34, 53, 0.10);
-        }
-
-        /* HUD corner brackets are not used in the light theme */
-        .hud-corner { display: none; }
-
-        /* Typography Accents */
-        .text-accent {
-            color: var(--alert-red-dark);
-        }
-
-        .border-accent {
-            border-color: var(--alert-red);
-        }
-
-        /* Header banner stays dark: lighter accent for contrast */
-        header .text-accent {
-            color: #fecaca;
-        }
-
-        .section-title {
-            border-left: 4px solid var(--alert-red);
-            padding-left: 1rem;
-            margin-bottom: 2rem;
-            font-weight: 700;
-        }
-
-        /* Interactive Quiz Styles */
-        .quiz-option {
-            background: #f8f9fc;
-            border: 1px solid #e3e6f0;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .quiz-option:hover {
-            background: var(--alert-tint);
-            border-color: var(--alert-dim);
-        }
-
-        .quiz-option.selected-correct {
-            background: #f0fdf4;
-            border-color: #15803d;
-            color: #15803d;
-        }
-
-        .quiz-option.selected-wrong {
-            background: var(--alert-tint);
-            border-color: var(--alert-red);
-            color: var(--alert-red-dark);
-        }
-
-        .explanation-box {
-            display: none;
-            background: #f8f9fc;
-            border-left: 3px solid var(--alert-red);
-            border-radius: 0 8px 8px 0;
-            color: var(--text-main);
-            margin-top: 1rem;
-            padding: 1rem;
-            font-size: 0.95rem;
-            animation: fadeIn 0.5s;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-    </style>
+    <link rel="stylesheet" href="cnd.css?v=1">
     <link rel="stylesheet" href="../assets/site-theme.css?v=20261112b">
     <script src="../assets/site-chrome.js?v=20261112b" defer></script>
 </head>
-<body class="antialiased min-h-screen flex flex-col">
-
-    <!-- Header -->
-    <header class="sticky top-0 w-full z-50 bg-[#1e2235] border-b border-white/10 shadow-lg">
-        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <i data-lucide="shield-alert" class="text-accent h-8 w-8"></i>
-                <div>
-                    <h1 class="text-xl font-bold tracking-widest text-white">EC-Council <span class="text-accent">CND</span></h1>
-                    <p class="text-xs text-white/70 tracking-wider">CERTIFIED NETWORK DEFENDER v2/v3</p>
-                </div>
-            </div>
-            <div class="hidden md:flex items-center gap-6 text-sm font-bold tracking-widest">
-                <span class="text-white/80">STATUS: <span class="text-green-300 animate-pulse">ONLINE</span></span>
-                <span class="text-white/80">MODULE: <span class="text-accent">15</span></span>
-            </div>
+<body>
+    <header class="cnd-hero">
+        <div class="cnd-hero-inner">
+            <p class="cnd-kicker">EC-Council CND 網路防禦課程 · Module 15</p>
+            <h1>Logs Monitoring &amp; Analysis</h1>
+            <p class="cnd-subtitle">日誌監控與分析</p>
         </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="flex-grow pt-10 pb-12 container mx-auto px-4 md:px-8">
-        
-        <!-- Hero Section -->
-        <section class="mb-16">
-            <div class="cyber-card p-8 md:p-12 relative">
-                <div class="hud-corner tl"></div><div class="hud-corner tr"></div><div class="hud-corner bl"></div><div class="hud-corner br"></div>
-                <div class="grid md:grid-cols-2 gap-8 items-center">
-                    <div>
-                        <div class="inline-block px-3 py-1 border border-red-200 bg-red-50 text-red-700 text-xs font-bold mb-4 tracking-widest">BLUE TEAM PROTOCOL</div>
-                        <h2 class="text-4xl md:text-6xl font-black mb-6 leading-tight text-gray-900">
-                            MODULE 15 <br>
-                            <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-red-800">Logs Monitoring</span><br>
-                            & Analysis
-                        </h2>
-                        <p class="text-gray-600 text-lg mb-6 leading-relaxed">
-                            日誌 (Logs) 是網路防禦的「黑盒子」。在網路戰場中，即時監控與事後鑑識是區分「被入侵」與「成功防禦」的關鍵。本模組將深入探討如何將數據轉化為情報。
-                        </p>
-                    </div>
-                    <div class="relative h-64 md:h-full bg-[#1e2235] border border-slate-700 p-4 font-mono text-xs text-green-400 overflow-hidden rounded-lg">
-                        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/diagmonds-light.png')] opacity-10"></div>
-                        <div class="typing-effect">
-                            > SYSTEM_INIT... OK<br>
-                            > LOADING_MODULE_15... OK<br>
-                            > CHECKING_INTEGRITY... 100%<br>
-                            > DETECTED_THREAT_LEVEL: HIGH<br>
-                            > ACTIVATING_LOG_COLLECTOR...<br>
-                            > <span class="text-red-300">[ALERT]</span> Multiple failed login attempts detected (EventID: 4625)<br>
-                            > <span class="text-red-300">[ALERT]</span> Analyzing Source IP: 192.168.1.105<br>
-                            > CORRELATING EVENTS...<br>
-                            > DEFENSE MEASURES: ENGAGED<br>
-                        </div>
-                    </div>
+    <main class="cnd-main">
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">00</span>模組概述 <span class="cnd-en">Module Overview</span></h2>
+            <div class="cnd-card plain">
+                <p>日誌 (Logs) 是網路防禦的「黑盒子」。在網路戰場中，即時監控與事後鑑識是區分「被入侵」與「成功防禦」的關鍵。本模組將深入探討如何將數據轉化為情報。</p>
+                <pre class="cnd-code">&gt; SYSTEM_INIT... <span class="ok">OK</span>
+&gt; LOADING_MODULE_15... <span class="ok">OK</span>
+&gt; CHECKING_INTEGRITY... 100%
+&gt; DETECTED_THREAT_LEVEL: HIGH
+&gt; ACTIVATING_LOG_COLLECTOR...
+&gt; <span class="alert">[ALERT]</span> Multiple failed login attempts detected (EventID: 4625)
+&gt; <span class="alert">[ALERT]</span> Analyzing Source IP: 192.168.1.105
+&gt; CORRELATING EVENTS...
+&gt; DEFENSE MEASURES: ENGAGED</pre>
+            </div>
+        </section>
+
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">01</span>日誌概念與基礎架構 <span class="cnd-en">Logging Concepts &amp; Infrastructure</span></h2>
+            <div class="cnd-grid cnd-grid-3">
+                <div class="cnd-card">
+                    <h3>可視性 (Visibility)</h3>
+                    <p>你無法防禦你看不見的東西。日誌提供網路活動的詳細記錄，協助我們回答：誰(Who)、做了什麼(What)、何時(When)、在哪裡(Where)以及如何(How)。</p>
+                </div>
+                <div class="cnd-card">
+                    <h3>NTP 時間同步</h3>
+                    <p><strong>關鍵防禦點：</strong> 在法庭鑑識中，如果日誌時間不同步，證據將無效。所有設備必須指向同一個 Stratum 1 或 Stratum 2 NTP 伺服器。</p>
+                </div>
+                <div class="cnd-card">
+                    <h3>集中式管理 (SIEM)</h3>
+                    <p>單機日誌容易被駭客清除。防禦者必須將日誌即時轉發 (Log Forwarding) 至安全的 Syslog Server 或 SIEM，確保數據的不可否認性 (Non-repudiation)。</p>
                 </div>
             </div>
         </section>
 
-        <!-- Concept 1: The Why -->
-        <section class="mb-16">
-            <h3 class="section-title text-2xl text-gray-900">01 // LOGGING CONCEPTS & INFRASTRUCTURE</h3>
-            <div class="grid md:grid-cols-3 gap-6">
-                <!-- Card 1 -->
-                <div class="cyber-card p-6">
-                    <div class="flex items-center gap-3 mb-4">
-                        <i data-lucide="eye" class="text-accent"></i>
-                        <h4 class="text-xl font-bold">可視性 (Visibility)</h4>
-                    </div>
-                    <p class="text-gray-600 text-sm leading-relaxed">
-                        你無法防禦你看不見的東西。日誌提供網路活動的詳細記錄，協助我們回答：誰(Who)、做了什麼(What)、何時(When)、在哪裡(Where)以及如何(How)。
-                    </p>
-                </div>
-                <!-- Card 2 -->
-                <div class="cyber-card p-6">
-                    <div class="flex items-center gap-3 mb-4">
-                        <i data-lucide="clock" class="text-accent"></i>
-                        <h4 class="text-xl font-bold">NTP 時間同步</h4>
-                    </div>
-                    <p class="text-gray-600 text-sm leading-relaxed">
-                        <strong class="text-gray-900">關鍵防禦點：</strong> 在法庭鑑識中，如果日誌時間不同步，證據將無效。所有設備必須指向同一個 Stratum 1 或 Stratum 2 NTP 伺服器。
-                    </p>
-                </div>
-                <!-- Card 3 -->
-                <div class="cyber-card p-6">
-                    <div class="flex items-center gap-3 mb-4">
-                        <i data-lucide="database" class="text-accent"></i>
-                        <h4 class="text-xl font-bold">集中式管理 (SIEM)</h4>
-                    </div>
-                    <p class="text-gray-600 text-sm leading-relaxed">
-                        單機日誌容易被駭客清除。防禦者必須將日誌即時轉發 (Log Forwarding) 至安全的 Syslog Server 或 SIEM，確保數據的不可否認性 (Non-repudiation)。
-                    </p>
-                </div>
-            </div>
-        </section>
-
-        <!-- Concept 2: Windows Logs -->
-        <section class="mb-16">
-            <h3 class="section-title text-2xl text-gray-900">02 // WINDOWS LOG ANALYSIS</h3>
-            <div class="bg-white shadow-sm border border-gray-200 p-8 rounded-sm">
-                <div class="mb-6">
-                    <h4 class="text-xl font-bold mb-2 text-gray-900"><span class="text-accent">>>></span> Event Viewer 關鍵事件 ID (Event IDs)</h4>
-                    <p class="text-gray-600 mb-4">作為 CND 防禦者，您不需要記住所有 ID，但以下幾個是偵測入侵的關鍵指標 (IoA)：</p>
-                </div>
-                
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="border-b border-gray-200 text-accent font-bold uppercase text-sm">
-                                <th class="p-4">Event ID</th>
-                                <th class="p-4">Log Type</th>
-                                <th class="p-4">Description (描述)</th>
-                                <th class="p-4">Defense Context (防禦視角)</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-gray-700 text-sm code-font">
-                            <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
-                                <td class="p-4 text-accent font-bold">4624</td>
-                                <td class="p-4">Security</td>
-                                <td class="p-4">Logon Successful</td>
-                                <td class="p-4">正常登入。若發生在非上班時間或來自異常 IP，需警覺。</td>
-                            </tr>
-                            <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
-                                <td class="p-4 text-accent font-bold">4625</td>
-                                <td class="p-4">Security</td>
-                                <td class="p-4">Logon Failed</td>
-                                <td class="p-4">登入失敗。連續大量的 4625 是 <span class="text-red-700">Brute Force</span> 攻擊的典型特徵。</td>
-                            </tr>
-                            <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
-                                <td class="p-4 text-accent font-bold">4720</td>
-                                <td class="p-4">Security</td>
-                                <td class="p-4">User Account Created</td>
-                                <td class="p-4">駭客建立後門帳號的跡象。需核對變更管理紀錄。</td>
-                            </tr>
-                            <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
-                                <td class="p-4 text-accent font-bold">7045</td>
-                                <td class="p-4">System</td>
-                                <td class="p-4">Service Installed</td>
-                                <td class="p-4">惡意軟體通常會安裝服務以維持持續性 (Persistence)。</td>
-                            </tr>
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">02</span>Windows 日誌分析 <span class="cnd-en">Windows Log Analysis</span></h2>
+            <div class="cnd-card">
+                <h3>Event Viewer 關鍵事件 ID (Event IDs)</h3>
+                <p>作為 CND 防禦者，您不需要記住所有 ID，但以下幾個是偵測入侵的關鍵指標 (IoA)：</p>
+                <div class="cnd-table-wrap">
+                    <table class="cnd-table">
+                        <thead><tr><th>Event ID</th><th>Log Type</th><th>Description (描述)</th><th>Defense Context (防禦視角)</th></tr></thead>
+                        <tbody>
+                            <tr><td>4624</td><td>Security</td><td>Logon Successful</td><td>正常登入。若發生在非上班時間或來自異常 IP，需警覺。</td></tr>
+                            <tr><td>4625</td><td>Security</td><td>Logon Failed</td><td>登入失敗。連續大量的 4625 是 <span class="cnd-hl">Brute Force</span> 攻擊的典型特徵。</td></tr>
+                            <tr><td>4720</td><td>Security</td><td>User Account Created</td><td>駭客建立後門帳號的跡象。需核對變更管理紀錄。</td></tr>
+                            <tr><td>7045</td><td>System</td><td>Service Installed</td><td>惡意軟體通常會安裝服務以維持持續性 (Persistence)。</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
         </section>
 
-        <!-- Concept 3: Linux Logs -->
-        <section class="mb-16">
-            <h3 class="section-title text-2xl text-gray-900">03 // LINUX LOGGING & SYSLOG</h3>
-            <div class="grid md:grid-cols-2 gap-8">
-                <!-- Visual Structure -->
-                <div class="space-y-4">
-                    <p class="text-gray-600">Linux 系統主要依賴 <span class="text-gray-900 font-bold">Syslog</span> 協定。設定檔通常位於 <code class="text-accent">/etc/rsyslog.conf</code> 或 <code class="text-accent">/etc/syslog.conf</code>。</p>
-                    
-                    <div class="cyber-card p-5">
-                        <h5 class="text-lg font-bold mb-3 border-b border-gray-200 pb-2">關鍵日誌路徑</h5>
-                        <ul class="space-y-3 code-font text-sm text-gray-700">
-                            <li class="flex items-start">
-                                <span class="text-accent mr-2">/var/log/auth.log</span>
-                                <span>(Debian/Ubuntu) 認證日誌，包含 sudo 使用紀錄、SSH 登入。</span>
-                            </li>
-                            <li class="flex items-start">
-                                <span class="text-accent mr-2">/var/log/secure</span>
-                                <span>(RHEL/CentOS) 同上，記錄安全相關訊息。</span>
-                            </li>
-                            <li class="flex items-start">
-                                <span class="text-accent mr-2">/var/log/syslog</span>
-                                <span>系統層級的廣泛日誌。</span>
-                            </li>
-                            <li class="flex items-start">
-                                <span class="text-accent mr-2">/var/log/dmesg</span>
-                                <span>Kernel 環狀緩衝區訊息 (開機硬體偵測)。</span>
-                            </li>
-                        </ul>
-                    </div>
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">03</span>Linux 日誌與 Syslog <span class="cnd-en">Linux Logging &amp; Syslog</span></h2>
+            <p class="cnd-lead">Linux 系統主要依賴 <strong>Syslog</strong> 協定。設定檔通常位於 <code>/etc/rsyslog.conf</code> 或 <code>/etc/syslog.conf</code>。</p>
+            <div class="cnd-grid cnd-grid-2">
+                <div class="cnd-card">
+                    <h3>關鍵日誌路徑</h3>
+                    <ul class="cnd-list">
+                        <li><code>/var/log/auth.log</code> (Debian/Ubuntu) 認證日誌，包含 sudo 使用紀錄、SSH 登入。</li>
+                        <li><code>/var/log/secure</code> (RHEL/CentOS) 同上，記錄安全相關訊息。</li>
+                        <li><code>/var/log/syslog</code> 系統層級的廣泛日誌。</li>
+                        <li><code>/var/log/dmesg</code> Kernel 環狀緩衝區訊息 (開機硬體偵測)。</li>
+                    </ul>
                 </div>
-
-                <!-- Severity Levels -->
-                <div class="cyber-card p-5">
-                    <h5 class="text-lg font-bold mb-3 border-b border-gray-200 pb-2">Syslog Severity Levels (嚴重性等級)</h5>
-                    <div class="grid grid-cols-2 gap-2 text-sm code-font">
-                        <div class="bg-red-100 p-2 text-red-900 border border-red-300">0 - Emergency (系統無法使用)</div>
-                        <div class="bg-red-50 p-2 text-red-800 border border-red-300">1 - Alert (需立即處理)</div>
-                        <div class="bg-red-50 p-2 text-red-700 border border-red-200">2 - Critical (嚴重錯誤)</div>
-                        <div class="bg-orange-50 p-2 text-orange-800 border border-orange-200">3 - Error (錯誤)</div>
-                        <div class="bg-amber-50 p-2 text-amber-800 border border-amber-200">4 - Warning (警告)</div>
-                        <div class="bg-cyan-50 p-2 text-cyan-800 border border-cyan-200">5 - Notice (正常但重要)</div>
-                        <div class="bg-gray-100 p-2 text-gray-700 border border-gray-200">6 - Informational</div>
-                        <div class="bg-gray-100 p-2 text-gray-700 border border-gray-200">7 - Debug</div>
-                    </div>
-                    <p class="mt-4 text-xs text-gray-500">*防禦重點：應特別監控 Level 0-4 的日誌。</p>
+                <div class="cnd-card">
+                    <h3>Syslog Severity Levels (嚴重性等級)</h3>
+                    <ul class="cnd-list">
+                        <li><span class="cnd-tag">0 - Emergency</span> (系統無法使用)</li>
+                        <li><span class="cnd-tag">1 - Alert</span> (需立即處理)</li>
+                        <li><span class="cnd-tag">2 - Critical</span> (嚴重錯誤)</li>
+                        <li><span class="cnd-tag amber">3 - Error</span> (錯誤)</li>
+                        <li><span class="cnd-tag amber">4 - Warning</span> (警告)</li>
+                        <li><span class="cnd-tag cyan">5 - Notice</span> (正常但重要)</li>
+                        <li><span class="cnd-tag cyan">6 - Informational</span></li>
+                        <li><span class="cnd-tag cyan">7 - Debug</span></li>
+                    </ul>
+                    <div class="cnd-callout warn"><p>*防禦重點：應特別監控 Level 0-4 的日誌。</p></div>
                 </div>
             </div>
         </section>
 
-        <!-- Compliance & Regulatory -->
-        <section class="mb-20">
-             <h3 class="section-title text-2xl text-gray-900">04 // LEGAL & COMPLIANCE</h3>
-             <div class="flex flex-col md:flex-row gap-6">
-                 <div class="flex-1 bg-white border border-gray-200 shadow-sm p-6 border-l-2 border-accent">
-                     <h4 class="font-bold text-gray-900 mb-2">PCI-DSS Requirement 10</h4>
-                     <p class="text-sm text-gray-600">針對支付卡產業。要求必須追蹤並監控所有對網路資源和持卡人資料的存取。日誌必須保存至少一年，且最近三個月的日誌需可隨時線上查詢。</p>
-                 </div>
-                 <div class="flex-1 bg-white border border-gray-200 shadow-sm p-6 border-l-2 border-accent">
-                     <h4 class="font-bold text-gray-900 mb-2">GDPR (一般資料保護規則)</h4>
-                     <p class="text-sm text-gray-600">若日誌中包含個人識別資訊 (PII)，必須受到嚴格保護。同時日誌本身是證明企業是否盡到「資料保護責任」的關鍵證據。</p>
-                 </div>
-                 <div class="flex-1 bg-white border border-gray-200 shadow-sm p-6 border-l-2 border-accent">
-                     <h4 class="font-bold text-gray-900 mb-2">SOX / HIPAA</h4>
-                     <p class="text-sm text-gray-600">針對上市公司財務與醫療資訊。要求保留稽核軌跡 (Audit Trails) 以防止詐欺與未授權存取。</p>
-                 </div>
-             </div>
-        </section>
-
-        <!-- QUIZ SECTION -->
-        <section id="quiz-section" class="py-12 border-t border-gray-200">
-            <div class="flex items-center gap-4 mb-8">
-                <div class="h-1 flex-grow bg-gray-200"></div>
-                <h2 class="text-3xl font-black text-gray-900 text-center">TACTICAL ASSESSMENT <span class="text-accent">V3.0</span></h2>
-                <div class="h-1 flex-grow bg-gray-200"></div>
-            </div>
-            
-            <p class="text-center text-gray-600 mb-10 max-w-2xl mx-auto">
-                以下 10 題模擬 EC-Council CND 認證考題情境。請以「防禦者 (Network Defender)」的角度進行決策。<br>
-                <span class="text-xs text-accent">注意：請選擇最佳答案，選擇後將直接顯示解析。</span>
-            </p>
-
-            <div class="max-w-4xl mx-auto space-y-8" id="quiz-container">
-                <!-- Questions will be injected here by JS -->
-            </div>
-
-            <!-- Score Display -->
-            <div class="mt-12 text-center p-6 border border-gray-200 bg-white shadow-sm hidden" id="final-score-box">
-                <h3 class="text-2xl font-bold text-gray-900 mb-2">ASSESSMENT COMPLETE</h3>
-                <p class="text-gray-600">SCORE: <span id="score-display" class="text-accent text-3xl font-mono font-bold">0/10</span></p>
-                <button onclick="location.reload()" class="mt-6 px-6 py-2 bg-red-700 text-white font-bold hover:bg-red-800 transition border border-red-700">RESTART SIMULATION</button>
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">04</span>法規與合規 <span class="cnd-en">Legal &amp; Compliance</span></h2>
+            <div class="cnd-grid cnd-grid-3">
+                <div class="cnd-card">
+                    <h3>PCI-DSS Requirement 10</h3>
+                    <p>針對支付卡產業。要求必須追蹤並監控所有對網路資源和持卡人資料的存取。日誌必須保存至少一年，且最近三個月的日誌需可隨時線上查詢。</p>
+                </div>
+                <div class="cnd-card">
+                    <h3>GDPR (一般資料保護規則)</h3>
+                    <p>若日誌中包含個人識別資訊 (PII)，必須受到嚴格保護。同時日誌本身是證明企業是否盡到「資料保護責任」的關鍵證據。</p>
+                </div>
+                <div class="cnd-card">
+                    <h3>SOX / HIPAA</h3>
+                    <p>針對上市公司財務與醫療資訊。要求保留稽核軌跡 (Audit Trails) 以防止詐欺與未授權存取。</p>
+                </div>
             </div>
         </section>
 
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">05</span>情境模擬測驗 <span class="cnd-en">Simulation Exam</span></h2>
+            <p class="cnd-lead">以下 10 題模擬 EC-Council CND 認證考題情境。請以「防禦者 (Network Defender)」的角度進行決策。</p>
+            <div class="cnd-callout info"><span class="cnd-callout-title">注意</span><p>請選擇最佳答案，選擇後將直接顯示解析。</p></div>
+            <div id="cnd-quiz"></div>
+        </section>
     </main>
 
-    <!-- Footer -->
-    <footer class="py-4 text-center">
-        <div class="container mx-auto">
-            <p class="text-gray-500 text-xs font-mono tracking-wider">
-                Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0
-            </p>
-        </div>
+    <footer>
+        Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0
     </footer>
 
-    <!-- JavaScript for Quiz -->
     <script>
-        const questions = [
+        window.CND_QUIZ = [
             {
-                id: 1,
-                scenario: "你正在審查 Windows Server 的安全性日誌，發現短時間內有大量的 Event ID 4625，隨後緊接著一個 Event ID 4624。這最可能代表什麼情況？",
+                question: "你正在審查 Windows Server 的安全性日誌，發現短時間內有大量的 Event ID 4625，隨後緊接著一個 Event ID 4624。這最可能代表什麼情況？",
                 options: [
                     "A. 服務帳戶密碼過期",
                     "B. 成功的字典攻擊或暴力破解攻擊 (Brute Force)",
                     "C. 使用者忘記密碼後重設成功",
                     "D. 正常的網域控制器同步流量"
                 ],
-                correct: 1, // B is index 1
+                correct: 1,
                 explanation: "<strong>解析：</strong> Event ID 4625 代表「登入失敗」，4624 代表「登入成功」。大量失敗後接著一個成功，是典型暴力破解 (Brute Force) 成功攻破密碼的特徵。防禦者應立即檢查來源 IP 並強制重設該帳號密碼。"
             },
             {
-                id: 2,
-                scenario: "作為 Linux 管理員，你需要調查是否有未授權的使用者嘗試切換到 root 權限 (sudo abuse)。你應該優先檢查哪個日誌檔案？",
+                question: "作為 Linux 管理員，你需要調查是否有未授權的使用者嘗試切換到 root 權限 (sudo abuse)。你應該優先檢查哪個日誌檔案？",
                 options: [
                     "A. /var/log/dmesg",
                     "B. /var/log/apache2/access.log",
                     "C. /var/log/auth.log 或 /var/log/secure",
                     "D. /var/log/kern.log"
                 ],
-                correct: 2, // C
+                correct: 2,
                 explanation: "<strong>解析：</strong> 在 Debian/Ubuntu 系統中為 <code>/var/log/auth.log</code>，在 RHEL/CentOS 中為 <code>/var/log/secure</code>。這些檔案記錄了所有身分驗證活動，包括成功的 SSH 登入和 sudo 指令的使用。"
             },
             {
-                id: 3,
-                scenario: "公司遭受網路攻擊，法務部門要求保存日誌作為證據。然而，鑑識團隊發現防火牆日誌的時間與 Web Server 日誌的時間相差了 5 分鐘，導致無法關聯攻擊路徑。這是缺乏了什麼配置？",
+                question: "公司遭受網路攻擊，法務部門要求保存日誌作為證據。然而，鑑識團隊發現防火牆日誌的時間與 Web Server 日誌的時間相差了 5 分鐘，導致無法關聯攻擊路徑。這是缺乏了什麼配置？",
                 options: [
                     "A. DHCP Snooping",
                     "B. NTP (Network Time Protocol) 同步",
                     "C. DNSSEC",
                     "D. SNMP v3"
                 ],
-                correct: 1, // B
+                correct: 1,
                 explanation: "<strong>解析：</strong> 時間同步 (Time Synchronization) 對於日誌分析與鑑識至關重要。若不同設備時間不一致，將無法重建攻擊時間軸 (Timeline)，導致證據在法庭上可能無效。"
             },
             {
-                id: 4,
-                scenario: "你正在設定 Syslog 伺服器來接收路由器日誌。為了避免硬碟被過多無用的除錯訊息填滿，但又不能遺漏嚴重錯誤，你應該將 Logging Level 設定為哪個層級以上？",
+                question: "你正在設定 Syslog 伺服器來接收路由器日誌。為了避免硬碟被過多無用的除錯訊息填滿，但又不能遺漏嚴重錯誤，你應該將 Logging Level 設定為哪個層級以上？",
                 options: [
                     "A. Level 7 (Debug)",
                     "B. Level 6 (Informational)",
                     "C. Level 4 (Warning) 或 Level 3 (Error)",
                     "D. Level 0 (Emergency) only"
                 ],
-                correct: 2, // C
+                correct: 2,
                 explanation: "<strong>解析：</strong> Level 7 (Debug) 和 Level 6 (Info) 會產生極大量數據。通常生產環境建議設定在 Level 4 (Warning) 或 Level 3 (Error) 以上，以平衡可視性與儲存成本。"
             },
             {
-                id: 5,
-                scenario: "駭客入侵了你的 Web Server 並刪除了本地的日誌檔案以隱藏蹤跡。為了防止這種情況發生，最佳的防禦策略是什麼？",
+                question: "駭客入侵了你的 Web Server 並刪除了本地的日誌檔案以隱藏蹤跡。為了防止這種情況發生，最佳的防禦策略是什麼？",
                 options: [
                     "A. 將日誌檔案設定為唯讀屬性",
                     "B. 實施遠端日誌伺服器 (Remote Logging) 並即時轉發",
                     "C. 每天手動備份日誌到 USB",
                     "D. 隱藏日誌資料夾"
                 ],
-                correct: 1, // B
+                correct: 1,
                 explanation: "<strong>解析：</strong> 駭客一旦取得 Root/Admin 權限，本地權限設定皆可被繞過。唯一能確保日誌完整性的方法是將日誌即時轉發 (Log Forwarding) 到一台駭客無法存取的獨立日誌伺服器或 SIEM。"
             },
             {
-                id: 6,
-                scenario: "在分析 IIS Web Server 日誌時，你發現 URL 欄位包含類似 'UNION SELECT 1, user, password' 的字串。這表明正在發生哪種攻擊？",
+                question: "在分析 IIS Web Server 日誌時，你發現 URL 欄位包含類似 'UNION SELECT 1, user, password' 的字串。這表明正在發生哪種攻擊？",
                 options: [
                     "A. XSS (Cross-Site Scripting)",
                     "B. SQL Injection",
                     "C. Directory Traversal",
                     "D. Buffer Overflow"
                 ],
-                correct: 1, // B
+                correct: 1,
                 explanation: "<strong>解析：</strong> <code>UNION SELECT</code> 是標準的 SQL 語法，用於合併查詢結果。在 Web 日誌的 URL 參數中看到 SQL 關鍵字，是典型的 SQL 注入攻擊特徵。"
             },
             {
-                id: 7,
-                scenario: "根據 PCI-DSS 合規要求，儲存信用卡資料的系統，其稽核日誌 (Audit Logs) 必須至少保存多久？",
+                question: "根據 PCI-DSS 合規要求，儲存信用卡資料的系統，其稽核日誌 (Audit Logs) 必須至少保存多久？",
                 options: [
                     "A. 1 個月",
                     "B. 6 個月",
                     "C. 1 年 (且最近 3 個月需可立即查詢)",
                     "D. 5 年"
                 ],
-                correct: 2, // C
+                correct: 2,
                 explanation: "<strong>解析：</strong> PCI-DSS Requirement 10.7 明確規定：稽核紀錄必須至少保留一年，且最近三個月的紀錄必須處於可立即進行分析的狀態 (immediately available)。"
             },
             {
-                id: 8,
-                scenario: "防火牆日誌顯示內部某台主機不斷嘗試連線外部大量不同的 IP Address 的 Port 445。這最可能代表什麼？",
+                question: "防火牆日誌顯示內部某台主機不斷嘗試連線外部大量不同的 IP Address 的 Port 445。這最可能代表什麼？",
                 options: [
                     "A. 該主機正在進行 Windows Update",
                     "B. 該主機感染了蠕蟲 (Worm) 或正在進行掃描行為",
                     "C. 正常的 P2P 下載流量",
                     "D. DNS 解析錯誤"
                 ],
-                correct: 1, // B
+                correct: 1,
                 explanation: "<strong>解析：</strong> Port 445 (SMB) 是勒索軟體與蠕蟲 (如 WannaCry) 常用的擴散埠口。單一內部主機對外部大量 IP 發起 Port 445 連線，是典型的橫向移動 (Lateral Movement) 或對外掃描行為。"
             },
             {
-                id: 9,
-                scenario: "SIEM (Security Information and Event Management) 的主要功能中，哪一項可以幫助防禦者從海量日誌中識別出複雜的攻擊模式？",
+                question: "SIEM (Security Information and Event Management) 的主要功能中，哪一項可以幫助防禦者從海量日誌中識別出複雜的攻擊模式？",
                 options: [
                     "A. Log Rotation (日誌輪替)",
                     "B. Event Correlation (事件關聯分析)",
                     "C. Data Compression (資料壓縮)",
                     "D. Time Stamping (時間戳記)"
                 ],
-                correct: 1, // B
+                correct: 1,
                 explanation: "<strong>解析：</strong> Event Correlation (關聯分析) 是 SIEM 的核心價值。它能將來自防火牆、IDS、OS 等不同來源的日誌結合起來，識別出單一設備無法發現的複雜攻擊 (例如：門禁刷卡失敗 + 內部網域登入成功 = 物理入侵)。"
             },
             {
-                id: 10,
-                scenario: "以下哪一個 Windows Event Log 類別，專門記錄作業系統組件 (如驅動程式載入、硬體故障) 的事件？",
+                question: "以下哪一個 Windows Event Log 類別，專門記錄作業系統組件 (如驅動程式載入、硬體故障) 的事件？",
                 options: [
                     "A. Security Log",
                     "B. Application Log",
                     "C. System Log",
                     "D. Forwarded Events"
                 ],
-                correct: 2, // C
+                correct: 2,
                 explanation: "<strong>解析：</strong> <strong>System Log</strong> 包含 Windows 系統組件記錄的事件 (如驅動程式失敗、服務啟動/停止)。Security Log 記錄稽核/登入事件；Application Log 記錄應用程式 (如 SQL Server) 的事件。"
             }
         ];
-
-        let score = 0;
-        const quizContainer = document.getElementById('quiz-container');
-        const scoreDisplay = document.getElementById('score-display');
-        const finalScoreBox = document.getElementById('final-score-box');
-
-        function renderQuiz() {
-            questions.forEach((q, index) => {
-                const questionHTML = `
-                    <div class="cyber-card p-6 md:p-8" id="question-${index}">
-                        <div class="flex justify-between items-start mb-4">
-                            <h4 class="text-lg md:text-xl font-bold text-gray-900"><span class="text-accent">Q${q.id}.</span> ${q.scenario}</h4>
-                        </div>
-                        
-                        <div class="space-y-3">
-                            ${q.options.map((opt, optIndex) => `
-                                <div class="quiz-option p-4 rounded text-gray-700 font-mono text-sm" 
-                                     onclick="checkAnswer(${index}, ${optIndex}, this)">
-                                    ${opt}
-                                </div>
-                            `).join('')}
-                        </div>
-
-                        <div id="explanation-${index}" class="explanation-box">
-                            ${q.explanation}
-                        </div>
-                    </div>
-                `;
-                quizContainer.innerHTML += questionHTML;
-            });
-        }
-
-        function checkAnswer(questionIndex, selectedOptionIndex, element) {
-            const questionData = questions[questionIndex];
-            const parent = document.getElementById(`question-${questionIndex}`);
-            const options = parent.querySelectorAll('.quiz-option');
-            const explanationBox = document.getElementById(`explanation-${questionIndex}`);
-
-            // Prevent re-answering
-            if (parent.getAttribute('data-answered') === 'true') return;
-            parent.setAttribute('data-answered', 'true');
-
-            // Visual feedback
-            if (selectedOptionIndex === questionData.correct) {
-                element.classList.add('selected-correct');
-                score++;
-            } else {
-                element.classList.add('selected-wrong');
-                // Highlight the correct answer
-                options[questionData.correct].classList.add('selected-correct');
-            }
-
-            // Show explanation
-            explanationBox.style.display = 'block';
-
-            // Check if all answered (simple check logic)
-            const answeredCount = document.querySelectorAll('[data-answered="true"]').length;
-            if (answeredCount === questions.length) {
-                showFinalScore();
-            }
-        }
-
-        function showFinalScore() {
-            scoreDisplay.textContent = `${score} / 10`;
-            finalScoreBox.classList.remove('hidden');
-            finalScoreBox.scrollIntoView({ behavior: 'smooth' });
-        }
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            lucide.createIcons();
-            renderQuiz();
-        });
-
     </script>
+    <script src="cnd.js?v=1"></script>
 </body>
 </html>

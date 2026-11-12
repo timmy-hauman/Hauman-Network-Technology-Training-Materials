@@ -1,0 +1,161 @@
+/* =========================================================
+   EC-Council CND 系列共用版型
+   20 個模組頁面統一使用這份樣式;頁面本身不再各自定義配色與版型。
+   底色、字型、頂端導覽列、頁首漸層與頁尾由 ../assets/site-theme.css 提供。
+   ========================================================= */
+:root {
+    --cnd-red: #dc2626;
+    --cnd-red-dark: #b91c1c;
+    --cnd-red-tint: #fef2f2;
+    --cnd-red-line: #fecaca;
+    --cnd-text: #1e2235;
+    --cnd-text-2: #5b6278;
+    --cnd-muted: #8a90a6;
+    --cnd-border: #e3e6f0;
+    --cnd-cyan: #0e7490;
+    --cnd-cyan-tint: #ecfeff;
+    --cnd-green: #15803d;
+    --cnd-green-tint: #f0fdf4;
+    --cnd-amber: #b45309;
+    --cnd-amber-tint: #fffbeb;
+    --cnd-shadow: 0 4px 16px rgba(30, 34, 53, 0.06);
+}
+
+body { color: var(--cnd-text); line-height: 1.7; margin: 0; }
+
+/* ---- 頁首 (site-chrome 會換成品牌漸層) ---- */
+.cnd-hero { background: #1e2235; color: #fff; padding: 44px 20px 40px; text-align: center; }
+.cnd-hero-inner { max-width: 1100px; margin: 0 auto; }
+.cnd-hero .cnd-kicker {
+    display: inline-block; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em;
+    padding: 4px 14px; border-radius: 999px; background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.35); margin: 0 0 14px;
+}
+.cnd-hero h1 { margin: 0; font-size: 2.1rem; font-weight: 700; line-height: 1.3; color: #fff; }
+.cnd-hero .cnd-subtitle { margin: 10px 0 0; font-size: 1.1rem; color: #ede7f6; }
+
+/* ---- 內容區 ---- */
+.cnd-main { max-width: 1100px; margin: 0 auto; padding: 36px 20px 56px; }
+.cnd-section { margin: 0 0 48px; }
+.cnd-section-title {
+    display: flex; align-items: center; gap: 12px; margin: 0 0 20px;
+    font-size: 1.5rem; font-weight: 700; color: var(--cnd-text);
+}
+.cnd-section-title .cnd-num {
+    flex-shrink: 0; min-width: 40px; height: 40px; padding: 0 8px; border-radius: 10px;
+    background: var(--cnd-red); color: #fff; font-size: 1rem;
+    display: inline-flex; align-items: center; justify-content: center; font-family: var(--hm-mono, monospace);
+}
+.cnd-section-title .cnd-en { font-size: 0.95rem; font-weight: 500; color: var(--cnd-text-2); }
+.cnd-lead { color: var(--cnd-text-2); margin: -8px 0 20px; }
+
+/* ---- 卡片與格線 ---- */
+.cnd-card {
+    background: #fff; border: 1px solid var(--cnd-border); border-radius: 12px;
+    box-shadow: var(--cnd-shadow); padding: 22px 24px; border-top: 3px solid var(--cnd-red);
+}
+.cnd-card.plain { border-top-width: 1px; border-top-color: var(--cnd-border); }
+.cnd-card h3 { margin: 0 0 10px; font-size: 1.15rem; font-weight: 700; color: var(--cnd-red-dark); }
+.cnd-card h4 { margin: 16px 0 6px; font-size: 1rem; font-weight: 700; color: var(--cnd-text); }
+.cnd-card p { margin: 0 0 10px; color: var(--cnd-text-2); }
+.cnd-card p:last-child { margin-bottom: 0; }
+.cnd-card + .cnd-card { margin-top: 20px; }
+.cnd-grid { display: grid; gap: 20px; }
+.cnd-grid > .cnd-card + .cnd-card { margin-top: 0; }
+/* 同一章節內,卡片、格線、表格前後相接時保持間距 */
+.cnd-section > .cnd-grid + *, .cnd-section > .cnd-table-wrap + *,
+.cnd-section > .cnd-card + .cnd-grid, .cnd-section > .cnd-card + .cnd-table-wrap { margin-top: 20px; }
+.cnd-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.cnd-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.cnd-grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 960px) { .cnd-grid-3, .cnd-grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 680px) { .cnd-grid-2, .cnd-grid-3, .cnd-grid-4 { grid-template-columns: 1fr; } }
+
+/* ---- 文字元素 ---- */
+.cnd-main strong, .cnd-main b { color: var(--cnd-text); }
+.cnd-hl { color: var(--cnd-red-dark); font-weight: 700; }
+.cnd-tag {
+    display: inline-block; font-size: 0.75rem; font-weight: 700; padding: 2px 10px; border-radius: 999px;
+    background: var(--cnd-red-tint); color: var(--cnd-red-dark); border: 1px solid var(--cnd-red-line);
+    margin: 0 6px 8px 0; font-family: var(--hm-mono, monospace);
+}
+.cnd-tag.cyan { background: var(--cnd-cyan-tint); color: var(--cnd-cyan); border-color: #a5f3fc; }
+.cnd-tag.green { background: var(--cnd-green-tint); color: var(--cnd-green); border-color: #bbf7d0; }
+.cnd-tag.amber { background: var(--cnd-amber-tint); color: var(--cnd-amber); border-color: #fde68a; }
+.cnd-main code {
+    font-family: var(--hm-mono, monospace); font-size: 0.88em; background: var(--cnd-red-tint);
+    color: var(--cnd-red-dark); padding: 1px 6px; border-radius: 4px;
+}
+.cnd-list { margin: 8px 0 0; padding: 0; list-style: none; }
+.cnd-list li { position: relative; padding-left: 18px; margin: 0 0 8px; color: var(--cnd-text-2); }
+.cnd-list li::before {
+    content: ''; position: absolute; left: 2px; top: 0.7em; width: 7px; height: 7px;
+    border-radius: 50%; background: var(--cnd-red);
+}
+.cnd-steps { margin: 8px 0 0; padding: 0; list-style: none; counter-reset: cnd-step; }
+.cnd-steps li { position: relative; padding-left: 40px; margin: 0 0 14px; color: var(--cnd-text-2); counter-increment: cnd-step; }
+.cnd-steps li::before {
+    content: counter(cnd-step); position: absolute; left: 0; top: 0; width: 28px; height: 28px; border-radius: 50%;
+    background: var(--cnd-red-tint); color: var(--cnd-red-dark); border: 1px solid var(--cnd-red-line);
+    font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; justify-content: center;
+}
+
+/* ---- 提示框 ---- */
+.cnd-callout {
+    border-radius: 10px; padding: 16px 20px; margin: 20px 0; border-left: 4px solid var(--cnd-red);
+    background: var(--cnd-red-tint); color: var(--cnd-text);
+}
+.cnd-callout .cnd-callout-title { display: block; font-weight: 700; margin-bottom: 6px; color: var(--cnd-red-dark); }
+.cnd-callout p { margin: 0 0 6px; color: var(--cnd-text); }
+.cnd-callout p:last-child { margin-bottom: 0; }
+.cnd-callout.info { background: var(--cnd-cyan-tint); border-left-color: #0891b2; }
+.cnd-callout.info .cnd-callout-title { color: var(--cnd-cyan); }
+.cnd-callout.tip { background: var(--cnd-green-tint); border-left-color: #16a34a; }
+.cnd-callout.tip .cnd-callout-title { color: var(--cnd-green); }
+.cnd-callout.warn { background: var(--cnd-amber-tint); border-left-color: #f59e0b; }
+.cnd-callout.warn .cnd-callout-title { color: var(--cnd-amber); }
+
+/* ---- 表格 ---- */
+.cnd-table-wrap { overflow-x: auto; border: 1px solid var(--cnd-border); border-radius: 12px; background: #fff; box-shadow: var(--cnd-shadow); }
+.cnd-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+.cnd-table th { background: var(--cnd-red-tint); color: var(--cnd-red-dark); text-align: left; font-weight: 700; padding: 12px 16px; border-bottom: 1px solid var(--cnd-red-line); white-space: nowrap; }
+.cnd-table td { padding: 12px 16px; border-bottom: 1px solid var(--cnd-border); color: var(--cnd-text-2); vertical-align: top; }
+.cnd-table tr:last-child td { border-bottom: none; }
+.cnd-table td:first-child { color: var(--cnd-text); font-weight: 600; }
+
+/* ---- 指令 / 終端機 ---- */
+.cnd-code {
+    background: #1e2235; color: #e2e8f0; border-radius: 10px; padding: 16px 20px; margin: 14px 0;
+    font-family: var(--hm-mono, monospace); font-size: 0.88rem; line-height: 1.6; overflow-x: auto; white-space: pre;
+}
+.cnd-code .ok { color: #86efac; }
+.cnd-code .alert { color: #fca5a5; }
+.cnd-code .dim { color: #94a3b8; }
+
+/* ---- 測驗 (由 cnd.js 依 window.CND_QUIZ 產生) ---- */
+.cnd-quiz-q { background: #fff; border: 1px solid var(--cnd-border); border-radius: 12px; box-shadow: var(--cnd-shadow); padding: 22px 24px; margin: 0 0 20px; }
+.cnd-quiz-q h3 { margin: 0 0 14px; font-size: 1.05rem; font-weight: 700; color: var(--cnd-text); line-height: 1.6; }
+.cnd-quiz-q h3 .cnd-qno { color: var(--cnd-red-dark); margin-right: 6px; }
+.cnd-option {
+    display: block; width: 100%; text-align: left; font: inherit; color: var(--cnd-text); cursor: pointer;
+    background: #fff; border: 1px solid var(--cnd-border); border-radius: 8px; padding: 11px 16px; margin: 0 0 10px;
+    transition: border-color 0.15s, background 0.15s;
+}
+.cnd-option:hover:not(:disabled) { border-color: var(--cnd-red-line); background: var(--cnd-red-tint); }
+.cnd-option:disabled { cursor: default; }
+.cnd-option.is-correct { border-color: #16a34a; background: var(--cnd-green-tint); color: #14532d; font-weight: 600; }
+.cnd-option.is-wrong { border-color: var(--cnd-red); background: var(--cnd-red-tint); color: #7f1d1d; font-weight: 600; }
+.cnd-option.is-correct::after { content: ' ✔'; }
+.cnd-option.is-wrong::after { content: ' ✘'; }
+.cnd-explain { display: none; margin-top: 6px; padding: 14px 18px; border-radius: 8px; background: var(--cnd-cyan-tint); border-left: 4px solid #0891b2; color: var(--cnd-text); }
+.cnd-explain.show { display: block; }
+.cnd-explain strong { color: var(--cnd-cyan); }
+.cnd-score { text-align: center; font-weight: 700; color: var(--cnd-text-2); margin-top: 8px; }
+.cnd-score span { color: var(--cnd-red-dark); font-size: 1.2rem; }
+
+@media (max-width: 640px) {
+    .cnd-hero h1 { font-size: 1.6rem; }
+    .cnd-section-title { font-size: 1.25rem; flex-wrap: wrap; row-gap: 2px; }
+    .cnd-section-title .cnd-en { flex-basis: 100%; padding-left: 52px; font-size: 0.85rem; }
+    .cnd-card, .cnd-quiz-q { padding: 18px; }
+}

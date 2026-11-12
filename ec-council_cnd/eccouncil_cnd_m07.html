@@ -1,498 +1,219 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EC-Council CND | Module 07: Mobile Device Defense</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Roboto for body (JetBrains Mono / Noto Sans TC come from site-theme.css) -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        cyber: {
-                            black: '#f5f7fc',
-                            dark: '#1e2235',
-                            panel: '#ffffff',
-                            red: '#dc2626',
-                            redDim: '#fecaca',
-                            text: '#1e2235',
-                            gray: '#e3e6f0'
-                        }
-                    },
-                    fontFamily: {
-                        display: ['Roboto', 'Noto Sans TC', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'Consolas', 'monospace'],
-                        body: ['Roboto', 'sans-serif']
-                    },
-                    boxShadow: {
-                        'glow': '0 4px 16px rgba(30, 34, 53, 0.06)',
-                        'glow-strong': '0 10px 28px rgba(30, 34, 53, 0.10)',
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        body {
-            color: #1e2235;
-        }
-
-        .cyber-border {
-            position: relative;
-            border-left: 4px solid #dc2626;
-            background: linear-gradient(90deg, #fff5f5 0%, #ffffff 45%);
-        }
-
-        .cyber-card {
-            background-color: #ffffff;
-            border: 1px solid #e3e6f0;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 16px rgba(30, 34, 53, 0.06);
-            transition: all 0.3s ease;
-        }
-
-        .cyber-card:hover {
-            border-color: #fca5a5;
-            box-shadow: 0 10px 28px rgba(30, 34, 53, 0.10);
-            transform: translateY(-2px);
-        }
-
-        .hud-line {
-            height: 1px;
-            background: linear-gradient(90deg, transparent, #dc2626, transparent);
-            margin: 2rem 0;
-            opacity: 0.5;
-        }
-
-        .tech-text {
-            color: #b91c1c;
-            font-family: 'JetBrains Mono', Consolas, monospace;
-            font-size: 0.8rem;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
-
-        /* 頁首橫幅 (site-chrome 換成品牌漸層) 內的紅字改成淺色 */
-        header .tech-text { color: rgba(255, 255, 255, 0.85); }
-        header .text-cyber-red { color: #fecaca !important; }
-
-        .quiz-option {
-            border-radius: 8px;
-            transition: all 0.2s;
-        }
-        .quiz-option:hover:not(:disabled) {
-            background-color: #fef2f2;
-            border-color: #dc2626;
-            color: #1e2235;
-            cursor: pointer;
-        }
-        .quiz-option.correct {
-            background-color: #f0fdf4 !important;
-            border-color: #15803d !important;
-            color: #15803d !important;
-        }
-        .quiz-option.wrong {
-            background-color: #fef2f2 !important;
-            border-color: #dc2626 !important;
-            color: #b91c1c !important;
-            opacity: 0.85;
-        }
-
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f5f7fc;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #c5cad8;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #dc2626;
-        }
-    </style>
+    <link rel="stylesheet" href="cnd.css?v=1">
     <link rel="stylesheet" href="../assets/site-theme.css?v=20261112b">
     <script src="../assets/site-chrome.js?v=20261112b" defer></script>
 </head>
-<body class="font-body selection:bg-cyber-red selection:text-white pb-16">
-
-    <!-- Top Navigation / Status Bar -->
-    <header class="border-b border-gray-800 bg-cyber-dark sticky top-0 z-50 backdrop-blur-md bg-opacity-90">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-            <div class="flex items-center gap-4">
-                <i class="fas fa-shield-alt text-cyber-red text-2xl"></i>
-                <div>
-                    <h1 class="font-display font-bold text-xl tracking-wider text-white">EC-Council CND <span class="text-cyber-red">//</span> 網路防禦課程</h1>
-                    <p class="tech-text">System Status: Online | Module 07 Loaded</p>
-                </div>
-            </div>
-            <div class="hidden md:block font-mono text-xs text-white/70">
-                SEC_LEVEL: ALPHA <br> 
-                PROTOCOL: DEFENSE
-            </div>
+<body>
+    <header class="cnd-hero">
+        <div class="cnd-hero-inner">
+            <p class="cnd-kicker">EC-Council CND 網路防禦課程 · Module 07</p>
+            <h1>Endpoint Security: Mobile Devices</h1>
+            <p class="cnd-subtitle">端點安全：行動裝置</p>
         </div>
     </header>
 
-    <!-- Hero Section -->
-    <section class="max-w-7xl mx-auto px-4 py-12">
-        <div class="border border-gray-200 bg-cyber-panel p-8 relative overflow-hidden rounded-xl shadow-sm">
-            <div class="absolute top-0 right-0 p-4 opacity-10 text-9xl font-display font-bold text-cyber-red select-none">
-                07
+    <main class="cnd-main">
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">00</span>模組概述 <span class="cnd-en">Module Overview</span></h2>
+            <div class="cnd-card plain">
+                <p>作為網路防禦者（Network Defender），行動裝置是當前企業邊界中最脆弱的一環。本模組深入探討行動裝置管理（MDM）、BYOD 策略風險、以及針對 Android 與 iOS 的特定攻擊向量防禦技術。</p>
             </div>
-            <p class="tech-text mb-2">Target Subject</p>
-            <h2 class="text-4xl md:text-5xl font-display font-bold text-gray-900 mb-6">
-                Endpoint Security: <span class="text-cyber-red">Mobile Devices</span>
-            </h2>
-            <p class="text-lg text-gray-600 max-w-3xl leading-relaxed">
-                作為網路防禦者（Network Defender），行動裝置是當前企業邊界中最脆弱的一環。本模組深入探討行動裝置管理（MDM）、BYOD 策略風險、以及針對 Android 與 iOS 的特定攻擊向量防禦技術。
-            </p>
-            <div class="mt-8 flex gap-4">
-                <a href="#core-concepts" class="bg-cyber-red text-white font-bold py-3 px-6 rounded-lg hover:bg-red-800 transition-colors font-display uppercase tracking-widest text-sm">
-                    <i class="fas fa-terminal mr-2"></i> Access Data
-                </a>
-                <a href="#quiz-section" class="border border-cyber-red text-cyber-red py-3 px-6 rounded-lg hover:bg-cyber-red hover:text-white transition-colors font-display uppercase tracking-widest text-sm">
-                    <i class="fas fa-crosshairs mr-2"></i> Simulation Exam
-                </a>
-            </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Core Content Grid -->
-    <main id="core-concepts" class="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-        
-        <!-- Module 1: Risks -->
-        <div class="cyber-card p-6 cyber-border">
-            <div class="flex items-center gap-3 mb-4">
-                <i class="fas fa-mobile-alt text-2xl text-cyber-red"></i>
-                <h3 class="font-display text-xl font-bold">1. 行動裝置安全風險 (Security Risks)</h3>
-            </div>
-            <div class="space-y-4 text-gray-600 text-sm">
-                <p>
-                    <strong class="text-gray-900">OWASP Mobile Top 10：</strong> 防禦者必須熟悉的主要威脅，包括不當的平台使用（Improper Platform Usage）、不安全的資料儲存（Insecure Data Storage）與不安全的通訊（Insecure Communication）。
-                </p>
-                <div class="bg-red-50 p-3 border border-red-200 rounded-lg font-mono text-xs text-gray-700">
-                    <span class="text-cyber-red">> ALERT:</span> 越獄 (Jailbreaking/iOS) 與 Rooting (Android) 會破壞作業系統的沙箱機制 (Sandbox)，使裝置暴露於惡意軟體攻擊之下。
-                </div>
-                <ul class="list-disc list-inside space-y-1 text-gray-600">
-                    <li><span class="text-gray-900">Malicious Apps:</span> 透過第三方市集 (Sideloading) 安裝的應用程式。</li>
-                    <li><span class="text-gray-900">Lost/Stolen Devices:</span> 硬體遺失導致的資料外洩，需依賴全磁碟加密 (FDE) 防禦。</li>
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">01</span>行動裝置安全風險 <span class="cnd-en">Security Risks</span></h2>
+            <div class="cnd-card">
+                <p><strong>OWASP Mobile Top 10：</strong> 防禦者必須熟悉的主要威脅，包括不當的平台使用（Improper Platform Usage）、不安全的資料儲存（Insecure Data Storage）與不安全的通訊（Insecure Communication）。</p>
+                <div class="cnd-callout warn"><span class="cnd-callout-title">ALERT</span><p>越獄 (Jailbreaking/iOS) 與 Rooting (Android) 會破壞作業系統的沙箱機制 (Sandbox)，使裝置暴露於惡意軟體攻擊之下。</p></div>
+                <ul class="cnd-list">
+                    <li><strong>Malicious Apps:</strong> 透過第三方市集 (Sideloading) 安裝的應用程式。</li>
+                    <li><strong>Lost/Stolen Devices:</strong> 硬體遺失導致的資料外洩，需依賴全磁碟加密 (FDE) 防禦。</li>
                 </ul>
             </div>
-        </div>
+        </section>
 
-        <!-- Module 2: Deployment Models -->
-        <div class="cyber-card p-6 cyber-border">
-            <div class="flex items-center gap-3 mb-4">
-                <i class="fas fa-briefcase text-2xl text-cyber-red"></i>
-                <h3 class="font-display text-xl font-bold">2. 企業部署模式 (Deployment Models)</h3>
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">02</span>企業部署模式 <span class="cnd-en">Deployment Models</span></h2>
+            <p class="cnd-lead">企業在平衡安全性與便利性時，通常採用以下模式：</p>
+            <div class="cnd-grid cnd-grid-3">
+                <div class="cnd-card">
+                    <h3>BYOD (Bring Your Own Device)</h3>
+                    <p>員工使用私人設備。資安挑戰在於<span class="cnd-hl">資料隔離</span>與隱私權。防禦策略：Containerization (容器化)。</p>
+                </div>
+                <div class="cnd-card">
+                    <h3>COPE (Corporate Owned, Personally Enabled)</h3>
+                    <p>公司擁有設備但允許私人使用。IT 擁有更多控制權。</p>
+                </div>
+                <div class="cnd-card">
+                    <h3>CYOD (Choose Your Own Device)</h3>
+                    <p>員工從公司核准的清單中選擇設備。</p>
+                </div>
             </div>
-            <div class="space-y-4 text-gray-600 text-sm">
-                <p>企業在平衡安全性與便利性時，通常採用以下模式：</p>
-                <ul class="space-y-2">
-                    <li class="flex items-start gap-2">
-                        <i class="fas fa-caret-right text-cyber-red mt-1"></i>
-                        <div>
-                            <strong class="text-gray-900">BYOD (Bring Your Own Device):</strong> 
-                            員工使用私人設備。資安挑戰在於<span class="text-cyber-red">資料隔離</span>與隱私權。防禦策略：Containerization (容器化)。
-                        </div>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <i class="fas fa-caret-right text-cyber-red mt-1"></i>
-                        <div>
-                            <strong class="text-gray-900">COPE (Corporate Owned, Personally Enabled):</strong> 
-                            公司擁有設備但允許私人使用。IT 擁有更多控制權。
-                        </div>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <i class="fas fa-caret-right text-cyber-red mt-1"></i>
-                        <div>
-                            <strong class="text-gray-900">CYOD (Choose Your Own Device):</strong> 
-                            員工從公司核准的清單中選擇設備。
-                        </div>
-                    </li>
+        </section>
+
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">03</span>攻擊向量解析 <span class="cnd-en">Attack Vectors</span></h2>
+            <div class="cnd-card">
+                <h3>Bluetooth Attacks (藍牙攻擊):</h3>
+                <ul class="cnd-list">
+                    <li><strong>Bluejacking:</strong> 發送未經請求的訊息 (騷擾性質)。</li>
+                    <li><strong>Bluesnarfing:</strong> <span class="cnd-hl">竊取</span> 設備上的資料 (聯絡人、郵件)。</li>
+                    <li><strong>Bluebugging:</strong> 取得設備的完全控制權 (監聽通話、轉發訊息)。</li>
                 </ul>
+                <h4>Network Attacks:</h4>
+                <p>包括連接到惡意熱點 (Evil Twin) 進行 MitM 攻擊。防禦：強制使用 VPN。</p>
             </div>
-        </div>
+        </section>
 
-        <!-- Module 3: Attack Vectors -->
-        <div class="cyber-card p-6 cyber-border">
-            <div class="flex items-center gap-3 mb-4">
-                <i class="fas fa-wifi text-2xl text-cyber-red"></i>
-                <h3 class="font-display text-xl font-bold">3. 攻擊向量解析 (Attack Vectors)</h3>
-            </div>
-            <div class="space-y-4 text-gray-600 text-sm">
-                <div>
-                    <strong class="text-gray-900 block mb-1">Bluetooth Attacks (藍牙攻擊):</strong>
-                    <div class="grid grid-cols-1 gap-2 mt-2">
-                        <div class="bg-gray-50 p-2 border-l-2 border-cyber-red rounded-r">
-                            <span class="text-gray-900 font-bold">Bluejacking:</span> 發送未經請求的訊息 (騷擾性質)。
-                        </div>
-                        <div class="bg-gray-50 p-2 border-l-2 border-cyber-red rounded-r">
-                            <span class="text-gray-900 font-bold">Bluesnarfing:</span> <span class="text-red-700">竊取</span> 設備上的資料 (聯絡人、郵件)。
-                        </div>
-                        <div class="bg-gray-50 p-2 border-l-2 border-cyber-red rounded-r">
-                            <span class="text-gray-900 font-bold">Bluebugging:</span> 取得設備的完全控制權 (監聽通話、轉發訊息)。
-                        </div>
-                    </div>
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">04</span>管理與防禦技術 <span class="cnd-en">Defense Tools</span></h2>
+            <div class="cnd-grid cnd-grid-3">
+                <div class="cnd-card">
+                    <h3>MDM (Mobile Device Management)</h3>
+                    <p>基於 Agent 的解決方案，用於推送政策、遠端抹除 (Remote Wipe) 及資產追蹤。</p>
                 </div>
-                <div class="mt-4">
-                    <strong class="text-gray-900">Network Attacks:</strong> 包括連接到惡意熱點 (Evil Twin) 進行 MitM 攻擊。防禦：強制使用 VPN。
+                <div class="cnd-card">
+                    <h3>MAM (Mobile Application Management)</h3>
+                    <p>專注於應用程式層級的控制，而非整個設備。適合 BYOD 場景。</p>
+                </div>
+                <div class="cnd-card">
+                    <h3>Geofencing (地理圍欄)</h3>
+                    <p>基於 GPS 位置觸發安全政策（例如：進入機密區域自動關閉相機功能）。</p>
                 </div>
             </div>
-        </div>
+            <div class="cnd-callout tip"><span class="cnd-callout-title">DEFENSE TIP</span><p>實施強制螢幕鎖定 (Screen Lock) 與生物辨識 (Biometrics) 是第一道防線。</p></div>
+        </section>
 
-        <!-- Module 4: Management & Defense -->
-        <div class="cyber-card p-6 cyber-border">
-            <div class="flex items-center gap-3 mb-4">
-                <i class="fas fa-server text-2xl text-cyber-red"></i>
-                <h3 class="font-display text-xl font-bold">4. 管理與防禦技術 (Defense Tools)</h3>
-            </div>
-            <div class="space-y-4 text-gray-600 text-sm">
-                <p>
-                    <strong class="text-gray-900">MDM (Mobile Device Management):</strong> 
-                    基於 Agent 的解決方案，用於推送政策、遠端抹除 (Remote Wipe) 及資產追蹤。
-                </p>
-                <p>
-                    <strong class="text-gray-900">MAM (Mobile Application Management):</strong> 
-                    專注於應用程式層級的控制，而非整個設備。適合 BYOD 場景。
-                </p>
-                <p>
-                    <strong class="text-gray-900">Geofencing (地理圍欄):</strong> 
-                    基於 GPS 位置觸發安全政策（例如：進入機密區域自動關閉相機功能）。
-                </p>
-                <div class="bg-green-50 p-3 border border-green-200 rounded-lg font-mono text-xs text-gray-700 mt-2">
-                    <span class="text-green-700">DEFENSE TIP:</span> 實施強制螢幕鎖定 (Screen Lock) 與生物辨識 (Biometrics) 是第一道防線。
-                </div>
-            </div>
-        </div>
-
+        <section class="cnd-section">
+            <h2 class="cnd-section-title"><span class="cnd-num">05</span>情境模擬測驗 <span class="cnd-en">Simulation Exam</span></h2>
+            <p class="cnd-lead">請選擇最適當的答案,作答後會顯示解析。</p>
+            <div id="cnd-quiz"></div>
+        </section>
     </main>
 
-    <div class="hud-line max-w-7xl mx-auto"></div>
-
-    <!-- Quiz Section -->
-    <section id="quiz-section" class="max-w-4xl mx-auto px-4 py-12">
-        <div class="text-center mb-10">
-            <h2 class="text-3xl font-display font-bold text-gray-900 mb-2">
-                <span class="text-cyber-red">TACTICAL SIMULATION</span> // 戰術模擬測驗
-            </h2>
-            <p class="text-gray-600 font-mono">SCENARIO-BASED ASSESSMENT / MODULE 07</p>
-        </div>
-
-        <div id="quiz-container" class="space-y-8">
-            <!-- Questions will be injected here via JS -->
-        </div>
-
-    </section>
-
-    <!-- Footer -->
-    <footer class="border-t border-gray-800 bg-black py-6 mt-12">
-        <div class="max-w-7xl mx-auto px-4 flex justify-center items-center">
-            <p class="font-mono text-xs text-gray-500 tracking-wider">
-                Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0
-            </p>
-        </div>
+    <footer>
+        Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0
     </footer>
 
-    <!-- JavaScript for Quiz -->
     <script>
-        const questions = [
+        window.CND_QUIZ = [
             {
-                id: 1,
-                q: "某公司實施 BYOD 政策，允許員工使用個人手機存取公司郵件。為了防止員工離職後公司資料外洩，同時不影響員工的私人照片和應用程式，作為網路防禦者，你應建議實施哪種技術？",
+                question: "某公司實施 BYOD 政策，允許員工使用個人手機存取公司郵件。為了防止員工離職後公司資料外洩，同時不影響員工的私人照片和應用程式，作為網路防禦者，你應建議實施哪種技術？",
                 options: [
-                    "Full Device Encryption (全裝置加密)",
-                    "Containerization (容器化/沙箱技術)",
-                    "Rooting the device (Root 裝置)",
-                    "Geofencing (地理圍欄)"
-                ],
-                correct: 1, // Index 1
-                explanation: "<strong>解析：</strong> Containerization (如 Android for Work 或 Samsung Knox) 能將企業資料與個人資料隔離。當需要移除權限時，管理員僅需遠端抹除企業容器內的資料，而不會影響員工的私人檔案。"
-            },
-            {
-                id: 2,
-                q: "一位高階主管報告說，他在參加國際會議時，並未遺失手機，但手機內的聯絡人清單和行事曆卻被不明人士竊取了。經調查發現他的藍牙功能一直處於開啟且可被偵測狀態。這最可能是遭受了哪種攻擊？",
-                options: [
-                    "Bluejacking",
-                    "Bluesnarfing",
-                    "Bluebugging",
-                    "Evil Twin Attack"
+                    "A. Full Device Encryption (全裝置加密)",
+                    "B. Containerization (容器化/沙箱技術)",
+                    "C. Rooting the device (Root 裝置)",
+                    "D. Geofencing (地理圍欄)"
                 ],
                 correct: 1,
-                explanation: "<strong>解析：</strong> <strong>Bluesnarfing</strong> 是指未經授權透過藍牙連接竊取資訊（如聯絡人、郵件）。Bluejacking 僅是發送騷擾訊息；Bluebugging 則是完全控制手機。題目強調「資料被竊取」，故為 Bluesnarfing。"
+                explanation: "Containerization (如 Android for Work 或 Samsung Knox) 能將企業資料與個人資料隔離。當需要移除權限時，管理員僅需遠端抹除企業容器內的資料，而不會影響員工的私人檔案。"
             },
             {
-                id: 3,
-                q: "你正在審核公司的行動裝置使用規範。發現有員工為了安裝 Google Play 商店以外的遊戲，自行對 Android 公司手機進行了 Root 操作。從 CND 防禦角度來看，這造成了什麼主要風險？",
+                question: "一位高階主管報告說，他在參加國際會議時，並未遺失手機，但手機內的聯絡人清單和行事曆卻被不明人士竊取了。經調查發現他的藍牙功能一直處於開啟且可被偵測狀態。這最可能是遭受了哪種攻擊？",
                 options: [
-                    "它會導致電池壽命縮短",
-                    "它繞過了作業系統的內建安全沙箱 (Security Sandbox) 機制",
-                    "它會自動加密所有資料，導致公司無法監控",
-                    "它會阻止藍牙連接功能"
+                    "A. Bluejacking",
+                    "B. Bluesnarfing",
+                    "C. Bluebugging",
+                    "D. Evil Twin Attack"
                 ],
                 correct: 1,
-                explanation: "<strong>解析：</strong> Rooting (Android) 或 Jailbreaking (iOS) 的最大資安風險在於打破了 OS 的安全模型與沙箱機制，使得惡意軟體可以取得最高權限 (Superuser)，存取受保護的系統檔案與其他應用程式的資料。"
+                explanation: "<strong>Bluesnarfing</strong> 是指未經授權透過藍牙連接竊取資訊（如聯絡人、郵件）。Bluejacking 僅是發送騷擾訊息；Bluebugging 則是完全控制手機。題目強調「資料被竊取」，故為 Bluesnarfing。"
             },
             {
-                id: 4,
-                q: "公司希望限制研發部門的員工在進入機密實驗室時，手機相機功能會自動被禁用，離開該區域後則自動恢復。你應該在 MDM 系統中設定哪項功能？",
+                question: "你正在審核公司的行動裝置使用規範。發現有員工為了安裝 Google Play 商店以外的遊戲，自行對 Android 公司手機進行了 Root 操作。從 CND 防禦角度來看，這造成了什麼主要風險？",
                 options: [
-                    "Remote Wipe (遠端抹除)",
-                    "Geofencing (地理圍欄)",
-                    "Content Filtering (內容過濾)",
-                    "Biometrics (生物辨識)"
+                    "A. 它會導致電池壽命縮短",
+                    "B. 它繞過了作業系統的內建安全沙箱 (Security Sandbox) 機制",
+                    "C. 它會自動加密所有資料，導致公司無法監控",
+                    "D. 它會阻止藍牙連接功能"
                 ],
                 correct: 1,
-                explanation: "<strong>解析：</strong> <strong>Geofencing (地理圍欄)</strong> 允許 MDM 系統根據裝置的 GPS 位置觸發特定的安全政策。當裝置進入特定經緯度範圍時，可強制關閉相機或錄音功能。"
+                explanation: "Rooting (Android) 或 Jailbreaking (iOS) 的最大資安風險在於打破了 OS 的安全模型與沙箱機制，使得惡意軟體可以取得最高權限 (Superuser)，存取受保護的系統檔案與其他應用程式的資料。"
             },
             {
-                id: 5,
-                q: "攻擊者在機場設置了一個名為 'Free_Airport_WiFi' 的無線存取點，該名稱與官方 Wi-Fi 極為相似。當受害者連線後，攻擊者攔截並記錄了所有的傳輸數據。這是屬於哪種類型的攻擊？",
+                question: "公司希望限制研發部門的員工在進入機密實驗室時，手機相機功能會自動被禁用，離開該區域後則自動恢復。你應該在 MDM 系統中設定哪項功能？",
                 options: [
-                    "Denial of Service (DoS)",
-                    "Evil Twin Attack (邪惡雙子星攻擊)",
-                    "War Chalking",
-                    "Bluebugging"
+                    "A. Remote Wipe (遠端抹除)",
+                    "B. Geofencing (地理圍欄)",
+                    "C. Content Filtering (內容過濾)",
+                    "D. Biometrics (生物辨識)"
                 ],
                 correct: 1,
-                explanation: "<strong>解析：</strong> <strong>Evil Twin Attack</strong> 是架設一個偽造的無線 AP，模仿合法的 SSID，誘使受害者連線以進行中間人攻擊 (MitM) 或竊取憑證。"
+                explanation: "<strong>Geofencing (地理圍欄)</strong> 允許 MDM 系統根據裝置的 GPS 位置觸發特定的安全政策。當裝置進入特定經緯度範圍時，可強制關閉相機或錄音功能。"
             },
             {
-                id: 6,
-                q: "為了防禦針對行動裝置的「旁路安裝 (Sideloading)」惡意軟體攻擊，企業 MDM 政策應強制執行下列哪項設定？",
+                question: "攻擊者在機場設置了一個名為 'Free_Airport_WiFi' 的無線存取點，該名稱與官方 Wi-Fi 極為相似。當受害者連線後，攻擊者攔截並記錄了所有的傳輸數據。這是屬於哪種類型的攻擊？",
                 options: [
-                    "禁止安裝來自「未知來源 (Unknown Sources)」的應用程式",
-                    "強制開啟 GPS 定位",
-                    "禁止使用藍牙耳機",
-                    "強制每 30 天更換密碼"
+                    "A. Denial of Service (DoS)",
+                    "B. Evil Twin Attack (邪惡雙子星攻擊)",
+                    "C. War Chalking",
+                    "D. Bluebugging"
+                ],
+                correct: 1,
+                explanation: "<strong>Evil Twin Attack</strong> 是架設一個偽造的無線 AP，模仿合法的 SSID，誘使受害者連線以進行中間人攻擊 (MitM) 或竊取憑證。"
+            },
+            {
+                question: "為了防禦針對行動裝置的「旁路安裝 (Sideloading)」惡意軟體攻擊，企業 MDM 政策應強制執行下列哪項設定？",
+                options: [
+                    "A. 禁止安裝來自「未知來源 (Unknown Sources)」的應用程式",
+                    "B. 強制開啟 GPS 定位",
+                    "C. 禁止使用藍牙耳機",
+                    "D. 強制每 30 天更換密碼"
                 ],
                 correct: 0,
-                explanation: "<strong>解析：</strong> Sideloading 是指繞過官方應用程式商店，直接安裝 APK 或 IPA 檔案。這通常是惡意軟體進入裝置的主要途徑。禁止未知來源安裝是關鍵防禦措施。"
+                explanation: "Sideloading 是指繞過官方應用程式商店，直接安裝 APK 或 IPA 檔案。這通常是惡意軟體進入裝置的主要途徑。禁止未知來源安裝是關鍵防禦措施。"
             },
             {
-                id: 7,
-                q: "在行動裝置防禦策略中，'Remote Wipe (遠端抹除)' 功能主要是為了應對哪一類資安事件？",
+                question: "在行動裝置防禦策略中，'Remote Wipe (遠端抹除)' 功能主要是為了應對哪一類資安事件？",
                 options: [
-                    "裝置感染病毒",
-                    "裝置實體遺失或遭竊",
-                    "裝置儲存空間不足",
-                    "員工忘記密碼"
+                    "A. 裝置感染病毒",
+                    "B. 裝置實體遺失或遭竊",
+                    "C. 裝置儲存空間不足",
+                    "D. 員工忘記密碼"
                 ],
                 correct: 1,
-                explanation: "<strong>解析：</strong> 當裝置確認遺失或遭竊時，為了防止機敏資料落入他人手中，管理員會發送 <strong>Remote Wipe</strong> 指令，將裝置恢復原廠設定或刪除企業數據。"
+                explanation: "當裝置確認遺失或遭竊時，為了防止機敏資料落入他人手中，管理員會發送 <strong>Remote Wipe</strong> 指令，將裝置恢復原廠設定或刪除企業數據。"
             },
             {
-                id: 8,
-                q: "根據 EC-Council CND 的定義，關於 iOS 的 Jailbreaking (越獄)，下列敘述何者正確？",
+                question: "根據 EC-Council CND 的定義，關於 iOS 的 Jailbreaking (越獄)，下列敘述何者正確？",
                 options: [
-                    "越獄後的裝置安全性會提高，因為使用者有更多控制權",
-                    "越獄是原廠支援的功能，用於開發程式",
-                    "越獄利用核心漏洞 (Kernel Exploits) 繞過數位簽章檢查",
-                    "越獄僅適用於 Android 裝置"
+                    "A. 越獄後的裝置安全性會提高，因為使用者有更多控制權",
+                    "B. 越獄是原廠支援的功能，用於開發程式",
+                    "C. 越獄利用核心漏洞 (Kernel Exploits) 繞過數位簽章檢查",
+                    "D. 越獄僅適用於 Android 裝置"
                 ],
                 correct: 2,
-                explanation: "<strong>解析：</strong> iOS 的 Jailbreaking 是利用系統漏洞 (Exploits) 取得 root 權限，移除了 Apple 對於軟體安裝的限制 (數位簽章檢查)，這嚴重破壞了裝置的完整性與安全性。"
+                explanation: "iOS 的 Jailbreaking 是利用系統漏洞 (Exploits) 取得 root 權限，移除了 Apple 對於軟體安裝的限制 (數位簽章檢查)，這嚴重破壞了裝置的完整性與安全性。"
             },
             {
-                id: 9,
-                q: "某員工使用公共 Wi-Fi 透過手機瀏覽器登入公司 Web Mail。為了防止 Session Hijacking (連線劫持)，最有效的端點防禦措施是什麼？",
+                question: "某員工使用公共 Wi-Fi 透過手機瀏覽器登入公司 Web Mail。為了防止 Session Hijacking (連線劫持)，最有效的端點防禦措施是什麼？",
                 options: [
-                    "使用無痕模式瀏覽",
-                    "關閉手機螢幕",
-                    "強制使用 VPN (Virtual Private Network) 通道連回公司",
-                    "清除瀏覽器 Cookie"
+                    "A. 使用無痕模式瀏覽",
+                    "B. 關閉手機螢幕",
+                    "C. 強制使用 VPN (Virtual Private Network) 通道連回公司",
+                    "D. 清除瀏覽器 Cookie"
                 ],
                 correct: 2,
-                explanation: "<strong>解析：</strong> 在不安全的公共 Wi-Fi 環境下，<strong>VPN</strong> 能夠建立加密通道，確保所有傳輸數據都被加密，防止中間人監聽或劫持。"
+                explanation: "在不安全的公共 Wi-Fi 環境下，<strong>VPN</strong> 能夠建立加密通道，確保所有傳輸數據都被加密，防止中間人監聽或劫持。"
             },
             {
-                id: 10,
-                q: "企業採用 COPE (Corporate Owned, Personally Enabled) 模式。IT 部門希望確保只有合規的裝置 (未 Root、OS 版本最新) 才能存取公司網路。應採用哪種技術進行存取控制？",
+                question: "企業採用 COPE (Corporate Owned, Personally Enabled) 模式。IT 部門希望確保只有合規的裝置 (未 Root、OS 版本最新) 才能存取公司網路。應採用哪種技術進行存取控制？",
                 options: [
-                    "NAC (Network Access Control) 結合 MDM",
-                    "單純的 WPA2-Personal 密碼",
-                    "MAC Address Filtering (MAC 位址過濾)",
-                    "靜態 IP 分配"
+                    "A. NAC (Network Access Control) 結合 MDM",
+                    "B. 單純的 WPA2-Personal 密碼",
+                    "C. MAC Address Filtering (MAC 位址過濾)",
+                    "D. 靜態 IP 分配"
                 ],
                 correct: 0,
-                explanation: "<strong>解析：</strong> <strong>NAC (網路存取控制)</strong> 可以與 MDM 系統連動，在裝置連入網路前檢查其「健康狀態」(Posture Assessment)。如果裝置已 Root 或未更新，NAC 將拒絕其連線。"
+                explanation: "<strong>NAC (網路存取控制)</strong> 可以與 MDM 系統連動，在裝置連入網路前檢查其「健康狀態」(Posture Assessment)。如果裝置已 Root 或未更新，NAC 將拒絕其連線。"
             }
         ];
-
-        function renderQuiz() {
-            const container = document.getElementById('quiz-container');
-            
-            questions.forEach((q, index) => {
-                const questionCard = document.createElement('div');
-                questionCard.className = 'cyber-card p-6 mb-6';
-                questionCard.id = `q-${index}`;
-
-                const questionTitle = document.createElement('h4');
-                questionTitle.className = 'text-lg font-bold text-gray-900 mb-4';
-                questionTitle.innerHTML = `<span class="text-cyber-red mr-2">Q${index + 1}.</span> ${q.q}`;
-
-                const optionsDiv = document.createElement('div');
-                optionsDiv.className = 'grid grid-cols-1 gap-3';
-
-                q.options.forEach((opt, optIndex) => {
-                    const btn = document.createElement('button');
-                    btn.className = 'quiz-option w-full text-left p-4 bg-white border border-gray-200 text-gray-700 font-mono text-sm';
-                    btn.innerHTML = `<span class="inline-block w-6 text-gray-500">${String.fromCharCode(65 + optIndex)}.</span> ${opt}`;
-                    btn.onclick = () => checkAnswer(index, optIndex, btn);
-                    optionsDiv.appendChild(btn);
-                });
-
-                const feedbackDiv = document.createElement('div');
-                feedbackDiv.className = 'hidden mt-4 p-4 rounded-lg border-t text-gray-700 text-sm leading-relaxed';
-                feedbackDiv.id = `feedback-${index}`;
-
-                questionCard.appendChild(questionTitle);
-                questionCard.appendChild(optionsDiv);
-                questionCard.appendChild(feedbackDiv);
-                container.appendChild(questionCard);
-            });
-        }
-
-        function checkAnswer(qIndex, optIndex, btnElement) {
-            const q = questions[qIndex];
-            const feedbackEl = document.getElementById(`feedback-${qIndex}`);
-            const parent = btnElement.parentElement;
-            const allBtns = parent.querySelectorAll('button');
-
-            // Disable all buttons for this question
-            allBtns.forEach(b => {
-                b.disabled = true;
-                b.classList.add('cursor-not-allowed');
-            });
-
-            if (optIndex === q.correct) {
-                // Correct
-                btnElement.classList.add('correct');
-                feedbackEl.innerHTML = `<div class="text-green-700 font-bold mb-2"><i class="fas fa-check-circle"></i> CORRECT ANSWER</div>` + q.explanation;
-                feedbackEl.classList.remove('hidden');
-                feedbackEl.classList.add('border-green-200', 'bg-green-50');
-            } else {
-                // Wrong
-                btnElement.classList.add('wrong');
-                // Highlight the correct one
-                allBtns[q.correct].classList.add('correct');
-                
-                feedbackEl.innerHTML = `<div class="text-red-700 font-bold mb-2"><i class="fas fa-times-circle"></i> INCORRECT</div>` + q.explanation;
-                feedbackEl.classList.remove('hidden');
-                feedbackEl.classList.add('border-red-200', 'bg-red-50');
-            }
-        }
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', renderQuiz);
     </script>
+    <script src="cnd.js?v=1"></script>
 </body>
 </html>
