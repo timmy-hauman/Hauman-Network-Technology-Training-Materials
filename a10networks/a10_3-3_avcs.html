@@ -35,7 +35,8 @@
 
     <!-- 引入 Mermaid.js 用於繪圖 -->
     <script type="module">
-        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        // 圖表已改為內嵌 SVG,不再載入 Mermaid;保留空殼讓原本的初始化程式不出錯
+        const mermaid = { initialize() {}, init() {}, run: async () => {} };
         mermaid.initialize({ 
             startOnLoad: true,
             theme: 'base',
@@ -121,6 +122,9 @@
             background: linear-gradient(135deg, #002855 0%, #001f3f 100%);
         }
     </style>
+    <!-- 教學網站共用外觀 -->
+    <link rel="stylesheet" href="../assets/site-theme.css?v=20261112">
+    <script src="../assets/site-chrome.js?v=20261112" defer></script>
 </head>
 <body class="text-gray-800 flex flex-col min-h-screen">
 
@@ -220,46 +224,67 @@
             <!-- 圖表 1: 拓撲架構 -->
             <div class="mb-8">
                 <h4 class="text-lg font-semibold text-center mb-2 text-gray-600">圖一：aVCS 實體 vs 邏輯視圖</h4>
-                <div class="mermaid">
-                    graph TD
-                    %% 定義樣式 Class
-                    classDef masterNode fill:#002855,color:#fff,stroke:#E4007F,stroke-width:3px;
-                    classDef bladeNode fill:#fff,color:#002855,stroke:#002855,stroke-width:2px;
-                    classDef logicalNode fill:#E0F2FE,stroke:#002855,stroke-dasharray: 5 5,color:#002855;
-
-                    %% 邏輯視圖區域
-                    subgraph LogicView [邏輯視圖：單一管理入口]
-                        Admin[管理者 Admin]:::logicalNode
-                        VIP(aVCS Floating IP):::logicalNode
-                        Admin -->|SSH / HTTPS| VIP
-                    end
-
-                    %% 實體視圖區域
-                    subgraph PhysView [實體視圖：真實設備連接]
-                        Master[vMaster: Device 1]:::masterNode
-                        Blade1[vBlade: Device 2]:::bladeNode
-                        Blade2[vBlade: Device 3]:::bladeNode
-                        
-                        %% 設備間同步連線
-                        Master <==>|aVCS Sync| Blade1
-                        Master <==>|aVCS Sync| Blade2
-                    end
-
-                    %% 邏輯與實體的關聯
-                    VIP -.->|映射 Map| Master
-
-                    %% 外部流量
-                    Web((Internet))
-                    Web -->|Traffic| Master
-                    Web -->|Traffic| Blade1
-                    Web -->|Traffic| Blade2
+                <!-- 拓撲圖 (手繪 SVG):左邊邏輯視圖、右邊實體視圖並排,Floating IP 以虛線映射到 vMaster -->
+                <div style="width:100%;overflow-x:auto">
+                <svg viewBox="0 0 880 560" role="img" aria-labelledby="a10-33a-title a10-33a-desc" style="width:100%;min-width:560px;max-width:880px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+                <title id="a10-33a-title">aVCS 實體 vs 邏輯視圖</title>
+                <desc id="a10-33a-desc">左側邏輯視圖 (單一管理入口):管理者 Admin 以 SSH / HTTPS 連到 aVCS Floating IP。右側實體視圖 (真實設備連接):vMaster (Device 1) 分別與 vBlade (Device 2)、vBlade (Device 3) 以 aVCS Sync 雙向同步;Floating IP 以虛線映射 (Map) 到 vMaster。下方 Internet 的 Traffic 則分別直接送往 vMaster 與兩台 vBlade 三台設備。</desc>
+                <defs><linearGradient id="a10-33a-pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7e57c2"/><stop offset="1" stop-color="#311b92"/></linearGradient><filter id="a10-33a-sh" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#311b92" flood-opacity="0.16"/></filter><marker id="a10-33a-arr" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5b6278"/></marker><marker id="a10-33a-arr-c" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#0891b2"/></marker><marker id="a10-33a-arr-p" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#673ab7"/></marker><marker id="a10-33a-arr-pt" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#673ab7"/></marker></defs>
+                <rect x="16" y="16" width="240" height="204" rx="16" fill="#f6f2fe" stroke="#b39ddb" stroke-width="1.5" stroke-dasharray="6 5"/>
+                <text x="32" y="40" font-family="'JetBrains Mono', Consolas, monospace" font-size="12.5" font-weight="700" fill="#673ab7">邏輯視圖：單一管理入口</text>
+                <rect x="290" y="16" width="574" height="424" rx="16" fill="#effafc" stroke="#67c5d6" stroke-width="1.5" stroke-dasharray="6 5"/>
+                <text x="306" y="40" font-family="'JetBrains Mono', Consolas, monospace" font-size="12.5" font-weight="700" fill="#0e7490">實體視圖：真實設備連接</text>
+                <path d="M136 106 V144" fill="none" stroke="#673ab7" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#a10-33a-arr-pt)"/>
+                <text x="148" y="131" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#4527a0">SSH / HTTPS</text>
+                <path d="M226 170 H485" fill="none" stroke="#673ab7" stroke-width="2.2" stroke-linejoin="round" stroke-dasharray="6 4" marker-end="url(#a10-33a-arr-pt)"/>
+                <text x="368" y="160" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#4527a0">映射 Map</text>
+                <path d="M487 204 H390 V290" fill="none" stroke="#673ab7" stroke-width="4" stroke-linejoin="round" marker-start="url(#a10-33a-arr-p)" marker-end="url(#a10-33a-arr-p)"/>
+                <path d="M667 204 H764 V290" fill="none" stroke="#673ab7" stroke-width="4" stroke-linejoin="round" marker-start="url(#a10-33a-arr-p)" marker-end="url(#a10-33a-arr-p)"/>
+                <text x="438" y="194" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#4527a0">aVCS Sync</text>
+                <text x="716" y="194" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#4527a0">aVCS Sync</text>
+                <path d="M577 470 V222" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-33a-arr-c)"/>
+                <path d="M577 410 H390 V352" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-33a-arr-c)"/>
+                <path d="M577 410 H764 V352" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-33a-arr-c)"/>
+                <text x="402" y="384" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">Traffic</text>
+                <text x="589" y="384" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">Traffic</text>
+                <text x="776" y="384" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">Traffic</text>
+                <g filter="url(#a10-33a-sh)"><rect x="51" y="58" width="170" height="48" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/></g>
+                <g fill="#e0f7fa" stroke="#0891b2" stroke-width="1.4"><circle cx="76" cy="76" r="6"/><path d="M65 94 C65 83 87 83 87 94 Z"/></g>
+                <text x="156" y="87" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">管理者 Admin</text>
+                <rect x="46" y="146" width="180" height="48" rx="24" fill="#fff" stroke="#673ab7" stroke-width="2" stroke-dasharray="6 4"/>
+                <text x="136" y="175" text-anchor="middle" font-size="13" font-weight="700" fill="#311b92">aVCS Floating IP</text>
+                <g filter="url(#a10-33a-sh)"><rect x="487" y="148" width="180" height="72" rx="10" fill="url(#a10-33a-pg)"/></g>
+                <text x="577" y="181" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">vMaster: Device 1</text>
+                <text x="577" y="199" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#d1c4e9">A10 Thunder</text>
+                <g filter="url(#a10-33a-sh)"><rect x="310" y="290" width="160" height="60" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/></g>
+                <text x="390" y="316" text-anchor="middle" font-size="13" font-weight="700" fill="#311b92">vBlade: Device 2</text>
+                <text x="390" y="333" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#5b6278">A10 Thunder</text>
+                <g filter="url(#a10-33a-sh)"><rect x="684" y="290" width="160" height="60" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/></g>
+                <text x="764" y="316" text-anchor="middle" font-size="13" font-weight="700" fill="#311b92">vBlade: Device 3</text>
+                <text x="764" y="333" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#5b6278">A10 Thunder</text>
+                <path d="M-50 30 H50 A28 28 0 0 0 52 -22 A34 34 0 0 0 -8 -34 A30 30 0 0 0 -56 -10 A22 22 0 0 0 -50 30 Z" transform="translate(577 510)" fill="#eef2ff" stroke="#9fa8da" stroke-width="2"/>
+                <text x="577" y="503" text-anchor="middle" font-size="15" font-weight="700" fill="#1e2235">Internet</text>
+                <rect x="16" y="250" width="240" height="190" rx="12" fill="#fff" stroke="#e3e6f0" stroke-width="1.5"/>
+                <rect x="32" y="270" width="30" height="16" rx="4" fill="url(#a10-33a-pg)"/>
+                <text x="74" y="282" font-size="12" fill="#1e2235">vMaster (主控設備)</text>
+                <rect x="32" y="298" width="30" height="16" rx="4" fill="#fff" stroke="#673ab7" stroke-width="2"/>
+                <text x="74" y="310" font-size="12" fill="#1e2235">vBlade (成員設備)</text>
+                <rect x="32" y="326" width="30" height="16" rx="8" fill="#fff" stroke="#673ab7" stroke-width="1.5" stroke-dasharray="4 3"/>
+                <text x="74" y="338" font-size="12" fill="#1e2235">邏輯節點 (Floating IP)</text>
+                <line x1="32" y1="362" x2="62" y2="362" stroke="#673ab7" stroke-width="4"/>
+                <text x="74" y="366" font-size="12" fill="#1e2235">aVCS Sync 設備間同步</text>
+                <line x1="32" y1="390" x2="62" y2="390" stroke="#0891b2" stroke-width="4"/>
+                <text x="74" y="394" font-size="12" fill="#1e2235">Traffic 資料流量</text>
+                <line x1="32" y1="418" x2="62" y2="418" stroke="#673ab7" stroke-width="2.2" stroke-dasharray="6 4"/>
+                <text x="74" y="422" font-size="12" fill="#1e2235">映射 Map (邏輯對應)</text>
+                </svg>
                 </div>
             </div>
 
             <!-- 圖表 2: 運作流程 -->
             <div>
                 <h4 class="text-lg font-semibold text-center mb-2 text-gray-600">圖二：管理指令同步流程 (Sequence)</h4>
-                <div class="mermaid">
+                <!-- 時序圖 (由 Mermaid 10.9.1 預先轉成靜態 SVG,套用網站配色)。原始 Mermaid 碼:
                     sequenceDiagram
                         autonumber
                         
@@ -284,13 +309,15 @@
                             vMaster->>vBlade: 2. 推送配置變更 (Config Push)
                             activate vBlade
                             vBlade->>vBlade: 更新 Local Config
-                            vBlade-->>vMaster: 3. 確認完成 (Ack)
+                            vBlade--&gt;>vMaster: 3. 確認完成 (Ack)
                             deactivate vBlade
                         end
                         
-                        vMaster-->>Admin: 4. 回傳 "Command Successful"
+                        vMaster--&gt;>Admin: 4. 回傳 "Command Successful"
                         deactivate vMaster
-                </div>
+                
+                -->
+                <div style="width:100%;overflow-x:auto"><svg xmlns="http://www.w3.org/2000/svg" aria-roledescription="sequence" role="img" viewBox="-50 -10 1007 741" style="width:100%;min-width:560px;max-width:1007px;height:auto;display:block;margin:0 auto" id="seq-a10-3-3-avcs-2" aria-labelledby="seq-a10-3-3-avcs-2-title"><title id="seq-a10-3-3-avcs-2-title">圖二：管理指令同步流程 (Sequence)</title><g><rect class="rect" height="711" width="496" stroke="rgb(0,0,0, 0.5)" fill="transparent" y="0" x="404"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="text" alignment-baseline="central" dominant-baseline="central" y="12" x="652"><tspan dy="0" x="652">"A10 Thunder Cluster (aVCS)"</tspan></text></g><rect class="rect" height="282" width="431" fill="rgb(224, 242, 254)" y="371" x="476"/><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="817" y1="39" x1="817"/><g><rect class="actor actor-top" ry="3" rx="3" name="vBlade" height="65" width="156" stroke="#666" fill="#eaeaea" y="34" x="739"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="66.5" x="817"><tspan dy="0" x="817">vBlade (Device 2)</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="491" y1="39" x1="491"/><g><rect class="actor actor-top" ry="3" rx="3" name="vMaster" height="65" width="164" stroke="#666" fill="#eaeaea" y="34" x="409"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="66.5" x="491"><tspan dy="0" x="491">vMaster (Device 1)</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="75" y1="39" x1="75"/><g><rect class="actor actor-top" ry="3" rx="3" name="Admin" height="65" width="150" stroke="#666" fill="#eaeaea" y="34" x="0"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="66.5" x="75"><tspan dy="0" x="75">管理者 (Admin)</tspan></text></g></g><style>#seq-a10-3-3-avcs-2{font-family:'Noto Sans TC',Roboto,'Microsoft JhengHei',sans-serif;font-size:15px;fill:#1e2235;}#seq-a10-3-3-avcs-2 .marker{fill:#5b6278;stroke:#5b6278;}#seq-a10-3-3-avcs-2 .marker.cross{stroke:#5b6278;}#seq-a10-3-3-avcs-2 .actor{stroke:#673ab7;fill:#f3effc;}#seq-a10-3-3-avcs-2 text.actor&gt;tspan{fill:#311b92;stroke:none;}#seq-a10-3-3-avcs-2 .actor-line{stroke:#b39ddb;}#seq-a10-3-3-avcs-2 .messageLine0{stroke-width:1.5;stroke-dasharray:none;stroke:#5b6278;}#seq-a10-3-3-avcs-2 .messageLine1{stroke-width:1.5;stroke-dasharray:2,2;stroke:#5b6278;}#seq-a10-3-3-avcs-2 #seq-a10-3-3-avcs-2-arrowhead path{fill:#5b6278;stroke:#5b6278;}#seq-a10-3-3-avcs-2 #sequencenumber{fill:#5b6278;}#seq-a10-3-3-avcs-2 #crosshead path{fill:#5b6278;stroke:#5b6278;}#seq-a10-3-3-avcs-2 .messageText{fill:#1e2235;stroke:none;}#seq-a10-3-3-avcs-2 .note{stroke:#f5b041;fill:#fff8e1;}#seq-a10-3-3-avcs-2 .noteText,#seq-a10-3-3-avcs-2 .noteText&gt;tspan{fill:#5d4037;stroke:none;}#seq-a10-3-3-avcs-2 .activation0{fill:#ede7f6;stroke:#673ab7;}#seq-a10-3-3-avcs-2 .activation1{fill:#ede7f6;stroke:#673ab7;}#seq-a10-3-3-avcs-2 .activation2{fill:#ede7f6;stroke:#673ab7;}</style><g/><defs><marker orient="auto" markerHeight="12" markerWidth="12" markerUnits="userSpaceOnUse" refY="5" refX="7.9" id="seq-a10-3-3-avcs-2-arrowhead"><path d="M 0 0 L 10 5 L 0 10 z"/></marker></defs><defs><marker orient="auto" markerHeight="40" markerWidth="60" refY="15" refX="15" id="seq-a10-3-3-avcs-2-sequencenumber"><circle r="6" cy="15" cx="15"/></marker></defs><g><rect class="note" ry="0" rx="0" height="48" width="506" stroke="#666" fill="#EDF2AE" y="109" x="30"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="115" x="283"><tspan x="283">登入 Floating IP (VIP)</tspan></text></g><g><rect class="activation0" ry="0" rx="0" height="494" width="10" stroke="#666" fill="#EDF2AE" y="217" x="486"/></g><g><rect class="note" ry="0" rx="0" height="48" width="185" stroke="#666" fill="#EDF2AE" y="225" x="536"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="231" x="629"><tspan x="629">寫入 vMaster 本地配置</tspan></text></g><g><rect class="note" ry="0" rx="0" height="48" width="164" stroke="#666" fill="#EDF2AE" y="391" x="536"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="397" x="618"><tspan x="618">同步至 Cluster 成員</tspan></text></g><g><rect class="activation0" ry="0" rx="0" height="144" width="10" stroke="#666" fill="#EDF2AE" y="499" x="812"/></g><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="172" x="282">1. 下達指令 (例: slb virtual-server web 80)</text><line style="fill: none;" marker-start="url(#seq-a10-3-3-avcs-2-sequencenumber)" marker-end="url(#seq-a10-3-3-avcs-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="215" x2="487" y1="215" x1="76"/><text class="sequenceNumber" text-anchor="middle" font-size="12px" font-family="sans-serif" y="219" x="76">1</text><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="288" x="496">更新 Local Config</text><path style="fill: none;" marker-start="url(#seq-a10-3-3-avcs-2-sequencenumber)" marker-end="url(#seq-a10-3-3-avcs-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" d="M 496,331 C 556,321 556,361 496,351"/><text class="sequenceNumber" text-anchor="middle" font-size="12px" font-family="sans-serif" y="335" x="496">2</text><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="454" x="655">2. 推送配置變更 (Config Push)</text><line style="fill: none;" marker-start="url(#seq-a10-3-3-avcs-2-sequencenumber)" marker-end="url(#seq-a10-3-3-avcs-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="497" x2="813" y1="497" x1="496"/><text class="sequenceNumber" text-anchor="middle" font-size="12px" font-family="sans-serif" y="501" x="496">3</text><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="512" x="822">更新 Local Config</text><path style="fill: none;" marker-start="url(#seq-a10-3-3-avcs-2-sequencenumber)" marker-end="url(#seq-a10-3-3-avcs-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" d="M 822,555 C 882,545 882,585 822,575"/><text class="sequenceNumber" text-anchor="middle" font-size="12px" font-family="sans-serif" y="559" x="822">4</text><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="600" x="656">3. 確認完成 (Ack)</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-start="url(#seq-a10-3-3-avcs-2-sequencenumber)" marker-end="url(#seq-a10-3-3-avcs-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="643" x2="499" y1="643" x1="812"/><text class="sequenceNumber" text-anchor="middle" font-size="12px" font-family="sans-serif" y="647" x="812">5</text><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="668" x="283">4. 回傳 "Command Successful"</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-start="url(#seq-a10-3-3-avcs-2-sequencenumber)" marker-end="url(#seq-a10-3-3-avcs-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="711" x2="79" y1="711" x1="486"/><text class="sequenceNumber" text-anchor="middle" font-size="12px" font-family="sans-serif" y="715" x="486">6</text></svg></div>
             </div>
         </section>
 
@@ -450,7 +477,7 @@
     <footer class="bg-a10blue text-white py-6 mt-8">
         <div class="max-w-7xl mx-auto px-4 text-center">
             <p class="text-sm opacity-80 font-light tracking-wide">
-                Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0
+                Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0
             </p>
         </div>
     </footer>

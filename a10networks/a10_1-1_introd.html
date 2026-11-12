@@ -11,7 +11,8 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Mermaid JS -->
-    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <!-- 圖表已改為內嵌 SVG,不再載入 Mermaid;保留空殼讓原本的初始化程式不出錯 -->
+    <script>window.mermaid = { initialize: function () {}, init: function () {}, run: function () { return Promise.resolve(); } };</script>
 
     <script>
         tailwind.config = {
@@ -73,6 +74,9 @@
             color: white !important;
         }
     </style>
+    <!-- 教學網站共用外觀 -->
+    <link rel="stylesheet" href="../assets/site-theme.css?v=20261112">
+    <script src="../assets/site-chrome.js?v=20261112" defer></script>
 </head>
 <body class="flex flex-col min-h-screen">
 
@@ -187,24 +191,63 @@
             <!-- Graph 1: Legacy vs ACOS -->
             <div class="bg-white p-4 rounded-lg shadow border border-gray-200">
                 <h4 class="text-center font-bold text-gray-700 mb-2">圖一：傳統架構 vs. ACOS 架構 (記憶體存取)</h4>
-                <div class="mermaid">
-                    graph TD
-                    subgraph "傳統架構 (IPC 瓶頸)"
-                        L_CPU1["CPU Core 1"] -- Copy --> L_MEM1[("Local Memory")]
-                        L_MEM1 -. IPC/Locking .-> L_MEM2[("Local Memory")]
-                        L_MEM2 -- Copy --> L_CPU2["CPU Core 2"]
-                    end
-
-                    subgraph "ACOS 架構 (Shared Memory)"
-                        Shared[("Global Shared Memory")]
-                        C1["CPU Core 1"] ==>|Zero Copy| Shared
-                        C2["CPU Core 2"] ==>|Zero Copy| Shared
-                        C3["CPU Core 3"] ==>|Zero Copy| Shared
-                    end
-                    
-                    style L_MEM1 fill:#f9f9f9,stroke:#333
-                    style L_MEM2 fill:#f9f9f9,stroke:#333
-                    style Shared fill:#00529B,stroke:#fff,color:#fff
+                <!-- 比較圖 (手繪 SVG)：左欄傳統架構 (各核心 Local Memory + IPC)，右欄 ACOS 共享記憶體 (Zero Copy) -->
+                <div style="width:100%;overflow-x:auto">
+                <svg viewBox="0 0 820 476" role="img" aria-labelledby="a10-11a-title a10-11a-desc" style="width:100%;min-width:560px;max-width:820px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+                <title id="a10-11a-title">傳統架構 vs. ACOS 架構 (記憶體存取)</title>
+                <desc id="a10-11a-desc">左右兩欄比較記憶體存取方式。左欄「傳統架構 (IPC 瓶頸)」：CPU Core 1 以 Copy 將資料寫入自己的 Local Memory，兩塊 Local Memory 之間需經 IPC/Locking 同步，再由另一塊 Local Memory 以 Copy 交給 CPU Core 2。右欄「ACOS 架構 (Shared Memory)」：CPU Core 1、CPU Core 2、CPU Core 3 都以 Zero Copy 直接存取同一塊 Global Shared Memory。</desc>
+                <defs><linearGradient id="a10-11a-pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7e57c2"/><stop offset="1" stop-color="#311b92"/></linearGradient><linearGradient id="a10-11a-cg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22a6c4"/><stop offset="1" stop-color="#0e7490"/></linearGradient><filter id="a10-11a-sh" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#311b92" flood-opacity="0.16"/></filter><marker id="a10-11a-arr-gray" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5b6278"/></marker><marker id="a10-11a-arr-cyan" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#0891b2"/></marker><marker id="a10-11a-arr-purple" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#673ab7"/></marker><marker id="a10-11a-arr-amber" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#d97706"/></marker></defs>
+                <rect x="10" y="10" width="390" height="420" rx="16" fill="#f6f2fe" stroke="#b39ddb" stroke-width="1.5" stroke-dasharray="6 5"/>
+                <text x="30" y="36" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="13" font-weight="700" fill="#673ab7">傳統架構 (IPC 瓶頸)</text>
+                <rect x="420" y="10" width="390" height="420" rx="16" fill="#effafc" stroke="#67c5d6" stroke-width="1.5" stroke-dasharray="6 5"/>
+                <text x="440" y="36" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="13" font-weight="700" fill="#0e7490">ACOS 架構 (Shared Memory)</text>
+                <path d="M205 106 V146" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#a10-11a-arr-gray)"/>
+                <text x="217" y="131" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#5b6278">Copy</text>
+                <path d="M205 206 V256" fill="none" stroke="#d97706" stroke-width="2.2" stroke-linejoin="round" stroke-dasharray="5 4" marker-end="url(#a10-11a-arr-amber)"/>
+                <text x="217" y="236" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#b45309">IPC/Locking</text>
+                <path d="M205 316 V358" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#a10-11a-arr-gray)"/>
+                <text x="217" y="341" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#5b6278">Copy</text>
+                <rect x="115" y="58" width="180" height="48" rx="10" fill="url(#a10-11a-pg)" filter="url(#a10-11a-sh)"/>
+                <text x="205.0" y="87.0" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">CPU Core 1</text>
+                <path d="M115 155 V197 A90.0 9 0 0 0 295 197 V155" fill="#f8fafc" stroke="#5b6278" stroke-width="2"/>
+                <ellipse cx="205.0" cy="155" rx="90.0" ry="9" fill="#f8fafc" stroke="#5b6278" stroke-width="2"/>
+                <text x="205.0" y="185.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1e2235">Local Memory</text>
+                <path d="M115 265 V307 A90.0 9 0 0 0 295 307 V265" fill="#f8fafc" stroke="#5b6278" stroke-width="2"/>
+                <ellipse cx="205.0" cy="265" rx="90.0" ry="9" fill="#f8fafc" stroke="#5b6278" stroke-width="2"/>
+                <text x="205.0" y="295.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1e2235">Local Memory</text>
+                <rect x="115" y="358" width="180" height="48" rx="10" fill="url(#a10-11a-pg)" filter="url(#a10-11a-sh)"/>
+                <text x="205.0" y="387.0" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">CPU Core 2</text>
+                <path d="M495 178 V270" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-11a-arr-cyan)"/>
+                <rect x="458" y="215" width="74" height="18" rx="9" fill="#fff" stroke="#0891b2" stroke-width="1.5"/>
+                <text x="495" y="228" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="10.5" font-weight="700" fill="#0e7490">Zero Copy</text>
+                <rect x="445" y="130" width="100" height="48" rx="10" fill="url(#a10-11a-pg)" filter="url(#a10-11a-sh)"/>
+                <text x="495.0" y="159.0" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">CPU Core 1</text>
+                <path d="M615 178 V270" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-11a-arr-cyan)"/>
+                <rect x="578" y="215" width="74" height="18" rx="9" fill="#fff" stroke="#0891b2" stroke-width="1.5"/>
+                <text x="615" y="228" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="10.5" font-weight="700" fill="#0e7490">Zero Copy</text>
+                <rect x="565" y="130" width="100" height="48" rx="10" fill="url(#a10-11a-pg)" filter="url(#a10-11a-sh)"/>
+                <text x="615.0" y="159.0" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">CPU Core 2</text>
+                <path d="M735 178 V270" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-11a-arr-cyan)"/>
+                <rect x="698" y="215" width="74" height="18" rx="9" fill="#fff" stroke="#0891b2" stroke-width="1.5"/>
+                <text x="735" y="228" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="10.5" font-weight="700" fill="#0e7490">Zero Copy</text>
+                <rect x="685" y="130" width="100" height="48" rx="10" fill="url(#a10-11a-pg)" filter="url(#a10-11a-sh)"/>
+                <text x="735.0" y="159.0" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">CPU Core 3</text>
+                <path d="M455 281 V335 A160.0 11 0 0 0 775 335 V281" fill="url(#a10-11a-cg)" stroke="#0e7490" stroke-width="2"/>
+                <ellipse cx="615.0" cy="281" rx="160.0" ry="11" fill="url(#a10-11a-cg)" stroke="#0e7490" stroke-width="2"/>
+                <text x="615.0" y="318.5" text-anchor="middle" font-size="13.5" font-weight="700" fill="#fff">Global Shared Memory</text>
+                <rect x="40" y="449" width="22" height="14" rx="3" fill="url(#a10-11a-pg)" stroke="#311b92" stroke-width="1.5"/>
+                <text x="70" y="460" text-anchor="start" font-size="11.5" fill="#1e2235">CPU 核心</text>
+                <rect x="160" y="449" width="22" height="14" rx="3" fill="#f8fafc" stroke="#5b6278" stroke-width="1.5"/>
+                <text x="190" y="460" text-anchor="start" font-size="11.5" fill="#1e2235">Local Memory</text>
+                <rect x="300" y="449" width="22" height="14" rx="3" fill="url(#a10-11a-cg)" stroke="#0e7490" stroke-width="1.5"/>
+                <text x="330" y="460" text-anchor="start" font-size="11.5" fill="#1e2235">Shared Memory</text>
+                <path d="M450 456 H478" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#a10-11a-arr-gray)"/>
+                <text x="486" y="460" text-anchor="start" font-size="11.5" fill="#1e2235">Copy</text>
+                <path d="M560 456 H588" fill="none" stroke="#d97706" stroke-width="2.2" stroke-linejoin="round" stroke-dasharray="5 4" marker-end="url(#a10-11a-arr-amber)"/>
+                <text x="596" y="460" text-anchor="start" font-size="11.5" fill="#1e2235">IPC/Locking</text>
+                <path d="M690 456 H718" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-11a-arr-cyan)"/>
+                <text x="726" y="460" text-anchor="start" font-size="11.5" fill="#1e2235">Zero Copy</text>
+                </svg>
                 </div>
                 <p class="text-sm text-gray-500 text-center mt-2">ACOS 透過共享記憶體消除 IPC 延遲，實現多核心並行處理。</p>
             </div>
@@ -212,7 +255,7 @@
             <!-- Graph 2: ADC Function Flow -->
             <div class="bg-white p-4 rounded-lg shadow border border-gray-200">
                 <h4 class="text-center font-bold text-gray-700 mb-2">圖二：ADC 流量處理流程 (邏輯視圖)</h4>
-                <div class="mermaid">
+                <!-- 時序圖 (由 Mermaid 10.9.1 預先轉成靜態 SVG,套用網站配色)。原始 Mermaid 碼:
                     %%{init: {'theme': 'neutral', 'themeVariables': { 'fontSize': '20px', 'actorFontSize': '24px', 'noteFontSize': '20px', 'messageFontSize': '22px' }}}%%
                     sequenceDiagram
                         participant User as 使用者 (Client)
@@ -224,18 +267,20 @@
 
                         User->>VIP: 1. 發送 HTTPS 請求 (Encrypted)
                         VIP->>SSL: 2. 硬體解密 (SSL Termination)
-                        SSL-->>VIP: 解密後流量 (Plain Text)
+                        SSL--&gt;>VIP: 解密後流量 (Plain Text)
                         VIP->>WAF: 3. 檢查惡意攻擊 (SQLi/XSS)
                         alt 攻擊檢測
-                            WAF-->>User: Block / Reset
+                            WAF--&gt;>User: Block / Reset
                         else 安全流量
                             WAF->>LB: 4. 選擇最佳伺服器 (RR/Least Conn)
                             LB->>Server: 5. 轉發請求 (Source NAT)
-                            Server-->>LB: 6. 回傳回應
+                            Server--&gt;>LB: 6. 回傳回應
                             LB->>SSL: 7. 加密回應
-                            SSL-->>User: 8. 回傳 HTTPS 回應
+                            SSL--&gt;>User: 8. 回傳 HTTPS 回應
                         end
-                </div>
+                
+                -->
+                <div style="width:100%;overflow-x:auto"><svg xmlns="http://www.w3.org/2000/svg" aria-roledescription="sequence" role="img" viewBox="-50 -10 1863.5 773" style="width:100%;min-width:560px;max-width:1864px;height:auto;display:block;margin:0 auto" id="seq-a10-1-1-introd-2" aria-labelledby="seq-a10-1-1-introd-2-title"><title id="seq-a10-1-1-introd-2-title">圖二：ADC 流量處理流程 (邏輯視圖)</title><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="1661" y1="5" x1="1661"/><g><rect class="actor actor-top" ry="3" rx="3" name="Server" height="65" width="205" stroke="#666" fill="#eaeaea" y="0" x="1558.5"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="1661"><tspan dy="0" x="1661">後端伺服器 (Real Server)</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="1371" y1="5" x1="1371"/><g><rect class="actor actor-top" ry="3" rx="3" name="LB" height="65" width="186" stroke="#666" fill="#eaeaea" y="0" x="1278"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="1371"><tspan dy="0" x="1371">Load Balancing Logic</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="1009" y1="5" x1="1009"/><g><rect class="actor actor-top" ry="3" rx="3" name="WAF" height="65" width="187" stroke="#666" fill="#eaeaea" y="0" x="915.5"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="1009"><tspan dy="0" x="1009">WAF/Security Module</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="741" y1="5" x1="741"/><g><rect class="actor actor-top" ry="3" rx="3" name="SSL" height="65" width="169" stroke="#666" fill="#eaeaea" y="0" x="656.5"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="741"><tspan dy="0" x="741">SSL Offload Engine</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="414" y1="5" x1="414"/><g><rect class="actor actor-top" ry="3" rx="3" name="VIP" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="339"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="414"><tspan dy="0" x="414">ADC (Virtual IP)</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="75" y1="5" x1="75"/><g><rect class="actor actor-top" ry="3" rx="3" name="User" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="0"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="75"><tspan dy="0" x="75">使用者 (Client)</tspan></text></g></g><style>#seq-a10-1-1-introd-2{font-family:'Noto Sans TC',Roboto,'Microsoft JhengHei',sans-serif;font-size:15px;fill:#1e2235;}#seq-a10-1-1-introd-2 .marker{fill:#5b6278;stroke:#5b6278;}#seq-a10-1-1-introd-2 .marker.cross{stroke:#5b6278;}#seq-a10-1-1-introd-2 .actor{stroke:#673ab7;fill:#f3effc;}#seq-a10-1-1-introd-2 text.actor&gt;tspan{fill:#311b92;stroke:none;}#seq-a10-1-1-introd-2 .actor-line{stroke:#b39ddb;}#seq-a10-1-1-introd-2 .messageLine0{stroke-width:1.5;stroke-dasharray:none;stroke:#5b6278;}#seq-a10-1-1-introd-2 .messageLine1{stroke-width:1.5;stroke-dasharray:2,2;stroke:#5b6278;}#seq-a10-1-1-introd-2 #seq-a10-1-1-introd-2-arrowhead path{fill:#5b6278;stroke:#5b6278;}#seq-a10-1-1-introd-2 #sequencenumber{fill:#5b6278;}#seq-a10-1-1-introd-2 #crosshead path{fill:#5b6278;stroke:#5b6278;}#seq-a10-1-1-introd-2 .messageText{fill:#1e2235;stroke:none;}#seq-a10-1-1-introd-2 .labelBox{stroke:#673ab7;fill:#f3effc;}#seq-a10-1-1-introd-2 .labelText,#seq-a10-1-1-introd-2 .labelText&gt;tspan{fill:#311b92;stroke:none;}#seq-a10-1-1-introd-2 .loopText,#seq-a10-1-1-introd-2 .loopText&gt;tspan{fill:#311b92;stroke:none;}#seq-a10-1-1-introd-2 .loopLine{stroke-width:2px;stroke-dasharray:2,2;stroke:#673ab7;fill:#673ab7;}#seq-a10-1-1-introd-2 .note{stroke:#f5b041;fill:#fff8e1;}#seq-a10-1-1-introd-2 .noteText,#seq-a10-1-1-introd-2 .noteText&gt;tspan{fill:#5d4037;stroke:none;}</style><g/><defs><marker orient="auto" markerHeight="12" markerWidth="12" markerUnits="userSpaceOnUse" refY="5" refX="7.9" id="seq-a10-1-1-introd-2-arrowhead"><path d="M 0 0 L 10 5 L 0 10 z"/></marker></defs><g><line class="loopLine" y2="307" x2="1672" y1="307" x1="64"/><line class="loopLine" y2="753" x2="1672" y1="307" x1="1672"/><line class="loopLine" y2="753" x2="1672" y1="753" x1="64"/><line class="loopLine" y2="753" x2="64" y1="307" x1="64"/><line style="stroke-dasharray: 3, 3;" class="loopLine" y2="419" x2="1672" y1="419" x1="64"/><polygon class="labelBox" points="64,307 114,307 114,320 105.6,327 64,327"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" class="labelText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="320" x="89">alt</text><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" class="loopText" text-anchor="middle" y="325" x="893"><tspan x="893">[攻擊檢測]</tspan></text><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" class="loopText" text-anchor="middle" y="437" x="868">[安全流量]</text></g><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="80" x="243">1. 發送 HTTPS 請求 (Encrypted)</text><line style="fill: none;" marker-end="url(#seq-a10-1-1-introd-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="123" x2="410" y1="123" x1="76"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="138" x="576">2. 硬體解密 (SSL Termination)</text><line style="fill: none;" marker-end="url(#seq-a10-1-1-introd-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="181" x2="737" y1="181" x1="415"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="196" x="579">解密後流量 (Plain Text)</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-a10-1-1-introd-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="239" x2="418" y1="239" x1="740"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="254" x="710">3. 檢查惡意攻擊 (SQLi/XSS)</text><line style="fill: none;" marker-end="url(#seq-a10-1-1-introd-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="297" x2="1005" y1="297" x1="415"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="361" x="544">Block / Reset</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-a10-1-1-introd-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="404" x2="79" y1="404" x1="1008"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="468" x="1189">4. 選擇最佳伺服器 (RR/Least Conn)</text><line style="fill: none;" marker-end="url(#seq-a10-1-1-introd-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="511" x2="1367" y1="511" x1="1010"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="526" x="1515">5. 轉發請求 (Source NAT)</text><line style="fill: none;" marker-end="url(#seq-a10-1-1-introd-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="569" x2="1657" y1="569" x1="1372"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="584" x="1518">6. 回傳回應</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-a10-1-1-introd-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="627" x2="1375" y1="627" x1="1660"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="642" x="1058">7. 加密回應</text><line style="fill: none;" marker-end="url(#seq-a10-1-1-introd-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="685" x2="745" y1="685" x1="1370"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="700" x="410">8. 回傳 HTTPS 回應</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-a10-1-1-introd-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="743" x2="79" y1="743" x1="740"/></svg></div>
             </div>
         </section>
 
@@ -301,7 +346,7 @@
     <footer class="bg-a10blue text-white py-6 mt-auto border-t-4 border-a10accent">
         <div class="container mx-auto px-4 text-center">
             <p class="text-sm font-light tracking-wider">
-                Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0
+                Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0
             </p>
         </div>
     </footer>

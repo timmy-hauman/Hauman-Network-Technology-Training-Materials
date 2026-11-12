@@ -11,7 +11,8 @@
     <!-- Tailwind CSS (Utility classes) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Mermaid JS for Diagrams -->
-    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <!-- 圖表已改為內嵌 SVG,不再載入 Mermaid;保留空殼讓原本的初始化程式不出錯 -->
+    <script>window.mermaid = { initialize: function () {}, init: function () {}, run: function () { return Promise.resolve(); } };</script>
     
     <script>
         tailwind.config = {
@@ -111,6 +112,9 @@
             border-radius: 2px;
         }
     </style>
+    <!-- 教學網站共用外觀 -->
+    <link rel="stylesheet" href="../assets/site-theme.css?v=20261112">
+    <script src="../assets/site-chrome.js?v=20261112" defer></script>
 </head>
 <body>
 
@@ -257,56 +261,65 @@
             <!-- Diagram 1: Packet Flow & Debug Hook -->
             <div class="mb-8">
                 <h4 class="text-lg font-bold text-center text-secondary mb-2">圖表 1: ACOS 封包處理與 axdebug 介入點</h4>
-                <div class="mermaid">
-                    flowchart TD
-                        subgraph Client_Side
-                            User[使用者]
-                        end
-                        
-                        subgraph ACOS_Device
-                            Ingress[介面進站 Ingress]
-                            
-                            subgraph Hardware_ASIC [Data Plane / ASIC]
-                                L2L3[L2/L3 解析]
-                                Filter_Check{符合 axdebug Filter?}
-                                SLB_Logic[SLB 負載平衡決策]
-                                NAT[NAT 轉換]
-                            end
-                            
-                            subgraph Software_CPU [Control Plane / CPU]
-                                Debug_Engine[axdebug 引擎]
-                                Storage[(pcap 檔案)]
-                            end
-                            
-                            Egress[介面出站 Egress]
-                        end
-                        
-                        subgraph Server_Side
-                            Server[後端伺服器]
-                        end
-
-                        User -->|原始封包| Ingress
-                        Ingress --> L2L3
-                        L2L3 --> Filter_Check
-                        
-                        Filter_Check -- 是 (Mirror Copy) --> Debug_Engine
-                        Debug_Engine -->|寫入| Storage
-                        
-                        Filter_Check -- 否 (原本路徑) --> SLB_Logic
-                        SLB_Logic --> NAT
-                        NAT --> Egress
-                        Egress -->|轉換後封包| Server
-                        
-                        style Filter_Check fill:#FF8200,stroke:#333,stroke-width:2px,color:white
-                        style Debug_Engine fill:#E6007E,stroke:#333,stroke-width:2px,color:white
-                        style Hardware_ASIC fill:#f0f9ff,stroke:#0047BB,stroke-dasharray: 5 5
+                <!-- 流程圖 (手繪 SVG):直式,Data Plane / ASIC 與 Control Plane / CPU 以不同底色區分 -->
+                <div style="width:100%;overflow-x:auto">
+                <svg viewBox="0 0 820 888" role="img" aria-labelledby="a10-34a-title a10-34a-desc" style="width:100%;min-width:560px;max-width:820px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+                <title id="a10-34a-title">ACOS 封包處理與 axdebug 介入點</title>
+                <desc id="a10-34a-desc">使用者 (Client_Side) 送出的原始封包進入 ACOS_Device 的介面進站 Ingress,在 Data Plane / ASIC 先做 L2/L3 解析,再判斷是否符合 axdebug Filter:是 (Mirror Copy) 則複製一份送往 Control Plane / CPU 的 axdebug 引擎,寫入 pcap 檔案;不論是否符合,原封包都照常依序進行 SLB 負載平衡決策與 NAT 轉換,從介面出站 Egress 送出,轉換後封包抵達 Server_Side 的後端伺服器。</desc>
+                <defs><linearGradient id="a10-34a-pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7e57c2"/><stop offset="1" stop-color="#311b92"/></linearGradient><filter id="a10-34a-sh" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#311b92" flood-opacity="0.16"/></filter><marker id="a10-34a-arr" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5b6278"/></marker><marker id="a10-34a-arr-c" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#0891b2"/></marker><marker id="a10-34a-arr-p" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#673ab7"/></marker><marker id="a10-34a-arr-pt" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#673ab7"/></marker></defs>
+                <rect x="120" y="12" width="280" height="88" rx="16" fill="#effafc" stroke="#67c5d6" stroke-width="1.5" stroke-dasharray="6 5"/>
+                <text x="136" y="34" font-family="'JetBrains Mono', Consolas, monospace" font-size="12.5" font-weight="700" fill="#0891b2">Client_Side</text>
+                <rect x="24" y="140" width="776" height="596" rx="16" fill="#f6f2fe" stroke="#b39ddb" stroke-width="1.5" stroke-dasharray="6 5"/>
+                <text x="40" y="162" font-family="'JetBrains Mono', Consolas, monospace" font-size="12.5" font-weight="700" fill="#673ab7">ACOS_Device</text>
+                <rect x="50" y="244" width="480" height="396" rx="16" fill="#effafc" stroke="#67c5d6" stroke-width="1.5" stroke-dasharray="6 5"/>
+                <text x="66" y="266" font-family="'JetBrains Mono', Consolas, monospace" font-size="12.5" font-weight="700" fill="#0e7490">Data Plane / ASIC</text>
+                <rect x="560" y="330" width="220" height="230" rx="16" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5" stroke-dasharray="6 5"/>
+                <text x="576" y="352" font-family="'JetBrains Mono', Consolas, monospace" font-size="12.5" font-weight="700" fill="#c2410c">Control Plane / CPU</text>
+                <rect x="120" y="776" width="280" height="96" rx="16" fill="#ecfdf5" stroke="#86efac" stroke-width="1.5" stroke-dasharray="6 5"/>
+                <text x="136" y="798" font-family="'JetBrains Mono', Consolas, monospace" font-size="12.5" font-weight="700" fill="#15803d">Server_Side</text>
+                <path d="M260 88 V174" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#a10-34a-arr)"/>
+                <text x="272" y="124" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#5b6278">原始封包</text>
+                <path d="M260 220 V282" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#a10-34a-arr)"/>
+                <path d="M260 328 V354" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#a10-34a-arr)"/>
+                <path d="M380 400 H578" fill="none" stroke="#673ab7" stroke-width="2.2" stroke-linejoin="round" stroke-dasharray="6 4" marker-end="url(#a10-34a-arr)"/>
+                <text x="455" y="390" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#673ab7">是 (Mirror Copy)</text>
+<text x="455" y="418" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="10.5" fill="#673ab7">複製一份側錄</text>
+                <path d="M670 422 V468" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#a10-34a-arr)"/>
+                <text x="682" y="450" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#5b6278">寫入</text>
+                <path d="M260 444 V486" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#a10-34a-arr)"/>
+                <text x="272" y="470" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">原封包照常處理 (是 / 否皆同)</text>
+                <path d="M260 532 V570" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#a10-34a-arr)"/>
+                <path d="M260 616 V668" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#a10-34a-arr)"/>
+                <path d="M260 714 V810" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#a10-34a-arr)"/>
+                <text x="272" y="760" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#5b6278">轉換後封包</text>
+                <rect x="180" y="46" width="160" height="42" rx="21" fill="url(#a10-34a-pg)" stroke="#311b92" stroke-width="2"/>
+                <text x="260" y="72" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">使用者</text>
+                <rect x="170" y="176" width="180" height="44" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/>
+                <text x="260" y="203" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">介面進站 Ingress</text>
+                <rect x="170" y="284" width="180" height="44" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/>
+                <text x="260" y="311" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">L2/L3 解析</text>
+                <polygon points="260,356 380,400 260,444 140,400" fill="#e0f7fa" stroke="#0891b2" stroke-width="2"/>
+                <text x="260" y="405" text-anchor="middle" font-size="13" font-weight="700" fill="#0e7490">符合 axdebug Filter?</text>
+                <rect x="170" y="488" width="180" height="44" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/>
+                <text x="260" y="515" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">SLB 負載平衡決策</text>
+                <rect x="170" y="572" width="180" height="44" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/>
+                <text x="260" y="599" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">NAT 轉換</text>
+                <rect x="170" y="670" width="180" height="44" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/>
+                <text x="260" y="697" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">介面出站 Egress</text>
+                <g filter="url(#a10-34a-sh)"><rect x="580" y="378" width="180" height="44" rx="10" fill="url(#a10-34a-pg)"/></g>
+                <text x="670" y="405" text-anchor="middle" font-size="13.5" font-weight="700" fill="#fff">axdebug 引擎</text>
+                <path d="M600 479 V525 A70 9 0 0 0 740 525 V479" fill="#fff" stroke="#0891b2" stroke-width="2"/><ellipse cx="670" cy="479" rx="70" ry="9" fill="#e0f7fa" stroke="#0891b2" stroke-width="2"/>
+                <text x="670" y="512" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">pcap 檔案</text>
+                <rect x="170" y="812" width="180" height="44" rx="22" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+                <text x="260" y="839" text-anchor="middle" font-size="13" font-weight="700" fill="#15803d">後端伺服器</text>
+                </svg>
                 </div>
             </div>
 
             <!-- Diagram 2: Troubleshooting Workflow -->
             <div>
                 <h4 class="text-lg font-bold text-center text-secondary mb-2">圖表 2: 標準故障排除流程 (Sequence Diagram)</h4>
-                <div class="mermaid">
+                <!-- 時序圖 (由 Mermaid 10.9.1 預先轉成靜態 SVG,套用網站配色)。原始 Mermaid 碼:
                     sequenceDiagram
                         participant Admin as 管理員
                         participant ACOS as A10 Thunder
@@ -315,7 +328,7 @@
 
                         Admin->>ACOS: 1. 接獲報修 (連線異常)
                         Admin->>ACOS: show log (檢查歷史紀錄)
-                        ACOS-->>Admin: 回傳 Warning/Error Logs
+                        ACOS--&gt;>Admin: 回傳 Warning/Error Logs
                         
                         alt Log 資訊不足
                             Admin->>ACOS: 2. 設定 axdebug filter (IP/Port)
@@ -329,7 +342,9 @@
 
                         Admin->>Admin: 5. 使用 Wireshark 分析 pcap
                         Admin->>Admin: 6. 確認 3-Way Handshake 斷在哪
-                </div>
+                
+                -->
+                <div style="width:100%;overflow-x:auto"><svg xmlns="http://www.w3.org/2000/svg" aria-roledescription="sequence" role="img" viewBox="-92.5 -10 1119.5 921" style="width:100%;min-width:560px;max-width:1120px;height:auto;display:block;margin:0 auto" id="seq-a10-3-4-axdebug-2" aria-labelledby="seq-a10-3-4-axdebug-2-title"><title id="seq-a10-3-4-axdebug-2-title">圖表 2: 標準故障排除流程 (Sequence Diagram)</title><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="902" y1="5" x1="902"/><g><rect class="actor actor-top" ry="3" rx="3" name="Debug" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="827"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="902"><tspan dy="0" x="902">axdebug</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="662" y1="5" x1="662"/><g><rect class="actor actor-top" ry="3" rx="3" name="Log" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="587"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="662"><tspan dy="0" x="662">System Log</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="422" y1="5" x1="422"/><g><rect class="actor actor-top" ry="3" rx="3" name="ACOS" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="347"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="422"><tspan dy="0" x="422">A10 Thunder</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="75" y1="5" x1="75"/><g><rect class="actor actor-top" ry="3" rx="3" name="Admin" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="0"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="75"><tspan dy="0" x="75">管理員</tspan></text></g></g><style>#seq-a10-3-4-axdebug-2{font-family:'Noto Sans TC',Roboto,'Microsoft JhengHei',sans-serif;font-size:15px;fill:#1e2235;}#seq-a10-3-4-axdebug-2 .marker{fill:#5b6278;stroke:#5b6278;}#seq-a10-3-4-axdebug-2 .marker.cross{stroke:#5b6278;}#seq-a10-3-4-axdebug-2 .actor{stroke:#673ab7;fill:#f3effc;}#seq-a10-3-4-axdebug-2 text.actor&gt;tspan{fill:#311b92;stroke:none;}#seq-a10-3-4-axdebug-2 .actor-line{stroke:#b39ddb;}#seq-a10-3-4-axdebug-2 .messageLine0{stroke-width:1.5;stroke-dasharray:none;stroke:#5b6278;}#seq-a10-3-4-axdebug-2 .messageLine1{stroke-width:1.5;stroke-dasharray:2,2;stroke:#5b6278;}#seq-a10-3-4-axdebug-2 #seq-a10-3-4-axdebug-2-arrowhead path{fill:#5b6278;stroke:#5b6278;}#seq-a10-3-4-axdebug-2 #sequencenumber{fill:#5b6278;}#seq-a10-3-4-axdebug-2 #crosshead path{fill:#5b6278;stroke:#5b6278;}#seq-a10-3-4-axdebug-2 .messageText{fill:#1e2235;stroke:none;}#seq-a10-3-4-axdebug-2 .labelBox{stroke:#673ab7;fill:#f3effc;}#seq-a10-3-4-axdebug-2 .labelText,#seq-a10-3-4-axdebug-2 .labelText&gt;tspan{fill:#311b92;stroke:none;}#seq-a10-3-4-axdebug-2 .loopText,#seq-a10-3-4-axdebug-2 .loopText&gt;tspan{fill:#311b92;stroke:none;}#seq-a10-3-4-axdebug-2 .loopLine{stroke-width:2px;stroke-dasharray:2,2;stroke:#673ab7;fill:#673ab7;}#seq-a10-3-4-axdebug-2 .note{stroke:#f5b041;fill:#fff8e1;}#seq-a10-3-4-axdebug-2 .noteText,#seq-a10-3-4-axdebug-2 .noteText&gt;tspan{fill:#5d4037;stroke:none;}</style><g/><defs><marker orient="auto" markerHeight="12" markerWidth="12" markerUnits="userSpaceOnUse" refY="5" refX="7.9" id="seq-a10-3-4-axdebug-2-arrowhead"><path d="M 0 0 L 10 5 L 0 10 z"/></marker></defs><g><rect class="note" ry="0" rx="0" height="48" width="165" stroke="#666" fill="#EDF2AE" y="414" x="339.5"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="420" x="422"><tspan x="422">等待異常流量發生...</tspan></text></g><g><line class="loopLine" y2="249" x2="514.5" y1="249" x1="64"/><line class="loopLine" y2="695" x2="514.5" y1="249" x1="514.5"/><line class="loopLine" y2="695" x2="514.5" y1="695" x1="64"/><line class="loopLine" y2="695" x2="64" y1="249" x1="64"/><line style="stroke-dasharray: 3, 3;" class="loopLine" y2="593" x2="514.5" y1="593" x1="64"/><polygon class="labelBox" points="64,249 114,249 114,262 105.6,269 64,269"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" class="labelText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="262" x="89">alt</text><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" class="loopText" text-anchor="middle" y="267" x="314.25"><tspan x="314.25">[Log 資訊不足]</tspan></text><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" class="loopText" text-anchor="middle" y="611" x="289.25">[Log 已有明確錯誤 (如 Pool Down)]</text></g><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="80" x="247">1. 接獲報修 (連線異常)</text><line style="fill: none;" marker-end="url(#seq-a10-3-4-axdebug-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="123" x2="418" y1="123" x1="76"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="138" x="247">show log (檢查歷史紀錄)</text><line style="fill: none;" marker-end="url(#seq-a10-3-4-axdebug-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="181" x2="418" y1="181" x1="76"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="196" x="250">回傳 Warning/Error Logs</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-a10-3-4-axdebug-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="239" x2="79" y1="239" x1="421"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="303" x="247">2. 設定 axdebug filter (IP/Port)</text><line style="fill: none;" marker-end="url(#seq-a10-3-4-axdebug-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="346" x2="418" y1="346" x1="76"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="361" x="247">3. axdebug enable (開始側錄)</text><line style="fill: none;" marker-end="url(#seq-a10-3-4-axdebug-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="404" x2="418" y1="404" x1="76"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="477" x="247">4. no axdebug enable (停止側錄)</text><line style="fill: none;" marker-end="url(#seq-a10-3-4-axdebug-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="520" x2="418" y1="520" x1="76"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="535" x="247">export axdebug (匯出 pcap)</text><line style="fill: none;" marker-end="url(#seq-a10-3-4-axdebug-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="578" x2="418" y1="578" x1="76"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="642" x="247">直接修復配置</text><line style="fill: none;" marker-end="url(#seq-a10-3-4-axdebug-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="685" x2="418" y1="685" x1="76"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="710" x="76">5. 使用 Wireshark 分析 pcap</text><path style="fill: none;" marker-end="url(#seq-a10-3-4-axdebug-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" d="M 76,753 C 136,743 136,783 76,773"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="798" x="76">6. 確認 3-Way Handshake 斷在哪</text><path style="fill: none;" marker-end="url(#seq-a10-3-4-axdebug-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" d="M 76,841 C 136,831 136,871 76,861"/></svg></div>
             </div>
         </div>
 
@@ -395,7 +410,7 @@
     <!-- Footer -->
     <footer class="bg-primary text-white py-6 mt-auto border-t-4 border-highlight">
         <div class="container mx-auto px-4 text-center text-sm font-light tracking-wide">
-            <p>Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0</p>
+            <p>Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0</p>
         </div>
     </footer>
 

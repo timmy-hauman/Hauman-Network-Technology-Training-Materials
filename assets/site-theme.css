@@ -17,8 +17,9 @@
     --hm-mono: 'JetBrains Mono', 'Consolas', monospace;
 }
 
-/* 字型與背景:淡網格 + 紫/青光暈 */
-body {
+/* 字型與背景:淡網格 + 紫/青光暈
+   原本就是深色設計的頁面 (body 加上 hm-keep-dark) 保留自己的底色與字型,只套用導覽列、橫幅與頁尾 */
+body:not(.hm-keep-dark) {
     font-family: 'Roboto', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif !important;
     background-color: #f5f7fc !important;
     background-image:

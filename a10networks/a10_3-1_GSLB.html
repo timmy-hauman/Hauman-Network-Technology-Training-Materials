@@ -9,7 +9,8 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Mermaid JS -->
-    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <!-- 圖表已改為內嵌 SVG,不再載入 Mermaid;保留空殼讓原本的初始化程式不出錯 -->
+    <script>window.mermaid = { initialize: function () {}, init: function () {}, run: function () { return Promise.resolve(); } };</script>
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -85,6 +86,9 @@
             align-items: center;
         }
     </style>
+    <!-- 教學網站共用外觀 -->
+    <link rel="stylesheet" href="../assets/site-theme.css?v=20261112">
+    <script src="../assets/site-chrome.js?v=20261112" defer></script>
 </head>
 <body>
 
@@ -198,64 +202,78 @@
                 <!-- Diagram 1: GSLB Physical Topology -->
                 <div class="w-full bg-white p-4 rounded-lg border border-gray-200 overflow-x-auto">
                     <h4 class="text-center font-bold text-gray-700 mb-4">圖一：多資料中心 GSLB 部署拓撲</h4>
-                    <div class="mermaid flex justify-center">
-                        flowchart TD
-                            %% 定義樣式 Class
-                            classDef client fill:#FF6600,stroke:#333,stroke-width:2px,color:#fff
-                            classDef dns fill:#F3F4F6,stroke:#666,stroke-width:1px,stroke-dasharray: 5 5,color:#333
-                            classDef a10 fill:#002F6C,stroke:#333,stroke-width:2px,color:#fff
-                            classDef slb fill:#1e40af,stroke:#333,stroke-width:1px,color:#fff
-                            classDef app fill:#fff,stroke:#333,stroke-width:1px,color:#333
-
-                            %% 網際網路區塊
-                            subgraph Internet ["網際網路 (Internet)"]
-                                direction TB
-                                Client((Client)):::client
-                                LDNS[Local DNS Server]:::dns
-                            end
-
-                            %% 台北資料中心
-                            subgraph DC_A ["Data Center A (Taipei)"]
-                                direction TB
-                                GSLB_A[A10 GSLB Controller A<br/>DNS Proxy]:::a10
-                                SLB_A[A10 SLB<br/>VIP: 1.1.1.1]:::slb
-                                App_A[App Servers]:::app
-                            end
-
-                            %% 高雄資料中心
-                            subgraph DC_B ["Data Center B (Kaohsiung)"]
-                                direction TB
-                                GSLB_B[A10 GSLB Controller B]:::a10
-                                SLB_B[A10 SLB<br/>VIP: 2.2.2.2]:::slb
-                                App_B[App Servers]:::app
-                            end
-
-                            %% 連線關係 - DNS 流程 (虛線或細線)
-                            Client -->|1. DNS Query| LDNS
-                            LDNS -->|2. Fwd Query| GSLB_A
-                            GSLB_A -->|3. Reply VIP: 1.1.1.1| LDNS
-                            LDNS -->|4. Return IP| Client
-
-                            %% GSLB 同步
-                            GSLB_A <==>|Sync State| GSLB_B
-
-                            %% 健康檢查 (虛線)
-                            GSLB_A -.->|Health Check| SLB_A
-                            GSLB_B -.->|Health Check| SLB_B
-
-                            %% 實際流量 (粗線)
-                            Client ===>|5. HTTP Request| SLB_A
-                            SLB_A --> App_A
-
-                            %% 避免線條重疊的隱藏連結 (Layout Hint)
-                            SLB_A ~~~ SLB_B
+                    <!-- 拓撲圖 (手繪 SVG):兩座資料中心左右並排,DNS 流程 1-4 走細灰線,HTTP 實際流量走青色粗線 -->
+                    <div style="width:100%;overflow-x:auto">
+                    <svg viewBox="0 0 900 656" role="img" aria-labelledby="a10-31a-title a10-31a-desc" style="width:100%;min-width:560px;max-width:900px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+                    <title id="a10-31a-title">多資料中心 GSLB 部署拓撲</title>
+                    <desc id="a10-31a-desc">網際網路中的 Client 先向 Local DNS Server 發出 DNS Query (1),Local DNS 轉送查詢 (2. Fwd Query) 給 Data Center A (Taipei) 的 A10 GSLB Controller A (DNS Proxy),Controller A 回覆 VIP: 1.1.1.1 (3),Local DNS 再把 IP 回傳給 Client (4);接著 Client 直接對 Data Center A 的 A10 SLB (VIP: 1.1.1.1) 發出 HTTP Request (5),SLB 再轉給 App Servers。GSLB Controller A 與 Data Center B (Kaohsiung) 的 GSLB Controller B 互相同步狀態 (Sync State),兩台 Controller 各自對本地 A10 SLB (VIP 1.1.1.1 / 2.2.2.2) 做 Health Check;Data Center B 的 A10 SLB (VIP 2.2.2.2) 同樣把流量轉給本地的 App Servers。</desc>
+                    <defs><linearGradient id="a10-31a-pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7e57c2"/><stop offset="1" stop-color="#311b92"/></linearGradient><filter id="a10-31a-sh" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#311b92" flood-opacity="0.16"/></filter><marker id="a10-31a-arr" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5b6278"/></marker><marker id="a10-31a-arr-c" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#0891b2"/></marker><marker id="a10-31a-arr-p" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#673ab7"/></marker><marker id="a10-31a-arr-pt" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#673ab7"/></marker></defs>
+                    <rect x="16" y="14" width="434" height="126" rx="16" fill="#eef2ff" stroke="#9fa8da" stroke-width="1.5" stroke-dasharray="6 5"/>
+                    <text x="32" y="36" font-family="'JetBrains Mono', Consolas, monospace" font-size="12.5" font-weight="700" fill="#3949ab">網際網路 (Internet)</text>
+                    <rect x="16" y="190" width="428" height="450" rx="16" fill="#f6f2fe" stroke="#b39ddb" stroke-width="1.5" stroke-dasharray="6 5"/>
+                    <text x="32" y="626" font-family="'JetBrains Mono', Consolas, monospace" font-size="12.5" font-weight="700" fill="#673ab7">Data Center A (Taipei)</text>
+                    <rect x="556" y="190" width="328" height="450" rx="16" fill="#f6f2fe" stroke="#b39ddb" stroke-width="1.5" stroke-dasharray="6 5"/>
+                    <text x="572" y="626" font-family="'JetBrains Mono', Consolas, monospace" font-size="12.5" font-weight="700" fill="#673ab7">Data Center B (Kaohsiung)</text>
+                    <path d="M136 78 H238" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#a10-31a-arr)"/>
+                    <text x="188" y="69" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#5b6278">1. DNS Query</text>
+                    <path d="M240 98 H138" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#a10-31a-arr)"/>
+                    <text x="188" y="118" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#5b6278">4. Return IP</text>
+                    <path d="M305 112 V228" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#a10-31a-arr)"/>
+                    <text x="297" y="172" text-anchor="end" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#5b6278">2. Fwd Query</text>
+                    <path d="M355 230 V114" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#a10-31a-arr)"/>
+                    <text x="363" y="164" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#5b6278">3. Reply</text>
+                    <text x="363" y="179" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#5b6278">VIP: 1.1.1.1</text>
+                    <path d="M80 112 V412 H228" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-31a-arr-c)"/>
+                    <text x="155" y="400" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">5. HTTP Request</text>
+                    <path d="M330 444 V518" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-31a-arr-c)"/>
+<path d="M720 444 V518" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-31a-arr-c)"/>
+                    <path d="M330 294 V378" fill="none" stroke="#673ab7" stroke-width="2.2" stroke-linejoin="round" stroke-dasharray="6 4" marker-end="url(#a10-31a-arr-pt)"/>
+                    <text x="342" y="341" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#4527a0">Health Check</text>
+                    <path d="M720 294 V378" fill="none" stroke="#673ab7" stroke-width="2.2" stroke-linejoin="round" stroke-dasharray="6 4" marker-end="url(#a10-31a-arr-pt)"/>
+                    <text x="732" y="341" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#4527a0">Health Check</text>
+                    <path d="M432 262 H618" fill="none" stroke="#673ab7" stroke-width="4" stroke-linejoin="round" marker-start="url(#a10-31a-arr-p)" marker-end="url(#a10-31a-arr-p)"/>
+                    <rect x="459.66" y="232" width="80.68" height="20" rx="10" fill="#ede7f6" stroke="#673ab7"/>
+                    <text x="500" y="246" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#4527a0">Sync State</text>
+                    <g filter="url(#a10-31a-sh)"><rect x="24" y="60" width="112" height="52" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/></g>
+                    <g fill="#e0f7fa" stroke="#0891b2" stroke-width="1.4"><rect x="38" y="74" width="24" height="17" rx="2"/><path d="M50 91 V96 M44 97 H56" fill="none"/></g>
+                    <text x="100" y="91" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">Client</text>
+                    <g filter="url(#a10-31a-sh)"><rect x="240" y="60" width="180" height="52" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/></g>
+                    <g fill="#e0f7fa" stroke="#0891b2" stroke-width="1.4"><circle cx="265" cy="86" r="11"/><path d="M254 86 H276 M265 75 C258 82 258 90 265 97 M265 75 C272 82 272 90 265 97" fill="none"/></g>
+                    <text x="350" y="91" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">Local DNS Server</text>
+                    <g filter="url(#a10-31a-sh)"><rect x="230" y="230" width="200" height="64" rx="10" fill="url(#a10-31a-pg)"/></g>
+                    <text x="330" y="259" text-anchor="middle" font-size="13.5" font-weight="700" fill="#fff">A10 GSLB Controller A</text>
+                    <text x="330" y="277" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#d1c4e9">DNS Proxy</text>
+                    <g filter="url(#a10-31a-sh)"><rect x="230" y="380" width="200" height="64" rx="10" fill="url(#a10-31a-pg)"/></g>
+                    <text x="330" y="409" text-anchor="middle" font-size="13.5" font-weight="700" fill="#fff">A10 SLB</text>
+                    <text x="330" y="427" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#d1c4e9">VIP: 1.1.1.1</text>
+                    <g filter="url(#a10-31a-sh)"><rect x="240" y="520" width="180" height="52" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/></g>
+                    <g fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2"><rect x="254" y="530" width="22" height="9" rx="2"/><rect x="254" y="541.5" width="22" height="9" rx="2"/><rect x="254" y="553" width="22" height="9" rx="2"/></g>
+                    <text x="350" y="551" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">App Servers</text>
+                    <g filter="url(#a10-31a-sh)"><rect x="620" y="230" width="200" height="64" rx="10" fill="url(#a10-31a-pg)"/></g>
+                    <text x="720" y="267" text-anchor="middle" font-size="13.5" font-weight="700" fill="#fff">A10 GSLB Controller B</text>
+                    <g filter="url(#a10-31a-sh)"><rect x="620" y="380" width="200" height="64" rx="10" fill="url(#a10-31a-pg)"/></g>
+                    <text x="720" y="409" text-anchor="middle" font-size="13.5" font-weight="700" fill="#fff">A10 SLB</text>
+                    <text x="720" y="427" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#d1c4e9">VIP: 2.2.2.2</text>
+                    <g filter="url(#a10-31a-sh)"><rect x="630" y="520" width="180" height="52" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/></g>
+                    <g fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2"><rect x="644" y="530" width="22" height="9" rx="2"/><rect x="644" y="541.5" width="22" height="9" rx="2"/><rect x="644" y="553" width="22" height="9" rx="2"/></g>
+                    <text x="740" y="551" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">App Servers</text>
+                    <rect x="480" y="14" width="404" height="126" rx="12" fill="#fff" stroke="#e3e6f0" stroke-width="1.5"/>
+                    <path d="M500 42 H538" fill="none" stroke="#5b6278" stroke-width="2.2" marker-end="url(#a10-31a-arr)"/>
+                    <text x="552" y="46" font-size="12" fill="#1e2235">DNS 解析流程 (1–4)</text>
+                    <path d="M500 68 H536" fill="none" stroke="#0891b2" stroke-width="4" marker-end="url(#a10-31a-arr-c)"/>
+                    <text x="552" y="72" font-size="12" fill="#1e2235">實際流量 (HTTP Request)</text>
+                    <path d="M502 94 H536" fill="none" stroke="#673ab7" stroke-width="4" marker-start="url(#a10-31a-arr-p)" marker-end="url(#a10-31a-arr-p)"/>
+                    <text x="552" y="98" font-size="12" fill="#1e2235">GSLB 同步 (Sync State)</text>
+                    <path d="M500 120 H538" fill="none" stroke="#673ab7" stroke-width="2.2" stroke-dasharray="6 4" marker-end="url(#a10-31a-arr-pt)"/>
+                    <text x="552" y="124" font-size="12" fill="#1e2235">健康檢查 (Health Check)</text>
+                    </svg>
                     </div>
                 </div>
 
                 <!-- Diagram 2: Sequence Logic -->
                 <div class="w-full bg-white p-4 rounded-lg border border-gray-200 mt-8">
                     <h4 class="text-center font-bold text-gray-700 mb-4">圖二：GSLB 決策流程 (Sequence Diagram)</h4>
-                    <div class="mermaid flex justify-center">
+                    <!-- 時序圖 (由 Mermaid 10.9.1 預先轉成靜態 SVG,套用網站配色)。原始 Mermaid 碼:
                         sequenceDiagram
                             participant User as User
                             participant LDNS as Local DNS
@@ -268,18 +286,20 @@
                             
                             Note over GSLB: Step 1: Check Health
                             GSLB->>DC1: Health Check?
-                            DC1-->>GSLB: Status: Alive
+                            DC1--&gt;>GSLB: Status: Alive
                             GSLB->>DC2: Health Check?
-                            DC2-->>GSLB: Status: Alive
+                            DC2--&gt;>GSLB: Status: Alive
 
                             Note over GSLB: Step 2: Check Policy (Geo/RTT)
                             GSLB->>GSLB: Evaluate: User IP is in Taipei
                             GSLB->>GSLB: Decision: Select DC1 VIP
 
-                            GSLB-->>LDNS: DNS Response (VIP: 100.1.1.1)
-                            LDNS-->>User: DNS Response (VIP: 100.1.1.1)
+                            GSLB--&gt;>LDNS: DNS Response (VIP: 100.1.1.1)
+                            LDNS--&gt;>User: DNS Response (VIP: 100.1.1.1)
                             User->>DC1: Application Traffic Flow
-                    </div>
+                    
+                    -->
+                    <div style="width:100%;overflow-x:auto"><svg xmlns="http://www.w3.org/2000/svg" aria-roledescription="sequence" role="img" viewBox="-50 -10 1419 899" style="width:100%;min-width:560px;max-width:1419px;height:auto;display:block;margin:0 auto" id="seq-a10-3-1-gslb-2" aria-labelledby="seq-a10-3-1-gslb-2-title"><title id="seq-a10-3-1-gslb-2-title">圖二：GSLB 決策流程 (Sequence Diagram)</title><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="1243.5" y1="5" x1="1243.5"/><g><rect class="actor actor-top" ry="3" rx="3" name="DC2" height="65" width="151" stroke="#666" fill="#eaeaea" y="0" x="1168"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="1243.5"><tspan dy="0" x="1243.5">DC2 (Kaohsiung)</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="1003" y1="5" x1="1003"/><g><rect class="actor actor-top" ry="3" rx="3" name="DC1" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="928"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="1003"><tspan dy="0" x="1003">DC1 (Taipei)</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="742" y1="5" x1="742"/><g><rect class="actor actor-top" ry="3" rx="3" name="GSLB" height="65" width="192" stroke="#666" fill="#eaeaea" y="0" x="646"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="742"><tspan dy="0" x="742">A10 GSLB (Controller)</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="411" y1="5" x1="411"/><g><rect class="actor actor-top" ry="3" rx="3" name="LDNS" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="336"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="411"><tspan dy="0" x="411">Local DNS</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="75" y1="5" x1="75"/><g><rect class="actor actor-top" ry="3" rx="3" name="User" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="0"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="75"><tspan dy="0" x="75">User</tspan></text></g></g><style>#seq-a10-3-1-gslb-2{font-family:'Noto Sans TC',Roboto,'Microsoft JhengHei',sans-serif;font-size:15px;fill:#1e2235;}#seq-a10-3-1-gslb-2 .marker{fill:#5b6278;stroke:#5b6278;}#seq-a10-3-1-gslb-2 .marker.cross{stroke:#5b6278;}#seq-a10-3-1-gslb-2 .actor{stroke:#673ab7;fill:#f3effc;}#seq-a10-3-1-gslb-2 text.actor&gt;tspan{fill:#311b92;stroke:none;}#seq-a10-3-1-gslb-2 .actor-line{stroke:#b39ddb;}#seq-a10-3-1-gslb-2 .messageLine0{stroke-width:1.5;stroke-dasharray:none;stroke:#5b6278;}#seq-a10-3-1-gslb-2 .messageLine1{stroke-width:1.5;stroke-dasharray:2,2;stroke:#5b6278;}#seq-a10-3-1-gslb-2 #seq-a10-3-1-gslb-2-arrowhead path{fill:#5b6278;stroke:#5b6278;}#seq-a10-3-1-gslb-2 #sequencenumber{fill:#5b6278;}#seq-a10-3-1-gslb-2 #crosshead path{fill:#5b6278;stroke:#5b6278;}#seq-a10-3-1-gslb-2 .messageText{fill:#1e2235;stroke:none;}#seq-a10-3-1-gslb-2 .note{stroke:#f5b041;fill:#fff8e1;}#seq-a10-3-1-gslb-2 .noteText,#seq-a10-3-1-gslb-2 .noteText&gt;tspan{fill:#5d4037;stroke:none;}</style><g/><defs><marker orient="auto" markerHeight="12" markerWidth="12" markerUnits="userSpaceOnUse" refY="5" refX="7.9" id="seq-a10-3-1-gslb-2-arrowhead"><path d="M 0 0 L 10 5 L 0 10 z"/></marker></defs><g><rect class="note" ry="0" rx="0" height="48" width="192" stroke="#666" fill="#EDF2AE" y="191" x="646"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="197" x="742"><tspan x="742">Step 1: Check Health</tspan></text></g><g><rect class="note" ry="0" rx="0" height="48" width="252" stroke="#666" fill="#EDF2AE" y="481" x="616"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="487" x="742"><tspan x="742">Step 2: Check Policy (Geo/RTT)</tspan></text></g><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="80" x="242">DNS Query (www.myapp.com)</text><line style="fill: none;" marker-end="url(#seq-a10-3-1-gslb-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="123" x2="407" y1="123" x1="76"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="138" x="575">Forward Query</text><line style="fill: none;" marker-end="url(#seq-a10-3-1-gslb-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="181" x2="738" y1="181" x1="412"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="254" x="871">Health Check?</text><line style="fill: none;" marker-end="url(#seq-a10-3-1-gslb-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="297" x2="999" y1="297" x1="743"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="312" x="874">Status: Alive</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-a10-3-1-gslb-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="355" x2="746" y1="355" x1="1002"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="370" x="991">Health Check?</text><line style="fill: none;" marker-end="url(#seq-a10-3-1-gslb-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="413" x2="1239.5" y1="413" x1="743"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="428" x="994">Status: Alive</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-a10-3-1-gslb-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="471" x2="746" y1="471" x1="1242.5"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="544" x="743">Evaluate: User IP is in Taipei</text><path style="fill: none;" marker-end="url(#seq-a10-3-1-gslb-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" d="M 743,587 C 803,577 803,617 743,607"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="632" x="743">Decision: Select DC1 VIP</text><path style="fill: none;" marker-end="url(#seq-a10-3-1-gslb-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" d="M 743,675 C 803,665 803,705 743,695"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="720" x="578">DNS Response (VIP: 100.1.1.1)</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-a10-3-1-gslb-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="763" x2="415" y1="763" x1="741"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="778" x="245">DNS Response (VIP: 100.1.1.1)</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-a10-3-1-gslb-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="821" x2="79" y1="821" x1="410"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="836" x="538">Application Traffic Flow</text><line style="fill: none;" marker-end="url(#seq-a10-3-1-gslb-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="879" x2="999" y1="879" x1="76"/></svg></div>
                 </div>
             </div>
         </div>
@@ -337,7 +357,7 @@
     <!-- Footer -->
     <footer class="bg-a10-blue text-white py-6 mt-12">
         <div class="container mx-auto px-6 text-center text-sm opacity-80">
-            <p>Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0</p>
+            <p>Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0</p>
         </div>
     </footer>
 

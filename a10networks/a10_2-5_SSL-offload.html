@@ -9,7 +9,8 @@
     <!-- Tailwind CSS (via CDN for standalone file) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Mermaid JS (Updated to fixed version 10 for better stability) -->
-    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <!-- 圖表已改為內嵌 SVG,不再載入 Mermaid;保留空殼讓原本的初始化程式不出錯 -->
+    <script>window.mermaid = { initialize: function () {}, init: function () {}, run: function () { return Promise.resolve(); } };</script>
     <!-- Custom Config for Tailwind to match A10/Hauman Brand -->
     <script>
         tailwind.config = {
@@ -69,6 +70,9 @@
             color: #991b1b;
         }
     </style>
+    <!-- 教學網站共用外觀 -->
+    <link rel="stylesheet" href="../assets/site-theme.css?v=20261112">
+    <script src="../assets/site-chrome.js?v=20261112" defer></script>
 </head>
 <body class="flex flex-col min-h-screen">
 
@@ -223,27 +227,51 @@
                 </div>
                 <!-- 修正：移除 flex 置中，確保內容靠左開始，以顯示捲軸左側內容 -->
                 <div class="mermaid-container">
-                    <div class="mermaid" style="min-width: 150%;">
-                    flowchart LR
-                        Client("使用者 Client")
-                        FW["防火牆 Firewall"]
-                        A10["A10 Thunder ADC<br>SSL Termination"]
-
-                        subgraph TrustedZone ["Data Center (Trust Zone)"]
-                            direction LR
-                            RS1["Web Server 1<br>Port 80"]
-                            RS2["Web Server 2<br>Port 80"]
-                        end
-
-                        Client -- "HTTPS Encrypted<br>Port 443" --> FW
-                        FW --> A10
-                        A10 -- "HTTP Clear Text<br>Port 80" --> RS1
-                        A10 -- "HTTP Clear Text<br>Port 80" --> RS2
-
-                        style A10 fill:#192f6a,stroke:#f26522,stroke-width:2px,color:white
-                        style Client fill:#f4f6f8,stroke:#333,stroke-width:2px
-                        style RS1 fill:#e2e8f0,stroke:#333
-                        style RS2 fill:#e2e8f0,stroke:#333
+                    <!-- 拓撲圖 (手繪 SVG):改為直式,紫色粗線 = HTTPS 加密區段,青色粗線 = HTTP 明文區段 -->
+                    <div style="width:100%;overflow-x:auto">
+                    <svg viewBox="0 0 760 572" role="img" aria-labelledby="a10-25a-title a10-25a-desc" style="width:100%;min-width:560px;max-width:760px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+                    <title id="a10-25a-title">SSL Offloading 流量拓撲圖</title>
+                    <desc id="a10-25a-desc">使用者 Client 以 HTTPS 加密連線 (Port 443) 經過防火牆 Firewall 到達 A10 Thunder ADC,由 A10 執行 SSL Termination 解密;A10 再以 HTTP 明文 (Port 80) 分別轉送到位於 Data Center (Trust Zone) 內的 Web Server 1 與 Web Server 2 (Port 80)。Client 到 A10 為加密區段 (消耗 A10 CPU),A10 到 Server 為明文區段 (減輕 Server 負擔)。</desc>
+                    <defs><linearGradient id="a10-25a-pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7e57c2"/><stop offset="1" stop-color="#311b92"/></linearGradient><filter id="a10-25a-sh" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#311b92" flood-opacity="0.16"/></filter><marker id="a10-25a-arr" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5b6278"/></marker><marker id="a10-25a-arr-c" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#0891b2"/></marker><marker id="a10-25a-arr-p" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#673ab7"/></marker><marker id="a10-25a-arr-pt" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#673ab7"/></marker></defs>
+                    <path d="M80 48 H68 V272 H80" fill="none" stroke="#673ab7" stroke-width="2" stroke-linejoin="round"/>
+                    <text x="88" y="152" font-size="13" font-weight="700" fill="#4527a0">加密區段</text>
+                    <text x="88" y="169" font-size="11" fill="#5b6278">(消耗 A10 CPU)</text>
+                    <path d="M80 290 H68 V446 H80" fill="none" stroke="#0891b2" stroke-width="2" stroke-linejoin="round"/>
+                    <text x="88" y="322" font-size="13" font-weight="700" fill="#0e7490">明文區段</text>
+                    <text x="88" y="339" font-size="11" fill="#5b6278">(減輕 Server 負擔)</text>
+                    <rect x="110" y="398" width="540" height="126" rx="16" fill="#effafc" stroke="#67c5d6" stroke-width="1.5" stroke-dasharray="6 5"/>
+                    <text x="126" y="510" font-family="'JetBrains Mono', Consolas, monospace" font-size="12.5" font-weight="700" fill="#0891b2">Data Center (Trust Zone)</text>
+                    <path d="M380 76 V128" fill="none" stroke="#673ab7" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-25a-arr-p)"/>
+                    <text x="396" y="99" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#4527a0">HTTPS Encrypted</text>
+                    <text x="396" y="114" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#4527a0">Port 443</text>
+                    <path d="M380 186 V238" fill="none" stroke="#673ab7" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-25a-arr-p)"/>
+                    <path d="M380 304 V350 H230 V416" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-25a-arr-c)"/>
+                    <path d="M380 350 H530 V416" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-25a-arr-c)"/>
+                    <text x="218" y="370" text-anchor="end" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">HTTP Clear Text</text>
+                    <text x="218" y="385" text-anchor="end" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">Port 80</text>
+                    <text x="542" y="370" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">HTTP Clear Text</text>
+                    <text x="542" y="385" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">Port 80</text>
+                    <g filter="url(#a10-25a-sh)"><rect x="280" y="20" width="200" height="56" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/></g>
+                    <g fill="#e0f7fa" stroke="#0891b2" stroke-width="1.4"><rect x="294" y="36" width="24" height="17" rx="2"/><path d="M306 53 V58 M300 59 H312" fill="none"/></g>
+                    <text x="400" y="53" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">使用者 Client</text>
+                    <g filter="url(#a10-25a-sh)"><rect x="280" y="130" width="200" height="56" rx="10" fill="url(#a10-25a-pg)"/></g>
+                    <text x="380" y="163" text-anchor="middle" font-size="13.5" font-weight="700" fill="#fff">防火牆 Firewall</text>
+                    <g filter="url(#a10-25a-sh)"><rect x="260" y="240" width="240" height="64" rx="10" fill="url(#a10-25a-pg)"/></g>
+                    <text x="380" y="269" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">A10 Thunder ADC</text>
+                    <text x="380" y="287" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#d1c4e9">SSL Termination</text>
+                    <g filter="url(#a10-25a-sh)"><rect x="140" y="418" width="180" height="56" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/></g>
+                    <g fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2"><rect x="154" y="430" width="22" height="9" rx="2"/><rect x="154" y="441.5" width="22" height="9" rx="2"/><rect x="154" y="453" width="22" height="9" rx="2"/></g>
+                    <text x="250" y="443" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">Web Server 1</text>
+                    <text x="250" y="460" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="10.5" fill="#5b6278">Port 80</text>
+                    <g filter="url(#a10-25a-sh)"><rect x="440" y="418" width="180" height="56" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/></g>
+                    <g fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2"><rect x="454" y="430" width="22" height="9" rx="2"/><rect x="454" y="441.5" width="22" height="9" rx="2"/><rect x="454" y="453" width="22" height="9" rx="2"/></g>
+                    <text x="550" y="443" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">Web Server 2</text>
+                    <text x="550" y="460" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="10.5" fill="#5b6278">Port 80</text>
+                    <line x1="200" y1="550" x2="232" y2="550" stroke="#673ab7" stroke-width="4"/>
+                    <text x="240" y="554" font-size="12" fill="#5b6278">HTTPS 加密流量</text>
+                    <line x1="410" y1="550" x2="442" y2="550" stroke="#0891b2" stroke-width="4"/>
+                    <text x="450" y="554" font-size="12" fill="#5b6278">HTTP 明文流量</text>
+                    </svg>
                     </div>
                 </div>
                 <p class="px-6 pb-4 text-sm text-gray-500 text-center">說明：Client 到 A10 是加密的 (消耗 A10 CPU)，A10 到 Server 是明文的 (減輕 Server 負擔)。</p>
@@ -255,7 +283,7 @@
                     <h3 class="font-bold text-gray-700">圖 2：SSL Handshake 處理流程 (Client-SSL)</h3>
                 </div>
                 <div class="mermaid-container overflow-x-auto">
-                    <div class="mermaid">
+                    <!-- 時序圖 (由 Mermaid 10.9.1 預先轉成靜態 SVG,套用網站配色)。原始 Mermaid 碼:
                     sequenceDiagram
                         participant C as Client
                         participant A as A10 Thunder (VIP)
@@ -274,11 +302,13 @@
                         
                         Note over A, S: Phase 2: Backend Connection
                         A->>S: Plaintext HTTP Request (GET /)
-                        S-->>A: Plaintext HTTP Response
+                        S--&gt;>A: Plaintext HTTP Response
                         
                         Note over A: Encryption
-                        A-->>C: Encrypted HTTP Response
-                    </div>
+                        A--&gt;>C: Encrypted HTTP Response
+                    
+                    -->
+                    <div style="width:100%;overflow-x:auto"><svg xmlns="http://www.w3.org/2000/svg" aria-roledescription="sequence" role="img" viewBox="-50 -10 972 781" style="width:100%;min-width:560px;max-width:972px;height:auto;display:block;margin:0 auto" id="seq-a10-2-5-ssl-offload-2" aria-labelledby="seq-a10-2-5-ssl-offload-2-title"><title id="seq-a10-2-5-ssl-offload-2-title">圖 2：SSL Handshake 處理流程 (Client-SSL)</title><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="797" y1="5" x1="797"/><g><rect class="actor actor-top" ry="3" rx="3" name="S" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="722"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="797"><tspan dy="0" x="797">Real Server</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="458" y1="5" x1="458"/><g><rect class="actor actor-top" ry="3" rx="3" name="A" height="65" width="163" stroke="#666" fill="#eaeaea" y="0" x="376.5"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="458"><tspan dy="0" x="458">A10 Thunder (VIP)</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="75" y1="5" x1="75"/><g><rect class="actor actor-top" ry="3" rx="3" name="C" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="0"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="75"><tspan dy="0" x="75">Client</tspan></text></g></g><style>#seq-a10-2-5-ssl-offload-2{font-family:'Noto Sans TC',Roboto,'Microsoft JhengHei',sans-serif;font-size:15px;fill:#1e2235;}#seq-a10-2-5-ssl-offload-2 .marker{fill:#5b6278;stroke:#5b6278;}#seq-a10-2-5-ssl-offload-2 .marker.cross{stroke:#5b6278;}#seq-a10-2-5-ssl-offload-2 .actor{stroke:#673ab7;fill:#f3effc;}#seq-a10-2-5-ssl-offload-2 text.actor&gt;tspan{fill:#311b92;stroke:none;}#seq-a10-2-5-ssl-offload-2 .actor-line{stroke:#b39ddb;}#seq-a10-2-5-ssl-offload-2 .messageLine0{stroke-width:1.5;stroke-dasharray:none;stroke:#5b6278;}#seq-a10-2-5-ssl-offload-2 .messageLine1{stroke-width:1.5;stroke-dasharray:2,2;stroke:#5b6278;}#seq-a10-2-5-ssl-offload-2 #seq-a10-2-5-ssl-offload-2-arrowhead path{fill:#5b6278;stroke:#5b6278;}#seq-a10-2-5-ssl-offload-2 #sequencenumber{fill:#5b6278;}#seq-a10-2-5-ssl-offload-2 #crosshead path{fill:#5b6278;stroke:#5b6278;}#seq-a10-2-5-ssl-offload-2 .messageText{fill:#1e2235;stroke:none;}#seq-a10-2-5-ssl-offload-2 .note{stroke:#f5b041;fill:#fff8e1;}#seq-a10-2-5-ssl-offload-2 .noteText,#seq-a10-2-5-ssl-offload-2 .noteText&gt;tspan{fill:#5d4037;stroke:none;}</style><g/><defs><marker orient="auto" markerHeight="12" markerWidth="12" markerUnits="userSpaceOnUse" refY="5" refX="7.9" id="seq-a10-2-5-ssl-offload-2-arrowhead"><path d="M 0 0 L 10 5 L 0 10 z"/></marker></defs><g><rect class="note" ry="0" rx="0" height="48" width="473" stroke="#666" fill="#EDF2AE" y="75" x="30"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="81" x="267"><tspan x="267">Phase 1: SSL Handshake (Client-SSL)</tspan></text></g><g><rect class="note" ry="0" rx="0" height="48" width="473" stroke="#666" fill="#EDF2AE" y="307" x="30"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="313" x="267"><tspan x="267">Secure Tunnel Established</tspan></text></g><g><rect class="note" ry="0" rx="0" height="48" width="239" stroke="#666" fill="#EDF2AE" y="423" x="338.5"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="429" x="458"><tspan x="458">Decryption (利用 Private Key)</tspan></text></g><g><rect class="note" ry="0" rx="0" height="48" width="429" stroke="#666" fill="#EDF2AE" y="481" x="413"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="487" x="628"><tspan x="628">Phase 2: Backend Connection</tspan></text></g><g><rect class="note" ry="0" rx="0" height="48" width="163" stroke="#666" fill="#EDF2AE" y="655" x="376.5"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="661" x="458"><tspan x="458">Encryption</tspan></text></g><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="138" x="265">Client Hello (TLS 1.2/1.3)</text><line style="fill: none;" marker-end="url(#seq-a10-2-5-ssl-offload-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="181" x2="454" y1="181" x1="76"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="196" x="268">Server Hello + Certificate (A10's Cert)</text><line style="fill: none;" marker-end="url(#seq-a10-2-5-ssl-offload-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="239" x2="79" y1="239" x1="457"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="254" x="265">Key Exchange / Finished</text><line style="fill: none;" marker-end="url(#seq-a10-2-5-ssl-offload-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="297" x2="454" y1="297" x1="76"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="370" x="265">Encrypted HTTP Request (GET /)</text><line style="fill: none;" marker-end="url(#seq-a10-2-5-ssl-offload-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="413" x2="454" y1="413" x1="76"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="544" x="626">Plaintext HTTP Request (GET /)</text><line style="fill: none;" marker-end="url(#seq-a10-2-5-ssl-offload-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="587" x2="793" y1="587" x1="459"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="602" x="629">Plaintext HTTP Response</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-a10-2-5-ssl-offload-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="645" x2="462" y1="645" x1="796"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="718" x="268">Encrypted HTTP Response</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-a10-2-5-ssl-offload-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="761" x2="79" y1="761" x1="457"/></svg></div>
                 </div>
             </div>
         </section>
@@ -369,7 +399,7 @@
     <!-- Footer -->
     <footer class="bg-midnight-blue text-white py-6 mt-auto">
         <div class="container mx-auto px-6 text-center text-sm md:text-base opacity-80 font-light">
-            <p>Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0</p>
+            <p>Planning & Design by Timmy(timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0</p>
         </div>
     </footer>
 

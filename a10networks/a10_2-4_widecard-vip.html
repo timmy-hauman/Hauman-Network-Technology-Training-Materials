@@ -12,7 +12,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Mermaid JS for Diagrams -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+    <!-- 圖表已改為內嵌 SVG,不再載入 Mermaid;保留空殼讓原本的初始化程式不出錯 -->
+    <script>window.mermaid = { initialize: function () {}, init: function () {}, run: function () { return Promise.resolve(); } };</script>
 
     <!-- Custom Config for Tailwind colors -->
     <script>
@@ -111,6 +112,9 @@
             background-color: #E67E00;
         }
     </style>
+    <!-- 教學網站共用外觀 -->
+    <link rel="stylesheet" href="../assets/site-theme.css?v=20261112">
+    <script src="../assets/site-chrome.js?v=20261112" defer></script>
 </head>
 <body class="flex flex-col min-h-screen">
 
@@ -206,45 +210,9 @@
             <div class="mb-8">
                 <h3 class="text-lg font-semibold text-center mb-4 text-a10-purple">場景：企業多線路負載平衡 (WLLB) 拓撲</h3>
                 <div class="mermaid-container">
-                    <div class="mermaid">
-                    graph TD
-                        %% Nodes
-                        User[內部使用者 LAN] 
-                        CoreSW[核心交換器 Core Switch]
-                        A10[A10 Thunder ADC<br/>Wildcard VIP 0.0.0.0]
-                        ISP1_R[ISP 1 Router<br/>中華電信 Gateway]
-                        ISP2_R[ISP 2 Router<br/>遠傳電信 Gateway]
-                        Internet((Internet<br/>網際網路))
-
-                        %% Links
-                        User -->|1. 上網請求| CoreSW
-                        CoreSW -->|Default Route| A10
-                        
-                        subgraph A10_Process [A10 內部處理流程]
-                            direction TB
-                            Match{匹配 VIP?}
-                            Decision[Wildcard VIP 命中]
-                            LB[演算法選擇線路]
-                            SNAT[Source NAT 轉換]
-
-                            Match --> Decision
-                            Decision --> LB
-                            LB --> SNAT
-                        end
-
-                        %% Link into subgraph node
-                        A10 -.-> Match
-                        
-                        SNAT -->|2a. 線路A 負載較低| ISP1_R
-                        SNAT -->|2b. 線路B 備援/分流| ISP2_R
-                        
-                        ISP1_R --> Internet
-                        ISP2_R --> Internet
-
-                        %% Styles
-                        style A10 fill:#00205B,stroke:#333,stroke-width:2px,color:#fff
-                        style Internet fill:#FF8C00,stroke:#333,stroke-width:2px,color:#fff
-                        style User fill:#e1f5fe
+                    <!-- WLLB 拓撲 (手繪 SVG):直式拓撲,中段為 A10 內部處理流程 -->
+                    <div style="width:100%;overflow-x:auto">
+                    <svg viewBox="0 0 800 960" role="img" aria-labelledby="a10-24a-title a10-24a-desc" style="width:100%;min-width:560px;max-width:800px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif"><title id="a10-24a-title">企業多線路負載平衡 (WLLB) 拓撲</title><desc id="a10-24a-desc">內部使用者 LAN 發出 1. 上網請求到核心交換器 Core Switch,Core Switch 以 Default Route 送往 A10 Thunder ADC (Wildcard VIP 0.0.0.0)。A10 內部處理流程:匹配 VIP? 是 → Wildcard VIP 命中 → 演算法選擇線路 → Source NAT 轉換;若不匹配則依路由表一般轉送。之後依 2a. 線路A 負載較低 送往 ISP 1 Router (中華電信 Gateway),或依 2b. 線路B 備援/分流 送往 ISP 2 Router (遠傳電信 Gateway),兩條線路最後都連到 Internet 網際網路。</desc><defs><linearGradient id="a10-24a-pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7e57c2"/><stop offset="1" stop-color="#311b92"/></linearGradient><marker id="a10-24a-ac" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#0891b2"/></marker><marker id="a10-24a-ap" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#673ab7"/></marker><marker id="a10-24a-ag" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5b6278"/></marker><marker id="a10-24a-ar" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker></defs><rect x="300" y="18" width="200" height="54" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/><rect x="314" y="35.0" width="22" height="15" rx="2" fill="#e0f7fa" stroke="#0891b2" stroke-width="1.2"/><rect x="321" y="52.0" width="8" height="3" fill="#0891b2"/><text x="418.0" y="50" text-anchor="middle" font-size="14" font-weight="700" fill="#1e2235">內部使用者 LAN</text><path d="M400 72 V118" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-24a-ac)"/><text x="412" y="100" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">1. 上網請求</text><rect x="290" y="120" width="220" height="52" rx="10" fill="url(#a10-24a-pg)"/><text x="400.0" y="144" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">核心交換器</text><text x="400.0" y="162" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="10.5" fill="#d1c4e9">Core Switch</text><path d="M400 172 V218" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-24a-ac)"/><text x="412" y="200" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">Default Route</text><rect x="270" y="220" width="260" height="64" rx="10" fill="url(#a10-24a-pg)"/><text x="400.0" y="247" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">A10 Thunder ADC</text><text x="400.0" y="268" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" fill="#d1c4e9">Wildcard VIP 0.0.0.0</text><rect x="190" y="318" width="420" height="352" rx="16" fill="#f6f2fe" stroke="#b39ddb" stroke-width="1.5" stroke-dasharray="6 5"/><text x="206" y="340" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#673ab7">A10 內部處理流程</text><path d="M400 284 V346" fill="none" stroke="#673ab7" stroke-width="2.5" stroke-linejoin="round" stroke-dasharray="7 5" marker-end="url(#a10-24a-ap)"/><polygon points="400,348 490,382 400,416 310,382" fill="#e0f7fa" stroke="#0891b2" stroke-width="2"/><text x="400" y="387" text-anchor="middle" font-size="13" font-weight="700" fill="#0e7490">匹配 VIP?</text><path d="M400 416 V446" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#a10-24a-ag)"/><text x="412" y="436" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#5b6278">是</text><path d="M490 382 H520" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#a10-24a-ag)"/><text x="505" y="373" text-anchor="middle" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#5b6278">否</text><rect x="522" y="358" width="80" height="48" rx="10" fill="#fff" stroke="#5b6278" stroke-width="1.5" stroke-dasharray="4 3"/><text x="562" y="378" text-anchor="middle" font-size="12" font-weight="700" fill="#5b6278">依路由表</text><text x="562" y="395" text-anchor="middle" font-size="12" font-weight="700" fill="#5b6278">一般轉送</text><rect x="300" y="448" width="200" height="44" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/><text x="400" y="475" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">Wildcard VIP 命中</text><rect x="300" y="526" width="200" height="44" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/><text x="400" y="553" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">演算法選擇線路</text><rect x="300" y="604" width="200" height="44" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/><text x="400" y="631" text-anchor="middle" font-size="13" font-weight="700" fill="#1e2235">Source NAT 轉換</text><path d="M400 492 V524" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#a10-24a-ag)"/><path d="M400 570 V602" fill="none" stroke="#5b6278" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#a10-24a-ag)"/><path d="M300 626 H230 V728" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-24a-ac)"/><text x="220" y="706" text-anchor="end" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">2a. 線路A 負載較低</text><path d="M500 626 H570 V728" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-24a-ac)"/><text x="580" y="706" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">2b. 線路B 備援/分流</text><rect x="120" y="730" width="220" height="56" rx="10" fill="url(#a10-24a-pg)"/><text x="230.0" y="755" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">ISP 1 Router</text><text x="230.0" y="774" text-anchor="middle" font-size="11" fill="#d1c4e9">中華電信 Gateway</text><rect x="460" y="730" width="220" height="56" rx="10" fill="url(#a10-24a-pg)"/><text x="570.0" y="755" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">ISP 2 Router</text><text x="570.0" y="774" text-anchor="middle" font-size="11" fill="#d1c4e9">遠傳電信 Gateway</text><path d="M336 900 a26 26 0 0 1 0-52 a34 34 0 0 1 62-14 a30 30 0 0 1 52 18 a24 24 0 0 1 14 48 z" fill="#eef2ff" stroke="#9fa8da" stroke-width="2"/><text x="400" y="864" text-anchor="middle" font-size="14" font-weight="700" fill="#3949ab">Internet</text><text x="400" y="881" text-anchor="middle" font-size="11" fill="#3949ab">網際網路</text><path d="M230 786 V870 H306" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-24a-ac)"/><path d="M570 786 V870 H488" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-24a-ac)"/><g font-size="12" fill="#5b6278"><line x1="60" y1="936" x2="92" y2="936" stroke="#0891b2" stroke-width="4"/><text x="100" y="940">資料流量</text><line x1="190" y1="936" x2="222" y2="936" stroke="#673ab7" stroke-width="2.5" stroke-dasharray="7 5"/><text x="230" y="940">進入 A10 內部處理 (邏輯)</text><line x1="420" y1="936" x2="452" y2="936" stroke="#5b6278" stroke-width="2.2"/><text x="460" y="940">內部處理步驟</text></g></svg>
                     </div>
                 </div>
             </div>
@@ -253,19 +221,19 @@
             <div>
                 <h3 class="text-lg font-semibold text-center mb-4 text-a10-purple">封包處理詳細流程 (Sequence Diagram)</h3>
                 <div class="mermaid-container">
-                    <div class="mermaid">
+                    <!-- 時序圖 (由 Mermaid 10.9.1 預先轉成靜態 SVG,套用網站配色)。原始 Mermaid 碼:
                     sequenceDiagram
                         autonumber
-                        participant Client as 內部 Client<br/>(192.168.1.10)
-                        participant A10 as A10 Thunder<br/>(Wildcard VIP)
-                        participant ISP1 as ISP 1<br/>(Gateway)
-                        participant Dest as Internet Server<br/>(8.8.8.8)
+                        participant Client as 內部 Client(192.168.1.10)
+                        participant A10 as A10 Thunder(Wildcard VIP)
+                        participant ISP1 as ISP 1(Gateway)
+                        participant Dest as Internet Server(8.8.8.8)
 
                         Note over Client, A10: 1. 使用者發起上網請求 (TCP SYN)
                         Client->>A10: SYN (Src:192.168.1.10, Dst:8.8.8.8)
                         activate A10
                         
-                        Note right of A10: 2. 查找 Specific VIP (無匹配)<br/>3. 命中 Wildcard VIP (0.0.0.0)<br/>4. WLLB 選擇線路 (ISP 1)<br/>5. Source NAT (轉為 ISP1 IP)<br/>6. no-dest-nat (關鍵設定)<br/>(保持 Dst IP，僅修改 Dst MAC)
+                        Note right of A10: 2. 查找 Specific VIP (無匹配)3. 命中 Wildcard VIP (0.0.0.0)4. WLLB 選擇線路 (ISP 1)5. Source NAT (轉為 ISP1 IP)6. no-dest-nat (關鍵設定)(保持 Dst IP，僅修改 Dst MAC)
                         
                         A10->>ISP1: SYN (Src:202.x.x.1, Dst:8.8.8.8)
                         deactivate A10
@@ -273,18 +241,20 @@
                         
                         ISP1->>Dest: 轉送至 Internet
                         activate Dest
-                        Dest-->>ISP1: SYN/ACK
+                        Dest--&gt;>ISP1: SYN/ACK
                         deactivate Dest
                         
-                        ISP1-->>A10: 回傳 SYN/ACK
+                        ISP1--&gt;>A10: 回傳 SYN/ACK
                         deactivate ISP1
                         activate A10
                         
-                        Note right of A10: 7. 反向 NAT (Un-NAT)<br/>將 Dst IP 改回 192.168.1.10
+                        Note right of A10: 7. 反向 NAT (Un-NAT)將 Dst IP 改回 192.168.1.10
                         
-                        A10-->>Client: SYN/ACK (Src:8.8.8.8, Dst:192.168.1.10)
+                        A10--&gt;>Client: SYN/ACK (Src:8.8.8.8, Dst:192.168.1.10)
                         deactivate A10
-                    </div>
+                    
+                    -->
+                    <div style="width:100%;overflow-x:auto"><svg xmlns="http://www.w3.org/2000/svg" aria-roledescription="sequence" role="img" viewBox="-50 -10 2273.5 607" style="width:100%;min-width:560px;max-width:2274px;height:auto;display:block;margin:0 auto" id="seq-a10-2-4-widecard-vip-2" aria-labelledby="seq-a10-2-4-widecard-vip-2-title"><title id="seq-a10-2-4-widecard-vip-2-title">封包處理詳細流程 (Sequence Diagram)</title><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="2071" y1="5" x1="2071"/><g><rect class="actor actor-top" ry="3" rx="3" name="Dest" height="65" width="205" stroke="#666" fill="#eaeaea" y="0" x="1968.5"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="2071"><tspan dy="0" x="2071">Internet Server(8.8.8.8)</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="1803.5" y1="5" x1="1803.5"/><g><rect class="actor actor-top" ry="3" rx="3" name="ISP1" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="1728.5"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="1803.5"><tspan dy="0" x="1803.5">ISP 1(Gateway)</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="503.5" y1="5" x1="503.5"/><g><rect class="actor actor-top" ry="3" rx="3" name="A10" height="65" width="232" stroke="#666" fill="#eaeaea" y="0" x="387.5"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="503.5"><tspan dy="0" x="503.5">A10 Thunder(Wildcard VIP)</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="107.5" y1="5" x1="107.5"/><g><rect class="actor actor-top" ry="3" rx="3" name="Client" height="65" width="215" stroke="#666" fill="#eaeaea" y="0" x="0"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="107.5"><tspan dy="0" x="107.5">內部 Client(192.168.1.10)</tspan></text></g></g><style>#seq-a10-2-4-widecard-vip-2{font-family:'Noto Sans TC',Roboto,'Microsoft JhengHei',sans-serif;font-size:15px;fill:#1e2235;}#seq-a10-2-4-widecard-vip-2 .marker{fill:#5b6278;stroke:#5b6278;}#seq-a10-2-4-widecard-vip-2 .marker.cross{stroke:#5b6278;}#seq-a10-2-4-widecard-vip-2 .actor{stroke:#673ab7;fill:#f3effc;}#seq-a10-2-4-widecard-vip-2 text.actor&gt;tspan{fill:#311b92;stroke:none;}#seq-a10-2-4-widecard-vip-2 .actor-line{stroke:#b39ddb;}#seq-a10-2-4-widecard-vip-2 .messageLine0{stroke-width:1.5;stroke-dasharray:none;stroke:#5b6278;}#seq-a10-2-4-widecard-vip-2 .messageLine1{stroke-width:1.5;stroke-dasharray:2,2;stroke:#5b6278;}#seq-a10-2-4-widecard-vip-2 #seq-a10-2-4-widecard-vip-2-arrowhead path{fill:#5b6278;stroke:#5b6278;}#seq-a10-2-4-widecard-vip-2 #sequencenumber{fill:#5b6278;}#seq-a10-2-4-widecard-vip-2 #crosshead path{fill:#5b6278;stroke:#5b6278;}#seq-a10-2-4-widecard-vip-2 .messageText{fill:#1e2235;stroke:none;}#seq-a10-2-4-widecard-vip-2 .note{stroke:#f5b041;fill:#fff8e1;}#seq-a10-2-4-widecard-vip-2 .noteText,#seq-a10-2-4-widecard-vip-2 .noteText&gt;tspan{fill:#5d4037;stroke:none;}#seq-a10-2-4-widecard-vip-2 .activation0{fill:#ede7f6;stroke:#673ab7;}#seq-a10-2-4-widecard-vip-2 .activation1{fill:#ede7f6;stroke:#673ab7;}#seq-a10-2-4-widecard-vip-2 .activation2{fill:#ede7f6;stroke:#673ab7;}</style><g/><defs><marker orient="auto" markerHeight="12" markerWidth="12" markerUnits="userSpaceOnUse" refY="5" refX="7.9" id="seq-a10-2-4-widecard-vip-2-arrowhead"><path d="M 0 0 L 10 5 L 0 10 z"/></marker></defs><defs><marker orient="auto" markerHeight="40" markerWidth="60" refY="15" refX="15" id="seq-a10-2-4-widecard-vip-2-sequencenumber"><circle r="6" cy="15" cx="15"/></marker></defs><g><rect class="note" ry="0" rx="0" height="48" width="486" stroke="#666" fill="#EDF2AE" y="75" x="62.5"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="81" x="306"><tspan x="306">1. 使用者發起上網請求 (TCP SYN)</tspan></text></g><g><rect class="activation0" ry="0" rx="0" height="114" width="10" stroke="#666" fill="#EDF2AE" y="183" x="498.5"/></g><g><rect class="note" ry="0" rx="0" height="48" width="1214" stroke="#666" fill="#EDF2AE" y="191" x="548.5"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="197" x="1156"><tspan x="1156">2. 查找 Specific VIP (無匹配)3. 命中 Wildcard VIP (0.0.0.0)4. WLLB 選擇線路 (ISP 1)5. Source NAT (轉為 ISP1 IP)6. no-dest-nat (關鍵設定)(保持 Dst IP，僅修改 Dst MAC)</tspan></text></g><g><rect class="activation0" ry="0" rx="0" height="174" width="10" stroke="#666" fill="#EDF2AE" y="297" x="1798.5"/></g><g><rect class="activation0" ry="0" rx="0" height="56" width="10" stroke="#666" fill="#EDF2AE" y="357" x="2066"/></g><g><rect class="activation0" ry="0" rx="0" height="114" width="10" stroke="#666" fill="#EDF2AE" y="473" x="498.5"/></g><g><rect class="note" ry="0" rx="0" height="48" width="372" stroke="#666" fill="#EDF2AE" y="481" x="548.5"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="487" x="735"><tspan x="735">7. 反向 NAT (Un-NAT)將 Dst IP 改回 192.168.1.10</tspan></text></g><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="138" x="304">SYN (Src:192.168.1.10, Dst:8.8.8.8)</text><line style="fill: none;" marker-start="url(#seq-a10-2-4-widecard-vip-2-sequencenumber)" marker-end="url(#seq-a10-2-4-widecard-vip-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="181" x2="499.5" y1="181" x1="108.5"/><text class="sequenceNumber" text-anchor="middle" font-size="12px" font-family="sans-serif" y="185" x="108.5">1</text><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="254" x="1154">SYN (Src:202.x.x.1, Dst:8.8.8.8)</text><line style="fill: none;" marker-start="url(#seq-a10-2-4-widecard-vip-2-sequencenumber)" marker-end="url(#seq-a10-2-4-widecard-vip-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="297" x2="1799.5" y1="297" x1="508.5"/><text class="sequenceNumber" text-anchor="middle" font-size="12px" font-family="sans-serif" y="301" x="508.5">2</text><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="312" x="1938">轉送至 Internet</text><line style="fill: none;" marker-start="url(#seq-a10-2-4-widecard-vip-2-sequencenumber)" marker-end="url(#seq-a10-2-4-widecard-vip-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="355" x2="2067" y1="355" x1="1808.5"/><text class="sequenceNumber" text-anchor="middle" font-size="12px" font-family="sans-serif" y="359" x="1808.5">3</text><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="370" x="1939">SYN/ACK</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-start="url(#seq-a10-2-4-widecard-vip-2-sequencenumber)" marker-end="url(#seq-a10-2-4-widecard-vip-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="413" x2="1811.5" y1="413" x1="2066"/><text class="sequenceNumber" text-anchor="middle" font-size="12px" font-family="sans-serif" y="417" x="2066">4</text><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="428" x="1153">回傳 SYN/ACK</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-start="url(#seq-a10-2-4-widecard-vip-2-sequencenumber)" marker-end="url(#seq-a10-2-4-widecard-vip-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="471" x2="507.5" y1="471" x1="1798.5"/><text class="sequenceNumber" text-anchor="middle" font-size="12px" font-family="sans-serif" y="475" x="1798.5">5</text><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="544" x="305">SYN/ACK (Src:8.8.8.8, Dst:192.168.1.10)</text><line style="stroke-dasharray: 3, 3; fill: none;" marker-start="url(#seq-a10-2-4-widecard-vip-2-sequencenumber)" marker-end="url(#seq-a10-2-4-widecard-vip-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" y2="587" x2="111.5" y1="587" x1="498.5"/><text class="sequenceNumber" text-anchor="middle" font-size="12px" font-family="sans-serif" y="591" x="498.5">6</text></svg></div>
                 </div>
             </div>
         </section>
@@ -358,7 +328,7 @@
     <footer class="bg-a10-blue text-white py-6 mt-auto border-t-4 border-a10-purple">
         <div class="container mx-auto px-4 text-center">
             <p class="text-sm font-light tracking-wide opacity-90">
-                Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0
+                Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0
             </p>
         </div>
     </footer>

@@ -15,7 +15,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Mermaid JS -->
-    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <!-- 圖表已改為內嵌 SVG,不再載入 Mermaid;保留空殼讓原本的初始化程式不出錯 -->
+    <script>window.mermaid = { initialize: function () {}, init: function () {}, run: function () { return Promise.resolve(); } };</script>
 
     <script>
         tailwind.config = {
@@ -136,6 +137,9 @@
             text-align: center;
         }
     </style>
+    <!-- 教學網站共用外觀 -->
+    <link rel="stylesheet" href="../assets/site-theme.css?v=20261112">
+    <script src="../assets/site-chrome.js?v=20261112" defer></script>
 </head>
 <body>
 
@@ -194,32 +198,55 @@
             <!-- Visuals -->
             <div class="card p-8 mb-8">
                 <h3 class="text-xl font-bold text-a10blue mb-4 text-center">管理與數據分離架構</h3>
-                <div class="mermaid mermaid-container">
-                    graph TD
-                    subgraph Control_Network ["控制網路區域 (Control Network)"]
-                        AdminPC["管理員電腦"]
-                        MgmtSw["Management Switch"]
-                    end
-
-                    subgraph Data_Network ["數據網路區域 (Data Network)"]
-                        User["網際網路使用者"]
-                        CoreSw["Core Switch"]
-                    end
-                    
-                    subgraph A10_Device ["A10 Thunder ADC"]
-                        MgmtPort["Mgmt Port"] --- CPU["Control CPU"]
-                        DataPort["Ethernet 1/1"] --- FPGA["FPGA / Data CPU"]
-                    end
-
-                    AdminPC -->|"SSH / HTTPS"| MgmtSw
-                    MgmtSw -->|"獨立網段"| MgmtPort
-                    
-                    User -->|"HTTP Request"| CoreSw
-                    CoreSw -->|"VLAN 10"| DataPort
-
-                    style Control_Network fill:#e6f3ff,stroke:#002F6C,stroke-width:2px
-                    style Data_Network fill:#fff0f5,stroke:#C50084,stroke-width:2px
-                    style A10_Device fill:#f3f4f6,stroke:#333,stroke-dasharray: 5 5
+                <!-- 架構圖 (手繪 SVG)：上方左右為控制網路與數據網路，下方為 A10 設備內部的管理 / 數據分離 -->
+                <div style="width:100%;overflow-x:auto">
+                <svg viewBox="0 0 820 588" role="img" aria-labelledby="a10-12a-title a10-12a-desc" style="width:100%;min-width:560px;max-width:820px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+                <title id="a10-12a-title">管理與數據分離架構</title>
+                <desc id="a10-12a-desc">上方左側為控制網路區域 (Control Network)：管理員電腦以 SSH / HTTPS 連到 Management Switch，再經獨立網段連到 A10 Thunder ADC 的 Mgmt Port。上方右側為數據網路區域 (Data Network)：網際網路使用者的 HTTP Request 進入 Core Switch，再經 VLAN 10 連到 A10 的 Ethernet 1/1。下方 A10 Thunder ADC 內部：Mgmt Port 連到 Control CPU，Ethernet 1/1 連到 FPGA / Data CPU，管理與數據流量分開處理。</desc>
+                <defs><linearGradient id="a10-12a-pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7e57c2"/><stop offset="1" stop-color="#311b92"/></linearGradient><linearGradient id="a10-12a-cg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22a6c4"/><stop offset="1" stop-color="#0e7490"/></linearGradient><filter id="a10-12a-sh" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#311b92" flood-opacity="0.16"/></filter><marker id="a10-12a-arr-gray" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5b6278"/></marker><marker id="a10-12a-arr-cyan" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#0891b2"/></marker><marker id="a10-12a-arr-purple" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#673ab7"/></marker><marker id="a10-12a-arr-amber" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#d97706"/></marker></defs>
+                <rect x="20" y="20" width="370" height="240" rx="16" fill="#f6f2fe" stroke="#b39ddb" stroke-width="1.5" stroke-dasharray="6 5"/>
+                <text x="40" y="46" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="13" font-weight="700" fill="#673ab7">控制網路區域 (Control Network)</text>
+                <rect x="430" y="20" width="370" height="240" rx="16" fill="#effafc" stroke="#67c5d6" stroke-width="1.5" stroke-dasharray="6 5"/>
+                <text x="450" y="46" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="13" font-weight="700" fill="#0e7490">數據網路區域 (Data Network)</text>
+                <rect x="20" y="300" width="780" height="240" rx="16" fill="#f8f9fc" stroke="#9aa0b4" stroke-width="1.5" stroke-dasharray="6 5"/>
+                <text x="40" y="326" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="13" font-weight="700" fill="#311b92">A10 Thunder ADC</text>
+                <path d="M205 114 V180" fill="none" stroke="#673ab7" stroke-width="3" stroke-linejoin="round" marker-end="url(#a10-12a-arr-purple)"/>
+                <text x="217" y="151" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#4527a0">SSH / HTTPS</text>
+                <path d="M205 232 V346" fill="none" stroke="#673ab7" stroke-width="3" stroke-linejoin="round" marker-end="url(#a10-12a-arr-purple)"/>
+                <text x="217" y="285" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#4527a0">獨立網段</text>
+                <path d="M205 390 V450" fill="none" stroke="#673ab7" stroke-width="3" stroke-linejoin="round"/>
+                <path d="M615 114 V180" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-12a-arr-cyan)"/>
+                <text x="627" y="151" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">HTTP Request</text>
+                <path d="M615 232 V346" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-12a-arr-cyan)"/>
+                <text x="627" y="285" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">VLAN 10</text>
+                <path d="M615 390 V450" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round"/>
+                <rect x="115" y="66" width="180" height="48" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/>
+                <g fill="none" stroke="#0891b2" stroke-width="1.6"><rect x="129" y="82.0" width="18" height="12" rx="2"/><path d="M138 94.0 V98.0 M133 98.0 H143"/></g>
+                <text x="217.0" y="95.0" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1e2235">管理員電腦</text>
+                <rect x="115" y="180" width="180" height="52" rx="10" fill="url(#a10-12a-pg)" filter="url(#a10-12a-sh)"/>
+                <text x="205.0" y="211.0" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">Management Switch</text>
+                <rect x="525" y="66" width="180" height="48" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/>
+                <g fill="none" stroke="#0891b2" stroke-width="1.6"><circle cx="548" cy="90.0" r="8"/><ellipse cx="548" cy="90.0" rx="3.5" ry="8"/><path d="M540 90.0 H556"/></g>
+                <text x="627.0" y="95.0" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1e2235">網際網路使用者</text>
+                <rect x="525" y="180" width="180" height="52" rx="10" fill="url(#a10-12a-pg)" filter="url(#a10-12a-sh)"/>
+                <text x="615.0" y="211.0" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">Core Switch</text>
+                <rect x="135" y="346" width="140" height="44" rx="10" fill="#fff" stroke="#673ab7" stroke-width="2"/>
+                <text x="205.0" y="373.0" text-anchor="middle" font-size="13.5" font-weight="700" fill="#311b92">Mgmt Port</text>
+                <rect x="115" y="450" width="180" height="52" rx="10" fill="url(#a10-12a-pg)" filter="url(#a10-12a-sh)"/>
+                <text x="205.0" y="481.0" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">Control CPU</text>
+                <rect x="545" y="346" width="140" height="44" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/>
+                <text x="615.0" y="373.0" text-anchor="middle" font-size="13.5" font-weight="700" fill="#0e7490">Ethernet 1/1</text>
+                <rect x="525" y="450" width="180" height="52" rx="10" fill="url(#a10-12a-pg)" filter="url(#a10-12a-sh)"/>
+                <text x="615.0" y="481.0" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">FPGA / Data CPU</text>
+                <path d="M110 566 H138" fill="none" stroke="#673ab7" stroke-width="3" stroke-linejoin="round" marker-end="url(#a10-12a-arr-purple)"/>
+                <text x="146" y="570" text-anchor="start" font-size="11.5" fill="#1e2235">管理 / 控制路徑</text>
+                <path d="M290 566 H318" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-12a-arr-cyan)"/>
+                <text x="326" y="570" text-anchor="start" font-size="11.5" fill="#1e2235">數據路徑</text>
+                <rect x="430" y="559" width="22" height="14" rx="3" fill="url(#a10-12a-pg)" stroke="#311b92" stroke-width="1.5"/>
+                <text x="460" y="570" text-anchor="start" font-size="11.5" fill="#1e2235">交換器 / 處理單元</text>
+                <rect x="600" y="559" width="22" height="14" rx="3" fill="#fff" stroke="#0891b2" stroke-width="1.5"/>
+                <text x="630" y="570" text-anchor="start" font-size="11.5" fill="#1e2235">終端 / 介面</text>
+                </svg>
                 </div>
             </div>
 
@@ -288,7 +315,7 @@
             <!-- Visuals -->
             <div class="card p-8 mb-8">
                 <h3 class="text-xl font-bold text-a10blue mb-4 text-center">Trunking 與 Tagging 流程</h3>
-                <div class="mermaid mermaid-container">
+                <!-- 時序圖 (由 Mermaid 10.9.1 預先轉成靜態 SVG,套用網站配色)。原始 Mermaid 碼:
                     sequenceDiagram
                         participant Client_VLAN10 as 用戶端 (VLAN 10)
                         participant Client_VLAN20 as 伺服器 (VLAN 20)
@@ -298,17 +325,19 @@
                         Note over Switch, A10: 物理連接: Interface Ethernet 1/1 (Trunk Mode)
 
                         Client_VLAN10->>Switch: 傳送封包 (無 Tag)
-                        Note right of Switch: Switch 判斷來自 Port 1 (VLAN 10)<br/>打上 VID=10 標籤
+                        Note right of Switch: Switch 判斷來自 Port 1 (VLAN 10)打上 VID=10 標籤
                         Switch->>A10: 傳送 802.1Q Frame (VID=10)
                         
-                        Note left of A10: A10 收到 Frame<br/>檢查 VID=10<br/>剝除 Tag 交給 VE 10 處理
-                        A10-->>A10: 進行 SLB 運算或路由
+                        Note left of A10: A10 收到 Frame檢查 VID=10剝除 Tag 交給 VE 10 處理
+                        A10--&gt;>A10: 進行 SLB 運算或路由
                         
                         Client_VLAN20->>Switch: 傳送封包 (無 Tag)
-                        Note right of Switch: Switch 判斷來自 Port 5 (VLAN 20)<br/>打上 VID=20 標籤
+                        Note right of Switch: Switch 判斷來自 Port 5 (VLAN 20)打上 VID=20 標籤
                         Switch->>A10: 傳送 802.1Q Frame (VID=20)
-                        Note left of A10: A10 收到 Frame<br/>檢查 VID=20<br/>剝除 Tag 交給 VE 20 處理
-                </div>
+                        Note left of A10: A10 收到 Frame檢查 VID=20剝除 Tag 交給 VE 20 處理
+                
+                -->
+                <div style="width:100%;overflow-x:auto"><svg xmlns="http://www.w3.org/2000/svg" aria-roledescription="sequence" role="img" viewBox="-50 -10 1243 695" style="width:100%;min-width:560px;max-width:1243px;height:auto;display:block;margin:0 auto" id="seq-a10-1-2-network-2" aria-labelledby="seq-a10-1-2-network-2-title"><title id="seq-a10-1-2-network-2-title">Trunking 與 Tagging 流程</title><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="1047" y1="5" x1="1047"/><g><rect class="actor actor-top" ry="3" rx="3" name="A10" height="65" width="192" stroke="#666" fill="#eaeaea" y="0" x="951"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="1047"><tspan dy="0" x="1047">A10 Thunder (Eth 1/1)</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="559" y1="5" x1="559"/><g><rect class="actor actor-top" ry="3" rx="3" name="Switch" height="65" width="158" stroke="#666" fill="#eaeaea" y="0" x="480"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="559"><tspan dy="0" x="559">L2 Switch (Trunk)</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="315" y1="5" x1="315"/><g><rect class="actor actor-top" ry="3" rx="3" name="Client_VLAN20" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="240"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="315"><tspan dy="0" x="315">伺服器 (VLAN 20)</tspan></text></g></g><g><line stroke="#999" stroke-width="0.5px" class="200" y2="2000" x2="75" y1="5" x1="75"/><g><rect class="actor actor-top" ry="3" rx="3" name="Client_VLAN10" height="65" width="150" stroke="#666" fill="#eaeaea" y="0" x="0"/><text style="text-anchor: middle; font-size: 16px; font-weight: 700; font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif;" class="actor" alignment-baseline="central" dominant-baseline="central" y="32.5" x="75"><tspan dy="0" x="75">用戶端 (VLAN 10)</tspan></text></g></g><style>#seq-a10-1-2-network-2{font-family:'Noto Sans TC',Roboto,'Microsoft JhengHei',sans-serif;font-size:15px;fill:#1e2235;}#seq-a10-1-2-network-2 .marker{fill:#5b6278;stroke:#5b6278;}#seq-a10-1-2-network-2 .marker.cross{stroke:#5b6278;}#seq-a10-1-2-network-2 .actor{stroke:#673ab7;fill:#f3effc;}#seq-a10-1-2-network-2 text.actor&gt;tspan{fill:#311b92;stroke:none;}#seq-a10-1-2-network-2 .actor-line{stroke:#b39ddb;}#seq-a10-1-2-network-2 .messageLine0{stroke-width:1.5;stroke-dasharray:none;stroke:#5b6278;}#seq-a10-1-2-network-2 .messageLine1{stroke-width:1.5;stroke-dasharray:2,2;stroke:#5b6278;}#seq-a10-1-2-network-2 #seq-a10-1-2-network-2-arrowhead path{fill:#5b6278;stroke:#5b6278;}#seq-a10-1-2-network-2 #sequencenumber{fill:#5b6278;}#seq-a10-1-2-network-2 #crosshead path{fill:#5b6278;stroke:#5b6278;}#seq-a10-1-2-network-2 .messageText{fill:#1e2235;stroke:none;}#seq-a10-1-2-network-2 .note{stroke:#f5b041;fill:#fff8e1;}#seq-a10-1-2-network-2 .noteText,#seq-a10-1-2-network-2 .noteText&gt;tspan{fill:#5d4037;stroke:none;}</style><g/><defs><marker orient="auto" markerHeight="12" markerWidth="12" markerUnits="userSpaceOnUse" refY="5" refX="7.9" id="seq-a10-1-2-network-2-arrowhead"><path d="M 0 0 L 10 5 L 0 10 z"/></marker></defs><g><rect class="note" ry="0" rx="0" height="48" width="578" stroke="#666" fill="#EDF2AE" y="75" x="514"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="81" x="803"><tspan x="803">物理連接: Interface Ethernet 1/1 (Trunk Mode)</tspan></text></g><g><rect class="note" ry="0" rx="0" height="48" width="387" stroke="#666" fill="#EDF2AE" y="191" x="604"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="197" x="798"><tspan x="798">Switch 判斷來自 Port 1 (VLAN 10)打上 VID=10 標籤</tspan></text></g><g><rect class="note" ry="0" rx="0" height="48" width="402" stroke="#666" fill="#EDF2AE" y="307" x="600"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="313" x="801"><tspan x="801">A10 收到 Frame檢查 VID=10剝除 Tag 交給 VE 10 處理</tspan></text></g><g><rect class="note" ry="0" rx="0" height="48" width="387" stroke="#666" fill="#EDF2AE" y="511" x="604"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="517" x="798"><tspan x="798">Switch 判斷來自 Port 5 (VLAN 20)打上 VID=20 標籤</tspan></text></g><g><rect class="note" ry="0" rx="0" height="48" width="402" stroke="#666" fill="#EDF2AE" y="627" x="600"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="noteText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="633" x="801"><tspan x="801">A10 收到 Frame檢查 VID=20剝除 Tag 交給 VE 20 處理</tspan></text></g><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="138" x="316">傳送封包 (無 Tag)</text><line style="fill: none;" marker-end="url(#seq-a10-1-2-network-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="181" x2="555" y1="181" x1="76"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="254" x="802">傳送 802.1Q Frame (VID=10)</text><line style="fill: none;" marker-end="url(#seq-a10-1-2-network-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="297" x2="1043" y1="297" x1="560"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="370" x="1048">進行 SLB 運算或路由</text><path style="stroke-dasharray: 3, 3; fill: none;" marker-end="url(#seq-a10-1-2-network-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine1" d="M 1048,413 C 1108,403 1108,443 1048,433"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="458" x="436">傳送封包 (無 Tag)</text><line style="fill: none;" marker-end="url(#seq-a10-1-2-network-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="501" x2="555" y1="501" x1="316"/><text style="font-family: &quot;Noto Sans TC&quot;, Roboto, &quot;Microsoft JhengHei&quot;, sans-serif; font-size: 16px; font-weight: 400;" dy="1em" class="messageText" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" y="574" x="802">傳送 802.1Q Frame (VID=20)</text><line style="fill: none;" marker-end="url(#seq-a10-1-2-network-2-arrowhead)" stroke="none" stroke-width="2" class="messageLine0" y2="617" x2="1043" y1="617" x1="560"/></svg></div>
             </div>
 
             <!-- Use Case -->
@@ -368,28 +397,42 @@ vlan 200
             <!-- Visuals -->
             <div class="card p-8 mb-8">
                 <h3 class="text-xl font-bold text-a10blue mb-4 text-center">LACP Link Aggregation 架構</h3>
-                <div class="mermaid mermaid-container">
-                    graph TB
-                    subgraph Switch_Device ["Core Switch"]
-                        SW_P1["Port 1"]
-                        SW_P2["Port 2"]
-                    end
-
-                    subgraph A10_Device ["A10 Thunder ADC"]
-                        A10_E1["Ethernet 1/1"]
-                        A10_E2["Ethernet 1/2"]
-                        LogicTrunk["Interface Trunk 10 (Logic)"]
-                    end
-
-                    SW_P1 ===|"Link 1 (LACP)"| A10_E1
-                    SW_P2 ===|"Link 2 (LACP)"| A10_E2
-                    
-                    A10_E1 -.-> LogicTrunk
-                    A10_E2 -.-> LogicTrunk
-
-                    note["流量負載平衡 (Load Balancing) 基於 Hash 演算法<br>(Source IP, Dest IP, Port 等)"]
-
-                    style LogicTrunk fill:#e6f3ff,stroke:#002F6C,stroke-width:2px,stroke-dasharray: 5 5
+                <!-- 架構圖 (手繪 SVG)：上方 Core Switch、下方 A10，兩條 LACP 實體連結歸入 Interface Trunk 10 -->
+                <div style="width:100%;overflow-x:auto">
+                <svg viewBox="0 0 760 566" role="img" aria-labelledby="a10-12b-title a10-12b-desc" style="width:100%;min-width:560px;max-width:760px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+                <title id="a10-12b-title">LACP Link Aggregation 架構</title>
+                <desc id="a10-12b-desc">上方 Core Switch 的 Port 1 與 Port 2，分別以 Link 1 (LACP) 與 Link 2 (LACP) 連到下方 A10 Thunder ADC 的 Ethernet 1/1 與 Ethernet 1/2；兩個實體介面再歸入邏輯介面 Interface Trunk 10 (Logic)。說明：流量負載平衡 (Load Balancing) 基於 Hash 演算法 (Source IP, Dest IP, Port 等)。</desc>
+                <defs><linearGradient id="a10-12b-pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7e57c2"/><stop offset="1" stop-color="#311b92"/></linearGradient><linearGradient id="a10-12b-cg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22a6c4"/><stop offset="1" stop-color="#0e7490"/></linearGradient><filter id="a10-12b-sh" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#311b92" flood-opacity="0.16"/></filter><marker id="a10-12b-arr-gray" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5b6278"/></marker><marker id="a10-12b-arr-cyan" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#0891b2"/></marker><marker id="a10-12b-arr-purple" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#673ab7"/></marker><marker id="a10-12b-arr-amber" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#d97706"/></marker></defs>
+                <rect x="110" y="20" width="540" height="110" rx="16" fill="#f6f2fe" stroke="#b39ddb" stroke-width="1.5" stroke-dasharray="6 5"/>
+                <text x="130" y="46" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="13" font-weight="700" fill="#673ab7">Core Switch</text>
+                <rect x="110" y="218" width="540" height="210" rx="16" fill="#f6f2fe" stroke="#b39ddb" stroke-width="1.5" stroke-dasharray="6 5"/>
+                <text x="130" y="244" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="13" font-weight="700" fill="#673ab7">A10 Thunder ADC</text>
+                <path d="M270 108 V258" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round"/>
+                <path d="M490 108 V258" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round"/>
+                <text x="258" y="188" text-anchor="end" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#0e7490">Link 1 (LACP)</text>
+                <text x="502" y="188" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="12" font-weight="700" fill="#0e7490">Link 2 (LACP)</text>
+                <path d="M270 306 V356" fill="none" stroke="#673ab7" stroke-width="2.2" stroke-linejoin="round" stroke-dasharray="6 4" marker-end="url(#a10-12b-arr-purple)"/>
+                <path d="M490 306 V356" fill="none" stroke="#673ab7" stroke-width="2.2" stroke-linejoin="round" stroke-dasharray="6 4" marker-end="url(#a10-12b-arr-purple)"/>
+                <rect x="190" y="62" width="160" height="46" rx="10" fill="url(#a10-12b-pg)" filter="url(#a10-12b-sh)"/>
+                <text x="270.0" y="90.0" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">Port 1</text>
+                <rect x="410" y="62" width="160" height="46" rx="10" fill="url(#a10-12b-pg)" filter="url(#a10-12b-sh)"/>
+                <text x="490.0" y="90.0" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">Port 2</text>
+                <rect x="190" y="258" width="160" height="48" rx="10" fill="url(#a10-12b-pg)" filter="url(#a10-12b-sh)"/>
+                <text x="270.0" y="287.0" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">Ethernet 1/1</text>
+                <rect x="410" y="258" width="160" height="48" rx="10" fill="url(#a10-12b-pg)" filter="url(#a10-12b-sh)"/>
+                <text x="490.0" y="287.0" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">Ethernet 1/2</text>
+                <rect x="220" y="356" width="320" height="46" rx="23" fill="#fff" stroke="#673ab7" stroke-width="2" stroke-dasharray="6 4"/>
+                <text x="380.0" y="384.0" text-anchor="middle" font-size="13.5" font-weight="700" fill="#311b92">Interface Trunk 10 (Logic)</text>
+                <rect x="110" y="452" width="540" height="58" rx="10" fill="#fff8e1" stroke="#f5b041" stroke-width="1.5"/>
+                <text x="380" y="476" text-anchor="middle" font-size="13" font-weight="700" fill="#5d4037">流量負載平衡 (Load Balancing) 基於 Hash 演算法</text>
+                <text x="380" y="497" text-anchor="middle" font-size="11.5" font-family="'JetBrains Mono', Consolas, monospace" fill="#5d4037">(Source IP, Dest IP, Port 等)</text>
+                <path d="M90 544 H118" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round"/>
+                <text x="126" y="548" text-anchor="start" font-size="11.5" fill="#1e2235">實體連結 (LACP)</text>
+                <path d="M270 544 H298" fill="none" stroke="#673ab7" stroke-width="3" stroke-linejoin="round" stroke-dasharray="6 4" marker-end="url(#a10-12b-arr-purple)"/>
+                <text x="306" y="548" text-anchor="start" font-size="11.5" fill="#1e2235">歸入邏輯 Trunk</text>
+                <rect x="450" y="537" width="22" height="14" rx="7" fill="#fff" stroke="#673ab7" stroke-width="1.5" stroke-dasharray="4 3"/>
+                <text x="480" y="548" text-anchor="start" font-size="11.5" fill="#1e2235">邏輯介面 (Trunk)</text>
+                </svg>
                 </div>
             </div>
 
@@ -475,27 +518,49 @@ interface trunk 20
             <!-- Visuals -->
             <div class="card p-8 mb-8">
                 <h3 class="text-xl font-bold text-a10blue mb-4 text-center">Static 與 OSPF 部署架構</h3>
-                <div class="mermaid mermaid-container">
-                    graph TD
-                    Internet(("網際網路"))
-                    FW["防火牆 Firewall"]
-                    CoreSw["Core Switch / Router"]
-                    A10["A10 Thunder ADC"]
-                    ServerFarm["後端伺服器群"]
-
-                    Internet -->|"Default Route"| FW
-                    FW -->|"Static Route"| CoreSw
-                    
-                    subgraph Dynamic_Routing_Domain ["OSPF Area 0"]
-                        CoreSw <-->|"OSPF Hello / LSA"| A10
-                    end
-                    
-                    A10 -->|"Direct Connect"| ServerFarm
-
-                    note1["A10: 0.0.0.0/0 指向 CoreSw (Static)"]
-                    note2["A10: 發布 VIP 網段給 CoreSw (OSPF Redistribution)"]
-
-                    style Dynamic_Routing_Domain fill:#fffbe6,stroke:#FF6600,stroke-width:2px,stroke-dasharray: 5 5
+                <!-- 架構圖 (手繪 SVG)：由上而下 Internet → Firewall → Core Switch ⇄ A10 (OSPF Area 0) → 伺服器群，右側為 A10 路由設定說明 -->
+                <div style="width:100%;overflow-x:auto">
+                <svg viewBox="0 0 800 624" role="img" aria-labelledby="a10-12c-title a10-12c-desc" style="width:100%;min-width:560px;max-width:800px;height:auto;display:block;margin:0 auto" font-family="Roboto, 'Noto Sans TC', 'Microsoft JhengHei', sans-serif">
+                <title id="a10-12c-title">Static 與 OSPF 部署架構</title>
+                <desc id="a10-12c-desc">由上而下：防火牆 Firewall 以 Default Route 指向網際網路，並以 Static Route 指向內部的 Core Switch / Router。Core Switch / Router 與 A10 Thunder ADC 位於 OSPF Area 0，彼此雙向交換 OSPF Hello / LSA。A10 以 Direct Connect 直連後端伺服器群。說明一：A10 的 0.0.0.0/0 指向 CoreSw (Static)。說明二：A10 發布 VIP 網段給 CoreSw (OSPF Redistribution)。</desc>
+                <defs><linearGradient id="a10-12c-pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7e57c2"/><stop offset="1" stop-color="#311b92"/></linearGradient><linearGradient id="a10-12c-cg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22a6c4"/><stop offset="1" stop-color="#0e7490"/></linearGradient><filter id="a10-12c-sh" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#311b92" flood-opacity="0.16"/></filter><marker id="a10-12c-arr-gray" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5b6278"/></marker><marker id="a10-12c-arr-cyan" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#0891b2"/></marker><marker id="a10-12c-arr-purple" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#673ab7"/></marker><marker id="a10-12c-arr-amber" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#d97706"/></marker></defs>
+                <g fill="#eef2ff" stroke="#9fa8da" stroke-width="2"><circle cx="262" cy="62" r="26"/><circle cx="300" cy="48" r="30"/><circle cx="338" cy="62" r="26"/><rect x="250" y="56" width="100" height="34" rx="17"/></g>
+                <g fill="#eef2ff"><circle cx="262" cy="62" r="26"/><circle cx="300" cy="48" r="30"/><circle cx="338" cy="62" r="26"/><rect x="250" y="56" width="100" height="34" rx="17"/></g>
+                <text x="300" y="70" text-anchor="middle" font-size="14" font-weight="700" fill="#283593">網際網路</text>
+                <rect x="150" y="228" width="300" height="220" rx="16" fill="#fffbeb" stroke="#f5b041" stroke-width="1.5" stroke-dasharray="6 5"/>
+                <text x="434" y="254" text-anchor="end" font-family="'JetBrains Mono', Consolas, monospace" font-size="13" font-weight="700" fill="#b45309">OSPF Area 0</text>
+                <path d="M300 140 V92" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-12c-arr-cyan)"/>
+                <text x="312" y="120" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">Default Route</text>
+                <path d="M300 188 V268" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-12c-arr-cyan)"/>
+                <text x="312" y="212" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">Static Route</text>
+                <path d="M300 316 V376" fill="none" stroke="#673ab7" stroke-width="3" stroke-linejoin="round" marker-end="url(#a10-12c-arr-purple)" marker-start="url(#a10-12c-arr-purple)"/>
+                <text x="312" y="350" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#4527a0">OSPF Hello / LSA</text>
+                <path d="M300 428 V508" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-12c-arr-cyan)"/>
+                <text x="312" y="478" text-anchor="start" font-family="'JetBrains Mono', Consolas, monospace" font-size="11" font-weight="700" fill="#0e7490">Direct Connect</text>
+                <rect x="200" y="140" width="200" height="48" rx="10" fill="url(#a10-12c-pg)" filter="url(#a10-12c-sh)"/>
+                <text x="300.0" y="169.0" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">防火牆 Firewall</text>
+                <rect x="200" y="268" width="200" height="48" rx="10" fill="url(#a10-12c-pg)" filter="url(#a10-12c-sh)"/>
+                <text x="300.0" y="297.0" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">Core Switch / Router</text>
+                <rect x="200" y="376" width="200" height="52" rx="10" fill="url(#a10-12c-pg)" filter="url(#a10-12c-sh)"/>
+                <text x="300.0" y="407.0" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">A10 Thunder ADC</text>
+                <rect x="200" y="508" width="200" height="50" rx="10" fill="#fff" stroke="#0891b2" stroke-width="2"/>
+                <g fill="none" stroke="#0891b2" stroke-width="1.6"><rect x="215" y="524.0" width="16" height="7" rx="1.5"/><rect x="215" y="534.0" width="16" height="7" rx="1.5"/></g><g fill="#0891b2"><circle cx="219" cy="527.5" r="1.2"/><circle cx="219" cy="537.5" r="1.2"/></g>
+                <text x="312.0" y="538.0" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1e2235">後端伺服器群</text>
+                <rect x="480" y="300" width="290" height="54" rx="10" fill="#fff8e1" stroke="#f5b041" stroke-width="1.5"/>
+                <text x="625" y="323" text-anchor="middle" font-size="12.5" font-weight="700" fill="#5d4037">A10: 0.0.0.0/0 指向 CoreSw</text>
+                <text x="625" y="342" text-anchor="middle" font-size="11.5" font-family="'JetBrains Mono', Consolas, monospace" fill="#5d4037">(Static)</text>
+                <rect x="480" y="372" width="290" height="54" rx="10" fill="#fff8e1" stroke="#f5b041" stroke-width="1.5"/>
+                <text x="625" y="395" text-anchor="middle" font-size="12.5" font-weight="700" fill="#5d4037">A10: 發布 VIP 網段給 CoreSw</text>
+                <text x="625" y="414" text-anchor="middle" font-size="11.5" font-family="'JetBrains Mono', Consolas, monospace" fill="#5d4037">(OSPF Redistribution)</text>
+                <path d="M70 600 H98" fill="none" stroke="#0891b2" stroke-width="4" stroke-linejoin="round" marker-end="url(#a10-12c-arr-cyan)"/>
+                <text x="106" y="604" text-anchor="start" font-size="11.5" fill="#1e2235">路由 / 轉送路徑</text>
+                <path d="M240 600 H268" fill="none" stroke="#673ab7" stroke-width="3" stroke-linejoin="round" marker-end="url(#a10-12c-arr-purple)"/>
+                <text x="276" y="604" text-anchor="start" font-size="11.5" fill="#1e2235">OSPF 雙向交換</text>
+                <rect x="410" y="593" width="22" height="14" rx="3" fill="#fffbeb" stroke="#f5b041" stroke-width="1.5" stroke-dasharray="4 3"/>
+                <text x="440" y="604" text-anchor="start" font-size="11.5" fill="#1e2235">OSPF Area 0</text>
+                <rect x="570" y="593" width="22" height="14" rx="3" fill="#fff8e1" stroke="#f5b041" stroke-width="1.5"/>
+                <text x="600" y="604" text-anchor="start" font-size="11.5" fill="#1e2235">A10 路由設定說明</text>
+                </svg>
                 </div>
             </div>
 
@@ -529,7 +594,7 @@ interface trunk 20
     <!-- Footer -->
     <footer>
         <div class="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-center items-center gap-4">
-            <p>Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 1.0</p>
+            <p>Planning & Design by Timmy (timmyc@hauman.com.tw) | 豪勉科技 Hauman Technologies Corporation | Ver 2.0</p>
             <div class="text-a10orange text-xl">
                 <i class="fa-solid fa-bolt"></i>
             </div>

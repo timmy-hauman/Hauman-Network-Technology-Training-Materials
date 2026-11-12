@@ -26,6 +26,11 @@
         bar.style.marginBottom = cs.paddingTop === '0px' ? '0' : cs.paddingTop;
         bar.style.alignSelf = 'stretch';
         bar.style.width = 'auto';
+        // body 是橫向 flex (例如整頁置中的黑板頁) 時,導覽列獨佔一整行,內容換到下一行
+        if (cs.display.indexOf('flex') !== -1 && cs.flexDirection.indexOf('row') === 0) {
+            bar.style.flex = '0 0 calc(100% + ' + cs.paddingLeft + ' + ' + cs.paddingRight + ')';
+            body.style.flexWrap = 'wrap';
+        }
         body.insertBefore(bar, body.firstChild);
     }
 
@@ -44,10 +49,18 @@
         return !!title && isLightText(title);
     }
 
+    // 深色設計頁面 (body.hm-keep-dark) 的頁首若沒有自己的底色 (例如寫在黑板上的標題),就不換成橫幅
+    function hasOwnBackground(el) {
+        var c = getComputedStyle(el);
+        return c.backgroundImage !== 'none' || !/rgba\(0, 0, 0, 0\)|transparent/.test(c.backgroundColor);
+    }
+
     function markHero() {
         if (document.querySelector('.hm-hero')) return;
+        var keepDark = document.body.classList.contains('hm-keep-dark');
         var candidates = document.querySelectorAll('body header, body > nav');
         for (var i = 0; i < candidates.length; i++) {
+            if (keepDark && !hasOwnBackground(candidates[i])) continue;
             if (isDarkBanner(candidates[i])) {
                 candidates[i].classList.add('hm-hero');
                 return;
